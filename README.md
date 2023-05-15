@@ -1,3 +1,3 @@
 # flock-of-postcards
 
-Click to open the [postcards.html](postcards.html) file.
+Download the postcards.html file and view it in your local browser.
