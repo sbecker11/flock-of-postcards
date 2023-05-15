@@ -1,0 +1,112 @@
+
+    <!DOCTYPE html>
+    <html>
+    <head>
+        <title>postcards Rendering</title>
+        <style>
+            body {
+                background-color: black;
+                margin: 0;
+                padding: 0;
+                overflow: hidden;
+            }
+            #container {
+                display: grid;
+                grid-template-columns: repeat(2, 1fr);
+                height: 100vh;
+                width: 100vw;
+            }
+            #canvas-container {
+                overflow-y: scroll;
+                position: relative;
+                display: flex;
+                justify-content: center;
+            }
+            #canvas {
+                position: relative;
+                top: 0;
+                left: 0;
+                width: 100%;
+                height: 100%;
+                border: 1px solid black;
+            }
+            .postcard {
+                position: absolute;
+                border: 3px solid white;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                overflow: hidden;
+            }
+            .postcard img {
+                width: 100%;
+                height: 100%;
+                object-fit: cover;
+            }
+            #fixed-content {
+                background-color: darkgray;
+                color: white;
+                padding: 20px;
+                height: 100%;
+                overflow: auto;
+            }
+        </style>
+    </head>
+    <body>
+        <div id="container">
+            <div id="canvas-container">
+                <div id="canvas"></div>
+            </div>
+            <div id="fixed-content">
+                <!-- Your fixed webpage content goes here -->
+                <h1>Fixed Content</h1>
+                <p>This is the fixed content in the right column.</p>
+            </div>
+        </div>
+        <script>
+            var isDragging = false;
+            var startClientY;
+
+            function handleMouseDown(event) {
+                isDragging = true;
+                startClientY = event.clientY;
+            }
+
+            function handleMouseUp() {
+                isDragging = false;
+            }
+
+            function handleMouseMove(event) {
+                if (isDragging) {
+                    var deltaY = event.clientY - startClientY;
+                    document.getElementById("canvas").scrollTop -= deltaY;
+                    startClientY = event.clientY;
+                }
+            }
+
+            window.onload = function() {
+                var canvas = document.getElementById("canvas");
+                var postcards = [{"width": 223, "height": 349, "x": -33.58056500373616, "y": 71.3474528493766}, {"width": 399, "height": 209, "x": -19.318800481703477, "y": 360.1146255040667}, {"width": 232, "height": 260, "x": -119.4197904627321, "y": 507.4529968164849}, {"width": 263, "height": 394, "x": -14.369421560981957, "y": 732.9037711284226}, {"width": 203, "height": 268, "x": 141.0480635345628, "y": 1051.9088783107452}, {"width": 368, "height": 341, "x": -84.75390100006595, "y": 1340.516958223416}, {"width": 358, "height": 344, "x": 183.96053484144252, "y": 1542.1632793900565}, {"width": 319, "height": 331, "x": -231.4426617045499, "y": 1923.003361171868}, {"width": 210, "height": 281, "x": 224.97323602209875, "y": 2230.212947648849}, {"width": 347, "height": 367, "x": -14.591958071356556, "y": 2525.821667554763}, {"width": 212, "height": 205, "x": 152.6974492969959, "y": 2925.0429301774375}, {"width": 209, "height": 241, "x": -60.36362185512613, "y": 3040.553539147314}, {"width": 300, "height": 207, "x": -32.2434870004946, "y": 3219.407915588857}, {"width": 354, "height": 375, "x": -37.305123751089035, "y": 3538.805971638311}, {"width": 332, "height": 309, "x": 222.1385457005726, "y": 3835.5869152290766}, {"width": 222, "height": 215, "x": -31.75935298664127, "y": 4093.659108404171}, {"width": 384, "height": 312, "x": -38.45005001153741, "y": 4332.243417817364}, {"width": 337, "height": 293, "x": 99.07499019106612, "y": 4521.763358261025}, {"width": 222, "height": 244, "x": 98.43070962463332, "y": 4953.637066709606}, {"width": 267, "height": 297, "x": -45.598431443438116, "y": 5058.427293253107}, {"width": 323, "height": 227, "x": -157.5384773441136, "y": 5368.913518376141}, {"width": 344, "height": 301, "x": -41.45002498050888, "y": 5528.718732019408}, {"width": 308, "height": 240, "x": 51.215742671071716, "y": 5763.987328563833}, {"width": 267, "height": 292, "x": -143.63994064962446, "y": 6054.2756270680475}, {"width": 263, "height": 329, "x": 23.73392724143294, "y": 6305.294684789871}, {"width": 279, "height": 210, "x": 39.38235572244814, "y": 6566.670602946529}, {"width": 358, "height": 314, "x": -74.1293449643927, "y": 6712.9796583563475}, {"width": 359, "height": 245, "x": -18.170937883492222, "y": 7063.103314735051}, {"width": 399, "height": 320, "x": -180.08229313197407, "y": 7353.966603518287}, {"width": 324, "height": 281, "x": 113.58451403540097, "y": 7606.085705717183}, {"width": 222, "height": 366, "x": -216.41093546449576, "y": 7837.08105180667}, {"width": 364, "height": 387, "x": 28.634253102038485, "y": 8233.963164356479}, {"width": 380, "height": 220, "x": 165.75985797729695, "y": 8543.439569580198}, {"width": 390, "height": 322, "x": -29.29485354092445, "y": 8705.171917576346}, {"width": 340, "height": 244, "x": -72.24047003931614, "y": 9070.44442161285}, {"width": 331, "height": 296, "x": 84.14258299075695, "y": 9241.957367556408}, {"width": 330, "height": 203, "x": 111.78406331745666, "y": 9553.141318330094}, {"width": 216, "height": 344, "x": -62.39447387606866, "y": 9749.393681614347}, {"width": 247, "height": 321, "x": -184.73549799983329, "y": 10009.865277560111}, {"width": 379, "height": 373, "x": -65.21671956578996, "y": 10374.681805238213}, {"width": 294, "height": 257, "x": 56.11473802150317, "y": 10640.179545846415}, {"width": 336, "height": 255, "x": -0.0803936850594582, "y": 10907.308709575074}, {"width": 299, "height": 399, "x": -187.18629124670173, "y": 11175.283304244917}, {"width": 358, "height": 214, "x": 32.32445368292897, "y": 11540.286931133625}, {"width": 332, "height": 262, "x": -18.273476241002275, "y": 11744.9318456373}, {"width": 200, "height": 299, "x": 79.0072381710562, "y": 11889.598688001026}, {"width": 202, "height": 335, "x": -7.183573553690264, "y": 12209.11464883109}, {"width": 332, "height": 368, "x": 79.68034518067518, "y": 12488.906430071205}, {"width": 207, "height": 253, "x": 73.24420372119876, "y": 12895.81846392423}, {"width": 357, "height": 294, "x": 54.69714480620428, "y": 13168.042302449816}, {"width": 232, "height": 399, "x": 35.85913293742978, "y": 13438.220739748247}, {"width": 367, "height": 368, "x": -21.83094390212188, "y": 13731.421140923829}, {"width": 226, "height": 313, "x": 68.32550534263238, "y": 14086.392855087457}, {"width": 301, "height": 319, "x": -7.062646798435483, "y": 14377.674819648404}, {"width": 373, "height": 342, "x": -35.69644335032407, "y": 14732.681428235395}, {"width": 391, "height": 219, "x": 96.15127205064252, "y": 14935.665776927326}, {"width": 356, "height": 279, "x": -119.35619420562196, "y": 15128.930465094536}, {"width": 257, "height": 224, "x": 21.442192365511673, "y": 15464.812542112388}, {"width": 306, "height": 382, "x": 100.2775754462732, "y": 15628.292579241677}, {"width": 366, "height": 274, "x": 18.228770663694522, "y": 16021.954016349571}, {"width": 303, "height": 302, "x": -202.69796659442244, "y": 16202.280003024114}, {"width": 244, "height": 244, "x": -80.8665484221266, "y": 16475.860376141332}, {"width": 363, "height": 383, "x": 106.43213406918812, "y": 16711.50104014579}, {"width": 375, "height": 346, "x": -124.92907523760817, "y": 16985.89599870685}, {"width": 384, "height": 349, "x": 171.3734410627883, "y": 17477.438350491924}, {"width": 271, "height": 357, "x": -37.637263023331094, "y": 17793.57631795514}, {"width": 308, "height": 348, "x": -22.063897464832703, "y": 18083.456582141418}, {"width": 248, "height": 211, "x": 36.284556254886255, "y": 18387.589163061974}, {"width": 263, "height": 240, "x": -94.9820009633795, "y": 18549.93991653769}, {"width": 246, "height": 318, "x": 124.68608284866446, "y": 18793.797281638184}, {"width": 291, "height": 222, "x": -131.2748627872023, "y": 19006.854792461203}, {"width": 296, "height": 234, "x": 32.32594870016538, "y": 19265.263026793084}, {"width": 245, "height": 331, "x": 29.50736686940528, "y": 19375.927474775082}, {"width": 329, "height": 351, "x": 162.84533451426054, "y": 19783.546523474834}, {"width": 201, "height": 267, "x": 109.6571438409982, "y": 20180.095492865337}, {"width": 209, "height": 205, "x": 138.57805881831928, "y": 20302.663875051927}, {"width": 230, "height": 394, "x": 41.66075571930444, "y": 20535.270814982694}, {"width": 342, "height": 258, "x": -115.84643583534408, "y": 20850.802946128486}, {"width": 338, "height": 367, "x": 58.80091724560192, "y": 21104.45359258281}, {"width": 293, "height": 213, "x": -180.54206512340468, "y": 21504.233021384192}, {"width": 231, "height": 209, "x": -36.87625905377933, "y": 21713.572096989756}, {"width": 287, "height": 258, "x": 93.13863904151746, "y": 21878.010007510333}, {"width": 292, "height": 251, "x": 54.731425983595, "y": 22090.262392522112}, {"width": 366, "height": 325, "x": -23.92819858744488, "y": 22303.623163760218}, {"width": 305, "height": 328, "x": -72.19744472537, "y": 22670.075093494703}, {"width": 280, "height": 228, "x": 65.72863132475997, "y": 22925.173836740956}, {"width": 226, "height": 206, "x": -2.1701640853427073, "y": 23150.713789684927}, {"width": 201, "height": 351, "x": -30.99003278056731, "y": 23360.17821806618}, {"width": 332, "height": 232, "x": 95.14605016909856, "y": 23634.104764944314}, {"width": 322, "height": 322, "x": -9.602506245364218, "y": 23784.59286117859}, {"width": 294, "height": 249, "x": -53.48783502169317, "y": 24170.092395166786}, {"width": 324, "height": 268, "x": -42.128145406736, "y": 24429.78890636363}, {"width": 287, "height": 351, "x": -79.94767673096442, "y": 24616.898261461312}, {"width": 354, "height": 372, "x": 31.959154869489353, "y": 24928.136831088334}, {"width": 225, "height": 302, "x": 74.462969519543, "y": 25320.261840149764}, {"width": 270, "height": 321, "x": 62.625234026251654, "y": 25561.097444775613}, {"width": 237, "height": 256, "x": 18.301978198025708, "y": 25773.903254737364}, {"width": 274, "height": 262, "x": -148.19002999245498, "y": 26110.389405257367}, {"width": 355, "height": 338, "x": -22.641373850302017, "y": 26329.27329586137}, {"width": 380, "height": 356, "x": 105.92318376398524, "y": 26660.20397705454}];
+
+                for (var i = 0; i < postcards.length; i++) {
+                    var postcard = postcards[i];
+                    var div = document.createElement("div");
+                    div.className = "postcard";
+                    div.style.width = postcard.width + "px";
+                    div.style.height = postcard.height + "px";
+                    div.style.left = (Math.round(postcard.x) + postcard.width / 2) + "px";
+                    div.style.top = (Math.round(postcard.y) - postcard.height / 2) + "px";
+                    var img = document.createElement("img");
+                    img.src = "https://picsum.photos/" + postcard.width + "/" + postcard.height;
+                    div.appendChild(img);
+                    canvas.appendChild(div);
+                }
+
+                canvas.addEventListener("mousedown", handleMouseDown);
+                document.addEventListener("mouseup", handleMouseUp);
+                document.addEventListener("mousemove", handleMouseMove);
+            };
+        </script>
+    </body>
+    </html>
+    

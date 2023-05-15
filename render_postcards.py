@@ -1,25 +1,25 @@
 # """
 # generate_html_page function
 
-# Render a list of rectangles on an HTML page 
+# Render a list of postcards on an HTML page 
 # using JavaScript.
 
-# Each rectangle is a python dictionary with 
+# Each postcard is a python dictionary with 
 # integer properties width, height, x, and y
 
-# Rectangles are positioned vertically along the y 
+# postcards are positioned vertically along the y 
 # axis starting at the top edge of the canvas 
 # with gaps of gapHeight without overlapping. 
 
 # Once vertical centers are defined, offset both 
-# x and y coordinates of rectangle centers with 
-# maxOffset so some rectangles  may partially 
+# x and y coordinates of postcard centers with 
+# maxOffset so some postcards  may partially 
 # overlap its neighbors.
 
 # Render the rounded x and y center coordinates
-# at the center of each rectangle
+# at the center of each postcard
 
-# Fill each rectangle with an img with url of
+# Fill each postcard with an img with url of
 # the form https://picsum.photos/{width}/{height}
 # Give the html page a black background and add 
 # a 3 pixel white border around each image.
@@ -28,15 +28,15 @@
 
 # allow vertical scrolling on vertical mouse drag
 #
-# x coordinates of rectangle centers should be near the center of full-screen width.
+# x coordinates of postcard centers should be near the center of full-screen width.
 
-def generate_one_column_html_page(rectangles):
-    rectangles_str = str(rectangles).replace("'", '"')
+def generate_one_column_html_page(postcards):
+    postcards_str = str(postcards).replace("'", '"')
     html = """
     <!DOCTYPE html>
     <html>
     <head>
-        <title>Rectangles Rendering</title>
+        <title>postcards Rendering</title>
         <style>
             body {{
                 background-color: black;
@@ -53,7 +53,7 @@ def generate_one_column_html_page(rectangles):
                 border: 1px solid black;
                 overflow-y: scroll;
             }}
-            .rectangle {{
+            .postcard {{
                 position: absolute;
                 border: 3px solid white;
                 display: flex;
@@ -61,7 +61,7 @@ def generate_one_column_html_page(rectangles):
                 justify-content: center;
                 overflow: hidden;
             }}
-            .rectangle img {{
+            .postcard img {{
                 width: 100%;
                 height: 100%;
                 object-fit: cover;
@@ -93,18 +93,18 @@ def generate_one_column_html_page(rectangles):
 
             window.onload = function() {{
                 var canvas = document.getElementById("canvas");
-                var rectangles = {rectangles};
+                var postcards = {postcards};
 
-                for (var i = 0; i < rectangles.length; i++) {{
-                    var rectangle = rectangles[i];
+                for (var i = 0; i < postcards.length; i++) {{
+                    var postcard = postcards[i];
                     var div = document.createElement("div");
-                    div.className = "rectangle";
-                    div.style.width = rectangle.width + "px";
-                    div.style.height = rectangle.height + "px";
-                    div.style.left = ((window.innerWidth / 2) + Math.round(rectangle.x) - rectangle.width / 2) + "px";
-                    div.style.top = (Math.round(rectangle.y) - rectangle.height / 2) + "px";
+                    div.className = "postcard";
+                    div.style.width = postcard.width + "px";
+                    div.style.height = postcard.height + "px";
+                    div.style.left = ((window.innerWidth / 2) + Math.round(postcard.x) - postcard.width / 2) + "px";
+                    div.style.top = (Math.round(postcard.y) - postcard.height / 2) + "px";
                     var img = document.createElement("img");
-                    img.src = "https://picsum.photos/" + rectangle.width + "/" + rectangle.height;
+                    img.src = "https://picsum.photos/" + postcard.width + "/" + postcard.height;
                     div.appendChild(img);
                     canvas.appendChild(div);
                 }}
@@ -116,7 +116,7 @@ def generate_one_column_html_page(rectangles):
         </script>
     </body>
     </html>
-    """.format(rectangles=rectangles_str)
+    """.format(postcards=postcards_str)
 
     return html
 
@@ -129,13 +129,13 @@ def generate_one_column_html_page(rectangles):
 # Right side vertical scollbar automatically shown when
 # the height of static content exceeds the viewport height.
 
-def generate_two_column_html_page(rectangles):
-    rectangles_str = str(rectangles).replace("'", '"')
+def generate_two_column_html_page(postcards):
+    postcards_str = str(postcards).replace("'", '"')
     html = """
     <!DOCTYPE html>
     <html>
     <head>
-        <title>Rectangles Rendering</title>
+        <title>postcards Rendering</title>
         <style>
             body {{
                 background-color: black;
@@ -163,7 +163,7 @@ def generate_two_column_html_page(rectangles):
                 height: 100%;
                 border: 1px solid black;
             }}
-            .rectangle {{
+            .postcard {{
                 position: absolute;
                 border: 3px solid white;
                 display: flex;
@@ -171,7 +171,7 @@ def generate_two_column_html_page(rectangles):
                 justify-content: center;
                 overflow: hidden;
             }}
-            .rectangle img {{
+            .postcard img {{
                 width: 100%;
                 height: 100%;
                 object-fit: cover;
@@ -219,18 +219,18 @@ def generate_two_column_html_page(rectangles):
 
             window.onload = function() {{
                 var canvas = document.getElementById("canvas");
-                var rectangles = {rectangles};
+                var postcards = {postcards};
 
-                for (var i = 0; i < rectangles.length; i++) {{
-                    var rectangle = rectangles[i];
+                for (var i = 0; i < postcards.length; i++) {{
+                    var postcard = postcards[i];
                     var div = document.createElement("div");
-                    div.className = "rectangle";
-                    div.style.width = rectangle.width + "px";
-                    div.style.height = rectangle.height + "px";
-                    div.style.left = (Math.round(rectangle.x) + rectangle.width / 2) + "px";
-                    div.style.top = (Math.round(rectangle.y) - rectangle.height / 2) + "px";
+                    div.className = "postcard";
+                    div.style.width = postcard.width + "px";
+                    div.style.height = postcard.height + "px";
+                    div.style.left = (Math.round(postcard.x) + postcard.width / 2) + "px";
+                    div.style.top = (Math.round(postcard.y) - postcard.height / 2) + "px";
                     var img = document.createElement("img");
-                    img.src = "https://picsum.photos/" + rectangle.width + "/" + rectangle.height;
+                    img.src = "https://picsum.photos/" + postcard.width + "/" + postcard.height;
                     div.appendChild(img);
                     canvas.appendChild(div);
                 }}
@@ -242,32 +242,32 @@ def generate_two_column_html_page(rectangles):
         </script>
     </body>
     </html>
-    """.format(rectangles=rectangles_str)
+    """.format(postcards=postcards_str)
 
     return html
 
 # """
-# generate_rectangles function
-# given N rectangles with independent width and height ranging  
+# generate_postcards function
+# given N postcards with independent width and height ranging  
 # from minDim to maxDim with a uniform random distribution. 
 
-# Rectangles are stacked vertically on the Y axis.  Give each 
-# rectangle center a random offset with a normal
+# postcards are stacked vertically on the Y axis.  Give each 
+# postcard center a random offset with a normal
 # distribution with 3rd stddev of maxOffset.
 
-# Certainly! Below is a Python function that generates N rectangles 
+# Certainly! Below is a Python function that generates N postcards 
 # with random dimensions and offsets as described:
 # Returns:
-#     a list of rectangles where 
-#     each rectangle is a python dictionary with 
+#     a list of postcards where 
+#     each postcard is a python dictionary with 
 #     integer properties width, height, x, and y
 # """
 
 import random
 import numpy as np
 
-def generate_rectangles(N, minDim, maxDim, maxOffsetX, maxOffsetY, gapHeight):
-    rectangles = []
+def generate_postcards(N, minDim, maxDim, maxOffsetX, maxOffsetY, gapHeight):
+    postcards = []
     y_position = 0
 
     for _ in range(N):
@@ -277,23 +277,21 @@ def generate_rectangles(N, minDim, maxDim, maxOffsetX, maxOffsetY, gapHeight):
         y = y_position + random.gauss(0, maxOffsetY)
         y_position += height + gapHeight
 
-        rectangle = {
+        postcard = {
             'width': width,
             'height': height,
             'x': x,
             'y': y
         }
-        rectangles.append(rectangle)
+        postcards.append(postcard)
 
-    return rectangles
+    return postcards
 
 
-# """ Running this code will generate an rectangles.html file that, when 
-# opened in a web browser, will display the rectangles rendered on a 
-# canvas. The canvas has a size of 500x500 pixels, and the rectangles 
-# will be positioned according to their x and y coordinates, with the 
-# center of the canvas at (250, 250). The rectangles will be represented 
-# by semi-transparent divd with random images.
+# """ 
+# Running this code will generate a postcards.html file that, when 
+# opened in a web browser, will display the postcards rendered on
+# either a two-column canvas or a single-column canvas.
 # """
 
 N = 100
@@ -302,12 +300,22 @@ maxDim = 400
 maxOffsetX = 100
 maxOffsetY = 50
 gapHeight = -25
-rectangles = generate_rectangles(N, minDim, maxDim, maxOffsetX, maxOffsetY, gapHeight)
+postcards = generate_postcards(N, minDim, maxDim, maxOffsetX, maxOffsetY, gapHeight)
+
+# Set twoColumns to True to render postcards in the left column of a two-column page
+# otherwise postcards will be rendered in a single full screen-width column.
+twoColumns = True
 
 # Generate HTML page
-html = generate_two_column_html_page(rectangles)
+html = generate_two_column_html_page(postcards) if twoColumns else generate_one_column_html_page(postcards) 
 
-# Write HTML content to a file
-with open('two_column_rectangles.html', 'w') as file:
+# Write HTML content to filename
+filename = 'postcards.html'
+with open(filename, 'w') as file:
     file.write(html)
+
+# Open the HTML file
+print(f"open {filename}")
+
+
     
