@@ -1,0 +1,25 @@
+{
+    // Use IntelliSense to learn about possible attributes.
+    // Hover to view descriptions of existing attributes.
+    // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "render_one_column_rectangles",
+            "type": "python",
+            "request": "launch",
+            "program": "render_one_column_rectangles.py",
+            "console": "integratedTerminal",
+            "justMyCode": true
+        },
+        {
+            "name": "render_two_column_rectangles",
+            "type": "python",
+            "request": "launch",
+            "program": "render_two_column_rectangles.py",
+            "console": "integratedTerminal",
+            "justMyCode": true
+        }
+
+    ]
+}
