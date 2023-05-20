@@ -90,29 +90,67 @@ def generate_one_column_html_page(postcards):
                     startClientY = event.clientY;
                 }}
             }}
-
+            
+            function showWidthValue() {{
+                var widthValueDiv = document.getElementById("width-value");
+                var widthValueP = document.createElement("p");
+                widthValueP.textContent = "window.innerWidth: " + window.innerWidth;
+                widthValuesDiv.appendChild(widthValueP);
+            }}
+            
             window.onload = function() {{
+                
+                showWidthValue()
+                
                 var canvas = document.getElementById("canvas");
                 var postcards = {postcards};
+                var col_half_width = window.innerWidth / 2;
+                
+                function positionPostcards() {{                    
+                    for (var i = 0; i < postcards.length; i++) {{
+                        var postcard = postcards[i];
 
-                for (var i = 0; i < postcards.length; i++) {{
-                    var postcard = postcards[i];
-                    var div = document.createElement("div");
-                    div.className = "postcard";
-                    div.style.width = postcard.width + "px";
-                    div.style.height = postcard.height + "px";
-                    div.style.left = ((window.innerWidth / 2) + Math.round(postcard.x) - postcard.width / 2) + "px";
-                    div.style.top = (Math.round(postcard.y) - postcard.height / 2) + "px";
-                    var img = document.createElement("img");
-                    img.src = "https://picsum.photos/" + postcard.width + "/" + postcard.height;
-                    div.appendChild(img);
-                    canvas.appendChild(div);
+                        var div = document.createElement("div");
+                        div.className = "postcard";
+                        div.style.width = postcard.width + "px";
+                        div.style.height = postcard.height + "px";
+
+                        var card_half_width = postcard.width / 2;
+                        var maxOffsetX = postcard.maxOffsetX;
+                        var offset_x = 0.0;
+                        if (col_half_width > maxOffsetX) {{
+                            offset_x = maxOffsetX; 
+                        }} else if (col_half_width >= card_half_width) {{
+                            offset_x = col_half_width - card_half_width;
+                        }}
+                        offset_x = offset_x * postcard.randX;
+
+                        div.style.left = Math.round(col_half_width + offset_x - card_half_width) + "px";
+
+                        div.style.top = (Math.round(postcard.y) - postcard.height / 2) + "px";
+                        var img = document.createElement("img");
+                        img.src = "https://picsum.photos/" + postcard.width + "/" + postcard.height;
+                        div.appendChild(img);
+                        canvas.appendChild(div);
+                    }}
                 }}
+
+                function handleResize() {{
+                    col_half_width = window.innerWidth / 2;
+                    canvas.innerHTML = ""; // Clear the canvas
+                    positionPostcards(); // Position the postcards again
+                }}
+
+                window.addEventListener("resize", handleResize);
+
+                // Initial positioning of the postcards
+                positionPostcards();
 
                 canvas.addEventListener("mousedown", handleMouseDown);
                 document.addEventListener("mouseup", handleMouseUp);
                 document.addEventListener("mousemove", handleMouseMove);
-            }};
+            }}
+
         </script>
     </body>
     </html>
@@ -194,6 +232,7 @@ def generate_two_column_html_page(postcards):
                 <!-- Your fixed webpage content goes here -->
                 <h1>Fixed Content</h1>
                 <p>This is the fixed content in the right column.</p>
+                <div id="width-value"></div>
             </div>
         </div>
         <script>
