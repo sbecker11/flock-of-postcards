@@ -30,133 +30,6 @@
 #
 # x coordinates of postcard centers should be near the center of full-screen width.
 
-def generate_one_column_html_page(postcards):
-    postcards_str = str(postcards).replace("'", '"')
-    html = """
-    <!DOCTYPE html>
-    <html>
-    <head>
-        <title>postcards Rendering</title>
-        <style>
-            body {{
-                background-color: black;
-                margin: 0;
-                padding: 0;
-                overflow: hidden;
-            }}
-            #canvas {{
-                position: absolute;
-                top: 0;
-                left: 0;
-                width: 100vw;
-                height: 100vh;
-                border: 1px solid black;
-                overflow-y: scroll;
-            }}
-            .postcard {{
-                position: absolute;
-                border: 3px solid white;
-                display: flex;
-                align-items: center;
-                justify-content: center;
-                overflow: hidden;
-            }}
-            .postcard img {{
-                width: 100%;
-                height: 100%;
-                object-fit: cover;
-            }}
-        </style>
-    </head>
-    <body>
-        <div id="canvas"></div>
-        <script>
-            var isDragging = false;
-            var startClientY;
-
-            function handleMouseDown(event) {{
-                isDragging = true;
-                startClientY = event.clientY;
-            }}
-
-            function handleMouseUp() {{
-                isDragging = false;
-            }}
-
-            function handleMouseMove(event) {{
-                if (isDragging) {{
-                    var deltaY = event.clientY - startClientY;
-                    document.getElementById("canvas").scrollTop -= deltaY;
-                    startClientY = event.clientY;
-                }}
-            }}
-            
-            function showWidthValue() {{
-                var widthValueDiv = document.getElementById("width-value");
-                var widthValueP = document.createElement("p");
-                widthValueP.textContent = "window.innerWidth: " + window.innerWidth;
-                widthValuesDiv.appendChild(widthValueP);
-            }}
-            
-            window.onload = function() {{
-                
-                showWidthValue()
-                
-                var canvas = document.getElementById("canvas");
-                var postcards = {postcards};
-                var col_half_width = window.innerWidth / 2;
-                
-                function positionPostcards() {{                    
-                    for (var i = 0; i < postcards.length; i++) {{
-                        var postcard = postcards[i];
-
-                        var div = document.createElement("div");
-                        div.className = "postcard";
-                        div.style.width = postcard.width + "px";
-                        div.style.height = postcard.height + "px";
-
-                        var card_half_width = postcard.width / 2;
-                        var maxOffsetX = postcard.maxOffsetX;
-                        var offset_x = 0.0;
-                        if (col_half_width > maxOffsetX) {{
-                            offset_x = maxOffsetX; 
-                        }} else if (col_half_width >= card_half_width) {{
-                            offset_x = col_half_width - card_half_width;
-                        }}
-                        offset_x = offset_x * postcard.randX;
-
-                        div.style.left = Math.round(col_half_width + offset_x - card_half_width) + "px";
-
-                        div.style.top = (Math.round(postcard.y) - postcard.height / 2) + "px";
-                        var img = document.createElement("img");
-                        img.src = "https://picsum.photos/" + postcard.width + "/" + postcard.height;
-                        div.appendChild(img);
-                        canvas.appendChild(div);
-                    }}
-                }}
-
-                function handleResize() {{
-                    col_half_width = window.innerWidth / 2;
-                    canvas.innerHTML = ""; // Clear the canvas
-                    positionPostcards(); // Position the postcards again
-                }}
-
-                window.addEventListener("resize", handleResize);
-
-                // Initial positioning of the postcards
-                positionPostcards();
-
-                canvas.addEventListener("mousedown", handleMouseDown);
-                document.addEventListener("mouseup", handleMouseUp);
-                document.addEventListener("mousemove", handleMouseMove);
-            }}
-
-        </script>
-    </body>
-    </html>
-    """.format(postcards=postcards_str)
-
-    return html
 
 # Define generate_two_column_html_page() as a adaption of 
 # the generate_one_column_html_page to generate two columns 
@@ -201,6 +74,14 @@ def generate_two_column_html_page(postcards):
                 height: 100%;
                 border: 1px solid black;
             }}
+            .postcard-line {{
+                position: absolute;
+                border: 10px dashed rgba(255, 255, 255, .5);;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                overflow: hidden;
+            }}
             .postcard {{
                 position: absolute;
                 border: 3px solid white;
@@ -232,7 +113,7 @@ def generate_two_column_html_page(postcards):
                 <!-- Your fixed webpage content goes here -->
                 <h1>Fixed Content</h1>
                 <p>This is the fixed content in the right column.</p>
-                <div id="width-value"></div>
+                <div id="width-value">WIDTH_VALUE:</div>
             </div>
         </div>
         <script>
@@ -256,24 +137,68 @@ def generate_two_column_html_page(postcards):
                 }}
             }}
 
-            window.onload = function() {{
+            function position_children() {{
                 var canvas = document.getElementById("canvas");
                 var postcards = {postcards};
+                var col_half_width = window.innerWidth / 4;
 
                 for (var i = 0; i < postcards.length; i++) {{
                     var postcard = postcards[i];
                     var div = document.createElement("div");
                     div.className = "postcard";
+                    if ( postcard.width == 0.0 ) {{
+                        div.className = "postcard-line";
+                    }}
+                                        
                     div.style.width = postcard.width + "px";
                     div.style.height = postcard.height + "px";
-                    div.style.left = (Math.round(postcard.x) + postcard.width / 2) + "px";
+
+                    var card_half_width = postcard.width / 2;
+                    var maxOffsetX = postcard.offsetX;
+                    var offset_x = 0.0;
+                    if (col_half_width > maxOffsetX) {{
+                        offset_x = maxOffsetX; 
+                    }} else {{
+                        if (col_half_width >= card_half_width) {{
+                            offset_x = col_half_width - card_half_width;
+                        }}
+                        else {{
+                            offset_x = 0.0;
+                        }}
+                    }}
+                    div.style.left = Math.round(col_half_width + offset_x - card_half_width) + "px";
                     div.style.top = (Math.round(postcard.y) - postcard.height / 2) + "px";
+                    div.style.zIndex = postcard.z;
+                    div.style["filter"] = "brightness(" + postcard.brightness + ")";
                     var img = document.createElement("img");
                     img.src = "https://picsum.photos/" + postcard.width + "/" + postcard.height;
+                    img.style = "filter:blur(" + (-postcard.z) + "px)";
                     div.appendChild(img);
                     canvas.appendChild(div);
+                    
+                    widthValueDiv = document.getElementById("width-value");
+                    widthValueDiv.innerHtml += "children positioned ";
+                    
                 }}
-
+            }}
+            
+            function workAfterResizeIsDone() {{
+                position_children();
+            }}
+            
+            // timeOutFunctionId stores a numeric ID which is 
+            // used by clearTimeOut to reset timer
+            var timeOutFunctionId;
+                    
+            // The following event is triggered continuously
+            // while we are resizing the window
+            //window.addEventListener("resize", function() {{
+            //    clearTimeout(timeOutFunctionId);
+            //    timeOutFunctionId = setTimeout(workAfterResizeIsDone, 500);
+            //}});
+            
+            window.onload = function() {{
+                position_children()
                 canvas.addEventListener("mousedown", handleMouseDown);
                 document.addEventListener("mouseup", handleMouseUp);
                 document.addEventListener("mousemove", handleMouseMove);
@@ -313,16 +238,37 @@ def generate_postcards(N, minDim, maxDim, maxOffsetX, maxOffsetY, gapHeight):
         width = random.randint(minDim, maxDim)
         height = random.randint(minDim, maxDim)
         x = random.gauss(0, maxOffsetX)
-        y = y_position + random.gauss(0, maxOffsetY)
-        y_position += height + gapHeight
+        y = max(y_position + random.gauss(0, maxOffsetY), height/2)
+        z = random.randint(-3,0) * 2
+        a = 8+z
+        b = a / 8.0
+        brightness =  b
+        print(f"z:{z:4} a:{a:4} b:{b:4}  brightness:{brightness:0.2}")
 
         postcard = {
             'width': width,
             'height': height,
-            'x': x,
-            'y': y
+            'offsetX': x,
+            'y': y,
+            'z': z,
+            'brightness': brightness
         }
         postcards.append(postcard)
+        
+        # increment position for next postcard
+        y_position += height + gapHeight
+
+    # add final vertical bar
+    height = y_position - gapHeight
+    postcard = {
+        'width': 0.0,
+        'height': height,
+        'offsetX': 0.0,
+        'y': height/2,
+        'z': 10,
+        'brightness':1.0
+    }
+    postcards.append(postcard)
 
     return postcards
 
@@ -341,12 +287,8 @@ maxOffsetY = 50
 gapHeight = -25
 postcards = generate_postcards(N, minDim, maxDim, maxOffsetX, maxOffsetY, gapHeight)
 
-# Set twoColumns to True to render postcards in the left column of a two-column page
-# otherwise postcards will be rendered in a single full screen-width column.
-twoColumns = True
-
 # Generate HTML page
-html = generate_two_column_html_page(postcards) if twoColumns else generate_one_column_html_page(postcards) 
+html = generate_two_column_html_page(postcards)
 
 # Write HTML content to filename
 filename = 'postcards.html'
