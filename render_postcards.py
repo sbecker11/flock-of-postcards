@@ -122,7 +122,7 @@ def generate_two_column_html_page(postcards):
                 var reportInfoElement = document.getElementById("report-info-element");
                 reportInfoElement.innerHTML = message;
             }}
-
+            
             function position_children() {{
                 var canvas = document.getElementById("canvas");
                 canvas.innerHTML = "";
@@ -156,19 +156,20 @@ def generate_two_column_html_page(postcards):
                     div.appendChild(img);
                     canvas.appendChild(div);
                     
-                    reportInfo("children centered on " + col_half_width);
                 }}
+                reportInfo("children centered on " + col_half_width);
+
             }}
             
             var timeOutFunctionId;
                         
             window.onload = function() {{
+                position_children();
+                
                 window.addEventListener("resize", function() {{
                     clearTimeout(timeOutFunctionId);
                     timeOutFunctionId = setTimeout(position_children, 500);
                 }});
-                position_children();
-                var canvas = document.getElementById("canvas");
             }};
         </script>
     </body>
