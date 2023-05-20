@@ -113,32 +113,20 @@ def generate_two_column_html_page(postcards):
                 <!-- Your fixed webpage content goes here -->
                 <h1>Fixed Content</h1>
                 <p>This is the fixed content in the right column.</p>
-                <div id="width-value">WIDTH_VALUE:</div>
+                <div><p id="report-info-element">WIDTH_VALUE:</p></div>
             </div>
         </div>
         <script>
-            var isDragging = false;
-            var startClientY;
-
-            function handleMouseDown(event) {{
-                isDragging = true;
-                startClientY = event.clientY;
-            }}
-
-            function handleMouseUp() {{
-                isDragging = false;
-            }}
-
-            function handleMouseMove(event) {{
-                if (isDragging) {{
-                    var deltaY = event.clientY - startClientY;
-                    document.getElementById("canvas").scrollTop -= deltaY;
-                    startClientY = event.clientY;
-                }}
+        
+            function reportInfo(message) {{
+                var reportInfoElement = document.getElementById("report-info-element");
+                reportInfoElement.innerHTML = message;
             }}
 
             function position_children() {{
                 var canvas = document.getElementById("canvas");
+                canvas.innerHTML = "";
+                
                 var postcards = {postcards};
                 var col_half_width = window.innerWidth / 4;
 
@@ -155,17 +143,9 @@ def generate_two_column_html_page(postcards):
 
                     var card_half_width = postcard.width / 2;
                     var maxOffsetX = postcard.offsetX;
-                    var offset_x = 0.0;
-                    if (col_half_width > maxOffsetX) {{
-                        offset_x = maxOffsetX; 
-                    }} else {{
-                        if (col_half_width >= card_half_width) {{
-                            offset_x = col_half_width - card_half_width;
-                        }}
-                        else {{
-                            offset_x = 0.0;
-                        }}
-                    }}
+                    var offset_x = (col_half_width > maxOffsetX) ? maxOffsetX :
+                                   (col_half_width >= card_half_width) ? col_half_width - card_half_width :
+                                   0.0;
                     div.style.left = Math.round(col_half_width + offset_x - card_half_width) + "px";
                     div.style.top = (Math.round(postcard.y) - postcard.height / 2) + "px";
                     div.style.zIndex = postcard.z;
@@ -176,32 +156,19 @@ def generate_two_column_html_page(postcards):
                     div.appendChild(img);
                     canvas.appendChild(div);
                     
-                    widthValueDiv = document.getElementById("width-value");
-                    widthValueDiv.innerHtml += "children positioned ";
-                    
+                    reportInfo("children centered on " + col_half_width);
                 }}
             }}
             
-            function workAfterResizeIsDone() {{
-                position_children();
-            }}
-            
-            // timeOutFunctionId stores a numeric ID which is 
-            // used by clearTimeOut to reset timer
             var timeOutFunctionId;
-                    
-            // The following event is triggered continuously
-            // while we are resizing the window
-            //window.addEventListener("resize", function() {{
-            //    clearTimeout(timeOutFunctionId);
-            //    timeOutFunctionId = setTimeout(workAfterResizeIsDone, 500);
-            //}});
-            
+                        
             window.onload = function() {{
-                position_children()
-                canvas.addEventListener("mousedown", handleMouseDown);
-                document.addEventListener("mouseup", handleMouseUp);
-                document.addEventListener("mousemove", handleMouseMove);
+                window.addEventListener("resize", function() {{
+                    clearTimeout(timeOutFunctionId);
+                    timeOutFunctionId = setTimeout(position_children, 500);
+                }});
+                position_children();
+                var canvas = document.getElementById("canvas");
             }};
         </script>
     </body>
