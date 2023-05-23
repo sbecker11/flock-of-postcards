@@ -112,7 +112,9 @@ function render_postcards() {
         canvas.appendChild(div);
     }
     canvas.style.height = postcards[postcards.length-1].height + "px";
-    reportInfo("render_postcards centered on col_half_width:" + col_half_width + " canvas_height:" + canvas.style.height);
+    reportInfo("flock" + "size:" + (postcards.length - 1) + 
+        "<br/>center:" + col_half_width + "px" + 
+        "<br/>height:" + canvas.style.height );
 }
 
 var timeOutFunctionId;
@@ -120,11 +122,11 @@ var timeOutFunctionId;
 window.onload = function () {
 
     var N = 100;
-    var minDim = 200;
-    var maxDim = 400;
-    var maxOffsetX = 100;
-    var maxOffsetY = 20;
-    var gapHeight = -35;
+    var minDim = 100;
+    var maxDim = 200;
+    var maxOffsetX = 50;
+    var maxOffsetY = 10;
+    var gapHeight = -25;
     var zIndexLevels = 4;
 
     create_postcards(N, minDim, maxDim, maxOffsetX, maxOffsetY, gapHeight, zIndexLevels);
