@@ -15,7 +15,7 @@ function create_postcards(N, minDim, maxDim, maxOffsetX, maxOffsetY, gapHeight, 
         var width = getRandomInt(minDim, maxDim);
         var height = getRandomInt(minDim, maxDim);
 
-        var x_offset = getRandomGaussian(0, maxOffsetX);
+        var x_rand = Math.random() * 2 - 1;
         var y_center = Math.max(y_position + getRandomGaussian(0, maxOffsetY), height / 2);
 
         // top-most z-index is zero
@@ -33,7 +33,7 @@ function create_postcards(N, minDim, maxDim, maxOffsetX, maxOffsetY, gapHeight, 
         var postcard = {
             'width': width,
             'height': height,
-            'offsetX': x_offset,
+            'x_rand': x_rand,
             'y': y_center,
             'zIndex': zIndex,
             'brightnessPct': brightnessPct,
@@ -52,7 +52,7 @@ function create_postcards(N, minDim, maxDim, maxOffsetX, maxOffsetY, gapHeight, 
     var lastPostcard = {
         'width': 0.0,
         'height': height,
-        'offsetX': 0.0,
+        'x_rand': 0.0,
         'y': height / 2,
         'zIndex': 10,
         'brightnessPct': 100.0,
@@ -100,11 +100,8 @@ function render_postcards() {
         div.style.height = postcard.height + "px";
 
         var card_half_width = postcard.width / 2;
-        var maxOffsetX = postcard.offsetX;
-        var offset_x = (col_half_width > maxOffsetX) ? maxOffsetX :
-            (col_half_width >= card_half_width) ? col_half_width - card_half_width :
-                0.0;
-        div.style.left = Math.round(col_half_width + offset_x - card_half_width) + "px";
+        var x_offset = postcard.x_rand * (col_half_width-card_half_width);
+        div.style.left = Math.round(col_half_width + x_offset - card_half_width) + "px";
         div.style.top = (Math.round(postcard.y) - postcard.height / 2) + "px";
         div.style.zIndex = postcard.zIndex;
         div.style["filter"] = "brightness(" + postcard.brightnessPct / 100.0 + ")";
@@ -114,13 +111,13 @@ function render_postcards() {
         div.appendChild(img);
         canvas.appendChild(div);
     }
-    reportInfo("render_postcards centered on " + col_half_width);
+    canvas.style.height = postcards[postcards.length-1].height + "px";
+    reportInfo("render_postcards centered on col_half_width:" + col_half_width + " canvas_height:" + canvas.style.height);
 }
 
 var timeOutFunctionId;
 
 window.onload = function () {
-    reportInfo("window.onload start");
 
     var N = 100;
     var minDim = 200;
@@ -130,17 +127,12 @@ window.onload = function () {
     var gapHeight = -35;
     var zIndexLevels = 4;
 
-    reportInfo("calling create_postcards");
     create_postcards(N, minDim, maxDim, maxOffsetX, maxOffsetY, gapHeight, zIndexLevels);
 
-    reportInfo("calling render_postcards");
     render_postcards();
 
-    reportInfo("adding resize listener");
     window.addEventListener("resize", function () {
         clearTimeout(timeOutFunctionId);
         timeOutFunctionId = setTimeout(render_postcards, 500);
     });
-
-    reportInfo("window.onload finish");
 };
