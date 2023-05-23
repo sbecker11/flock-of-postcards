@@ -1,5 +1,7 @@
 # flock-of-postcards
 
+## Dark, chaotic, (and deep coming soon).  
+
 ## Usage:
 
 * Clone this repo to your local development folder    
