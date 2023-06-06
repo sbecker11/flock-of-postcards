@@ -1,0 +1,40 @@
+
+body, html {
+  height: 100%;
+  margin: 0;
+  padding: 0;
+}
+
+.container {
+  display: flex;
+  height: 100%;
+}
+
+.left-column {
+  flex: 1;
+  background-color: black;
+  overflow-y: auto;
+}
+
+.right-column {
+  flex: 1;
+  background-color: darkgrey;
+  position: relative;
+}
+
+canvas {
+  position: absolute;
+  top: 0;
+  left: 0;
+  bottom: 0;
+  right: 0;
+  width: 100%;
+  height: 100%;
+}
+
+#report {
+  position: absolute;
+  top: 10px;
+  left: 10px;
+  color: white;
+}
