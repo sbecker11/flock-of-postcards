@@ -58,11 +58,11 @@
         background: linear-gradient(to bottom, midnightblue, black);
       }
 
-      #years-div-box {
+      #timeline-container {
         position: absolute;
         z-index: 0;
         right: 0; /* Align to the right */
-        width: 125px; /* Set the width */
+        width: 200px; /* Set the width */
         top: 0; /* Align to the top */
         bottom: 0; /* Align to the bottom */
       }
@@ -72,14 +72,37 @@
         font-family: "Roboto", sans-serif;
         font-weight: bold;
         font-size: 50px;
-        color: #222222;
+        color: #444;
         text-align: center;
         border: px solid white;
       }
 
-      .year-box {
+      .year-tick {
         position: absolute;
-        border: 2px solid #222222;
+        right: 35px;
+        font-family: "Roboto", sans-serif;
+        font-size: 12px;
+        color: #666;
+        height: 0px;
+        width: 50px;
+        border-top: 1px dashed white;
+      }
+
+      .month-tick {
+        position: absolute;
+        right: 0px;
+        font-family: "Roboto", sans-serif;
+        font-size: 8px;
+        color: grey;
+        height: 0px;
+        width: 50px;
+        border-top: 1px dotted grey;
+      }
+
+
+      .year-dash {
+        position: absolute;
+        /* border: 2px solid #222222; */
       }
 
       .bizcard-div {
@@ -112,7 +135,7 @@
         <div id="canvas">
           <div id="top-gradient"></div>
           <div id="bottom-gradient"></div>
-          <div id="year-boxes-container"></div>
+          <div id="timeline-container"></div>
         </div>
       </div>
       <div id="right-column">
@@ -143,8 +166,8 @@
       const leftColumn = document.getElementById("left-column");
       const canvas = document.getElementById("canvas");
       const bottomGradient = document.getElementById("bottom-gradient");
-      const yearBoxesContainer = document.getElementById(
-        "year-boxes-container"
+      const timelineContainer = document.getElementById(
+        "timeline-container"
       );
       const bizcardDivs = document.getElementsByClassName("bizcard-div");
 
@@ -159,8 +182,9 @@
       const ALL_CARDS_MIN_Z = 1;
 
       // bizcard width decreases as zindex increases
-      const BIZCARD_MAXWIDTH_IN = 0.5;
-      const BIZCARD_DELTAWIDTH_IN = 0.2;
+      const BIZCARD_WIDTH_IN = 2.0;
+      const BIZCARD_INDENT_IN = 0.2;
+      const BIZCARD_OVERLAP_BOTTOM_IN = 0.0;
 
       // card brightness decreases to MIN_BRIGHTNESS_PERCENT as z increases
       const MIN_BRIGHTNESS_PERCENT = 75;
@@ -182,18 +206,19 @@
       const CARD_FOCUS_BACKGROUND_COLOR = "yellow";
       const CARD_DEFAULT_BACKGROUND_COLOR = "red";
 
-      const YEAR_DIV_MAX_YEAR = 2023;
-      const YEAR_DIV_MIN_YEAR = 1984;
 
       // YEAR metrics in inches
+      const YEAR_DIV_MAX_YEAR = 2023;
+      const YEAR_DIV_MIN_YEAR = 1977;
       const YEAR_DIV_HEIGHT = 6 / 16;
-      const YEAR_BOX_MARGIN_TOP = 3 / 16;
-      const YEAR_BOX_HEIGHT = 16 / 16;
-      const YEAR_BOX_MARGIN_BTM = 2 / 16;
+      const YEAR_DASH_MARGIN_TOP = 3 / 16;
+      const YEAR_DASH_HEIGHT = 16 / 16;
+      const YEAR_DASH_MARGIN_BTM = 2 / 16;
 
+      // YEAR_TOP_TO_TOP = YEAR_DIV_HEIGHT + YEAR_DASH_MARGIN_TOP + YEAR_DASH_HEIGHT + YEAR_DASH_MARGIN_BTM
       const YEAR_TOP_TO_TOP = 27 / 16;
       const YEAR_DIV_LEFT = 5;
-      const YEAR_BOX_LEFT = 5.5;
+      const YEAR_DASH_LEFT = 5.5;
 
       var csvRelativeFilePath = "./jobs.csv";
 
@@ -294,6 +319,9 @@
         return Math.floor(Math.random() * (max - min + 1)) + min;
       }
 
+      // zeroPad(5,2) -> "05"
+      const zeroPad = (num, places) => String(num).padStart(places, '0')
+
       // returns given number with precision-digit
       // precision
       function toFixedPoint(value, precision) {
@@ -301,36 +329,73 @@
         return value;
       }
 
-      // append year-divs and year-boxes into year-boxes-container
-      function createYearBoxDivs() {
-        var yearBox = (yearDivTop = yearDiv = null);
+      var timelineYearDivTops = {};
 
-        // first child is a yearBox at yearBoxTop in inches
-        var yearBoxTop = 0;
-        yearBox = document.createElement("div");
-        yearBox.className = "year-box";
-        yearBox.style.top = `${yearBoxTop}in`;
-        yearBox.style.left = `${YEAR_BOX_LEFT}in`;
-        yearBox.style.height = `${YEAR_BOX_HEIGHT}in`;
-        yearBoxesContainer.appendChild(yearBox);
+      function initTimelineYearDivTops() {
+        timelineYearDivTops = {}
+      }
+
+      // used to get canvas-relative top position for anything 
+      // take care to always append "in" for inches
+      function getTimelineYearMonthTopIn(yearStr,monthStr) {
+        var month = parseInt(monthStr,10);
+        return timelineYearDivTops[yearStr] - (month-1)*YEAR_TOP_TO_TOP/12;
+      }
+
+      // append year-divs and year-dashes into timeline-container
+      function createTimeline() {
+        initTimelineYearDivTops();
+        var yearDash = (yearDivTop = yearDiv = null);
+
+        // first child is a yearDash at yearDashTop in inches
+        var yearDashTop = 0;
+        yearDash = document.createElement("div");
+        yearDash.className = "year-dash";
+        yearDash.style.top = `${yearDashTop}in`;
+        yearDash.style.left = `${YEAR_DASH_LEFT}in`;
+        yearDash.style.height = `${YEAR_DASH_HEIGHT}in`;
+        timelineContainer.appendChild(yearDash);
 
         for (var year = YEAR_DIV_MAX_YEAR; year >= YEAR_DIV_MIN_YEAR; year--) {
           yearDiv = document.createElement("div");
           yearDiv.className = "year-div";
-          yearDivTop = yearBoxTop + YEAR_BOX_HEIGHT + YEAR_BOX_MARGIN_BTM;
+          yearDivTop = yearDashTop + YEAR_DASH_HEIGHT + YEAR_DASH_MARGIN_BTM;
+          timelineYearDivTops[`${year}`] = yearDivTop;
+
           yearDiv.style.top = `${yearDivTop}in`;
-          yearDiv.style.left = `${YEAR_DIV_LEFT}in`;
+          //yearDiv.style.left = `${YEAR_DIV_LEFT}in`;
           yearDiv.style.height = `${YEAR_DIV_HEIGHT}in`;
           yearDiv.innerHTML = `${year}`;
-          yearBoxesContainer.appendChild(yearDiv);
+          timelineContainer.appendChild(yearDiv);
 
-          yearBox = document.createElement("div");
-          yearBox.className = "year-box";
-          yearBoxTop = yearDivTop + YEAR_DIV_HEIGHT + YEAR_BOX_MARGIN_TOP;
-          yearBox.style.top = `${yearBoxTop}in`;
-          yearBox.style.left = `${YEAR_BOX_LEFT}in`;
-          yearBox.style.height = `${YEAR_BOX_HEIGHT}in`;
-          yearBoxesContainer.appendChild(yearBox);
+          yearTick = document.createElement("div");
+          yearTick.className = "year-tick";
+          yearTick.style.top = `${yearDivTop}in`;
+          yearTick.innerHTML = `${year}`;
+          timelineContainer.appendChild(yearTick);
+
+          for ( var month=12; month>=1; month-- ) {
+            monthTick = document.createElement("div");
+            monthTick.className = "month-tick";
+            var monthStr = zeroPad(month, 2);
+            var monthTickTop = getTimelineYearMonthTopIn(year,monthStr);
+            var check = yearDivTop - (month-1) * YEAR_TOP_TO_TOP/12;
+            if ( monthTickTop != check )
+              console.log(`WARNING: ${monthTickTop} != check:${check}`);
+            monthTick.style.top = `${monthTickTop}in`;
+            monthTick.innerHTML = `${year}-${monthStr}`;
+            timelineContainer.appendChild(monthTick);
+          }
+
+          yearDash = document.createElement("div");
+          yearDash.className = "year-dash";
+          yearDashTop = yearDivTop + YEAR_DIV_HEIGHT + YEAR_DASH_MARGIN_TOP;
+          yearDash.style.top = `${yearDashTop}in`;
+          yearDash.style.right = "75px";
+          yearDash.style.height = `${YEAR_DASH_HEIGHT}in`;
+          yearDashBottom = yearDashTop + YEAR_DASH_HEIGHT
+          timelineContainer.appendChild(yearDash);
+
         }
       }
 
@@ -347,18 +412,27 @@
           for (var j = 0; j < data[i].length; j++) {
             row[cols[j]] = data[i][j];
           }
+          // skiop invalid rows
           var role = row["role"].trim();
           if ( role.length == 0 ) {
             console.log(`role undefined at i:${i}`);
             continue
           } 
+
+          // timeline is descending so jobEnd is always above jobStart
+          var jobEnd = row["end"].trim().replace("-01","");
+          var yearStr = jobEnd.split("-")[0];
+          var monthStr = jobEnd.split("-")[1];
+          var topInches = getTimelineYearMonthTopIn(yearStr,monthStr);
+
           var employer = row["employer"].trim();
           var jobStart = row["start"].trim().replace("-01","");
-          var jobEnd = row["end"].trim().replace("-01","");
-          var topInches = parseInt(row["top under"].trim());
-          var bottomInches = parseInt(row["bottom over"].trim());
-          var css_color = row["css name"].trim();
+          var yearStr = jobStart.split("-")[0];
+          var monthStr = jobStart.split("-")[1];
+          var bottomInches = getTimelineYearMonthTopIn(yearStr,monthStr) + BIZCARD_OVERLAP_BOTTOM_IN;
 
+          var css_color = row["css name"].trim();
+ 
           var heightInches = bottomInches - topInches;
 
           var zIndex = parseInt(row["z-index"].trim());
@@ -368,9 +442,7 @@
             console.log(`zIndex undefined at i:${i}`);
             continue
           } 
-          var width =
-            BIZCARD_MAXWIDTH_IN -
-            (zIndex - BIZCARD_MIN_Z) * BIZCARD_DELTAWIDTH_IN;
+          var indent =  (zIndex - BIZCARD_MIN_Z) * BIZCARD_INDENT_IN;
 
           bizcardDiv = document.createElement("div");
           if (num_biz_cards != 0) {
@@ -380,7 +452,8 @@
           bizcardDiv.className = "bizcard-div";
           bizcardDiv.style.top = `${topInches}in`;
           bizcardDiv.style.height = `${heightInches}in`;
-          bizcardDiv.style.width = `${width}in`;
+          bizcardDiv.style.left = `${indent}in`;
+          bizcardDiv.style.width = `${BIZCARD_WIDTH_IN}in`;
           bizcardDiv.style.zIndex = `${zIndex}`;
           bizcarddiv_z_histo[zIndex - BIZCARD_MIN_Z]++;
           bizcardDiv.style.backgroundColor = css_color;
@@ -765,7 +838,7 @@
       }
 
       function handleWindowLoad() {
-        createYearBoxDivs();
+        createTimeline();
         //createBizCardDivs(); // bizcardDivs are created on a separate window load listener
         createCardDivs();
         renderTranslatableDivsAtLeftColumnCenter();
