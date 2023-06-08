@@ -1,25 +1,130 @@
 
-<!DOCTYPE html>
-<html>
+    <!DOCTYPE html>
+    <html>
     <head>
         <title>Flock of Postcards</title>
-        <link rel='stylesheet' type='text/css' href='./postcards.css' />
-        <script type='text/javascript' src='./postcards.js'></script>
-
+        <style>
+            body {
+                background-color: black;
+                margin: 0;
+                padding: 0;
+                overflow: hidden;
+            }
+            #container {
+                display: grid;
+                grid-template-columns: repeat(2, 1fr);
+                height: 100vh;
+                width: 100vw;
+            }
+            #canvas-container {
+                overflow-y: scroll;
+                position: relative;
+                display: flex;
+                justify-content: center;
+            }
+            #canvas {
+                position: relative;
+                top: 0;
+                left: 0;
+                width: 100%;
+                height: 100%;
+                border: 5px solid purple;
+            }
+            .postcard-line {
+                position: absolute;
+                border: 10px dashed rgba(255, 255, 255, .5);;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                overflow: hidden;
+            }
+            .postcard {
+                position: absolute;
+                border: 3px solid white;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                overflow: hidden;
+            }
+            .postcard img {
+                width: 100%;
+                height: 100%;
+                object-fit: cover;
+            }
+            #fixed-content {
+                background-color: darkgray;
+                color: white;
+                padding: 20px;
+                height: 100%;
+                overflow: auto;
+            }
+        </style>
     </head>
     <body>
-        <div id='container'>
-            <div id='canvas-container'>
-                <div id='canvas'></div>
+        <div id="container">
+            <div id="canvas-container">
+                <div id="canvas"></div>
             </div>
-            <div id='fixed-content'>
-                <!-- fixed webpage content goes here -->
-                <h1>Flock of Postcards</h1>
-                <p id='report-info-element'></p>
+            <div id="fixed-content">
+                <!-- Your fixed webpage content goes here -->
+                <h1>Fixed Content</h1>
+                <p>This is the fixed content in the right column.</p>
+                <div><p id="report-info-element">WIDTH_VALUE:</p></div>
             </div>
         </div>
         <script>
         
+            function reportInfo(message) {
+                var reportInfoElement = document.getElementById("report-info-element");
+                reportInfoElement.innerHTML = message;
+            }
+            
+            function position_children() {
+                var canvas = document.getElementById("canvas");
+                canvas.innerHTML = "";
+                
+                var postcards = [{"width": 368, "height": 206, "offsetX": -129.2616624093104, "y": 103.0, "zIndex": -4, "brightnessPct": 50.0, "blurPx": 4, "classname": "postcard"}, {"width": 298, "height": 378, "offsetX": -83.84754809727785, "y": 189.0, "zIndex": -6, "brightnessPct": 25.0, "blurPx": 6, "classname": "postcard"}, {"width": 330, "height": 313, "offsetX": 22.572920285702754, "y": 502.4562770381152, "zIndex": -6, "brightnessPct": 25.0, "blurPx": 6, "classname": "postcard"}, {"width": 374, "height": 328, "offsetX": -56.030486751501385, "y": 807.015788173838, "zIndex": 0, "brightnessPct": 100.0, "blurPx": 0, "classname": "postcard"}, {"width": 381, "height": 331, "offsetX": -41.0214988157724, "y": 1080.3449489782536, "zIndex": -2, "brightnessPct": 75.0, "blurPx": 2, "classname": "postcard"}, {"width": 345, "height": 370, "offsetX": 12.894926577286947, "y": 1370.0621665312099, "zIndex": -6, "brightnessPct": 25.0, "blurPx": 6, "classname": "postcard"}, {"width": 359, "height": 210, "offsetX": -1.5838793342353632, "y": 1736.3767023856658, "zIndex": -6, "brightnessPct": 25.0, "blurPx": 6, "classname": "postcard"}, {"width": 228, "height": 374, "offsetX": -130.81126656299665, "y": 1876.5782676426945, "zIndex": -4, "brightnessPct": 50.0, "blurPx": 4, "classname": "postcard"}, {"width": 323, "height": 322, "offsetX": 62.557878900480276, "y": 2222.1361611819993, "zIndex": -4, "brightnessPct": 50.0, "blurPx": 4, "classname": "postcard"}, {"width": 363, "height": 395, "offsetX": -27.37890101747898, "y": 2515.572738710815, "zIndex": -4, "brightnessPct": 50.0, "blurPx": 4, "classname": "postcard"}, {"width": 221, "height": 250, "offsetX": -88.1842063197184, "y": 2880.5424666042577, "zIndex": -6, "brightnessPct": 25.0, "blurPx": 6, "classname": "postcard"}, {"width": 285, "height": 315, "offsetX": 4.406148206403943, "y": 3114.7583843783923, "zIndex": -6, "brightnessPct": 25.0, "blurPx": 6, "classname": "postcard"}, {"width": 330, "height": 206, "offsetX": 5.294735630185473, "y": 3347.25299802203, "zIndex": -4, "brightnessPct": 50.0, "blurPx": 4, "classname": "postcard"}, {"width": 256, "height": 388, "offsetX": -105.90530282294299, "y": 3567.6059787613103, "zIndex": -2, "brightnessPct": 75.0, "blurPx": 2, "classname": "postcard"}, {"width": 218, "height": 390, "offsetX": 30.65512626956441, "y": 3883.9274341229084, "zIndex": -2, "brightnessPct": 75.0, "blurPx": 2, "classname": "postcard"}, {"width": 306, "height": 371, "offsetX": 27.670736352883818, "y": 4243.966096261783, "zIndex": -6, "brightnessPct": 25.0, "blurPx": 6, "classname": "postcard"}, {"width": 248, "height": 394, "offsetX": -49.70647232509657, "y": 4572.59996789741, "zIndex": -2, "brightnessPct": 75.0, "blurPx": 2, "classname": "postcard"}, {"width": 303, "height": 260, "offsetX": -68.68309143256931, "y": 4907.8285243503315, "zIndex": -6, "brightnessPct": 25.0, "blurPx": 6, "classname": "postcard"}, {"width": 274, "height": 351, "offsetX": 99.51176693046737, "y": 5178.055850169088, "zIndex": -2, "brightnessPct": 75.0, "blurPx": 2, "classname": "postcard"}, {"width": 271, "height": 232, "offsetX": 185.82853540748846, "y": 5456.355186568924, "zIndex": -6, "brightnessPct": 25.0, "blurPx": 6, "classname": "postcard"}, {"width": 322, "height": 218, "offsetX": 184.5545152354758, "y": 5684.154892953974, "zIndex": 0, "brightnessPct": 100.0, "blurPx": 0, "classname": "postcard"}, {"width": 303, "height": 305, "offsetX": -48.8578740710344, "y": 5907.584760719247, "zIndex": -2, "brightnessPct": 75.0, "blurPx": 2, "classname": "postcard"}, {"width": 204, "height": 388, "offsetX": -19.908981349352224, "y": 6139.337862109713, "zIndex": -6, "brightnessPct": 25.0, "blurPx": 6, "classname": "postcard"}, {"width": 374, "height": 368, "offsetX": -73.93826306380306, "y": 6503.225593003855, "zIndex": -6, "brightnessPct": 25.0, "blurPx": 6, "classname": "postcard"}, {"width": 319, "height": 245, "offsetX": -211.62754223471416, "y": 6863.527403085243, "zIndex": -2, "brightnessPct": 75.0, "blurPx": 2, "classname": "postcard"}, {"width": 279, "height": 286, "offsetX": -19.333942885809343, "y": 7000.847745389015, "zIndex": -2, "brightnessPct": 75.0, "blurPx": 2, "classname": "postcard"}, {"width": 269, "height": 252, "offsetX": 69.17582291125139, "y": 7289.281824572233, "zIndex": 0, "brightnessPct": 100.0, "blurPx": 0, "classname": "postcard"}, {"width": 228, "height": 391, "offsetX": -32.54632383179567, "y": 7485.885879271104, "zIndex": 0, "brightnessPct": 100.0, "blurPx": 0, "classname": "postcard"}, {"width": 304, "height": 208, "offsetX": -155.03253826588224, "y": 7883.069142469924, "zIndex": -6, "brightnessPct": 25.0, "blurPx": 6, "classname": "postcard"}, {"width": 202, "height": 254, "offsetX": -8.904402378497887, "y": 8004.400002843228, "zIndex": -4, "brightnessPct": 50.0, "blurPx": 4, "classname": "postcard"}, {"width": 226, "height": 296, "offsetX": -31.38907052847359, "y": 8262.30398924171, "zIndex": -4, "brightnessPct": 50.0, "blurPx": 4, "classname": "postcard"}, {"width": 206, "height": 240, "offsetX": -203.57963910734208, "y": 8525.819829037335, "zIndex": -2, "brightnessPct": 75.0, "blurPx": 2, "classname": "postcard"}, {"width": 319, "height": 387, "offsetX": 111.54300906739809, "y": 8735.569729570969, "zIndex": 0, "brightnessPct": 100.0, "blurPx": 0, "classname": "postcard"}, {"width": 318, "height": 299, "offsetX": -121.54468654040387, "y": 9090.307023424242, "zIndex": -4, "brightnessPct": 50.0, "blurPx": 4, "classname": "postcard"}, {"width": 312, "height": 265, "offsetX": 31.926431932694022, "y": 9337.285974964434, "zIndex": 0, "brightnessPct": 100.0, "blurPx": 0, "classname": "postcard"}, {"width": 279, "height": 315, "offsetX": -128.26099477195518, "y": 9543.89093610488, "zIndex": -4, "brightnessPct": 50.0, "blurPx": 4, "classname": "postcard"}, {"width": 388, "height": 327, "offsetX": 11.085173727349245, "y": 9841.476682820285, "zIndex": 0, "brightnessPct": 100.0, "blurPx": 0, "classname": "postcard"}, {"width": 380, "height": 233, "offsetX": -86.54422831374612, "y": 10155.672932628771, "zIndex": -2, "brightnessPct": 75.0, "blurPx": 2, "classname": "postcard"}, {"width": 374, "height": 246, "offsetX": -53.23404372148099, "y": 10361.402186730285, "zIndex": -4, "brightnessPct": 50.0, "blurPx": 4, "classname": "postcard"}, {"width": 285, "height": 242, "offsetX": -4.667460216724708, "y": 10545.719702324364, "zIndex": 0, "brightnessPct": 100.0, "blurPx": 0, "classname": "postcard"}, {"width": 283, "height": 384, "offsetX": 35.49068370522572, "y": 10700.301782811928, "zIndex": -6, "brightnessPct": 25.0, "blurPx": 6, "classname": "postcard"}, {"width": 213, "height": 378, "offsetX": 166.9340303803868, "y": 11110.136607540837, "zIndex": 0, "brightnessPct": 100.0, "blurPx": 0, "classname": "postcard"}, {"width": 338, "height": 351, "offsetX": -50.55667929413686, "y": 11426.07369333541, "zIndex": 0, "brightnessPct": 100.0, "blurPx": 0, "classname": "postcard"}, {"width": 211, "height": 367, "offsetX": 230.15071853770993, "y": 11777.895417935479, "zIndex": -2, "brightnessPct": 75.0, "blurPx": 2, "classname": "postcard"}, {"width": 396, "height": 358, "offsetX": -124.836186944007, "y": 12100.547791535406, "zIndex": -4, "brightnessPct": 50.0, "blurPx": 4, "classname": "postcard"}, {"width": 376, "height": 372, "offsetX": -0.2011793976528744, "y": 12439.41180318981, "zIndex": 0, "brightnessPct": 100.0, "blurPx": 0, "classname": "postcard"}, {"width": 264, "height": 325, "offsetX": -48.2862679477757, "y": 12741.9910767501, "zIndex": 0, "brightnessPct": 100.0, "blurPx": 0, "classname": "postcard"}, {"width": 328, "height": 313, "offsetX": -66.71424645507815, "y": 13074.166506597789, "zIndex": 0, "brightnessPct": 100.0, "blurPx": 0, "classname": "postcard"}, {"width": 330, "height": 213, "offsetX": 36.33865407792398, "y": 13329.721378656173, "zIndex": -2, "brightnessPct": 75.0, "blurPx": 2, "classname": "postcard"}, {"width": 374, "height": 354, "offsetX": 23.40685123205265, "y": 13509.350277647018, "zIndex": -4, "brightnessPct": 50.0, "blurPx": 4, "classname": "postcard"}, {"width": 335, "height": 274, "offsetX": -6.830478839949803, "y": 13816.34875855767, "zIndex": -6, "brightnessPct": 25.0, "blurPx": 6, "classname": "postcard"}, {"width": 338, "height": 338, "offsetX": 4.789076096159453, "y": 14074.542521880394, "zIndex": -4, "brightnessPct": 50.0, "blurPx": 4, "classname": "postcard"}, {"width": 264, "height": 226, "offsetX": -99.7776297727395, "y": 14343.23461843873, "zIndex": -2, "brightnessPct": 75.0, "blurPx": 2, "classname": "postcard"}, {"width": 311, "height": 221, "offsetX": 47.651544039209924, "y": 14555.059125597014, "zIndex": 0, "brightnessPct": 100.0, "blurPx": 0, "classname": "postcard"}, {"width": 314, "height": 271, "offsetX": -89.76036522582721, "y": 14715.652558645466, "zIndex": -4, "brightnessPct": 50.0, "blurPx": 4, "classname": "postcard"}, {"width": 400, "height": 347, "offsetX": 257.0346570336735, "y": 14978.360909081775, "zIndex": -2, "brightnessPct": 75.0, "blurPx": 2, "classname": "postcard"}, {"width": 368, "height": 287, "offsetX": -5.629920049500365, "y": 15264.10148001139, "zIndex": 0, "brightnessPct": 100.0, "blurPx": 0, "classname": "postcard"}, {"width": 349, "height": 254, "offsetX": -32.093883148301636, "y": 15560.353130718206, "zIndex": 0, "brightnessPct": 100.0, "blurPx": 0, "classname": "postcard"}, {"width": 385, "height": 383, "offsetX": -75.72045933379479, "y": 15751.986816462328, "zIndex": -2, "brightnessPct": 75.0, "blurPx": 2, "classname": "postcard"}, {"width": 355, "height": 348, "offsetX": -0.5560519056246525, "y": 16096.190658762453, "zIndex": 0, "brightnessPct": 100.0, "blurPx": 0, "classname": "postcard"}, {"width": 250, "height": 209, "offsetX": -79.53420257185215, "y": 16398.109910837517, "zIndex": -2, "brightnessPct": 75.0, "blurPx": 2, "classname": "postcard"}, {"width": 244, "height": 256, "offsetX": -107.20048853113366, "y": 16604.553693646707, "zIndex": -2, "brightnessPct": 75.0, "blurPx": 2, "classname": "postcard"}, {"width": 269, "height": 254, "offsetX": 60.8087715570756, "y": 16788.239767022038, "zIndex": 0, "brightnessPct": 100.0, "blurPx": 0, "classname": "postcard"}, {"width": 256, "height": 319, "offsetX": 162.20104773093345, "y": 17020.777550071885, "zIndex": 0, "brightnessPct": 100.0, "blurPx": 0, "classname": "postcard"}, {"width": 285, "height": 251, "offsetX": -91.87896824062534, "y": 17304.983481196145, "zIndex": 0, "brightnessPct": 100.0, "blurPx": 0, "classname": "postcard"}, {"width": 350, "height": 340, "offsetX": 32.578854516169216, "y": 17530.69443931366, "zIndex": -4, "brightnessPct": 50.0, "blurPx": 4, "classname": "postcard"}, {"width": 229, "height": 230, "offsetX": -81.00468820111931, "y": 17848.583936372583, "zIndex": -4, "brightnessPct": 50.0, "blurPx": 4, "classname": "postcard"}, {"width": 208, "height": 386, "offsetX": 256.1163523528274, "y": 18008.11233851663, "zIndex": -6, "brightnessPct": 25.0, "blurPx": 6, "classname": "postcard"}, {"width": 267, "height": 232, "offsetX": -97.03544056667084, "y": 18390.342260855403, "zIndex": -6, "brightnessPct": 25.0, "blurPx": 6, "classname": "postcard"}, {"width": 310, "height": 287, "offsetX": 50.17301875153164, "y": 18588.819335510987, "zIndex": -6, "brightnessPct": 25.0, "blurPx": 6, "classname": "postcard"}, {"width": 232, "height": 302, "offsetX": -2.1402423021935655, "y": 18900.10257750582, "zIndex": -4, "brightnessPct": 50.0, "blurPx": 4, "classname": "postcard"}, {"width": 323, "height": 366, "offsetX": -203.51737213526854, "y": 19134.10530891274, "zIndex": 0, "brightnessPct": 100.0, "blurPx": 0, "classname": "postcard"}, {"width": 394, "height": 211, "offsetX": 49.08236083502535, "y": 19457.950000735964, "zIndex": 0, "brightnessPct": 100.0, "blurPx": 0, "classname": "postcard"}, {"width": 398, "height": 299, "offsetX": -48.87401374042619, "y": 19638.170958333052, "zIndex": -4, "brightnessPct": 50.0, "blurPx": 4, "classname": "postcard"}, {"width": 287, "height": 215, "offsetX": 91.69943653720317, "y": 19872.19961381602, "zIndex": -2, "brightnessPct": 75.0, "blurPx": 2, "classname": "postcard"}, {"width": 378, "height": 278, "offsetX": -2.7532397488806, "y": 20033.433912647226, "zIndex": 0, "brightnessPct": 100.0, "blurPx": 0, "classname": "postcard"}, {"width": 389, "height": 347, "offsetX": 56.69751974371455, "y": 20288.70267474343, "zIndex": -2, "brightnessPct": 75.0, "blurPx": 2, "classname": "postcard"}, {"width": 212, "height": 365, "offsetX": -123.88604648592091, "y": 20601.436869425666, "zIndex": -2, "brightnessPct": 75.0, "blurPx": 2, "classname": "postcard"}, {"width": 359, "height": 226, "offsetX": 52.59836643190916, "y": 20917.954033406695, "zIndex": -4, "brightnessPct": 50.0, "blurPx": 4, "classname": "postcard"}, {"width": 277, "height": 200, "offsetX": -79.27244966838077, "y": 21122.408339317957, "zIndex": -2, "brightnessPct": 75.0, "blurPx": 2, "classname": "postcard"}, {"width": 200, "height": 289, "offsetX": -84.90223198665487, "y": 21282.586658447304, "zIndex": -6, "brightnessPct": 25.0, "blurPx": 6, "classname": "postcard"}, {"width": 276, "height": 239, "offsetX": -102.68442129254605, "y": 21503.435793649303, "zIndex": 0, "brightnessPct": 100.0, "blurPx": 0, "classname": "postcard"}, {"width": 341, "height": 273, "offsetX": -65.26309652697857, "y": 21738.27025582693, "zIndex": 0, "brightnessPct": 100.0, "blurPx": 0, "classname": "postcard"}, {"width": 378, "height": 293, "offsetX": -50.38782125703361, "y": 21976.87188272406, "zIndex": -6, "brightnessPct": 25.0, "blurPx": 6, "classname": "postcard"}, {"width": 280, "height": 204, "offsetX": -104.05606837806727, "y": 22249.300388903866, "zIndex": -6, "brightnessPct": 25.0, "blurPx": 6, "classname": "postcard"}, {"width": 255, "height": 250, "offsetX": 122.6395438582571, "y": 22375.177315255376, "zIndex": -6, "brightnessPct": 25.0, "blurPx": 6, "classname": "postcard"}, {"width": 397, "height": 309, "offsetX": -70.66016597400262, "y": 22631.45916916599, "zIndex": -4, "brightnessPct": 50.0, "blurPx": 4, "classname": "postcard"}, {"width": 232, "height": 305, "offsetX": -54.39301765391278, "y": 22931.824701045072, "zIndex": -4, "brightnessPct": 50.0, "blurPx": 4, "classname": "postcard"}, {"width": 216, "height": 397, "offsetX": -19.817198040046488, "y": 23175.0875768142, "zIndex": -6, "brightnessPct": 25.0, "blurPx": 6, "classname": "postcard"}, {"width": 384, "height": 324, "offsetX": -83.26292523455155, "y": 23548.608882917437, "zIndex": 0, "brightnessPct": 100.0, "blurPx": 0, "classname": "postcard"}, {"width": 260, "height": 361, "offsetX": -118.4305333027796, "y": 23807.001149312993, "zIndex": -6, "brightnessPct": 25.0, "blurPx": 6, "classname": "postcard"}, {"width": 334, "height": 341, "offsetX": 142.45075764765184, "y": 24137.936345745948, "zIndex": 0, "brightnessPct": 100.0, "blurPx": 0, "classname": "postcard"}, {"width": 248, "height": 362, "offsetX": 166.26119014351397, "y": 24463.92858155695, "zIndex": 0, "brightnessPct": 100.0, "blurPx": 0, "classname": "postcard"}, {"width": 219, "height": 307, "offsetX": -24.402817111465946, "y": 24770.42930160712, "zIndex": 0, "brightnessPct": 100.0, "blurPx": 0, "classname": "postcard"}, {"width": 313, "height": 230, "offsetX": -2.4848243446185556, "y": 25021.432494791152, "zIndex": 0, "brightnessPct": 100.0, "blurPx": 0, "classname": "postcard"}, {"width": 256, "height": 283, "offsetX": -5.744764409306908, "y": 25271.175450244336, "zIndex": -4, "brightnessPct": 50.0, "blurPx": 4, "classname": "postcard"}, {"width": 254, "height": 273, "offsetX": 98.09381057789805, "y": 25535.6557715925, "zIndex": -6, "brightnessPct": 25.0, "blurPx": 6, "classname": "postcard"}, {"width": 332, "height": 374, "offsetX": -35.1620994663609, "y": 25734.28193336044, "zIndex": -6, "brightnessPct": 25.0, "blurPx": 6, "classname": "postcard"}, {"width": 320, "height": 276, "offsetX": -91.68091809189598, "y": 26076.64422024629, "zIndex": -2, "brightnessPct": 75.0, "blurPx": 2, "classname": "postcard"}, {"width": 247, "height": 359, "offsetX": 89.92262704029149, "y": 26306.09246242855, "zIndex": 0, "brightnessPct": 100.0, "blurPx": 0, "classname": "postcard"}, {"width": 0.0, "height": 26670, "offsetX": 0.0, "y": 13335.0, "zIndex": 10, "brightnessPct": 100.0, "blurPx": 0, "classname": "postcard-line"}];
+                var col_half_width = window.innerWidth / 4;
+
+                for (var i = 0; i < postcards.length; i++) {
+                    var postcard = postcards[i];
+                    var div = document.createElement("div");
+                    div.className = postcard.classname;
+                                        
+                    div.style.width = postcard.width + "px";
+                    div.style.height = postcard.height + "px";
+
+                    var card_half_width = postcard.width / 2;
+                    var maxOffsetX = postcard.offsetX;
+                    var offset_x = (col_half_width > maxOffsetX) ? maxOffsetX :
+                                   (col_half_width >= card_half_width) ? col_half_width - card_half_width :
+                                   0.0;
+                    div.style.left = Math.round(col_half_width + offset_x - card_half_width) + "px";
+                    div.style.top = (Math.round(postcard.y) - postcard.height / 2) + "px";
+                    div.style.zIndex = postcard.zIndex;
+                    div.style["filter"] = "brightness(" + postcard.brightnessPct/100.0 + ")";
+                    var img = document.createElement("img");
+                    img.src = "https://picsum.photos/" + postcard.width + "/" + postcard.height;
+                    img.style = "filter:blur(" + postcard.blurPx + "px)";
+                    div.appendChild(img);
+                    canvas.appendChild(div);
+                    
+                }
+                reportInfo("children centered on " + col_half_width);
+
+            }
+            
+            var timeOutFunctionId;
+                        
+            window.onload = function() {
+                position_children();
+                
+                window.addEventListener("resize", function() {
+                    clearTimeout(timeOutFunctionId);
+                    timeOutFunctionId = setTimeout(position_children, 500);
+                });
+            };
+        </script>
     </body>
-</html>
+    </html>
     
