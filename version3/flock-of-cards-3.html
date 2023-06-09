@@ -20,6 +20,8 @@
         height: 100%;
         overflow: hidden;
         background: lightblue;
+        font-family: "Roboto", sans-serif;
+        padding: 25px;
       }
 
       #left-column {
@@ -99,6 +101,15 @@
         border-top: 1px dotted grey;
       }
 
+      .job-end-tick, .job-start-tick {
+        position: absolute;
+        left: 0px;
+        right: 0px;
+        height: 0px;
+        width: 100%;
+        border-top: 5px solid;
+        z-index: 10;
+      }
 
       .year-dash {
         position: absolute;
@@ -109,7 +120,6 @@
         position: absolute;
         border: 1px solid white; /* border width is scalable */
         border-radius: 25px;
-        color: white;
         font-family: "Roboto", sans-serif;
         font-weight: bold;
         font-size: 12px;
@@ -119,13 +129,14 @@
       .card-div {
         width: 20px;
         height: 20px;
-        background: red;
         position: absolute;
         border: 5px solid white; /* border width is scalable */
       }
 
       .card-div-line-item {
-        background-color:pink;
+        position: static;
+        padding: 1px;
+        margin: 1px;
       }
     </style>
   </head>
@@ -154,6 +165,8 @@
         <ul id="div-card-line-items"></ul>
       </div>
     </div>
+
+    <script type="module" src="dist/utils.min.js"></script>
 
     <script>
       // this is set in the createBizDivCards
@@ -203,10 +216,6 @@
       const PARALLAX_HZ_EXAGGERATION_FACTOR = 0.05;
       const PARALLAX_VT_EXAGGERATION_FACTOR = 0.1;
 
-      const CARD_FOCUS_BACKGROUND_COLOR = "yellow";
-      const CARD_DEFAULT_BACKGROUND_COLOR = "red";
-
-
       // YEAR metrics in inches
       const YEAR_DIV_MAX_YEAR = 2023;
       const YEAR_DIV_MIN_YEAR = 1977;
@@ -219,6 +228,19 @@
       const YEAR_TOP_TO_TOP = 27 / 16;
       const YEAR_DIV_LEFT = 5;
       const YEAR_DASH_LEFT = 5.5;
+
+      //const {
+      //  clamp,
+      //  getHSVfromRGB,
+      //  getHexFromRGB,
+      //  getRGBfromHex,
+      //  getRGBfromHSV,
+      //  linearInterp,
+      //  toFixedPoint,
+      //  getRandomInt,
+      //  adjustBrightness,
+      //  zeroPad,
+      //} = require("./utils");
 
       var csvRelativeFilePath = "./jobs.csv";
 
@@ -311,24 +333,6 @@
         return parseInt(get_zindexStr_from_z(z));
       }
 
-      // return the y value given x
-      const linearInterp = (x, x1, y1, x2, y2) =>
-        y1 + ((x - x1) * (y2 - y1)) / (x2 - x1);
-
-      function getRandomInt(min, max) {
-        return Math.floor(Math.random() * (max - min + 1)) + min;
-      }
-
-      // zeroPad(5,2) -> "05"
-      const zeroPad = (num, places) => String(num).padStart(places, '0')
-
-      // returns given number with precision-digit
-      // precision
-      function toFixedPoint(value, precision) {
-        if (value) value = parseFloat(value.toFixed(precision));
-        return value;
-      }
-
       var timelineYearDivTops = {};
 
       function initTimelineYearDivTops() {
@@ -395,7 +399,6 @@
           yearDash.style.height = `${YEAR_DASH_HEIGHT}in`;
           yearDashBottom = yearDashTop + YEAR_DASH_HEIGHT
           timelineContainer.appendChild(yearDash);
-
         }
       }
 
@@ -419,11 +422,20 @@
             continue
           } 
 
+          var css_hex_color = row["css HEX color"].trim();
+          var font_color_name = row["text color"].trim();
+
           // timeline is descending so jobEnd is always above jobStart
           var jobEnd = row["end"].trim().replace("-01","");
           var yearStr = jobEnd.split("-")[0];
           var monthStr = jobEnd.split("-")[1];
           var topInches = getTimelineYearMonthTopIn(yearStr,monthStr);
+
+          var jobEndTick = document.createElement("div");
+          jobEndTick.className = "job-end-tick";
+          jobEndTick.style.top = `${topInches}}in`;
+          jobEndTick.style.borderTopColor = css_hex_color;
+          canvas.appendChild(jobEndTick);
 
           var employer = row["employer"].trim();
           var jobStart = row["start"].trim().replace("-01","");
@@ -431,10 +443,13 @@
           var monthStr = jobStart.split("-")[1];
           var bottomInches = getTimelineYearMonthTopIn(yearStr,monthStr) + BIZCARD_OVERLAP_BOTTOM_IN;
 
-          var css_color = row["css name"].trim();
- 
-          var heightInches = bottomInches - topInches;
+          var jobStartTick = document.createElement("div");
+          jobStartTick.className = "job-start-tick";
+          jobStartTick.style.top = `${bottomInches}}in`;
+          jobStartTick.style.borderTopColor = css_hex_color;
+          canvas.appendChild(jobStartTick);
 
+          var heightInches = bottomInches - topInches;
           var zIndex = parseInt(row["z-index"].trim());
 
           // continue to next row if zIndex is undefined
@@ -442,7 +457,7 @@
             console.log(`zIndex undefined at i:${i}`);
             continue
           } 
-          var indent =  (zIndex - BIZCARD_MIN_Z) * BIZCARD_INDENT_IN;
+          var indent =  (zIndex - 1) * BIZCARD_INDENT_IN;
 
           bizcardDiv = document.createElement("div");
           if (num_biz_cards != 0) {
@@ -455,14 +470,25 @@
           bizcardDiv.style.left = `${indent}in`;
           bizcardDiv.style.width = `${BIZCARD_WIDTH_IN}in`;
           bizcardDiv.style.zIndex = `${zIndex}`;
-          bizcarddiv_z_histo[zIndex - BIZCARD_MIN_Z]++;
-          bizcardDiv.style.backgroundColor = css_color;
+          bizcarddiv_z_histo[zIndex - 1]++;
+
+          bizcardDiv.setAttribute("saved-background-color", css_hex_color);
+          bizcardDiv.setAttribute("saved-color", font_color_name);
+          bizcardDiv.setAttribute("saved-focus-background-color", adjustHexBrightness(css_hex_color,0.5));
+          bizcardDiv.setAttribute("saved-focus-color", "black");
+
+          bizcardDiv.style.backgroundColor = bizcardDiv.getAttribute("saved-background-color");
+          bizcardDiv.style.color = bizcardDiv.getAttribute("saved-color");
 
           var html = "";
           html += `${role}<br/>`;
           html += `${employer}<br/>`;
           html += `${jobStart} - ${jobEnd}<br/>`;
           bizcardDiv.innerHTML = html;
+
+          bizcardDiv.addEventListener("mouseenter", handleBizCardDivMouseEnter);
+          bizcardDiv.addEventListener("mouseleave", handleBizCardDivMouseLeave);
+          bizcardDiv.addEventListener("click", handleBizCardDivMouseClick);
 
           canvas.appendChild(bizcardDiv);
           num_valid_rows++;
@@ -511,10 +537,6 @@
 
           carddiv_z_histo[z - CARD_MIN_Z]++;
 
-          cardDiv.addEventListener("mouseenter", handleCardDivMouseEnter);
-          cardDiv.addEventListener("mouseleave", handleCardDivMouseLeave);
-          cardDiv.addEventListener("click", handleCardDivClick);
-
           var zindexStr = get_zindexStr_from_z(z);
           cardDiv.style.zIndex = zindexStr;
           var filter_brightness_str = get_brightness_str_from_z(z);
@@ -523,6 +545,20 @@
           cardDiv.style.filter = filter_strs;
           cardDiv.innerHTML = `id:${id}<br/>z:${z}<br/>zindexStr:${zindexStr}<br/>${filter_blur_str}`;
           canvas.appendChild(cardDiv);
+
+          var css_hex_color = "#CC0000";
+          cardDiv.setAttribute("saved-background-color", css_hex_color);
+          cardDiv.setAttribute("saved-color", "black");
+          cardDiv.setAttribute("saved-focus-background-color", adjustHexBrightness(css_hex_color, 0.5));
+          cardDiv.setAttribute("saved-focus-color", "black");
+
+          cardDiv.style.backgroundColor = cardDiv.getAttribute("saved-background-color");
+          cardDiv.style.color = cardDiv.getAttribute("saved-color");
+
+          cardDiv.addEventListener("mouseenter", handleCardDivMouseEnter);
+          cardDiv.addEventListener("mouseleave", handleCardDivMouseLeave);
+          cardDiv.addEventListener("click", handleCardDivMouseClick);
+
 
           prev_z = z;
 
@@ -768,45 +804,74 @@
         applyMotionParallax(parallax_dh, parallax_dv);
       }
 
-      // handle onMouseEnter event for any cardDiv
-      // when called from onload, in this case
-      // mouse location is set to be left-column center
       function handleCardDivMouseEnter(event) {
-        var targetCardDiv = event.target.closest(".card-div");
+        handleDivMouseEnter(event, "card-div");
+      }
+      function handleBizCardDivMouseEnter(event) {
+        handleDivMouseEnter(event, "bizcard-div");
+      }
+
+      // handle mouse enter event for any div element with
+      // cardClass "card-div" or "bizcard-div"
+      function handleDivMouseEnter(event, cardClass) {
+        var targetCardDiv = event.target.closest('.'+cardClass);
         if (targetCardDiv) {
-          targetCardDiv.style.backgroundColor = CARD_FOCUS_BACKGROUND_COLOR;
+          targetCardDiv.style.backgroundColor = targetCardDiv.getAttribute("saved-focus-background-color");
+          targetCardDiv.style.color = targetCardDiv.getAttribute("saved-focus-color");
+          if( cardClass == "card-div") {
+            var z = CARD_MIN_Z;
 
-          var z = CARD_MIN_Z;
-
-          var filter_brightness_str = get_brightness_str_from_z(z);
-          var filter_blur_str = get_blur_str_from_z(z);
-          targetCardDiv.style.filter = `${filter_brightness_str} ${filter_blur_str}`;
+            var filter_brightness_str = get_brightness_str_from_z(z);
+            var filter_blur_str = get_blur_str_from_z(z);
+            targetCardDiv.style.filter = `${filter_brightness_str} ${filter_blur_str}`;
+          }
         }
       }
 
-      // handle onMouseLeave event for any cardDiv
       function handleCardDivMouseLeave(event) {
-        var targetCardDiv = event.target.closest(".card-div");
+        handleDivMouseLeave(event, "card-div");
+      }
+      function handleBizCardDivMouseLeave(event) {
+        handleDivMouseLeave(event, "bizcard-div");
+      }
+
+      // handle mouse leave event for any div element with
+      // cardClass "card-div" or "bizcard-div"
+      function handleDivMouseLeave(event, cardClass) {
+        var targetCardDiv = event.target.closest('.'+cardClass);
         if (targetCardDiv) {
-          targetCardDiv.style.backgroundColor = CARD_DEFAULT_BACKGROUND_COLOR;
+          targetCardDiv.style.backgroundColor = targetCardDiv.getAttribute("saved-background-color");
+          targetCardDiv.style.color = targetCardDiv.getAttribute("saved-color");
+          if( cardClass == ".card-div") {
+            var zIndexStr = targetCardDiv.style.zIndex;
+            var z = get_z_from_zindexStr(zIndexStr);
 
-          var zIndexStr = targetCardDiv.style.zIndex;
-          var z = get_z_from_zindexStr(zIndexStr);
-
-          var filter_brightness_str = get_brightness_str_from_z(z);
-          var filter_blur_str = get_blur_str_from_z(z);
-          targetCardDiv.style.filter = `${filter_brightness_str} ${filter_blur_str}`;
+            var filter_brightness_str = get_brightness_str_from_z(z);
+            var filter_blur_str = get_blur_str_from_z(z);
+            targetCardDiv.style.filter = `${filter_brightness_str} ${filter_blur_str}`;
+          }
         }
       }
 
-      // handle onclick event for any cardDiv
-      function handleCardDivClick(event) {
-        var targetCardDiv = event.target.closest(".card-div");
+      function handleCardDivMouseClick(event) {
+        handleCardMouseClick(event, "card-div");
+      }
+      function handleBizCardDivMouseClick(event) {
+        handleCardMouseClick(event, "bizcard-div");
+      }
+
+      // handle mouse click event for any div element with
+      // cardClass "card-div" or "bizcard-div"
+      function handleCardMouseClick(event, cardClass) {
+        var targetCardDiv = event.target.closest('.'+cardClass);
         if (targetCardDiv) {
           var card_div_line_item = document.createElement("li");
           card_div_line_item.className = "card-div-line-item";
-          card_div_line_item.innerHTML = targetCardDiv.innerText;
+          card_div_line_item.style.backgroundColor = targetCardDiv.getAttribute("saved-background-color");
+          card_div_line_item.style.color = targetCardDiv.getAttribute("saved-color");
+          card_div_line_item.innerHTML = cardClass + " " + targetCardDiv.innerText;
           var closeButton = document.createElement("button");
+          closeButton.style.float = "right";
           closeButton.innerText = "x";
           closeButton.addEventListener("click", function () {
             card_div_line_item.remove();
@@ -861,12 +926,6 @@
       // Attach event listeners
       window.addEventListener("load", handleWindowLoad);
       window.addEventListener("resize", handleWindowResize);
-      const cardDivs = document.getElementsByClassName("card-div");
-      for (let i = 0; i < cardDivs.length; i++) {
-        cardDivs[i].addEventListener("mouseenter", handleCardDivMouseEnter);
-        cardDivs[i].addEventListener("mouseleave", handleCardDivMouseLeave);
-        cardDivs[i].addEventListener("click", handleCardDivClick);
-      }
       leftColumn.addEventListener("mousemove", handleLeftColumnMouseMove);
       leftColumn.addEventListener("load", handleLeftColumnMouseMove);
       leftColumn.addEventListener("wheel", handleLeftColumnWheel, {
