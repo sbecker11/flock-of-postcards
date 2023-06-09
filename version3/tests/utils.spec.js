@@ -27,11 +27,49 @@ describe("adjustRgbBrightness", () => {
   });
 });
 
+describe("adjustRgbBrightness", () => {
+  test("adjusts the brightness of an RGB color", () => {
+    const originalRGB = [128, 64, 0]; // Original RGB color
+    const brightness = 0.5; // Brightness factor (0.0 to 1.0)
+    const expectedRGB = [64, 32, 0]; // Expected adjusted RGB color
+    const adjustedRGB = adjustRgbBrightness(originalRGB, brightness);
+    expect(adjustedRGB).toEqual(expectedRGB);
+  });
+  test("adjusts the brightness of an RGB color", () => {
+    const originalRGB = [128, 64, 0]; // Original RGB color
+    const brightness = 2.0; // Brightness factor (0.0 to 1.0)
+    const expectedRGB = [255, 128, 0]; // Expected adjusted RGB color
+    const adjustedRGB = adjustRgbBrightness(originalRGB, brightness);
+    expect(adjustedRGB).toEqual(expectedRGB);
+  });
+});
+
 describe("adjustHexBrightness", () => {
   test("adjusts the brightness of a Hex color", () => {
     const originalHex = "#804000"; // Original Hex color
     const brightness = 0.5; // Brightness factor (0.0 to 1.0)
     const expectedHex = "#402000"; // Expected adjusted Hex color
+    const adjustedHex = adjustHexBrightness(originalHex, brightness);
+    expect(adjustedHex).toEqual(expectedHex);
+  });
+  test("adjusts the brightness of a Hex color", () => {
+    const originalHex = "#804000"; // Original Hex color
+    const brightness = 1.0; // Brightness factor (0.0 to 1.0)
+    const expectedHex = "#804000"; // Expected adjusted Hex color
+    const adjustedHex = adjustHexBrightness(originalHex, brightness);
+    expect(adjustedHex).toEqual(expectedHex);
+  });
+  test("adjusts the brightness of a Hex color", () => {
+    const originalHex = "#804000"; // Original Hex color
+    const brightness = 0.25; // Brightness factor (0.0 to 1.0)
+    const expectedHex = "#201000"; // Expected adjusted Hex color
+    const adjustedHex = adjustHexBrightness(originalHex, brightness);
+    expect(adjustedHex).toEqual(expectedHex);
+  });
+  test("adjusts the brightness of a Hex color", () => {
+    const originalHex = "#804000"; // Original Hex color
+    const brightness = 2.0; // Brightness factor (0.0 to 1.0)
+    const expectedHex = "#ff8000"; // Expected adjusted Hex color
     const adjustedHex = adjustHexBrightness(originalHex, brightness);
     expect(adjustedHex).toEqual(expectedHex);
   });
