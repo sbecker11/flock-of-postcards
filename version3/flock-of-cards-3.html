@@ -59,8 +59,6 @@
       const CARD_MARGIN_VT = 5;
       const MEAN_CARD_HEIGHT = 75;
       const MEAN_CARD_WIDTH = 100;
-      const CARD_DIV_DIALOG_OFFSET = 20;
-      const CARD_DIV_DIALOG_ZINDEX = 30;
 
       const PARALLAX_HZ_EXAGGERATION_FACTOR = 0.05;
       const PARALLAX_VT_EXAGGERATION_FACTOR = 0.1;
@@ -226,7 +224,7 @@
 
           bizcardDiv.setAttribute("saved-background-color", css_hex_color);
           bizcardDiv.setAttribute("saved-color", font_color_name);
-          bizcardDiv.setAttribute("saved-focus-background-color", adjustHexBrightness(css_hex_color,1.3));
+          bizcardDiv.setAttribute("saved-focus-background-color", adjustHexBrightness(css_hex_color,1.5));
           bizcardDiv.setAttribute("saved-focus-color", "black");
 
           bizcardDiv.style.backgroundColor = bizcardDiv.getAttribute("saved-background-color");
@@ -246,7 +244,7 @@
           num_valid_rows++;
         }
         num_biz_cards = num_valid_rows;
-        renderAllCenterableDivsAtLeftColumnCenter();
+        renderAllTranslateableDivsAtLeftColumnCenter(forceReload=true);
       }
 
       // adds a vertical stack of cardDivs to #canvas
@@ -286,7 +284,7 @@
           var css_hex_color = "#CC0000";
           cardDiv.setAttribute("saved-background-color", css_hex_color);
           cardDiv.setAttribute("saved-color", "black");
-          cardDiv.setAttribute("saved-focus-background-color", adjustHexBrightness(css_hex_color, 1.3));
+          cardDiv.setAttribute("saved-focus-background-color", adjustHexBrightness(css_hex_color, 1.6));
           cardDiv.setAttribute("saved-focus-color", "black");
 
           cardDiv.style.backgroundColor = cardDiv.getAttribute("saved-background-color");
@@ -303,7 +301,7 @@
             console.log(`cardDiv[${id}] initialized to maroon`);
           }
         }
-        renderAllCenterableDivsAtLeftColumnCenter();
+        renderAllTranslateableDivsAtLeftColumnCenter(forceReload=true);
       }
 
       /**
@@ -364,48 +362,28 @@
       }
 
 
-      function getAllCenterableDivs() {
-        allCenterableDivs = [];
-        allCenterableDivs = Array.prototype.concat.apply(
-          allCenterableDivs,
-          canvas.getElementsByClassName("bizcard-div")
-        );
-        allCenterableDivs = Array.prototype.concat.apply(
-          allCenterableDivs,
-          canvas.getElementsByClassName("card-div")
-        );
-        allCenterableDivs = Array.prototype.concat.apply(
-          allCenterableDivs,
-          canvas.getElementsByClassName("card-div-dialog")
-        );
-        return allCenterableDivs;
-      }
-
       // lazy-loaded
       var allTranslateableDivs = null;
 
       // return all bizcardDivs and cardDivs lazy-loaded
-      function getAllTranslateableDivs(force) {
-        if (force) allTranslateableDivs = null;
+      function getAllTranslateableDivs(forceReload) {
+        if (forceReload) 
+          allTranslateableDivs = null;
         if (allTranslateableDivs == null) {
           allTranslateableDivs = [];
-          // allTranslateableDivs = Array.prototype.concat.apply(
-          //   allTranslateableDivs,
-          //   canvas.getElementsByClassName("bizcard-div")
-          // );
+          allTranslateableDivs = Array.prototype.concat.apply(
+            allTranslateableDivs,
+            canvas.getElementsByClassName("bizcard-div")
+          );
           allTranslateableDivs = Array.prototype.concat.apply(
             allTranslateableDivs,
             canvas.getElementsByClassName("card-div")
           );
-          // allTranslateableDivs = Array.prototype.concat.apply(
-          //   allTranslateableDivs,
-          //   canvas.getElementsByClassName("card-div-dialog")
-          // );
         }
         return allTranslateableDivs;
       }
 
-      // applies z-depth scaled parallax to all cardDivs
+      // applies z-depth scaled parallax to all translateableDiv
       function applyMotionParallax(parallax_dh, parallax_dv) {
         // constant for the current view
         var canvasHzCtr = getCanvasHzCtr();
@@ -416,7 +394,7 @@
         var dv = parallax_dv * PARALLAX_VT_EXAGGERATION_FACTOR;
 
         // compute translations for all translatableDivs
-        var allDivs = getAllTranslateableDivs((force = true));
+        var allDivs = getAllTranslateableDivs();
         for (var i = 0; i < allDivs.length; i++) {
           var cardDiv = allDivs[i];
           var zIndexStr = cardDiv.style.zIndex;
@@ -603,10 +581,10 @@
         }
       }
 
-      function renderAllCenterableDivsAtLeftColumnCenter() {
+      function renderAllTranslateableDivsAtLeftColumnCenter(forceReload=false) {
         const leftColumnCenter = getLeftColumnHzCtr();
-        const centerableDivs = getAllCenterableDivs();
-        for (const div of centerableDivs) {
+        const translateableDivs = getAllTranslateableDivs(forceReload);
+        for (const div of translateableDivs) {
           const divWidth = div.offsetWidth;
           const trans_dx = leftColumnCenter - divWidth / 2.0;
           const trans_dy = 0;
@@ -629,7 +607,7 @@
         createTimeline();
         createBizCardDivs();
         createCardDivs();
-        renderAllCenterableDivsAtLeftColumnCenter();
+        renderAllTranslateableDivsAtLeftColumnCenter();
         positionGradients();
       }
 
@@ -642,7 +620,7 @@
           leftColumnWidth + "px";
         document.getElementById("canvas").style.width = leftColumnWidth + "px";
 
-        renderAllCenterableDivsAtLeftColumnCenter();
+        renderAllTranslateableDivsAtLeftColumnCenter();
         positionGradients();
       }
 
