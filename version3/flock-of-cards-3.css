@@ -103,7 +103,7 @@ body {
   top: 100px;
   bottom: 100px;
   overflow-y: auto;
-  overscroll-behavior: contain
+  overscroll-behavior: contain;
   background-color: dodgerblue;
   color: black;
 }

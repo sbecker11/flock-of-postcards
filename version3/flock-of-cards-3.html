@@ -85,7 +85,8 @@
         const delta = max - min;
         const s = max !== 0 ? delta / max : 0;
         let h = max === min ? 0 : (max === r ? (g - b) / delta + (g < b ? 6 : 0) : max === g ? (b - r) / delta + 2 : (r - g) / delta + 4) * 60;
-        if (isNaN(h)) h = 0;
+        if (isNaN(h)) 
+          h = 0;
         return [h, s, max];
       };
       const getRGBfromHSV = ([h, s, v]) => {
@@ -177,7 +178,34 @@
 
       function createBizCardDivs() {
 
-        const jobs = [{"role":"Consulting Data Engineer","employer":"The Cigna Group","start":"2023-05-01","end":"2023-07-01","years":"0.17","z-index":"1","excel crayon":"ocean","exel swatch":"","css name":"darkcyan","css HEX color":"#008b8b","css HEX swatch":"","text color":"white","last column":""},{"role":"Consulting Data Engineer","employer":"Warner Brothers Interactive Entertainment","start":"2022-09-01","end":"2023-05-01","years":"0.66","z-index":"2","excel crayon":"blueberry","exel swatch":"","css name":"blue","css HEX color":"#0000ff","css HEX swatch":"","text color":"white","last column":""},{"role":"Consulting Data Engineer","employer":"Angel Studios","start":"2021-11-01","end":"2022-09-01","years":"0.83","z-index":"1","excel crayon":"midnight","exel swatch":"","css name":"indigo","css HEX color":"#4B0082","css HEX swatch":"","text color":"white","last column":""},{"role":"Consulting Data Engineer","employer":"Greenseed Tech","start":"2020-01-01","end":"2021-11-01","years":"1.84","z-index":"2","excel crayon":"eggplant","exel swatch":"","css name":"blueviolet","css HEX color":"#8a2be2","css HEX swatch":"","text color":"white","last column":""},{"role":"Consulting Full-Stack Developer","employer":"NuSkin","start":"2019-11-01","end":"2020-11-01","years":"1.00","z-index":"1","excel crayon":"plum","exel swatch":"","css name":"purple","css HEX color":"#800080","css HEX swatch":"","text color":"white","last column":""},{"role":"Senior Data Engineer","employer":"SeniorLiink","start":"2017-03-01","end":"2019-11-01","years":"2.67","z-index":"2","excel crayon":"maroon","exel swatch":"","css name":"maroon","css HEX color":"#800000","css HEX swatch":"","text color":"white","last column":""},{"role":"Consulting Back-End Engineer","employer":"BigR.io","start":"2016-12-01","end":"2017-03-01","years":"0.25","z-index":"1","excel crayon":"marichino","exel swatch":"","css name":"crimson","css HEX color":"#dc143c","css HEX swatch":"","text color":"white","last column":""},{"role":"Software Architect / Co-Founder","employer":"ClipFile LLC","start":"2011-02-01","end":"2016-12-01","years":"5.84","z-index":"2","excel crayon":"tangerine","exel swatch":"","css name":"orangered","css HEX color":"#ff4500","css HEX swatch":"","text color":"white","last column":""},{"role":"Software Architect / Co-Founder","employer":"Sierra Vista Group LLC","start":"2002-11-01","end":"2011-02-01","years":"8.26","z-index":"1","excel crayon":"cantalope","exel swatch":"","css name":"orange","css HEX color":"#ffa500","css HEX swatch":"","text color":"black","last column":""},{"role":"Software Architect / Co-Founder","employer":"HomePorfolio LLC","start":"1998-02-01","end":"2002-11-01","years":"4.75","z-index":"1","excel crayon":"teal","exel swatch":"","css name":"yellow","css HEX color":"#ffff00","css HEX swatch":"","text color":"black","last column":""},{"role":"Lead Software Developer","employer":"BuildingBlocks LLC","start":"1996-06-01","end":"1998-02-01","years":"1.67","z-index":"1","excel crayon":"ocean","exel swatch":"","css name":"lime","css HEX color":"#00ff00","css HEX swatch":"","text color":"black","last column":""},{"role":"Ph.D. Media Arts & Science","employer":"MIT Media Lab","start":"1990-09-01","end":"1997-04-01","years":"6.59","z-index":"2","excel crayon":"blueberry","exel swatch":"","css name":"limegreen","css HEX color":"#32cd32","css HEX swatch":"","text color":"black","last column":""},{"role":"MS Computer Science","employer":"BYU","start":"1987-09-01","end":"1990-09-01","years":"3.00","z-index":"2","excel crayon":"midnight","exel swatch":"","css name":"olivedrab","css HEX color":"#6b8e23","css HEX swatch":"","text color":"white","last column":""},{"role":"Software Developer","employer":"Cimmetrix LLC","start":"1989-06-01","end":"1990-09-01","years":"1.25","z-index":"1","excel crayon":"eggplant","exel swatch":"","css name":"forestgreen","css HEX color":"#228b22","css HEX swatch":"","text color":"white","last column":""},{"role":"BS Design Engineering Technology","employer":"BYU","start":"1983-09-01","end":"1987-09-01","years":"4.00","z-index":"2","excel crayon":"plum","exel swatch":"","css name":"teal","css HEX color":"#008080","css HEX swatch":"","text color":"white","last column":""},{"role":"Call Center Reservationist","employer":"Dell Webb Properties","start":"1984-01-01","end":"1984-09-01","years":"0.67","z-index":"1","excel crayon":"maroon","exel swatch":"","css name":"darkcyan","css HEX color":"#008b8b","css HEX swatch":"","text color":"white","last column":""},{"role":"Missonary","employer":"Taiwan Taibei Mission","start":"1982-08-01","end":"1984-01-01","years":"1.42","z-index":"3","excel crayon":"marichino","exel swatch":"","css name":"blue","css HEX color":"#0000ff","css HEX swatch":"","text color":"white","last column":""},{"role":"BS GED","employer":"BYU","start":"1981-09-01","end":"1982-08-01","years":"0.92","z-index":"2","excel crayon":"tangerine","exel swatch":"","css name":"indigo","css HEX color":"#4B0082","css HEX swatch":"","text color":"white","last column":""},{"role":"Data Processing","employer":"Greyhound Corp","start":"1981-04-01","end":"1981-09-01","years":"0.42","z-index":"1","excel crayon":"cantalope","exel swatch":"","css name":"blueviolet","css HEX color":"#8a2be2","css HEX swatch":"","text color":"white","last column":""},{"role":"Newspaper Delivery","employer":"Arizona Republic","start":"1977-09-01","end":"1981-04-01","years":"3.58","z-index":"1","excel crayon":"lemon","exel swatch":"","css name":"purple","css HEX color":"#800080","css HEX swatch":"","text color":"white","last column":""},{"role":"Project Manager / Technical Lead","employer":"MSC","start":"2007-12-01","end":"2011-02-01","years":"3.17","z-index":"2","excel crayon":"lemon","exel swatch":"","css name":"maroon","css HEX color":"#800000","css HEX swatch":"","text color":"white","last column":""},{"role":"Consulting Architect","employer":"Eleven LLC","start":"2006-02-01","end":"2007-12-01","years":"1.83","z-index":"2","excel crayon":"lime","exel swatch":"","css name":"crimson","css HEX color":"#dc143c","css HEX swatch":"","text color":"white","last column":""},{"role":"Consulting Architect","employer":"Intrusic LLC","start":"2005-02-01","end":"2006-02-01","years":"1.00","z-index":"2","excel crayon":"spring","exel swatch":"","css name":"orangered","css HEX color":"#ff4500","css HEX swatch":"","text color":"white","last column":""},{"role":"Consulting Architect / Technical Lead","employer":"AMI Entertainment","start":"2004-02-01","end":"2005-02-01","years":"1.00","z-index":"2","excel crayon":"moss","exel swatch":"","css name":"orange","css HEX color":"#ffa500","css HEX swatch":"","text color":"black","last column":""},{"role":"Consulting Architect / Technical Lead","employer":"Rowe International","start":"2003-03-01","end":"2004-02-01","years":"0.92","z-index":"2","excel crayon":"clover","exel swatch":"","css name":"yellow","css HEX color":"#ffff00","css HEX swatch":"","text color":"black","last column":""}];
+        const jobs = [
+          {"role":"Consulting Data Engineer","employer":"The Cigna Group","start":"2023-05-01","end":"2023-07-01","years":"0.17","z-index":"1","excel crayon":"ocean","exel swatch":"","css name":"darkcyan","css HEX color":"#008b8b","css HEX swatch":"","text color":"white","last column":""},
+          {"role":"Consulting Data Engineer","employer":"Warner Brothers Interactive Entertainment","start":"2022-09-01","end":"2023-05-01","years":"0.66","z-index":"2","excel crayon":"blueberry","exel swatch":"","css name":"blue","css HEX color":"#0000ff","css HEX swatch":"","text color":"white","last column":""},
+          {"role":"Consulting Data Engineer","employer":"Angel Studios","start":"2021-11-01","end":"2022-09-01","years":"0.83","z-index":"1","excel crayon":"midnight","exel swatch":"","css name":"indigo","css HEX color":"#4B0082","css HEX swatch":"","text color":"white","last column":""},
+          {"role":"Consulting Data Engineer","employer":"Greenseed Tech","start":"2020-01-01","end":"2021-11-01","years":"1.84","z-index":"2","excel crayon":"eggplant","exel swatch":"","css name":"blueviolet","css HEX color":"#8a2be2","css HEX swatch":"","text color":"white","last column":""},
+          {"role":"Consulting Full-Stack Developer","employer":"NuSkin","start":"2019-11-01","end":"2020-11-01","years":"1.00","z-index":"1","excel crayon":"plum","exel swatch":"","css name":"purple","css HEX color":"#800080","css HEX swatch":"","text color":"white","last column":""},
+          {"role":"Senior Data Engineer","employer":"SeniorLiink","start":"2017-03-01","end":"2019-11-01","years":"2.67","z-index":"2","excel crayon":"maroon","exel swatch":"","css name":"maroon","css HEX color":"#800000","css HEX swatch":"","text color":"white","last column":""},
+          {"role":"Consulting Back-End Engineer","employer":"BigR.io","start":"2016-12-01","end":"2017-03-01","years":"0.25","z-index":"1","excel crayon":"marichino","exel swatch":"","css name":"crimson","css HEX color":"#dc143c","css HEX swatch":"","text color":"white","last column":""},
+          {"role":"Software Architect / Co-Founder","employer":"ClipFile LLC","start":"2011-02-01","end":"2016-12-01","years":"5.84","z-index":"2","excel crayon":"tangerine","exel swatch":"","css name":"orangered","css HEX color":"#ff4500","css HEX swatch":"","text color":"white","last column":""},
+          {"role":"Software Architect / Co-Founder","employer":"Sierra Vista Group LLC","start":"2002-11-01","end":"2011-02-01","years":"8.26","z-index":"1","excel crayon":"cantalope","exel swatch":"","css name":"orange","css HEX color":"#ffa500","css HEX swatch":"","text color":"black","last column":""},
+          {"role":"Software Architect / Co-Founder","employer":"HomePorfolio LLC","start":"1998-02-01","end":"2002-11-01","years":"4.75","z-index":"1","excel crayon":"teal","exel swatch":"","css name":"yellow","css HEX color":"#ffff00","css HEX swatch":"","text color":"black","last column":""},
+          {"role":"Lead Software Developer","employer":"BuildingBlocks LLC","start":"1996-06-01","end":"1998-02-01","years":"1.67","z-index":"1","excel crayon":"ocean","exel swatch":"","css name":"lime","css HEX color":"#00ff00","css HEX swatch":"","text color":"black","last column":""},
+          {"role":"Ph.D. Media Arts & Science","employer":"MIT Media Lab","start":"1990-09-01","end":"1997-04-01","years":"6.59","z-index":"2","excel crayon":"blueberry","exel swatch":"","css name":"limegreen","css HEX color":"#32cd32","css HEX swatch":"","text color":"black","last column":""},
+          {"role":"MS Computer Science","employer":"BYU","start":"1987-09-01","end":"1990-09-01","years":"3.00","z-index":"2","excel crayon":"midnight","exel swatch":"","css name":"olivedrab","css HEX color":"#6b8e23","css HEX swatch":"","text color":"white","last column":""},
+          {"role":"Software Developer","employer":"Cimmetrix LLC","start":"1989-06-01","end":"1990-09-01","years":"1.25","z-index":"1","excel crayon":"eggplant","exel swatch":"","css name":"forestgreen","css HEX color":"#228b22","css HEX swatch":"","text color":"white","last column":""},
+          {"role":"BS Design Engineering Technology","employer":"BYU","start":"1983-09-01","end":"1987-09-01","years":"4.00","z-index":"2","excel crayon":"plum","exel swatch":"","css name":"teal","css HEX color":"#008080","css HEX swatch":"","text color":"white","last column":""},
+          {"role":"Call Center Reservationist","employer":"Dell Webb Properties","start":"1984-01-01","end":"1984-09-01","years":"0.67","z-index":"1","excel crayon":"maroon","exel swatch":"","css name":"darkcyan","css HEX color":"#008b8b","css HEX swatch":"","text color":"white","last column":""},
+          {"role":"Missonary","employer":"Taiwan Taibei Mission","start":"1982-08-01","end":"1984-01-01","years":"1.42","z-index":"3","excel crayon":"marichino","exel swatch":"","css name":"blue","css HEX color":"#0000ff","css HEX swatch":"","text color":"white","last column":""},
+          {"role":"BS GED","employer":"BYU","start":"1981-09-01","end":"1982-08-01","years":"0.92","z-index":"2","excel crayon":"tangerine","exel swatch":"","css name":"indigo","css HEX color":"#4B0082","css HEX swatch":"","text color":"white","last column":""},
+          {"role":"Data Processing","employer":"Greyhound Corp","start":"1981-04-01","end":"1981-09-01","years":"0.42","z-index":"1","excel crayon":"cantalope","exel swatch":"","css name":"blueviolet","css HEX color":"#8a2be2","css HEX swatch":"","text color":"white","last column":""},
+          {"role":"Newspaper Delivery","employer":"Arizona Republic","start":"1977-09-01","end":"1981-04-01","years":"3.58","z-index":"1","excel crayon":"lemon","exel swatch":"","css name":"purple","css HEX color":"#800080","css HEX swatch":"","text color":"white","last column":""},
+          {"role":"Project Manager / Technical Lead","employer":"MSC","start":"2007-12-01","end":"2011-02-01","years":"3.17","z-index":"2","excel crayon":"lemon","exel swatch":"","css name":"maroon","css HEX color":"#800000","css HEX swatch":"","text color":"white","last column":""},
+          {"role":"Consulting Architect","employer":"Eleven LLC","start":"2006-02-01","end":"2007-12-01","years":"1.83","z-index":"2","excel crayon":"lime","exel swatch":"","css name":"crimson","css HEX color":"#dc143c","css HEX swatch":"","text color":"white","last column":""},
+          {"role":"Consulting Architect","employer":"Intrusic LLC","start":"2005-02-01","end":"2006-02-01","years":"1.00","z-index":"2","excel crayon":"spring","exel swatch":"","css name":"orangered","css HEX color":"#ff4500","css HEX swatch":"","text color":"white","last column":""},
+          {"role":"Consulting Architect / Technical Lead","employer":"AMI Entertainment","start":"2004-02-01","end":"2005-02-01","years":"1.00","z-index":"2","excel crayon":"moss","exel swatch":"","css name":"orange","css HEX color":"#ffa500","css HEX swatch":"","text color":"black","last column":""},
+          {"role":"Consulting Architect / Technical Lead","employer":"Rowe International","start":"2003-03-01","end":"2004-02-01","years":"0.92","z-index":"2","excel crayon":"clover","exel swatch":"","css name":"yellow","css HEX color":"#ffff00","css HEX swatch":"","text color":"black","last column":""}
+        ];
+
 
         var num_valid_rows = 0;
         for (let i=0; i<jobs.length; i++) {
@@ -244,14 +272,13 @@
           num_valid_rows++;
         }
         num_biz_cards = num_valid_rows;
-        renderAllTranslateableDivsAtLeftColumnCenter(forceReload=true);
-      }
+        renderAllTranslateableDivsAtLeftColumnCenter();
 
       // adds a vertical stack of cardDivs to #canvas
       // each with random x,y offsets and random
       // z levels, and z-varied brightness and blur.
       function createCardDivs() {
-        var prevZIndex = null; // Track the previous z-index value
+        var prev_z = null; // Track the previous z value
         var min_id_inclusive = num_biz_cards;
         var max_id_exclusive = num_biz_cards + NUM_CARDS;
         for (let id = min_id_inclusive; id < max_id_exclusive; id++) {
@@ -268,10 +295,11 @@
           cardDiv.style.left = `${left}px`;
 
           var z = getRandomInt(CARD_MIN_Z, CARD_MAX_Z);
-          while (z === prevZIndex) {
+          while (z === prev_z) {
             // Generate a new z if it's the same as the previous one
             z = getRandomInt(CARD_MIN_Z, CARD_MAX_Z);
           }
+          prev_z = z;
           var zindexStr = get_zindexStr_from_z(z);
           cardDiv.style.zIndex = zindexStr;
           var filter_brightness_str = get_brightness_str_from_z(z);
@@ -281,7 +309,8 @@
           cardDiv.innerHTML = `id:${id}<br/>z:${z}<br/>zindexStr:${zindexStr}<br/>${filter_blur_str}`;
           canvas.appendChild(cardDiv);
 
-          var css_hex_color = "#CC0000";
+          var css_hex_color = "#CC0000" ? (z != CARD_MAX_Z) : "#800000";
+
           cardDiv.setAttribute("saved-background-color", css_hex_color);
           cardDiv.setAttribute("saved-color", "black");
           cardDiv.setAttribute("saved-focus-background-color", adjustHexBrightness(css_hex_color, 1.6));
@@ -296,12 +325,8 @@
 
           prev_z = z;
 
-          if (z == CARD_MAX_Z) {
-            cardDiv.style.backgroundColor = "maroon";
-            console.log(`cardDiv[${id}] initialized to maroon`);
-          }
         }
-        renderAllTranslateableDivsAtLeftColumnCenter(forceReload=true);
+        renderAllTranslateableDivsAtLeftColumnCenter();
       }
 
       /**
@@ -362,15 +387,9 @@
       }
 
 
-      // lazy-loaded
-      var allTranslateableDivs = null;
-
       // return all bizcardDivs and cardDivs lazy-loaded
-      function getAllTranslateableDivs(forceReload) {
-        if (forceReload) 
-          allTranslateableDivs = null;
-        if (allTranslateableDivs == null) {
-          allTranslateableDivs = [];
+      function getAllTranslateableDivs() {
+          var allTranslateableDivs = [];
           allTranslateableDivs = Array.prototype.concat.apply(
             allTranslateableDivs,
             canvas.getElementsByClassName("bizcard-div")
@@ -383,6 +402,11 @@
         return allTranslateableDivs;
       }
 
+      function applyMotionParallax(cardDivClassName) {
+        assert(cardDivClassName.endsWith("card-div"));
+        return (cardDivClassName == "bizcard-div") ? false : true;
+      }
+      
       // applies z-depth scaled parallax to all translateableDiv
       function applyMotionParallax(parallax_dh, parallax_dv) {
         // constant for the current view
@@ -398,7 +422,8 @@
         for (var i = 0; i < allDivs.length; i++) {
           var cardDiv = allDivs[i];
           var zIndexStr = cardDiv.style.zIndex;
-          var z = get_z_from_zindexStr(zIndexStr);
+          var cardDivClass = cardDiv.className;
+          var z = applyMotionParallax(cardDivClass) ? get_z_from_zindexStr(zIndexStr) : CARD_MAX_Z;
 
           // canvas-relative cardDiv center
           var canvas_dx = canvasHzCtr - getCardDivHzCenter(cardDiv);
@@ -581,9 +606,9 @@
         }
       }
 
-      function renderAllTranslateableDivsAtLeftColumnCenter(forceReload=false) {
+      function renderAllTranslateableDivsAtLeftColumnCenter() {
         const leftColumnCenter = getLeftColumnHzCtr();
-        const translateableDivs = getAllTranslateableDivs(forceReload);
+        const translateableDivs = getAllTranslateableDivs();
         for (const div of translateableDivs) {
           const divWidth = div.offsetWidth;
           const trans_dx = leftColumnCenter - divWidth / 2.0;
@@ -594,7 +619,7 @@
         var canvasHeight = canvas.style.offsetHeight;
         var maxCanvasHeight = Math.max(leftColumn.scrollHeight, canvasHeight);
         console.log(maxCanvasHeight);
-        //canvas.style.height = `${maxCanvasHeight}px`;
+        canvas.style.height = `${maxCanvasHeight}px`;
       }
 
       function positionGradients() {
@@ -619,7 +644,6 @@
         document.getElementById("left-column").style.width =
           leftColumnWidth + "px";
         document.getElementById("canvas").style.width = leftColumnWidth + "px";
-
         renderAllTranslateableDivsAtLeftColumnCenter();
         positionGradients();
       }
