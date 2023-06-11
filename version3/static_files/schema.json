@@ -1,0 +1,24 @@
+{
+    "type": "array",
+    "items": {
+      "type": "object",
+      "properties": {
+        "role": { "type": "string" },
+        "employer": { "type": "string" },
+        "start": { "type": "string", "format": "date" },
+        "end": { "type": "string", "format": "date" },
+        "years": { "type": "string", "pattern": "^\\d+(\\.\\d+)?$" },
+        "z-index": { "type": "string", "pattern": "^(?:100|[1-9]?[0-9])$" },
+        "excel crayon": { "type": "string" },
+        "excel swatch": { "type": "string" },
+        "css name": { "type": "string" },
+        "css HEX color": { "type": "string", "pattern": "^#[0-9a-fA-F]{6}$" },
+        "css HEX swatch": { "type": "string" },
+        "text color": { "type": "string" },
+        "last column": { "type": "string" }
+      },
+      "required": ["role", "employer", "start", "end", "years", "z-index", "css name", "css HEX color", "text color"],
+      "additionalProperties": false
+    }
+  }
+  
