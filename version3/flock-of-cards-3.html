@@ -17,7 +17,7 @@
       <div id="right-column-content"> 
       </div> 
     </div>
-
+    <script type="text/javascript" src="static_files/jobs.js"></script>
     <script>
       // this is set in the createBizDivCards
       var num_biz_cards = 0;
@@ -71,13 +71,13 @@
       const MONTHTICK_FONTSIZE = 0.07;
 
       const validateKey = (obj, key) => { if (!(key in obj)) throw new Error(`Key '${key}' not found in object`); };
-      const validateString = (str) => { if (typeof str === 'undefined' || str === null || typeof str !== 'string' || str.trim().length === 0) throw new Error('Invalid string'); };
+      const validateString = (str) => { if (typeof str === 'undefined' || str === null || typeof str !== 'string' || str.trim().length === 0) throw new Error(`Invalid string:[${str}]`); };
       const validateHexString = hexStr => { if (typeof hexStr !== 'string' || hexStr === null || hexStr === undefined || !hexStr.startsWith('#') || !/^[0-9a-fA-F]{6}$/.test(hexStr.slice(1)) || hexStr.length !== 7) throw new Error('Hexadecimal string is invalid.'); };
       const validateIntArrayLength = (arr, length) => { if (typeof arr === 'undefined' || arr === null || !Array.isArray(arr) || arr.some(item => !Number.isInteger(item)) || (typeof length !== 'undefined' && arr.length !== length)) throw new Error('Invalid array of integers or length mismatch'); };
       const validateFloat = (num) => { if (typeof num === 'undefined' || num === null || typeof num !== 'number' || !Number.isFinite(num)) throw new Error('Invalid floating-point number'); };
       const clamp = (value, min, max) => Math.max(min, Math.min(max, value));
       const adjustRgbBrightness = (rgb, brightness) => { validateIntArrayLength(rgb,3); return rgb.map(channel => clamp(Math.round(channel * brightness), 0, 255)); };
-      const adjustHexBrightness = (hexStr, brightness) => { validateHexString(hex); validateFloat(brightness); return getHexFromRGB(adjustRgbBrightness(getRGBfromHex(`${hexStr}`), brightness)); };
+      const adjustHexBrightness = (hexStr, brightness) => { validateHexString(hexStr); validateFloat(brightness); return getHexFromRGB(adjustRgbBrightness(getRGBfromHex(`${hexStr}`), brightness)); };
       const getHexFromRGB = rgb => { validateIntArrayLength(rgb, 3); return "#" + rgb.map(c => c.toString(16).padStart(2, "0")).join("").toLowerCase(); };
       const getRGBfromHex = hexStr => { validateHexString(hexStr); return hexStr.match(/^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i)?.slice(1).map(c => parseInt(c, 16)); };
       const toFixedPoint = (value, precision) => +value.toFixed(precision);
@@ -183,13 +183,6 @@
 
       function createBizCardDivs() {
 
-        const jobs = [
-          {"role":"Consulting Data Engineer","employer":"The Cigna Group","start":"2023-05-01","end":"2023-07-01","years":"0.17","z-index":"1","excel crayon":"ocean","exel swatch":"","css name":"darkcyan","css HEX color":"#008b8b","css HEX swatch":"","text color":"white","last column":""},
-          {"role":"Consulting Data Engineer","employer":"Warner Brothers Interactive Entertainment","start":"2022-09-01","end":"2023-05-01","years":"0.66","z-index":"2","excel crayon":"blueberry","exel swatch":"","css name":"blue","css HEX color":"#0000ff","css HEX swatch":"","text color":"white","last column":""},
-          {"role":"Consulting Architect / Technical Lead","employer":"AMI Entertainment","start":"2004-02-01","end":"2005-02-01","years":"1.00","z-index":"2","excel crayon":"moss","exel swatch":"","css name":"orange","css HEX color":"#ffa500","css HEX swatch":"","text color":"black","last column":""},
-          {"role":"Consulting Architect / Technical Lead","employer":"Rowe International","start":"2003-03-01","end":"2004-02-01","years":"0.92","z-index":"2","excel crayon":"clover","exel swatch":"","css name":"yellow","css HEX color":"#ffff00","css HEX swatch":"","text color":"black","last column":""}
-        ];
-
         var num_valid_rows = 0;
         for (let i=0; i<jobs.length; i++) {
           job = jobs[i];
@@ -197,7 +190,7 @@
           validateString(role);
           var employer = job["employer"].trim();
           validateString(employer);
-          var css_hex_color_str = job["css HEX color"].trim();
+          var css_hex_color_str = job["css RGB"].trim();
           validateHexString(css_hex_color_str);
           validateKey(job,"text color");
           var font_color_name = job["text color"].trim();
@@ -211,7 +204,6 @@
           var endMonthStr = jobEnd.split("-")[1];
           validateString(endMonthStr);
           var topInches = getTimelineYearMonthTopIn(endYearStr,endMonthStr);
-          validateString(topInches);
 
           var jobStart = job["start"].trim().replace("-01","");
           validateString(jobStart);
@@ -220,11 +212,9 @@
           var startMonthStr = jobStart.split("-")[1];
           validateString(startMonthStr);
           var bottomInches = getTimelineYearMonthTopIn(startYearStr,startMonthStr);
-          validateString(bottomInches);
 
           var heightInches = bottomInches - topInches;
-          var zIndexStr = job["z-index"].trim();
-          validateString(zIndexStr);
+          var zIndex = job["z-index"];
           var indent =  (zIndex - 1) * BIZCARD_INDENT_IN;
 
           const bizcardDiv = document.createElement("div");
@@ -302,7 +292,7 @@
           cardDiv.innerHTML = `id:${id}<br/>z:${z}<br/>zindexStr:${zindexStr}<br/>${filter_blur_str}`;
           canvas.appendChild(cardDiv);
 
-          var css_hex_color_str = "#CC0000" ? (z != CARD_MAX_Z) : "#800000";
+          var css_hex_color_str = (z != CARD_MAX_Z) ? "#CC0000" : "#800000";
 
           cardDiv.setAttribute("saved-background-color", css_hex_color_str);
           cardDiv.setAttribute("saved-color", "black");
@@ -393,10 +383,6 @@
         );
         return allDivs;
       }
-
-      function shouldApplyMotionParallaxToCardDivClassName(cardDivClassName) {
-        return (cardDivClassName == "bizcard-div") ? false : true;
-      }
       
       // applies z-depth scaled parallax to all translateableDiv
       function applyMotionParallax(parallax_dh, parallax_dv) {
@@ -412,9 +398,12 @@
         var allDivs = getAllTranslateableDivs();
         for (var i = 0; i < allDivs.length; i++) {
           var cardDiv = allDivs[i];
+          if( cardDiv.className == 'bizcard-div' )
+            continue;
+
           var zIndexStr = cardDiv.style.zIndex;
           var cardDivClass = cardDiv.className;
-          var z = shouldApplyMotionParallaxToCardDivClassName(cardDivClass) ? get_z_from_zindexStr(zIndexStr) : CARD_MAX_Z;
+          var z = get_z_from_zindexStr(zIndexStr);
 
           // canvas-relative cardDiv center
           var canvas_dx = canvasHzCtr - getCardDivHzCenter(cardDiv);
@@ -609,7 +598,7 @@
         }
         var canvasHeight = canvas.style.offsetHeight;
         var maxCanvasHeight = Math.max(leftColumn.scrollHeight, canvasHeight);
-        console.log(maxCanvasHeight);
+        console.log(`maxCanvasHeight:${maxCanvasHeight}`);
         canvas.style.height = `${maxCanvasHeight}px`;
       }
 

@@ -5,6 +5,7 @@
 **/dist/*
 /tmp
 /out-tsc
+/static_files/venv/*
 
 # Runtime data
 pids
@@ -90,3 +91,4 @@ lerna-debug.log
 # System Files
 .DS_Store
 Thumbs.db
+version3/static_files/venv/*

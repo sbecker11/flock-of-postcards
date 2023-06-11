@@ -1,3 +1,0 @@
- cp ../../../workspace-rawgraphs/jobs.csv .
- 
- node csv2obj.js jobs.csv --minify > jobs.txt
