@@ -1,0 +1,265 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <style>
+    html,
+    body {
+      height: 100%;
+      margin: 0;
+      padding: 0;
+      overflow: hidden; /* Prevent vertical bouncing */
+    }
+
+    .container {
+      display: flex;
+      height: 100%;
+    }
+
+    .column {
+      flex: 1;
+      padding: 10px;
+      position: relative;
+    }
+
+    .left-column {
+      background-color: #666666;
+      overflow-y: auto;
+      scroll-behavior: contain;
+    }
+
+    .right-column {
+      background-color: lightblue;
+      display: flex;
+      flex-direction: column;
+      height: 100%;
+    }
+
+    .header-div {
+      height: 100px;
+      background-color: #444444;
+      padding: 10px;
+    }
+
+    .content-div {
+      flex: 1;
+      background-color: #dddddd;
+      overflow-y: auto;
+      padding: 10px;
+    }
+
+    .footer-div {
+      height: 100px;
+      background-color: #999999;
+      padding: 10px;
+    }
+
+    .floating-box {
+      width: 20px;
+      height: 20px;
+      background-color: transparent;
+      border: 1px solid white;
+      position: fixed;
+      top: 50%;
+      left: 25%;
+      transform: translate(-50%, -50%);
+      z-index: 1;
+    }
+
+    .plus {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      color: white;
+      font-size: 16px;
+    }
+
+    .message {
+      background-color: transparent;
+      border: none;
+      padding: 10px;
+      margin-top: 10px;
+      color: white;
+      font-family: sans-serif;
+    }
+
+    .left-column-content {
+      height: 5000px;
+      color: white;
+      font-family: sans-serif;
+    }
+
+    .right-column-content {
+      color: white;
+      font-family: sans-serif;
+      overflow-y: auto;
+    }
+
+    .box-div {
+      position: relative;
+      width: 100px;
+      height: 100px;
+      padding: 5px;
+      cursor: pointer;
+      border: 2px solid white;
+      border-radius: 10px;
+      color: black;
+      text-align: center;
+      overflow-wrap: break-word;
+      word-wrap: break-word;
+      word-break: break-word;
+      font-size: 50%;
+    }
+
+    .box-div:hover {
+      background-color: #ffffff;
+      color: #666666;
+    }
+
+    .box-div.clicked {
+      border-color: #ffffff;
+      color: #ffffff;
+      background-color: transparent;
+    }
+
+    .delete-button {
+      position: absolute;
+      top: 5px;
+      right: 5px;
+      width: 20px;
+      height: 20px;
+      background-color: red;
+      color: white;
+      border: none;
+      cursor: pointer;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="column left-column" onscroll="adjustFloatingBoxPosition()"
+        onmouseenter="handleMouseEnter()" onmouseleave="handleMouseLeave()">
+      <div class="content">
+        <div id="leftRandomText" class="left-column-content">
+          <!-- Box-div elements will be dynamically inserted here -->
+        </div>
+      </div>
+    </div>
+    <div class="column right-column">
+      <div class="header-div">
+        <div class="message" id="message"></div>
+      </div>
+      <div class="content-div">
+        <div id="rightRandomText" class="right-column-content"></div>
+      </div>
+      <div class="footer-div"></div>
+    </div>
+  </div>
+  <div class="floating-box">
+    <div class="plus">+</div>
+  </div>
+
+  <script src="color-palette.js"></script>
+  <script src="lorem-ipsum.js"></script>
+  <script>
+    function generateRandomBox() {
+      var boxDiv = document.createElement('div');
+      boxDiv.classList.add('box-div');
+      boxDiv.style.backgroundColor = getRandomColor();
+      boxDiv.innerHTML = getRandomWords(1, 6);
+
+      var deleteButton = document.createElement('button');
+      deleteButton.classList.add('delete-button');
+      deleteButton.innerHTML = '&times;';
+
+      deleteButton.addEventListener('click', function(event) {
+        var lineDiv = deleteButton.parentNode;
+        lineDiv.parentNode.removeChild(lineDiv);
+        event.stopPropagation();
+      });
+
+      boxDiv.appendChild(deleteButton);
+      boxDiv.addEventListener('click', function(event) {
+        var target = event.target;
+        if (target.classList.contains('delete-button')) {
+          var lineDiv = target.parentNode;
+          lineDiv.parentNode.removeChild(lineDiv);
+        } else {
+          var clonedBoxDiv = boxDiv.cloneNode(true);
+          clonedBoxDiv.classList.remove('clicked');
+
+          var clonedDeleteButton = document.createElement('button');
+          clonedDeleteButton.classList.add('delete-button');
+          clonedDeleteButton.innerHTML = '&times;';
+          clonedDeleteButton.addEventListener('click', function(event) {
+            var clonedLineDiv = clonedDeleteButton.parentNode;
+            clonedLineDiv.parentNode.removeChild(clonedLineDiv);
+            event.stopPropagation();
+          });
+
+          clonedBoxDiv.appendChild(clonedDeleteButton);
+          appendClonedBoxDiv(clonedBoxDiv);
+        }
+      });
+
+      return boxDiv;
+    }
+
+    function appendBoxDiv(boxDiv) {
+      var leftRandomTextElement = document.getElementById('leftRandomText');
+      leftRandomTextElement.appendChild(boxDiv);
+    }
+
+    function appendClonedBoxDiv(clonedBoxDiv) {
+      var rightRandomTextElement = document.getElementById('rightRandomText');
+      rightRandomTextElement.appendChild(clonedBoxDiv);
+    }
+
+    // Add initial set of box-divs to the left column on window load
+    window.addEventListener('load', function() {
+      for (var i = 0; i < 25; i++) {
+        var boxDiv = generateRandomBox();
+        appendBoxDiv(boxDiv);
+      }
+    });
+
+    // Display mouse position and delta coordinates in the message element of the right-column header div
+    var messageElement = document.getElementById('message');
+    var leftColumn = document.querySelector('.left-column');
+    var isMouseOverLeftColumn = false;
+
+    function handleMouseEnter() {
+      isMouseOverLeftColumn = true;
+    }
+
+    function handleMouseLeave() {
+      isMouseOverLeftColumn = false;
+      messageElement.innerHTML = '';
+    }
+
+    window.addEventListener('mousemove', function(event) {
+      if (!isMouseOverLeftColumn) {
+        return;
+      }
+
+      var mouseX = event.clientX;
+      var mouseY = event.clientY;
+
+      // Get the center coordinates of the floating box
+      var floatingBox = document.querySelector('.floating-box');
+      var floatingBoxRect = floatingBox.getBoundingClientRect();
+      var floatingBoxCenterX = floatingBoxRect.left + floatingBoxRect.width / 2;
+      var floatingBoxCenterY = floatingBoxRect.top + floatingBoxRect.height / 2;
+
+      // Compute the delta vector from the center of the floating box to the mouse position
+      var deltaVectorX = mouseX - floatingBoxCenterX;
+      var deltaVectorY = mouseY - floatingBoxCenterY;
+
+      var messageText = 'Mouse Position: X=' + mouseX + ', Y=' + mouseY;
+      messageText += '<br>Delta Vector: X=' + deltaVectorX + ', Y=' + deltaVectorY;
+
+      messageElement.innerHTML = messageText;
+    });
+  </script>
+</body>
+</html>
