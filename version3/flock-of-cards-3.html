@@ -15,8 +15,11 @@
     </div>
     <div id="right-column">
       <div id="right-column-content"> 
+        <div id="debugElement"></div>
       </div> 
     </div>
+    <div id="bulls-eye"><div id="bulls_eye_text">+</div></div>
+    
     <script type="text/javascript" src="static_files/jobs.js"></script>
     <script>
       // this is set in the createBizDivCards
@@ -26,12 +29,12 @@
       const NUM_CARDS = 50;
 
       const rightColumnContent = document.getElementById("right-column-content");
+      const debugElement = document.getElementById("debugElement");
       const leftColumn = document.getElementById("left-column");
       const canvas = document.getElementById("canvas");
       const bottomGradient = document.getElementById("bottom-gradient");
-      const timelineContainer = document.getElementById(
-        "timeline-container"
-      );
+      const timelineContainer = document.getElementById("timeline-container");
+      const bulls_eye = document.getElementById("bulls-eye");
 
       // ground is zindex = 0 and zindex is offset from ground,
       // and z is distance to viewer, so z = MAX_Z - zindex,
@@ -99,6 +102,18 @@
         return [f(5), f(3), f(1)].map(Math.round);
       };
 
+      // example usage: var x = getOffset( element ).left; 
+      function getOffset( el ) {
+        var _x = 0;
+        var _y = 0;
+        while( el && !isNaN( el.offsetLeft ) && !isNaN( el.offsetTop ) ) {
+            _x += el.offsetLeft - el.scrollLeft;
+            _y += el.offsetTop - el.scrollTop;
+            el = el.offsetParent;
+        }
+        return { top: _y, left: _x };
+    }
+
       function get_zindexStr_from_z(z) {
         return `${ALL_CARDS_MAX_Z - z}`;
       }
@@ -132,7 +147,6 @@
       // returns a z-relative parallax scale factor
       // parallax increases as z decreases
       function getZscale(z) {
-        return parseInt(get_zindexStr_from_z(z));
       }
 
       var timelineYearDivTops = {};
@@ -182,8 +196,8 @@
       }
 
       function createBizCardDivs() {
-
         var num_valid_rows = 0;
+        var totalTopInches = 0.0;
         for (let i=0; i<jobs.length; i++) {
           job = jobs[i];
           var role = job["role"];
@@ -221,6 +235,7 @@
           if (num_biz_cards != 0) {
             throw new Error("Value of num_biz_cards is not zero!");
           }
+          totalTopInches += topInches;
           bizcardDiv.id = num_biz_cards + i;
           bizcardDiv.className = "bizcard-div";
           bizcardDiv.style.top = `${topInches}in`;
@@ -251,6 +266,9 @@
           num_valid_rows++;
         }
         num_biz_cards = num_valid_rows;
+        var meanTopInches = totalTopInches / num_biz_cards;
+        console.log(`meanBizcardTopInches:${meanTopInches}`);
+  
         renderAllTranslateableDivsAtLeftColumnCenter();
       }
 
@@ -332,16 +350,23 @@
        * @return {str} Return a string with format "12.02px -156.79px"
        */
       function getZTranslateStr(dh, dv, z, canvas_dx, canvas_dy) {
-        // zScale increases to max translation as z approaches MAX_Z
-        // zScale decreases to 1 as as z approaches 1
-        zScale = getZscale(z);
+        // z ranges from 0 (closest) to viewer to MAX_Z furthest from viewer
+        // zindex ranges MAX_Z (closest to viewer) to 1 furthest from viewer
+        var zindex = get_zindexStr_from_z(z);
+        zScale = zindex * 1.0;
 
         // by definition, divs have zero mean hzCtrs so canvas translation is required
-        dx = toFixedPoint(dh * zScale + canvas_dx, 2);
-        dy = toFixedPoint(dv * zScale + canvas_dy, 2);
+        dx = dh * zScale + canvas_dx;
+        dy = dv * zScale + canvas_dy;
         zTranslateStr = `${dx}px ${dy}px`;
 
         return zTranslateStr;
+      }
+
+      function getElementCtr(element) {
+        var hzCtr = (element.offsetLeft + element.offsetWidth) / 2;
+        var vtCtr = (element.offsetTop + element.offsetHeight) / 2;
+        return { hzCtr: hzCtr, vtCtr: vtCtr};
       }
 
       // return the horizontal center of the left-column
@@ -360,13 +385,13 @@
       function getCanvasVtCtr() {
         return canvas.offsetHeight / 2;
       }
-      // return the horizontal center of the given cardDiv
-      function getCardDivHzCenter(cardDiv) {
-        return cardDiv.offsetWidth / 2;
+      // return the horizontal center of the given element relative to itself
+      function getElementSelfHzCtr(element) {
+        return element.offsetWidth / 2;
       }
-      // return the vertical center of the given cardDiv
-      function getCardDivVtCenter(cardDiv) {
-        return cardDiv.offsetHeight / 2;
+      // return the vertical center of the given element relative to itself
+      function getElementSelfVtCtr(element) {
+        return element.offsetHeight / 2;
       }
 
 
@@ -386,6 +411,7 @@
       
       // applies z-depth scaled parallax to all translateableDiv
       function applyMotionParallax(parallax_dh, parallax_dv) {
+
         // constant for the current view
         var canvasHzCtr = getCanvasHzCtr();
         var canvasVtCtr = getCanvasVtCtr();
@@ -394,25 +420,94 @@
         var dh = parallax_dh * PARALLAX_HZ_EXAGGERATION_FACTOR;
         var dv = parallax_dv * PARALLAX_VT_EXAGGERATION_FACTOR;
 
-        // compute translations for all translatableDivs
+        var cardCount = 0;
+        var parallaxDhTotal = 0;
+        var parallaxDvTotal = 0;
+        var canvas_dx_total = 0;
+        var canvas_dy_total = 0;
+        var dhTotal = 0;
+        var dvTotal = 0;
+
+        var cardHzCtrTotal = 0;
+        var cardVtCtrTotal = 0;
+        var canvasHzCtrTotal = 0;
+        var canvasVtCtrTotal = 0;
+        var zTotal = 0;
+        var zIndexTotal = 0;
+
+        var dxTotal = 0;
+        var dyTotal = 0;
+
+        // compute and apply translations for all translatableDivs
         var allDivs = getAllTranslateableDivs();
         for (var i = 0; i < allDivs.length; i++) {
           var cardDiv = allDivs[i];
-          if( cardDiv.className == 'bizcard-div' )
-            continue;
+
+          var isBizcardDiv = (cardDiv.className == 'bizcard-div' ) ? true : false;
+          var isCardDiv = (cardDiv.className == 'bizcard' ) ? true : false;
 
           var zIndexStr = cardDiv.style.zIndex;
-          var cardDivClass = cardDiv.className;
+
           var z = get_z_from_zindexStr(zIndexStr);
 
           // canvas-relative cardDiv center
-          var canvas_dx = canvasHzCtr - getCardDivHzCenter(cardDiv);
-          var canvas_dy = canvasVtCtr - getCardDivVtCenter(cardDiv);
-
+          var canvas_dx = canvasHzCtr - getElementSelfHzCtr(cardDiv);
+          var canvas_dy = canvasVtCtr - getElementSelfVtCtr(cardDiv);
+                    
+          //keep bizcards centered only
+          //if( isBizcardDiv )
+          //  z = CARD_MAX_Z;
+        
           var zTranslateStr = getZTranslateStr(dh, dv, z, canvas_dx, canvas_dy);
+
+          if(isBizcardDiv || cardDiv ) {
+            parallaxDhTotal += parallax_dh; // <= leftColumnHzCtr
+            parallaxDvTotal += parallax_dv; // <= leftColumnVtCtr
+            dhTotal += dh; // a fraction of parallax_dh
+            dvTotal += dv; // a fraction of parallax_dv
+
+            zTotal += z; // fixed
+            zIndexTotal += parseInt(zIndexStr); // fixed
+            
+            canvasHzCtrTotal += canvasHzCtr; // fixed
+            canvasVtCtrTotal += canvasVtCtr; // fixed
+            cardHzCtrTotal += getElementSelfHzCtr(cardDiv); // fixed
+            cardVtCtrTotal += getElementSelfVtCtr(cardDiv); // fixed
+            canvas_dx_total += canvas_dx; // fixed
+            canvas_dy_total += canvas_dy; // fixed
+
+
+            // zTranslateStr has format `${dx}px ${dy}px`;
+            var dx = parseInt(zTranslateStr.split(" ")[0].replace("px",""));
+            var dy = parseInt(zTranslateStr.split(" ")[1].replace("px",""));
+            dxTotal += dx;
+            dyTotal += dy;
+
+            cardCount += 1;
+          }
 
           cardDiv.style.translate = zTranslateStr;
         }
+        var debug = "";
+        debug += `parallaxDhMean:${parallaxDhTotal / cardCount} <= leftColumnHzCtr\n`;
+        debug += `parallaxDvMean:${parallaxDvTotal / cardCount} <= leftColumnVtCtr\n`;
+        debug += `dhMean:${dhTotal / cardCount} fraction of parallax_dh\n`;
+        debug += `dvMean:${dvTotal / cardCount} fraction of parallax_dv\n`;
+        debug += `leftColumnHzCtr:${getLeftColumnHzCtr()} fixed\n`;
+        debug += `leftColumnVtCtr:${getLeftColumnVtCtr()} fixed\n`;
+        debug += `zMean:${zTotal / cardCount} fixed\n`; 
+        debug += `zIndexMean:${zIndexTotal / cardCount} fixed\n`; // fixed
+        debug += `canvasHzCtrMean:${canvasHzCtrTotal / cardCount} fixed\n`;
+        debug += `canvasVtCtrMean:${canvasVtCtrTotal / cardCount} fixed\n`;
+        debug += `cardHzCtrMean:${cardHzCtrTotal / cardCount} fixed\n`;
+        debug += `cardVtCtrMean:${cardVtCtrTotal / cardCount} fixed\n`;
+        debug += `canvas_dx_mean:${canvas_dx_total / cardCount} fixed\n`;
+        debug += `canvas_dy_mean:${canvas_dy_total / cardCount} fixed\n`;
+
+        debug += `dxMean:${dxTotal / cardCount} should be zero at center\n`;
+        debug += `dyMean:${dyTotal / cardCount} should be zero at center\n`;
+
+        debugElement.innerText = debug;
       }
 
       var scrollingInterval = null;
@@ -596,10 +691,11 @@
           const translateStr = `${trans_dx}px ${trans_dy}px`;
           div.style.translate = translateStr;
         }
-        var canvasHeight = canvas.style.offsetHeight;
-        var maxCanvasHeight = Math.max(leftColumn.scrollHeight, canvasHeight);
-        console.log(`maxCanvasHeight:${maxCanvasHeight}`);
-        canvas.style.height = `${maxCanvasHeight}px`;
+        console.log(`leftColumn.scrollHeight:${leftColumn.scrollHeight}`);
+        // var canvasHeight = canvas.style.offsetHeight;
+        // var maxCanvasHeight = Math.max(leftColumn.scrollHeight, canvasHeight);
+        // console.log(`maxCanvasHeight:${maxCanvasHeight}`);
+        // canvas.style.height = `${maxCanvasHeight}px`;
       }
 
       function positionGradients() {
@@ -608,12 +704,33 @@
         bottomGradient.style.top = `${canvasHeight - bottomGradientHeight}px`;
       }
 
+      function leftColumnScrollToYear(year) {
+        var totalYears = YEAR_DIV_MAX_YEAR - YEAR_DIV_MIN_YEAR + 1;
+        var leftColumScrollPixelsPerYear = leftColumn.scrollHeight / totalYears;
+
+        var newScrollTop = (YEAR_DIV_MAX_YEAR - year) * leftColumScrollPixelsPerYear;
+        newScrollTop = clamp(newScrollTop,0,leftColumn.scrollHeight);
+        console.log(`newScrollTop:${newScrollTop}`);
+  
+        leftColumn.scrollTop = newScrollTop;
+      }
+
+      function centerBullsEye() {
+        var top = getLeftColumnVtCtr() - getElementSelfVtCtr(bulls_eye);
+        var left = getLeftColumnHzCtr() - getElementSelfHzCtr(bulls_eye);
+        bulls_eye.style.top = `${top}px`;
+        bulls_eye.style.left = `${left}px`;
+        console.log(`bulls-eye top:${top} left:${left}`);
+      }
+
       function handleWindowLoad() {
         createTimeline();
         createBizCardDivs();
         createCardDivs();
         renderAllTranslateableDivsAtLeftColumnCenter();
         positionGradients();
+        leftColumnScrollToYear(2000);
+        centerBullsEye();
       }
 
       function handleWindowResize() {
@@ -626,6 +743,7 @@
         document.getElementById("canvas").style.width = leftColumnWidth + "px";
         renderAllTranslateableDivsAtLeftColumnCenter();
         positionGradients();
+        centerBullsEye();
       }
 
       // Attach event listeners
