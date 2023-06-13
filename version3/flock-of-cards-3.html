@@ -18,7 +18,7 @@
         <div id="debugElement"></div>
       </div> 
     </div>
-    <div id="bulls-eye"><div id="bulls_eye_text">+</div></div>
+    <div id="bulls-eye">+</div>
     
     <script type="text/javascript" src="static_files/jobs.js"></script>
     <script>
@@ -497,8 +497,8 @@
         debug += `leftColumnVtCtr:${getLeftColumnVtCtr()} fixed\n`;
         debug += `zMean:${zTotal / cardCount} fixed\n`; 
         debug += `zIndexMean:${zIndexTotal / cardCount} fixed\n`; // fixed
-        debug += `canvasHzCtrMean:${canvasHzCtrTotal / cardCount} fixed\n`;
-        debug += `canvasVtCtrMean:${canvasVtCtrTotal / cardCount} fixed\n`;
+        debug += `canvasHzCtrMean:${canvasHzCtrTotal / cardCount} fixed == leftColumnHzCtr \n`;
+        debug += `canvasVtCtrMean:${canvasVtCtrTotal / cardCount} fixed == 0\n`;
         debug += `cardHzCtrMean:${cardHzCtrTotal / cardCount} fixed\n`;
         debug += `cardVtCtrMean:${cardVtCtrTotal / cardCount} fixed\n`;
         debug += `canvas_dx_mean:${canvas_dx_total / cardCount} fixed\n`;
