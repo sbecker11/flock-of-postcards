@@ -10,44 +10,53 @@
       overflow: hidden; /* Prevent vertical bouncing */
     }
 
-    .container {
+    #left-container-div {
       display: flex;
       height: 100%;
     }
 
-    .column {
+    #left-column-div {
       flex: 1;
       padding: 10px;
       position: relative;
-    }
-
-    .left-column {
       background-color: #666666;
       overflow-y: auto;
       scroll-behavior: contain;
     }
 
-    .right-column {
+    #right-column-div {
+      flex: 1;
+      padding: 10px;
+      position: relative;
       background-color: lightblue;
       display: flex;
       flex-direction: column;
       height: 100%;
     }
 
-    .header-div {
+    #right-header-div {
       height: 100px;
       background-color: #444444;
       padding: 10px;
     }
 
-    .content-div {
+    #right-message-div {
+      background-color: transparent;
+      border: none;
+      padding: 10px;
+      margin-top: 10px;
+      color: white;
+      font-family: sans-serif;
+    }
+
+    #right-content-div {
       flex: 1;
       background-color: #dddddd;
       overflow-y: auto;
       padding: 10px;
     }
 
-    .footer-div {
+    #right-footer-div {
       height: 100px;
       background-color: #999999;
       padding: 10px;
@@ -63,6 +72,7 @@
       left: 25%;
       transform: translate(-50%, -50%);
       z-index: 1;
+      pointer-events:none;
     }
 
     .plus {
@@ -74,25 +84,10 @@
       font-size: 16px;
     }
 
-    .message {
-      background-color: transparent;
-      border: none;
-      padding: 10px;
-      margin-top: 10px;
-      color: white;
-      font-family: sans-serif;
-    }
-
-    .left-column-content {
+    .left-content-civ {
       height: 5000px;
       color: white;
       font-family: sans-serif;
-    }
-
-    .right-column-content {
-      color: white;
-      font-family: sans-serif;
-      overflow-y: auto;
     }
 
     .box-div {
@@ -136,23 +131,25 @@
   </style>
 </head>
 <body>
-  <div class="container">
-    <div class="column left-column" onscroll="adjustFloatingBoxPosition()"
-        onmouseenter="handleMouseEnter()" onmouseleave="handleMouseLeave()">
+  <div id="left-container-div">
+    <div id="left-column-div" 
+        onscroll="adjustFloatingBoxPosition()"
+        onmouseenter="handleMouseEnter()" 
+        onmouseleave="handleMouseLeave()">
       <div class="content">
-        <div id="leftRandomText" class="left-column-content">
-          <!-- Box-div elements will be dynamically inserted here -->
+        <div id="left-content-civ">
+          <!-- Box-div elements will be dynamically inserted here at each window load -->
         </div>
       </div>
     </div>
-    <div class="column right-column">
-      <div class="header-div">
-        <div class="message" id="message"></div>
+    <div id="right-column-div">
+      <div id="right-header-div">
+        <div id="right-message-div"></div>
       </div>
-      <div class="content-div">
-        <div id="rightRandomText" class="right-column-content"></div>
+      <div id="right-content-div" class="content-div">
+        <!-- cloned Box-div elements will be dynamically inserted here -->
       </div>
-      <div class="footer-div"></div>
+      <div id="right-footer-div"></div>
     </div>
   </div>
   <div class="floating-box">
@@ -179,6 +176,7 @@
       });
 
       boxDiv.appendChild(deleteButton);
+
       boxDiv.addEventListener('click', function(event) {
         var target = event.target;
         if (target.classList.contains('delete-button')) {
@@ -206,13 +204,13 @@
     }
 
     function appendBoxDiv(boxDiv) {
-      var leftRandomTextElement = document.getElementById('leftRandomText');
-      leftRandomTextElement.appendChild(boxDiv);
+      var leftContentDiv = document.getElementById('left-content-civ');
+      leftContentDiv.appendChild(boxDiv);
     }
 
     function appendClonedBoxDiv(clonedBoxDiv) {
-      var rightRandomTextElement = document.getElementById('rightRandomText');
-      rightRandomTextElement.appendChild(clonedBoxDiv);
+      var rightContentDiv = document.getElementById('right-content-div');
+      rightContentDiv.appendChild(clonedBoxDiv);
     }
 
     // Add initial set of box-divs to the left column on window load
@@ -223,9 +221,8 @@
       }
     });
 
-    // Display mouse position and delta coordinates in the message element of the right-column header div
-    var messageElement = document.getElementById('message');
-    var leftColumn = document.querySelector('.left-column');
+    // Display mouse position and delta coordinates in the right-message-div  
+    var rightMessageDiv = document.getElementById('right-message-div');
     var isMouseOverLeftColumn = false;
 
     function handleMouseEnter() {
@@ -234,7 +231,7 @@
 
     function handleMouseLeave() {
       isMouseOverLeftColumn = false;
-      messageElement.innerHTML = '';
+      rightMessageDiv.innerHTML = '';
     }
 
     window.addEventListener('mousemove', function(event) {
@@ -258,7 +255,7 @@
       var messageText = 'Mouse Position: X=' + mouseX + ', Y=' + mouseY;
       messageText += '<br>Delta Vector: X=' + deltaVectorX + ', Y=' + deltaVectorY;
 
-      messageElement.innerHTML = messageText;
+      rightMessageDiv.innerHTML = messageText;
     });
   </script>
 </body>
