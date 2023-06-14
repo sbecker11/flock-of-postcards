@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
   <head>
-    <title>flock-of-cards-3</title>
+    <title>flock-of-cards-4</title>
     <style>
       html,
       body {
@@ -142,6 +142,21 @@
         background-color: #444444;
         color: white;
         padding: 10px;
+        align-content: left;
+      }
+
+      .intro, .user, .footnote{
+        font-family: "Roboto", sans-serif;
+        color: white;
+        font-size: 17px;
+        font-weight: 400;
+      }
+  
+      .user {
+        font-weight: 900;
+      }
+      .footnote {
+        font-size: 10px;
       }
   
       #right-content-div {
@@ -178,9 +193,20 @@
         width: 15px;
         height: 15px;
         background-color: red;
+        border: 0;            /* for flat appearence */
+        background: none;
+        box-shadow: none;
+        border-radius: 0px;
+        background-image: url("static_content/big-red-x.gif");
+      }
+
+      .card-div-line-item-delete-button-img {
+        position: absolute;
+        top: 0px;
+        left: 0px;
+        background-color: red;
         color: white;
-        text-align: center;
-        line-height:15px;
+        pointer-events: none;
       }
 
     </style>
@@ -196,15 +222,25 @@
     </div>
     <div id="right-column">
       <div id="right-header-div">
-        <div id="debugElement"></div>
+        <p class="intro style="top:0px; left:0px;">
+        You are now viewing <br/>
+        <span class="user">Shawn Becker's</span> resume<br/>
+        as a flock of postcards.
+        </p>
+        <p class="footnote">
+        click here to create one for yourself
+        at becker-studio.com
+        </p>
       </div>
       <div id="right-content-div"> 
       </div> 
-      <div id="right-footer-div"></div>
+      <div id="right-footer-div">
+        <div id="debugElement"></div>
+      </div>
     </div>
     <div id="bulls-eye">+</div>
     
-    <script type="text/javascript" src="static_files/jobs.js"></script>
+    <script type="text/javascript" src="static_content/jobs.js"></script>
     <script>
       // this is set in the createBizDivCards
       var num_biz_cards = 0;
@@ -890,7 +926,7 @@
 
           var line_item_delete_button = document.createElement("button");
           line_item_delete_button.className = "card-div-line-item-delete-button";
-          line_item_delete_button.innerHTML = '&times;';
+
           line_item_delete_button.addEventListener("click", function () {
             card_div_line_item.remove();
           });
