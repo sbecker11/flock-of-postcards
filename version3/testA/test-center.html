@@ -10,7 +10,7 @@
       overflow: hidden; /* Prevent vertical bouncing */
     }
 
-    #left-container-div {
+    #all-container-div {
       display: flex;
       height: 100%;
     }
@@ -31,7 +31,6 @@
       background-color: lightblue;
       display: flex;
       flex-direction: column;
-      height: 100%;
     }
 
     #right-header-div {
@@ -84,7 +83,7 @@
       font-size: 16px;
     }
 
-    .left-content-civ {
+    .left-content-div {
       height: 5000px;
       color: white;
       font-family: sans-serif;
@@ -131,22 +130,20 @@
   </style>
 </head>
 <body>
-  <div id="left-container-div">
+  <div id="all-container-div">
     <div id="left-column-div" 
         onscroll="adjustFloatingBoxPosition()"
         onmouseenter="handleMouseEnter()" 
         onmouseleave="handleMouseLeave()">
-      <div class="content">
-        <div id="left-content-civ">
-          <!-- Box-div elements will be dynamically inserted here at each window load -->
-        </div>
+      <div id="left-content-div">
+        <!-- Box-div elements will be dynamically inserted here at each window load -->
       </div>
     </div>
     <div id="right-column-div">
       <div id="right-header-div">
         <div id="right-message-div"></div>
       </div>
-      <div id="right-content-div" class="content-div">
+      <div id="right-content-div">
         <!-- cloned Box-div elements will be dynamically inserted here -->
       </div>
       <div id="right-footer-div"></div>
@@ -204,7 +201,7 @@
     }
 
     function appendBoxDiv(boxDiv) {
-      var leftContentDiv = document.getElementById('left-content-civ');
+      var leftContentDiv = document.getElementById('left-content-div');
       leftContentDiv.appendChild(boxDiv);
     }
 
