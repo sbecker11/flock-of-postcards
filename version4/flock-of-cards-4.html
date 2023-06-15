@@ -72,33 +72,56 @@
       #timeline-container {
         position: absolute;
         z-index: 0;
-        right: 0px;
         width: 200px;
         top: 0px;
         bottom: 0px;
         pointer-events: none;
       }
+      .timeline-container-left {
+        left: 0px;
+      }
+      .timeline-container-right {
+        right: 0px;
+      }
 
-      .year-div {
+      .year-div, .year-div-right, .year-div-left {
         position: absolute;
         font-family: "Roboto", sans-serif;
         font-weight: bold;
-        right: 52px;
-        color: #444;
-        text-align: left;
-        border-bottom : 1px solid grey;
+        color: #444444;
+        border-bottom : 1px solid #444444;
         pointer-events: none;
       }
 
-      .month-tick {
+      .year-div-right {
+        text-align: left; /* should have trailing &nbsp; */
+        right: 40px;
+        width: 120px;
+      }
+
+      .year-div-left {
+        text-align: right; /* should have leading &nbsp; */
+        left: 40px;
+        width: 120px;
+      }
+
+      .month-tick, .month-tick-left, .month-tick-right {
         position: absolute;
-        right: 0px;
         font-family: "Roboto", sans-serif;
-        color: grey;
-        height: 8px;
-        width: 50px;
-        border-bottom: 1px dotted white;
+        color: #666666;
+        border-bottom: 1px dashed #666666;
         pointer-events: none;
+        width: 40px;
+      }
+
+      .month-tick-left {
+        text-align: right;
+        left: 5px;
+      }
+
+      .month-tick-right {
+        text-align: left;
+        right: 5px;
       }
 
       .bizcard-div {
@@ -217,7 +240,7 @@
         <div id="canvas">
         <div id="top-gradient"></div>
         <div id="bottom-gradient"></div>
-        <div id="timeline-container"></div>
+        <div id="timeline-container" class="timeline-container-left"></div>
       </div>
     </div>
     <div id="right-column">
@@ -267,9 +290,8 @@
       const ALL_CARDS_MIN_Z = 1;
 
       // bizcard width decreases as zindex increases
-      const BIZCARD_WIDTH_IN = 2.0;
-      const BIZCARD_INDENT_IN = 0.2;
-      const BIZCARD_OVERLAP_BOTTOM_IN = 0.0;
+      const BIZCARD_WIDTH = 200;
+      const BIZCARD_INDENT = 29;
 
       // card brightness decreases to MIN_BRIGHTNESS_PERCENT as z increases
       const MIN_BRIGHTNESS_PERCENT = 75;
@@ -287,12 +309,12 @@
       const PARALLAX_HZ_EXAGGERATION_FACTOR = 0.05;
       const PARALLAX_VT_EXAGGERATION_FACTOR = 0.1;
 
-      // YEAR metrics in inches
+      // YEAR metrics in px
       const YEAR_DIV_MAX_YEAR = 2023;
       const YEAR_DIV_MIN_YEAR = 1977;
-      const YEAR_TOP_TO_TOP = 27 / 16;
-      const YEARDIV_FONTSIZE = 0.5;
-      const MONTHTICK_FONTSIZE = 0.07;
+      const YEAR_BOTTOM_TO_BOTTOM = 162; // 27 / 16 inches
+      const YEARDIV_FONTSIZE = 48; // 0.5; inches
+      const MONTHTICK_FONTSIZE = 9; // 0.07 inches
 
       const validateKey = (obj, key) => { if (!(key in obj)) throw new Error(`Key '${key}' not found in object`); };
       const validateString = (str) => { if (typeof str === 'undefined' || str === null || typeof str !== 'string' || str.trim().length === 0) throw new Error(`Invalid string:[${str}]`); };
@@ -370,54 +392,75 @@
       }
 
       // these metrics are in terms of inches
-      var timelineYearDivTops = {};
-      function initTimelineYearDivTops() {
-        timelineYearDivTops = {}
+      var timelineYearDivBottoms = {};
+      function inittimelineYearDivBottoms() {
+        timelineYearDivBottoms = {}
       }
 
       // used to get canvas-relative top position for anything 
-      // take care to always append "in" for inches
-      function getTimelineYearMonthTopIn(yearStr,monthStr) {
+      // take care to always append "px" for pixels
+      function getTimelineYearMonthBottom(yearStr,monthStr) {
         var month = parseInt(monthStr,10);
-        return timelineYearDivTops[yearStr] - (month-1)*YEAR_TOP_TO_TOP/12;
+        return timelineYearDivBottoms[yearStr] - (month-1)*YEAR_BOTTOM_TO_BOTTOM/12;
       }
 
-      // 1 inch is 96 pixels
-      // according to https://www.convert-measurement-units.com/conversion-calculator.php
-      function getTimelineHeightPx() {
-        var topIn = getTimelineYearMonthTopIn(YEAR_DIV_MAX_YEAR,12);
-        var botIn = getTimelineYearMonthTopIn(YEAR_DIV_MIN_YEAR,1);
-        var heightIn = botIn - topIn;
-        return heightIn * 96;
+      // the total height of the timeline in pixels
+      // take care to always append "px" for pixels
+      function getTimelineHeight() {
+        var highest = getTimelineYearMonthBottom(YEAR_DIV_MAX_YEAR,12);
+        var lowest = getTimelineYearMonthBottom(YEAR_DIV_MIN_YEAR,1);
+        return lowest - highest;
       }
 
+      
       // append year-divs and year-dashes into timeline-container
       function createTimeline() {
-        initTimelineYearDivTops();
-        var yearDash = (yearDivTop = yearDiv = null);
+        inittimelineYearDivBottoms();
+
+        var alignment = timelineContainer.classList.contains("timeline-container-left") ? "left" : "right";
 
         for (var year = YEAR_DIV_MAX_YEAR; year >= YEAR_DIV_MIN_YEAR; year--) {
-          yearDiv = document.createElement("div");
-          yearDiv.className = "year-div";
-          var row = YEAR_DIV_MAX_YEAR - year;
-          yearDivTop = (row+1) * YEAR_TOP_TO_TOP;
-          timelineYearDivTops[`${year}`] = yearDivTop;
+          var yearDiv = document.createElement("div");
+          yearDiv.classList.add("year-div");
 
-          yearDiv.style.fontSize = `${YEARDIV_FONTSIZE}in`;
-          yearDiv.style.top = `${yearDivTop - YEARDIV_FONTSIZE}in`;
-          yearDiv.innerHTML = `${year}&nbsp;`;
+          if(alignment == "left") {
+            yearDiv.classList.add("year-div-left");
+            yearDiv.innerHTML = `&nbsp;${year}`;
+          }
+          else {
+            yearDiv.classList.add("year-div-right");
+            yearDiv.innerHTML = `${year}&nbsp;`;
+          }
+
+          var row = YEAR_DIV_MAX_YEAR - year;
+          yearDivBottom = (row+1) * YEAR_BOTTOM_TO_BOTTOM;
+          timelineYearDivBottoms[`${year}`] = yearDivBottom;
+
+          yearDiv.style.fontSize = `${YEARDIV_FONTSIZE}px`;
+          yearDiv.style.height = `${YEARDIV_FONTSIZE}px`;
+          yearDiv.style.bottom = `${yearDivBottom}px`;
+          yearDiv.style.top = `${yearDivBottom - YEARDIV_FONTSIZE}px`;
           timelineContainer.appendChild(yearDiv);
 
-          for ( var month=12; month>=1; month-- ) {
+          for ( var month=1; month<=12; month++ ) {
             monthTick = document.createElement("div");
-            monthTick.className = "month-tick";
+            monthTick.classList.add("month-tick");
+            if(alignment == "left") 
+              monthTick.classList.add("month-tick-left");
+            else
+              monthTick.classList.add("month-tick-right");
             var monthStr = zeroPad(month, 2);
-            var monthTickTop = getTimelineYearMonthTopIn(year,monthStr);
-            var check = yearDivTop - (month-1) * YEAR_TOP_TO_TOP/12;
-            if ( monthTickTop != check )
-              console.log(`WARNING: ${monthTickTop} != check:${check}`);
-            monthTick.style.fontSize = `${MONTHTICK_FONTSIZE}in`;
-            monthTick.style.top = `${monthTickTop - MONTHTICK_FONTSIZE}in`;
+            var monthTickBottom = getTimelineYearMonthBottom(year,monthStr);
+            var check = yearDivBottom - (month-1) * YEAR_BOTTOM_TO_BOTTOM/12;
+            if ( monthTickBottom != check )
+              console.log(`WARNING: monthTickBottom:${monthTickBottom} != check:${check}`);
+            if ( getTimelineYearMonthBottom(year,"01") != timelineYearDivBottoms[`${year}`] )
+              console.log("WARNING: year-01 != year");
+
+            monthTick.style.fontSize = `${MONTHTICK_FONTSIZE}px`;
+            monthTick.style.height = `${MONTHTICK_FONTSIZE}px`;
+            monthTick.style.bottom = `${monthTickBottom}px`;
+            monthTick.style.top = `${monthTickBottom - MONTHTICK_FONTSIZE}px`;
             monthTick.innerHTML = `${year}-${monthStr}`;
             timelineContainer.appendChild(monthTick);
           }
@@ -426,7 +469,6 @@
 
       function createBizCardDivs() {
         var num_valid_rows = 0;
-        var totalTopInches = 0.0;
         for (let i=0; i<jobs.length; i++) {
           job = jobs[i];
           var role = job["role"];
@@ -446,7 +488,7 @@
           validateString(endYearStr);
           var endMonthStr = jobEnd.split("-")[1];
           validateString(endMonthStr);
-          var topInches = getTimelineYearMonthTopIn(endYearStr,endMonthStr);
+          var endBottomPx = getTimelineYearMonthBottom(endYearStr,endMonthStr);
 
           var jobStart = job["start"].trim().replace("-01","");
           validateString(jobStart);
@@ -454,23 +496,22 @@
           validateString(startYearStr);
           var startMonthStr = jobStart.split("-")[1];
           validateString(startMonthStr);
-          var bottomInches = getTimelineYearMonthTopIn(startYearStr,startMonthStr);
+          var startBottomPx = getTimelineYearMonthBottom(startYearStr,startMonthStr);
 
-          var heightInches = bottomInches - topInches;
+          var heightPx = startBottomPx - endBottomPx;
           var zIndex = job["z-index"];
-          var indent =  (zIndex - 1) * BIZCARD_INDENT_IN;
+          var indent =  (zIndex - 1) * BIZCARD_INDENT;
 
           const bizcardDiv = document.createElement("div");
           if (num_biz_cards != 0) {
             throw new Error("Value of num_biz_cards is not zero!");
           }
-          totalTopInches += topInches;
           bizcardDiv.id = num_biz_cards + i;
           bizcardDiv.className = "bizcard-div";
-          bizcardDiv.style.top = `${topInches}in`;
-          bizcardDiv.style.height = `${heightInches}in`;
-          bizcardDiv.style.left = `${indent}in`;
-          bizcardDiv.style.width = `${BIZCARD_WIDTH_IN}in`;
+          bizcardDiv.style.top = `${endBottomPx}px`;
+          bizcardDiv.style.height = `${heightPx}px`;
+          bizcardDiv.style.left = `${indent}px`;
+          bizcardDiv.style.width = `${BIZCARD_WIDTH}px`;
           bizcardDiv.style.zIndex = `${zIndex}`;
 
           bizcardDiv.setAttribute("saved-background-color", css_hex_color_str);
@@ -501,8 +542,6 @@
           num_valid_rows++;
         }
         num_biz_cards = num_valid_rows;
-        var meanTopInches = totalTopInches / num_biz_cards;
-        // console.log(`meanBizcardTopInches:${meanTopInches}`);
   
         renderAllTranslateableDivsAtLeftColumnCenter();
       }
@@ -516,7 +555,7 @@
           throw new Error("Value of num_biz_cards is undefined!");
         }
 
-        var total_vt_distance = getTimelineHeightPx();
+        var total_vt_distance = getTimelineHeight();
         var vt_top_to_top = total_vt_distance / NUM_CARDS;
         var vt_top = vt_top_to_top / 2;
 
