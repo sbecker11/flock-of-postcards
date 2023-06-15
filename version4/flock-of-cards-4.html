@@ -145,6 +145,11 @@
         box-sizing: border-box;
       }
 
+      .card-div-description {
+        font-family: "Roboto", sans-serif;
+        font-size: 10px;
+      }
+
       .card-div-img {
         position: absolute;
         top: 0px;
@@ -513,6 +518,13 @@
           bizcardDiv.style.left = `${indent}px`;
           bizcardDiv.style.width = `${BIZCARD_WIDTH}px`;
           bizcardDiv.style.zIndex = `${zIndex}`;
+
+          var description = job["Description"];
+          if ( description && description.length > 0 ) {
+            validateString(description);
+            description.replace("•","<br/>*");
+            bizcardDiv.setAttribute("description",description);
+          }
 
           bizcardDiv.setAttribute("saved-background-color", css_hex_color_str);
           bizcardDiv.setAttribute("saved-color", font_color_name);
@@ -962,6 +974,9 @@
           line_item_content.style.backgroundColor = targetCardDiv.getAttribute("saved-background-color");
           line_item_content.style.color = targetCardDiv.getAttribute("saved-color");
           line_item_content.innerHTML = targetCardDiv.innerText;
+          var description = targetCardDiv.getAttribute("Description");
+          if( description && description.length > 0 )
+            line_item_content.innerHTML += '<p class="card-div-description">' + description + '</p>';
 
           var line_item_delete_button = document.createElement("button");
           line_item_delete_button.className = "card-div-line-item-delete-button";
