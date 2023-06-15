@@ -19,6 +19,7 @@
 #     <script type="text/javascript" src="static_files/jobs.js"></script>
 #
 
+cp /Users/sbecker11/workspace-rawgraphs/jobs.xlsx .
 source venv/bin/activate
 in2csv jobs.xlsx | csvjson > jobs.json
 echo "const jobs = " > jobs.js

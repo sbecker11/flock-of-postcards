@@ -90,5 +90,7 @@ lerna-debug.log
 
 # System Files
 .DS_Store
+**/.DS_Store
 Thumbs.db
 version3/static_files/venv/*
+version4/static_content/venv/*

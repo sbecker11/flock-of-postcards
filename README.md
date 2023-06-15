@@ -1,6 +1,6 @@
 # flock-of-postcards
 
-## Dark, chaotic, and deep.
+## Dark, chaotic, and deep
 
 ## Usage
 
@@ -23,7 +23,6 @@
 
 <img src="https://shawn.beckerstudio.com/wp-content/uploads/2023/06/flock-of-cards-4.png" width="25%" height="25%"/>
 <br/>
-
 
 Features:
 
@@ -99,4 +98,3 @@ Features:
 
 <br/>
 <br/>
-
