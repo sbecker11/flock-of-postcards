@@ -17,7 +17,7 @@
 
 <hr/>
 
-## Version 4:   June 14, 2023
+## Version 0.4:   June 14, 2023
 
 <br/>
 
@@ -35,7 +35,7 @@ Features:
 
 <hr/>
 
-## Version 3:   June 7, 2023
+## Version 0.3:   June 7, 2023
 
 <br/>
 
@@ -54,7 +54,7 @@ Features:
 
 <hr/>
 
-## Version 2:   June 6, 2023
+## Version 0.2:   June 6, 2023
 
 <br/>
 
@@ -79,7 +79,7 @@ Features:
 
 <hr/>
 
-## Version 1 - May 23, 2023
+## Version 0.1 - May 23, 2023
 
 <br/>
 

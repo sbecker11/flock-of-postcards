@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
   <head>
-    <title>flock-of-cards-4</title>
+    <title>flock-of-cards-v0.4</title>
     <style>
       html,
       body {
@@ -135,6 +135,18 @@
         box-sizing: border-box;
       }
 
+      .bizcard-div-role {
+        font-size: 20px;
+      }
+
+      .bizcard-div-employer {
+        font-size: 18px;
+      }
+
+      .bizcard-div-dates {
+        font-size: 16px
+      }
+
       .card-div {
         position: absolute;
         border: 5px solid white;
@@ -143,11 +155,6 @@
         font-size: 10px;
         padding: 0px;
         box-sizing: border-box;
-      }
-
-      .card-div-description {
-        font-family: "Roboto", sans-serif;
-        font-size: 10px;
       }
 
       .card-div-img {
@@ -208,12 +215,19 @@
         margin: 1px 0px;
       }
 
+      /*
       .card-div-line-item-content {
         flex-grow: 1;
         font-family: "Roboto", sans-serif;
         font-weight: bold;
-        font-size: 12px;
+        font-size: 20px;
         align-self: flex-start;
+        padding: 5px;
+      }
+      */
+
+      .card-div-line-item-description {
+        font-size: 14px
       }
 
       .card-div-line-item-delete-button {
@@ -275,7 +289,7 @@
 
       // this is a constant of now
       const NUM_CARDS =  100;
-
+      const DEFAULT_YEAR = 2007;
       const rightContentDiv = document.getElementById("right-content-div");
       const debugElement = document.getElementById("debugElement");
       const leftColumn = document.getElementById("left-column");
@@ -522,7 +536,7 @@
           var description = job["Description"];
           if ( description && description.length > 0 ) {
             validateString(description);
-            description.replace("•","<br/>*");
+            description.replace("•","<br/j>*");
             bizcardDiv.setAttribute("description",description);
           }
 
@@ -541,9 +555,9 @@
           bizcardDiv.style.filter = filter_strs;
 
           var html = "";
-          html += `${role}<br/>`;
-          html += `${employer}<br/>`;
-          html += `${jobStart} - ${jobEnd}<br/>`;
+          html += `<span class="bizcard-div-role">${role}</span><br/>`;
+          html += `<span class="bizcard-div-employer">${employer}</span><br/>`;
+          html += `<span class="bizcard-div-dates">${jobStart} - ${jobEnd}</span><br/>`;
           bizcardDiv.innerHTML = html;
 
           bizcardDiv.addEventListener("mouseenter", handleBizCardDivMouseEnter);
@@ -966,28 +980,66 @@
       function handleCardMouseClick(event, cardClass) {
         var targetCardDiv = event.target.closest('.'+cardClass);
         if (targetCardDiv) {
+
+          for ( var i=0; i<rightContentDiv.children.length; i++ ) {
+            if ( targetCardDiv.id == rightContentDiv.children[i].getAttribute("cardDivId") ) {
+              console.log(`ignoring request to add duplicate targetCardDiv.id:${targetCardDiv.id}`);
+              return;
+            }
+          }
+      
           var card_div_line_item = document.createElement("li");
           card_div_line_item.className = "card-div-line-item";
+          card_div_line_item.setAttribute("cardDivId", targetCardDiv.id );
           card_div_line_item.style.backgroundColor = targetCardDiv.getAttribute("saved-background-color");
 
           var line_item_content = document.createElement("div");
           line_item_content.style.backgroundColor = targetCardDiv.getAttribute("saved-background-color");
           line_item_content.style.color = targetCardDiv.getAttribute("saved-color");
-          line_item_content.innerHTML = targetCardDiv.innerText;
+
+          line_item_content.innerHTML = targetCardDiv.innerHTML;
           var description = targetCardDiv.getAttribute("Description");
-          if( description && description.length > 0 )
-            line_item_content.innerHTML += '<p class="card-div-description">' + description + '</p>';
+          if( description && description.length > 0 ) {
+            line_item_content.innerHTML += processed_description_HTML(description);
+          }
 
           var line_item_delete_button = document.createElement("button");
           line_item_delete_button.className = "card-div-line-item-delete-button";
-
           line_item_delete_button.addEventListener("click", function () {
             card_div_line_item.remove();
           });
           card_div_line_item.appendChild(line_item_content);
           card_div_line_item.appendChild(line_item_delete_button);
           rightContentDiv.appendChild(card_div_line_item);
+
+          rightContentScrollToBottom();
         }
+      }
+
+      function processed_description_HTML(description) {
+        var HTML = "";
+        HTML += '<p class="card-div-line-item-description">';
+        var description = description.trim();
+        var description = description.replace("\n","");
+        var parts = description.split("\u2022");
+        if ( parts.length > 0 ) {
+          HTML += '<ul class="card-div-line-item-description-list">';
+          for ( var i=0; i<parts.length; i++) {
+            var line = parts[i].trim();
+            if ( line.length > 0 )
+              HTML += "<li>" + line + "</li>";
+          }
+          HTML += "</ul>"
+        } else {
+          console.log(`unparsed description: ${description}`);
+          HTML += description;
+        }
+        HTML += "</p>"
+        return HTML;
+      }
+
+      function findLineItemCardDivIdInUnorderedList(unorderedList) {
+
       }
 
       function renderAllTranslateableDivsAtLeftColumnCenter() {
@@ -1007,6 +1059,10 @@
         const canvasHeight = canvas.scrollHeight;
         const bottomGradientHeight = bottomGradient.offsetHeight;
         bottomGradient.style.top = `${canvasHeight - bottomGradientHeight}px`;
+      }
+
+      function rightContentScrollToBottom() {
+        rightContentDiv.scrollTop = rightContentDiv.scrollHeight;
       }
 
       function leftColumnScrollToYear(year) {
@@ -1034,7 +1090,7 @@
         createCardDivs();
         renderAllTranslateableDivsAtLeftColumnCenter();
         positionGradients();
-        leftColumnScrollToYear(2000);
+        leftColumnScrollToYear(DEFAULT_YEAR);
         centerBullsEye();
       }
 
