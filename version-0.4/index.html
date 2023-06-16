@@ -133,6 +133,7 @@
         font-size: 12px;
         padding: 20px;
         box-sizing: border-box;
+        overflow: hidden;
       }
 
       .bizcard-div-role {
@@ -146,7 +147,7 @@
       .bizcard-div-dates {
         font-size: 16px
       }
-
+          
       .card-div {
         position: absolute;
         border: 5px solid white;
@@ -157,11 +158,25 @@
         box-sizing: border-box;
       }
 
+      .bizcard-div-header {
+        font-size: 20px;
+      }
+
+      .card-div-header {
+        font-size: 12px;
+      }
+
       .card-div-img {
         position: absolute;
         top: 0px;
         left: 0px;
       }
+
+      .scrollable-div {
+        overflow-y: auto;
+        padding-bottom:20px;
+      }
+    
 
       #right-column {
         flex: 1;
@@ -216,16 +231,9 @@
         margin: 1px 0px;
       }
 
-      /*
-      .card-div-line-item-content {
-        flex-grow: 1;
-        font-family: "Roboto", sans-serif;
-        font-weight: bold;
-        font-size: 20px;
-        align-self: flex-start;
-        padding: 5px;
+      .div-line-item-content {
+        padding: 20px;
       }
-      */
 
       .card-div-line-item-description {
         font-size: 14px
@@ -1036,14 +1044,98 @@
         // debugElement.innerText = debug;
       }
 
+      // ------------------------------------------
+      // Mouse interpolation
+
+      const smoothArea = leftColumn;
+      const points = [];
+  
+      function interpolateMouseMoveEvent(event, interpolationDegree) {
+      
+        const targetX = event.clientX - smoothArea.offsetLeft;
+        const targetY = event.clientY - smoothArea.offsetTop;
+  
+        points.push({ x: targetX, y: targetY });
+  
+        if (points.length > interpolationDegree + 1) {
+          points.shift();
+        }
+  
+        const interpolatedX = interpolate(points.map(p => p.x));
+        const interpolatedY = interpolate(points.map(p => p.y));
+  
+        // Use interpolatedX and interpolatedY for your visual effects or animations
+        //console.log('Client X,Y:', event.clientX, event.clientY);
+        //console.log('Interp X,Y:', interpolatedX, interpolatedY);
+
+        return {interpolatedX,interpolatedY};
+      }
+  
+      function interpolate(coordinates) {
+        const t = smoothingFactors[interpolationDegree];
+        const n = coordinates.length - 1;
+  
+        if (interpolationDegree === 0) {
+          return coordinates[n];
+        } else if (interpolationDegree === 1) {
+          const p0 = coordinates[n - 1];
+          const p1 = coordinates[n];
+          return linearInterpolation(p0, p1, t);
+        } else if (interpolationDegree === 2) {
+          const p0 = coordinates[n - 2];
+          const p1 = coordinates[n - 1];
+          const p2 = coordinates[n];
+          return quadraticInterpolation(p0, p1, p2, t);
+        } else if (interpolationDegree === 3) {
+          const p0 = coordinates[n - 3];
+          const p1 = coordinates[n - 2];
+          const p2 = coordinates[n - 1];
+          const p3 = coordinates[n];
+          return cubicInterpolation(p0, p1, p2, p3, t);
+        }
+  
+        return coordinates[n]; // Default to the latest coordinate
+      }
+  
+      // Linear interpolation function
+      function linearInterpolation(p0, p1, t) {
+        return p0 + (p1 - p0) * t;
+      }
+  
+      // Quadratic interpolation function
+      function quadraticInterpolation(p0, p1, p2, t) {
+        const u = 1 - t;
+        const tt = t * t;
+        const uu = u * u;
+        const p = u * u * p0 + 2 * u * t * p1 + t * t * p2;
+        return p;
+      }
+  
+      // Cubic interpolation function
+      function cubicInterpolation(p0, p1, p2, p3, t) {
+        const u = 1 - t;
+        const tt = t * t;
+        const uu = u * u;
+        const uuu = uu * u;
+        const ttt = tt * t;
+        const p = uuu * p0 + 3 * uu * t * p1 + 3 * u * tt * p2 + ttt * p3;
+        return p;
+      }
+
+      // ------------------------------------------
+
       var scrollingInterval = null;
       var scrollVelocity = 0;
+
+      const smoothingFactors = [0, 10.0, 0.2, 0.3]; // Adjust smoothing factors for each degree of interpolation
+
 
       // Function to handle transform cardDivs according
       // to current left-column position. Given null
       // when called from onload, in this case
       // left-column center as mouse location
       function handleLeftColumnMouseMove(event) {
+
         var rect = leftColumn.getBoundingClientRect();
         var centerX = rect.left + rect.width / 2;
         var centerY = rect.top + rect.height / 2;
@@ -1051,8 +1143,9 @@
         var mouseX = centerX;
         var mouseY = centerY;
         if (event) {
-          mouseX = event.clientX;
-          mouseY = event.clientY;
+          var p = interpolateMouseMoveEvent(event, interpolationDegree=3);
+          mouseX = p.interpolatedX;
+          mouseY = p.interpolatedY;
         }
 
         var dist_v = mouseY - centerY;
@@ -1223,6 +1316,7 @@
           card_div_line_item.style.backgroundColor = targetCardDiv.getAttribute("saved-background-color");
 
           var line_item_content = document.createElement("div");
+          line_item_content.className = "div-line-item-content";
           line_item_content.style.backgroundColor = targetCardDiv.getAttribute("saved-background-color");
           line_item_content.style.color = targetCardDiv.getAttribute("saved-color");
 
@@ -1305,7 +1399,6 @@
         var html = "";
         html += `next bizcardDivId:${getNextBizCardDivId()}<br/>`;
         html += `next cardDivId:${getNextCardDivId()}<br/>`;
-
         debugElement.innerHTML = html;
 
       }
