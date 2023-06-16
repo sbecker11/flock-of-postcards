@@ -189,6 +189,7 @@
   
       .user {
         font-weight: 900;
+        font-size: 20px;
       }
       .footnote {
         font-size: 10px;
@@ -284,12 +285,20 @@
     
     <script type="text/javascript" src="static_content/jobs.js"></script>
     <script>
-      // this is set in the createBizDivCards
-      var num_biz_cards = 0;
 
-      // this is a constant of now
-      const NUM_CARDS =  100;
-      const DEFAULT_YEAR = 2007;
+      // --------------------------------------
+      // TagLink globals
+
+      // the global set of tagLinks created while creating all bizcard-divs from
+      // the list of all `job` objects defined in "static_content/jobs.js"
+      const allTagLinks = [];
+      function initAllTagLinks() {
+        allTagLinks = [];
+      }
+      
+      // --------------------------------------
+      // Element reference globals
+
       const rightContentDiv = document.getElementById("right-content-div");
       const debugElement = document.getElementById("debugElement");
       const leftColumn = document.getElementById("left-column");
@@ -297,43 +306,42 @@
       const bottomGradient = document.getElementById("bottom-gradient");
       const timelineContainer = document.getElementById("timeline-container");
       const bulls_eye = document.getElementById("bulls-eye");
+      
+      // --------------------------------------
+      // Miscellaneous globals
 
-      // ground is zindex = 0 and zindex is offset from ground,
-      // and z is distance to viewer, so z = MAX_Z - zindex,
-      // conversely zindex = MAX_Z - z.
-      const ALL_CARDS_MAX_Z = 15;
-      const BIZCARD_MAX_Z = 14;
-      const BIZCARD_MIN_Z = 12;
-      const CARD_MAX_Z = 8;
-      const CARD_MIN_Z = 1;
-      const ALL_CARDS_MIN_Z = 1;
+      const BULLET_DELIMITER = "\u2022";
 
-      // bizcard width decreases as zindex increases
+      // --------------------------------------
+      // BizcardDiv globals
+      
+      // width decreases as zindex increases
       const BIZCARD_WIDTH = 200;
       const BIZCARD_INDENT = 29;
 
-      // card brightness decreases to MIN_BRIGHTNESS_PERCENT as z increases
-      const MIN_BRIGHTNESS_PERCENT = 75;
+      // --------------------------------------
+      // CardDiv globals
+      
+      // TO DO: tune or replace
+      const ESTIMATED_NUMBER_CARD_DIVS = 159;
 
-      // card blur increases as z increases
-      const BLUR_Z_SCALE_FACTOR = 4;
-
-      // card metrix in pixels
+      // card metrics are in pixels
       const MAX_CARD_POSITION_OFFSET = 200;
+      const MEAN_CARD_LEFT = 0;
       const MEAN_CARD_HEIGHT = 75;
       const MEAN_CARD_WIDTH = 100;
       const MAX_CARD_SIZE_OFFSET = 20;
       const CARD_BORDER = 5;
+      const CARD_BORDER_STYLE = `${CARD_BORDER}px solid white`;
+
+      // --------------------------------------
+      // Motion parallax constants
 
       const PARALLAX_HZ_EXAGGERATION_FACTOR = 0.05;
       const PARALLAX_VT_EXAGGERATION_FACTOR = 0.1;
 
-      // YEAR metrics in px
-      const YEAR_DIV_MAX_YEAR = 2023;
-      const YEAR_DIV_MIN_YEAR = 1977;
-      const YEAR_BOTTOM_TO_BOTTOM = 162; // 27 / 16 inches
-      const YEARDIV_FONTSIZE = 48; // 0.5; inches
-      const MONTHTICK_FONTSIZE = 9; // 0.07 inches
+      // --------------------------------------
+      // Utility functions
 
       const validateKey = (obj, key) => { if (!(key in obj)) throw new Error(`Key '${key}' not found in object`); };
       const validateString = (str) => { if (typeof str === 'undefined' || str === null || typeof str !== 'string' || str.trim().length === 0) throw new Error(`Invalid string:[${str}]`); };
@@ -341,10 +349,8 @@
       const validateIntArrayLength = (arr, length) => { if (typeof arr === 'undefined' || arr === null || !Array.isArray(arr) || arr.some(item => !Number.isInteger(item)) || (typeof length !== 'undefined' && arr.length !== length)) throw new Error('Invalid array of integers or length mismatch'); };
       const validateFloat = (num) => { if (typeof num === 'undefined' || num === null || typeof num !== 'number' || !Number.isFinite(num)) throw new Error('Invalid floating-point number'); };
       const clamp = (value, min, max) => Math.max(min, Math.min(max, value));
-      // 1.0 is normal brightness
-      const adjustRgbBrightness = (rgb, brightness) => { validateIntArrayLength(rgb,3); return rgb.map(channel => clamp(Math.round(channel * brightness), 0, 255)); };
-      // 1.0 is normal brightness
-      const adjustHexBrightness = (hexStr, brightness) => { validateHexString(hexStr); validateFloat(brightness); return getHexFromRGB(adjustRgbBrightness(getRGBfromHex(`${hexStr}`), brightness)); };
+      const adjustRgbBrightness = (rgb, brightness) => { validateIntArrayLength(rgb,3); return rgb.map(channel => clamp(Math.round(channel * brightness), 0, 255)); }; // 1.0 is normal brightness
+      const adjustHexBrightness = (hexStr, brightness) => { validateHexString(hexStr); validateFloat(brightness); return getHexFromRGB(adjustRgbBrightness(getRGBfromHex(`${hexStr}`), brightness)); }; // 1.0 is normal brightness
       const getHexFromRGB = rgb => { validateIntArrayLength(rgb, 3); return "#" + rgb.map(c => c.toString(16).padStart(2, "0")).join("").toLowerCase(); };
       const getRGBfromHex = hexStr => { validateHexString(hexStr); return hexStr.match(/^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i)?.slice(1).map(c => parseInt(c, 16)); };
       const toFixedPoint = (value, precision) => +value.toFixed(precision);
@@ -366,7 +372,11 @@
         return [f(5), f(3), f(1)].map(Math.round);
       };
 
-      // example usage: var x = getOffset( element ).left; 
+      // --------------------------------------
+      // Javascript hacks
+
+      // const left = getOffset(element).left; 
+      // const {top,left} = getOffset(element); 
       function getOffset( el ) {
         var _x = 0;
         var _y = 0;
@@ -376,16 +386,58 @@
             el = el.offsetParent;
         }
         return { top: _y, left: _x };
-    }
+      }
+
+      // return "ABC" given "(apples),  !bananas#, & ~cherries"
+      function acronym(text) {
+        var acro = "";
+        text = text.replace(/[.,\/#!@$%\^&\*;:{}=\-_`~()]/g,"").toUpperCase();
+        var parts = text.trim().split(" ");
+        for (var i=0; i<parts.length; i++) {
+          var part = parts[i].trim()
+          if( part.length > 0) {
+            // add first char
+            acro += part[0];
+          }
+        }
+        if(acro.length == 0)
+          acro = text.slice(0,Math.min(3,text.length));
+        return acro;
+      }
+    
+
+
+      // --------------------------------------
+      // Z globals
+
+      // ground is zindex = 0 and zindex is offset from ground,
+      // and z is distance to viewer, so 
+      // z = MAX_Z - zindex,
+      // conversely 
+      // zindex = MAX_Z - z.
+      const ALL_CARDS_MAX_Z = 15;
+      const BIZCARD_MAX_Z = 14;
+      const BIZCARD_MIN_Z = 12;
+      const CARD_MAX_Z = 8;
+      const CARD_MIN_Z = 1;
+      const ALL_CARDS_MIN_Z = 1;
+
+      // brightness decreases to MIN_BRIGHTNESS_PERCENT as z increases
+      const MIN_BRIGHTNESS_PERCENT = 75;
+
+      // card blur increases as z increases
+      const BLUR_Z_SCALE_FACTOR = 4;
+      
+
+      //--------------------------------------
+      // Z functions
 
       function get_zindexStr_from_z(z) {
         return `${ALL_CARDS_MAX_Z - z}`;
       }
-
       function get_z_from_zindexStr(zindex) {
         return ALL_CARDS_MAX_Z - parseInt(zindex);
       }
-
       // brightness max CARD_MIN_Z is 1.0 is normal
       // brightness dims as z increated to CARD_MAX_Z
       function get_brightness_value_from_z(z) {
@@ -396,13 +448,11 @@
           );
           return z_brightness_value;
       }
-
       // return a filter brightness string
       // brightness dims as z increases
       function get_brightness_str_from_z(z) {
         return `brightness(${100 * get_brightness_value_from_z(z)}%)`;
       }
-
       // returns a filter blur string
       // blur increases as z increases
       function get_blur_str_from_z(z) {
@@ -410,11 +460,28 @@
         return `blur(${blur}px)`;
       }
 
-      // these metrics are in terms of inches
+      // --------------------------------------
+      // TimeLine globals
+
+      // the global set of all yearDivBottoms created 
+      // from TIMELINE_MAX_YEAR down to TIMELINE_MIN_YEAR
       var timelineYearDivBottoms = {};
       function inittimelineYearDivBottoms() {
         timelineYearDivBottoms = {}
       }
+
+      const TIMELINE_DEFAULT_YEAR = 2007;
+      const TIMELINE_MAX_YEAR = 2023;
+      const TIMELINE_MIN_YEAR = 1977;
+
+      // YEAR dimensions are in px
+      const YEAR_BOTTOM_TO_BOTTOM = 162; 
+      const YEARDIV_FONTSIZE = 48;
+      const MONTHTICK_FONTSIZE = 9; 
+
+      // --------------------------------------
+      // Timeline functions 
+      // --------------------------------------
 
       // used to get canvas-relative top position for anything 
       // take care to always append "px" for pixels
@@ -426,19 +493,16 @@
       // the total height of the timeline in pixels
       // take care to always append "px" for pixels
       function getTimelineHeight() {
-        var highest = getTimelineYearMonthBottom(YEAR_DIV_MAX_YEAR,12);
-        var lowest = getTimelineYearMonthBottom(YEAR_DIV_MIN_YEAR,1);
-        return lowest - highest;
+        return getTimelineYearMonthBottom(TIMELINE_MIN_YEAR,1);
       }
 
-      
       // append year-divs and year-dashes into timeline-container
       function createTimeline() {
         inittimelineYearDivBottoms();
 
         var alignment = timelineContainer.classList.contains("timeline-container-left") ? "left" : "right";
 
-        for (var year = YEAR_DIV_MAX_YEAR; year >= YEAR_DIV_MIN_YEAR; year--) {
+        for (var year = TIMELINE_MAX_YEAR; year >= TIMELINE_MIN_YEAR; year--) {
           var yearDiv = document.createElement("div");
           yearDiv.classList.add("year-div");
 
@@ -451,7 +515,7 @@
             yearDiv.innerHTML = `${year}&nbsp;`;
           }
 
-          var row = YEAR_DIV_MAX_YEAR - year;
+          var row = TIMELINE_MAX_YEAR - year;
           yearDivBottom = (row+1) * YEAR_BOTTOM_TO_BOTTOM;
           timelineYearDivBottoms[`${year}`] = yearDivBottom;
 
@@ -486,6 +550,30 @@
         }
       }
 
+      // --------------------------------------
+      // BizCardDiv functions
+
+      // bizcard-divs are never deleted so next id
+      // is just the current number of the bizcard-divs
+      function getNextBizCardDivId() {
+        const bizcardDivs = document.getElementsByClassName("bizcard-div");
+        const nextBizCardDivId = `bizcard-div-${bizcardDivs.length}`;
+        return nextBizCardDivId;
+      }
+
+      // returns 23 for "bizcard-div-23"
+      function getBizCardDivIndex(bizCardDivId) {
+        return parseInt(bizCardDivId.replace("bizcard-div-",""));
+      }
+
+
+      // Use the "jobs" array to gather data used for
+      // the large "business cards" floating near 
+      // the ground level describing employment history.
+      //
+      // Also parse each job's description to pull out 
+      // the shared "skills" from the narrative pf each.
+      //  
       function createBizCardDivs() {
         var num_valid_rows = 0;
         for (let i=0; i<jobs.length; i++) {
@@ -521,11 +609,9 @@
           var zIndex = job["z-index"];
           var indent =  (zIndex - 1) * BIZCARD_INDENT;
 
-          const bizcardDiv = document.createElement("div");
-          if (num_biz_cards != 0) {
-            throw new Error("Value of num_biz_cards is not zero!");
-          }
-          bizcardDiv.id = num_biz_cards + i;
+          // here we go
+          var bizcardDiv = document.createElement("div");
+          bizcardDiv.id = getNextBizCardDivId();
           bizcardDiv.className = "bizcard-div";
           bizcardDiv.style.top = `${endBottomPx}px`;
           bizcardDiv.style.height = `${heightPx}px`;
@@ -533,11 +619,12 @@
           bizcardDiv.style.width = `${BIZCARD_WIDTH}px`;
           bizcardDiv.style.zIndex = `${zIndex}`;
 
-          var description = job["Description"];
-          if ( description && description.length > 0 ) {
-            validateString(description);
-            description.replace("•","<br/j>*");
-            bizcardDiv.setAttribute("description",description);
+          var description_HTML = job["Description"];
+          if ( description_HTML && description_HTML.length > 0 ) {
+            validateString(description_HTML);
+            // description.replace("•","<br/j>*");
+            description_HTML = process_bizcard_description_HTML(description_HTML);
+            bizcardDiv.setAttribute("Description",description_HTML);
           }
 
           bizcardDiv.setAttribute("saved-background-color", css_hex_color_str);
@@ -567,87 +654,228 @@
           canvas.appendChild(bizcardDiv);
           num_valid_rows++;
         }
-        num_biz_cards = num_valid_rows;
-  
         renderAllTranslateableDivsAtLeftColumnCenter();
       }
 
-      // adds a vertical stack of cardDivs to #canvas
-      // each with random x,y offsets and random
-      // z levels, and z-varied brightness and blur.
-      function createCardDivs() {
-        var prev_z = null; // Track the previous z value
-        if (typeof num_biz_cards == "undefined") {
-          throw new Error("Value of num_biz_cards is undefined!");
-        }
-
-        var total_vt_distance = getTimelineHeight();
-        var vt_top_to_top = total_vt_distance / NUM_CARDS;
-        var vt_top = vt_top_to_top / 2;
-
-        var min_id_inclusive = num_biz_cards;
-        var max_id_exclusive = num_biz_cards + NUM_CARDS;
-        for (let id = min_id_inclusive; id < max_id_exclusive; id++) {
-          const cardDiv = document.createElement("div");
-          cardDiv.id = id;
-          cardDiv.className = "card-div";
-          canvas.appendChild(cardDiv);
-
-          var height = MEAN_CARD_HEIGHT + getRandomInt(-MAX_CARD_SIZE_OFFSET,MAX_CARD_SIZE_OFFSET);
-          var width = MEAN_CARD_WIDTH + getRandomInt(-MAX_CARD_SIZE_OFFSET,MAX_CARD_SIZE_OFFSET);
-
-          cardDiv.style.height = `${height + 2*CARD_BORDER}px`;
-          cardDiv.style.width = `${width + 2*CARD_BORDER}px`;
-
-          const verticalOffset = getRandomInt(-MAX_CARD_POSITION_OFFSET,MAX_CARD_POSITION_OFFSET);
-          var top = vt_top + verticalOffset
-          cardDiv.style.top = `${top}px`;
-
-          var left = getRandomInt(-MAX_CARD_POSITION_OFFSET,MAX_CARD_POSITION_OFFSET);
-          cardDiv.style.left = `${left}px`;
-
-          var z = getRandomInt(CARD_MIN_Z, CARD_MAX_Z);
-          while (z === prev_z) {
-            // Generate a new z if it's the same as the previous one
-            z = getRandomInt(CARD_MIN_Z, CARD_MAX_Z);
+      // Use the BULLET_DELIMITER point character as separator to split the
+      // `bizcard_description` into a list of `description_items`.
+      //
+      // Parse each description_item to find the pattern `[skill_phrase](skill_img_url)`.
+      // Finds or creates a `card-div` for each `skill_phrase` and replaces the 
+      // original html with 
+      //    `<card-link card-div-id="id" card-img-url="url">skill</card-link>`
+      // The `card-img-url` is ignored if its value if "url" or blank.
+      //
+      // Uses the BULLET_DELIMITER separator to join the list of description_items 
+      // back into an updated HTML description so it can be used to create an ordered 
+      // list with list items.
+      //
+      function process_bizcard_description_HTML(description_HTML) {
+        var processed_items = [];
+        var description_items = description_HTML.split();
+        if ( description_items.length > 0 ) {
+          for ( var i=0; i<description_items.length; i++) {
+            var description_item = description_items[i].trim();
+            if ( description_item.length > 0 ) {
+              const { newTagLinks, updatedString } = process_bizcard_description_item(description_item);
+              if ( updatedString && updatedString.length > 0 )
+                processed_items.push(updatedString);
+              if ( newTagLinks && newTagLinks.length > 0 )
+                // update the global list of allTagLinks 
+                // created from description_HTML of all bizcard-divs
+                allTagLinks = allTagLinks.concat(newTagLinks);
+            }
           }
-          prev_z = z;
+        }
+        var processed_bizcard_description_HTML = description_HTML;
+        if( processed_items.length > 0)
+          processed_bizcard_description_HTML = processed_items.join(BULLET_DELIMITER);
+        return processed_bizcard_description_HTML;
+      }
 
-          var zindexStr = get_zindexStr_from_z(z);
-          cardDiv.style.zIndex = zindexStr;
+      function process_bizcard_description_item(inputString) {
+        const tagRegex = /\[(.*?)\]\((.*?)\)/g;
+        const tagLinks = [];
+        const updatedString = inputString.replace(tagRegex, function(match, text, url) {
+          const tagLink = { text, url };
+          addCardDivId(tagLink);
+          tagLinks.push(tagLink);
+          const cardDivId = tagLink['cardDivId'];
+          return `<tag url="${url}" cardDivId="${cardDivId}">${text}</tag>`;
+        });
+      
+        return { tagLinks, updatedString };
+      }
 
-          var filter_brightness_str = get_brightness_str_from_z(z);
-          var filter_blur_str = get_blur_str_from_z(z);
-          filter_strs = `${filter_brightness_str} ${filter_blur_str}`;
-          cardDiv.style.filter = filter_strs;
+      // call this if debugging is required.
+      function debug_process_description_item() {
+        const inputString = 'I am a [strange man](http://bewildered) roaming in the [desert](url), without a care in the [world]().';
+        const { tagLinks, updatedString } = processString(inputString);
+        console.log(tagLinks);
+        console.log(updatedString);
+      }
 
-          cardDiv.innerHTML = `id:${id}<br/>z:${z}<br/>zindexStr:${zindexStr}<br/>${filter_blur_str}`;
-          var css_hex_color_str = "#888888";
-          // var css_hex_color_str = adjustHexBrightness(hex_color_str, get_brightness_value_from_z(z));
-          cardDiv.setAttribute("saved-background-color", css_hex_color_str);
-          cardDiv.setAttribute("saved-color", "white");
-          //cardDiv.setAttribute("saved-focus-background-color", adjustHexBrightness(css_hex_color_str, 1.6));
-          //cardDiv.setAttribute("saved-focus-color", "black");
+      // find or create a cardDiv and use it
+      // to set the tagLink's "cardDivId" property
+      function addCardDivId(tagLink) {
+        var cardDiv = findCardDiv(tagLink);
+        if (!cardDiv) {
+          cardDiv = createCardDiv(tagLink);
+        }
+        tagLink['cardDivId'] = cardDiv.id;
+      }
 
-          cardDiv.style.backgroundColor = cardDiv.getAttribute("saved-background-color");
-          cardDiv.style.color = cardDiv.getAttribute("saved-color");
+      // this is an Order(N) search that could be optimized.
+      function findCardDiv(tagLink) {
+        var cardDivs = document.getElementsByClassName("card-div");
+        for ( var i=0; i<cardDivs.length; i++ ) {
+          var cardDiv = cardDivs[i];
+          if (cardDivMatchesTagLink(cardDiv,tagLink))
+            return cardDiv;
+        }
+        return null;
+      }
 
+      function cardDivMatchesTagLink(cardDiv, tagLink) {
+        if(cardDiv.getAttribute("tagLinkText") != tagLink["text"])
+          return false;
+        if(cardDiv.getAttribute("tagLinkUrl") != tagLink["url"])
+          return false;
+        return true;
+      }
+
+      // takes the description_HTML stored as innerHTML
+      // of a card-div (or bizcard-div) and splits it by
+      // the BULLLET delimiter and returns the HTML of an 
+      // unordered list of description items.
+      function convert_description_HTML_to_line_items_HTML(description_HTML) {
+        var HTML = "";
+        HTML += '<p class="card-div-line-item-description">';
+        var items = description_HTML.split(BULLET_DELIMITER);
+        if ( items.length > 0 ) {
+          HTML += '<ul class="card-div-line-item-description-list">';
+          for ( var i=0; i<items.length; i++) {
+            var description_item = items[i].trim();
+            if ( description_item.length > 0 )
+              HTML += "<li class='card-div-line-item-description-list-item'>" + description_item + "</li>";
+          }
+          HTML += "</ul>"
+        } else {
+          console.log(`unparsed description: ${description}`);
+          HTML += description_HTML;
+        }
+        HTML += "</p>"
+        return HTML;
+      }
+
+      // --------------------------------------
+      // CardDiv functions
+
+      // card-divs are never deleted so next id
+      // is just the current number of the card-divs
+      function getNextCardDivId() {
+        const cardDivs = document.getElementsByClassName("card-div");
+        const nextCardDivId = `card-div-${cardDivs.length}`;
+        return nextCardDivId;
+      }
+
+      // returns 99 for 'card-div-99'
+      function getCardDivIndex(cardDivId) {
+        return parseInt(cardDivId.replace("card-div-",""));
+      }
+      
+      var prev_z = null; // to track the previous z value
+
+      // adds a new cardDivs to #canvas
+      // default center x to zero and center y to
+      // id * TOP_TO_TOP.
+      // give each random x,y offsets and random
+      // z levels, and z-varied brightness and blur.
+      // return the newly created cardDiv
+      function createCardDiv(tagLink) {
+
+        var cardDivId = getNextCardDivId();
+        var cardDiv = document.createElement('div');
+        cardDiv.className = "card-div";
+        cardDiv.id = cardDivId;
+        canvas.appendChild(cardDiv);
+
+        const cardDivIndex = getCardDivIndex(cardDivId);
+        const total_vt_distance = getTimelineHeight();
+        const vt_top_to_top = total_vt_distance / ESTIMATED_NUMBER_CARD_DIVS;
+        const vt_top = cardDivIndex * vt_top_to_top - vt_top_to_top/2;
+
+        // card-div tops can be UNIFORMLY REDISTRIBUTED
+        // and given random offsets after all card-divs 
+        // have been created
+
+        var height = MEAN_CARD_HEIGHT + getRandomInt(-MAX_CARD_SIZE_OFFSET,MAX_CARD_SIZE_OFFSET);
+        var width = MEAN_CARD_WIDTH + getRandomInt(-MAX_CARD_SIZE_OFFSET,MAX_CARD_SIZE_OFFSET);
+
+        cardDiv.style.border = CARD_BORDER_STYLE;
+        cardDiv.style.height = `${height + 2*CARD_BORDER}px`;
+        cardDiv.style.width = `${width + 2*CARD_BORDER}px`;
+
+        const verticalOffset = getRandomInt(-MAX_CARD_POSITION_OFFSET,MAX_CARD_POSITION_OFFSET);
+        var top = vt_top + verticalOffset
+        cardDiv.style.top = `${top}px`;
+
+        const horizontalOffset = getRandomInt(-MAX_CARD_POSITION_OFFSET,MAX_CARD_POSITION_OFFSET);
+        var left = MEAN_CARD_LEFT + horizontalOffset;
+        cardDiv.style.left = `${left}px`;
+
+        var z = getRandomInt(CARD_MIN_Z, CARD_MAX_Z);
+        while (z === prev_z) {
+          // Generate a new z if it's the same as the previous one
+          z = getRandomInt(CARD_MIN_Z, CARD_MAX_Z);
+        }
+        prev_z = z;
+
+        var zindexStr = get_zindexStr_from_z(z);
+        cardDiv.style.zIndex = zindexStr;
+
+        var filter_brightness_str = get_brightness_str_from_z(z);
+        var filter_blur_str = get_blur_str_from_z(z);
+        filter_strs = `${filter_brightness_str} ${filter_blur_str}`;
+        cardDiv.style.filter = filter_strs;
+
+        var css_hex_color_str = "#888888";
+        cardDiv.setAttribute("saved-background-color", css_hex_color_str);
+        cardDiv.setAttribute("saved-color", "white");
+        //cardDiv.setAttribute("saved-focus-background-color", adjustHexBrightness(css_hex_color_str, 1.6));
+        //cardDiv.setAttribute("saved-focus-color", "black");
+
+        cardDiv.style.backgroundColor = cardDiv.getAttribute("saved-background-color");
+        cardDiv.style.color = cardDiv.getAttribute("saved-color");
+
+        const tagLinkText = tagLink['text'];
+        cardDiv.innerHTML = `<span class="carddiv-html">${tagLinkText}</span>`;
+        var imgUrl = tagLink['url'];
+        var imgSrc = getImgSrc(imgUrl,width,height);
+        if ( imgSrc ) {
           var img = document.createElement("img");
           img.className = "card-div-img";
-          img.src = `https://picsum.photos/${width}/${height}`;
+          img.src = imgSrc;
           img.style.width = `${width}px`;
           img.style.height = `${height}px`;
+          img.alt = cardDiv.id;
           cardDiv.appendChild(img);
-
-          cardDiv.addEventListener("mouseenter", handleCardDivMouseEnter);
-          cardDiv.addEventListener("mouseleave", handleCardDivMouseLeave);
-          cardDiv.addEventListener("click", handleCardDivMouseClick);
-
-          vt_top += vt_top_to_top;
-          prev_z = z;
-
         }
+
+        cardDiv.addEventListener("mouseenter", handleCardDivMouseEnter);
+        cardDiv.addEventListener("mouseleave", handleCardDivMouseLeave);
+        cardDiv.addEventListener("click", handleCardDivMouseClick);
+
         renderAllTranslateableDivsAtLeftColumnCenter();
+
+        cardDiv.setAttribute("tagLinkText", tagLink["text"]);
+        cardDiv.setAttribute("tagLinkUrl", tagLink["url"]);
+        return cardDiv;
+      }
+
+      // ignore the given imgUrl for now
+      function getImgSrc(imgUrl,width,height) {
+        return `https://picsum.photos/${width}/${height}`;
       }
 
       /**
@@ -981,6 +1209,7 @@
         var targetCardDiv = event.target.closest('.'+cardClass);
         if (targetCardDiv) {
 
+          // test for card uniqueness
           for ( var i=0; i<rightContentDiv.children.length; i++ ) {
             if ( targetCardDiv.id == rightContentDiv.children[i].getAttribute("cardDivId") ) {
               console.log(`ignoring request to add duplicate targetCardDiv.id:${targetCardDiv.id}`);
@@ -997,10 +1226,17 @@
           line_item_content.style.backgroundColor = targetCardDiv.getAttribute("saved-background-color");
           line_item_content.style.color = targetCardDiv.getAttribute("saved-color");
 
+          // start with the innerHTML of the targetCardDiv
           line_item_content.innerHTML = targetCardDiv.innerHTML;
+
+          // if targetCardDiv has a "Description" attribute
           var description = targetCardDiv.getAttribute("Description");
           if( description && description.length > 0 ) {
-            line_item_content.innerHTML += processed_description_HTML(description);
+            // split the description by BULLETS and return html 
+            // of the styled form <p><ul>(<li>text</li>)+</ul></p>
+            var line_items_HTML = convert_description_HTML_to_line_items_HTML(description);
+            if ( line_items_HTML && line_items_HTML.length > 0 )
+              line_item_content.innerHTML += line_items_HTML
           }
 
           var line_item_delete_button = document.createElement("button");
@@ -1014,32 +1250,6 @@
 
           rightContentScrollToBottom();
         }
-      }
-
-      function processed_description_HTML(description) {
-        var HTML = "";
-        HTML += '<p class="card-div-line-item-description">';
-        var description = description.trim();
-        var description = description.replace("\n","");
-        var parts = description.split("\u2022");
-        if ( parts.length > 0 ) {
-          HTML += '<ul class="card-div-line-item-description-list">';
-          for ( var i=0; i<parts.length; i++) {
-            var line = parts[i].trim();
-            if ( line.length > 0 )
-              HTML += "<li>" + line + "</li>";
-          }
-          HTML += "</ul>"
-        } else {
-          console.log(`unparsed description: ${description}`);
-          HTML += description;
-        }
-        HTML += "</p>"
-        return HTML;
-      }
-
-      function findLineItemCardDivIdInUnorderedList(unorderedList) {
-
       }
 
       function renderAllTranslateableDivsAtLeftColumnCenter() {
@@ -1066,10 +1276,10 @@
       }
 
       function leftColumnScrollToYear(year) {
-        var totalYears = YEAR_DIV_MAX_YEAR - YEAR_DIV_MIN_YEAR + 1;
+        var totalYears = TIMELINE_MAX_YEAR - TIMELINE_MIN_YEAR + 1;
         var leftColumScrollPixelsPerYear = leftColumn.scrollHeight / totalYears;
 
-        var newScrollTop = (YEAR_DIV_MAX_YEAR - year) * leftColumScrollPixelsPerYear;
+        var newScrollTop = (TIMELINE_MAX_YEAR - year) * leftColumScrollPixelsPerYear;
         newScrollTop = clamp(newScrollTop,0,leftColumn.scrollHeight);
         // console.log(`newScrollTop:${newScrollTop}`);
   
@@ -1087,11 +1297,17 @@
       function handleWindowLoad() {
         createTimeline();
         createBizCardDivs();
-        createCardDivs();
         renderAllTranslateableDivsAtLeftColumnCenter();
         positionGradients();
-        leftColumnScrollToYear(DEFAULT_YEAR);
+        leftColumnScrollToYear(TIMELINE_DEFAULT_YEAR);
         centerBullsEye();
+
+        var html = "";
+        html += `next bizcardDivId:${getNextBizCardDivId()}<br/>`;
+        html += `next cardDivId:${getNextCardDivId()}<br/>`;
+
+        debugElement.innerHTML = html;
+
       }
 
       function handleWindowResize() {
