@@ -2,265 +2,7 @@
 <html>
   <head>
     <title>flock-of-cards-v0.4</title>
-    <style>
-      html,
-      body {
-        height: 100%;
-        margin: 0;
-        padding: 0;
-        overflow: hidden;
-      }
-
-      #bulls-eye {
-        position: absolute;
-        width: 50px;
-        height: 50px;
-        border-radius: 50%;
-        border: 2px solid gray;
-        z-index: 99;
-        pointer-events: none;
-        display: flex; /* or inline-flex */
-        align-items: center; 
-        justify-content: center;
-        font-size: 31px;
-        font-weight: 700;
-        color: gray;
-      }
-
-      #left-container {
-        display: flex;
-        height: 100%;
-      }
-
-      #left-column {
-        flex: 1;
-        height: 100%;
-        overflow-y: scroll; 
-        overscroll-behavior: contain;
-        -ms-overflow-style: none; /* Hide scrollbar for IE and Edge */
-        scrollbar-width: none; /* Hide scrollbar for Firefox */
-        background-color: black;
-      }
-
-      #left-column::-webkit-scrollbar {
-        display: none; /* Hide scrollbar for Chrome, Safari, and Opera */
-      }
-
-      #canvas {
-        position: relative;
-        height: fit-content;
-      }
-
-      #bottom-gradient {
-        position: absolute;
-        width: 100%;
-        height: 1000px;
-        bottom: 0px;
-        background: linear-gradient(to top, midnightblue, black);
-        pointer-events: none;
-      }
-
-      #top-gradient {
-        position: absolute;
-        width: 100%;
-        height: 1000px;
-        top: 0px;
-        background: linear-gradient(to bottom, midnightblue, black);
-        pointer-events: none;
-      }
-
-      #timeline-container {
-        position: absolute;
-        z-index: 0;
-        width: 200px;
-        top: 0px;
-        bottom: 0px;
-        pointer-events: none;
-      }
-      .timeline-container-left {
-        left: 0px;
-      }
-      .timeline-container-right {
-        right: 0px;
-      }
-
-      .year-div, .year-div-right, .year-div-left {
-        position: absolute;
-        font-family: "Roboto", sans-serif;
-        font-weight: bold;
-        color: #444444;
-        border-bottom : 1px solid #444444;
-        pointer-events: none;
-      }
-
-      .year-div-right {
-        text-align: left; /* should have trailing &nbsp; */
-        right: 40px;
-        width: 120px;
-      }
-
-      .year-div-left {
-        text-align: right; /* should have leading &nbsp; */
-        left: 40px;
-        width: 120px;
-      }
-
-      .month-tick, .month-tick-left, .month-tick-right {
-        position: absolute;
-        font-family: "Roboto", sans-serif;
-        color: #666666;
-        border-bottom: 1px dashed #666666;
-        pointer-events: none;
-        width: 40px;
-      }
-
-      .month-tick-left {
-        text-align: right;
-        left: 5px;
-      }
-
-      .month-tick-right {
-        text-align: left;
-        right: 5px;
-      }
-
-      .bizcard-div {
-        position: absolute;
-        border: 3px solid white;
-        border-radius: 25px;
-        font-family: "Roboto", sans-serif;
-        font-weight: bold;
-        font-size: 12px;
-        padding: 20px;
-        box-sizing: border-box;
-        overflow: hidden;
-      }
-
-      .bizcard-div-role {
-        font-size: 20px;
-      }
-
-      .bizcard-div-employer {
-        font-size: 18px;
-      }
-
-      .bizcard-div-dates {
-        font-size: 16px
-      }
-          
-      .card-div {
-        position: absolute;
-        border: 5px solid white;
-        font-family: "Roboto", sans-serif;
-        font-weight: bold;
-        font-size: 10px;
-        padding: 0px;
-        box-sizing: border-box;
-      }
-
-      .bizcard-div-header {
-        font-size: 20px;
-      }
-
-      .card-div-header {
-        font-size: 12px;
-      }
-
-      .card-div-img {
-        position: absolute;
-        top: 0px;
-        left: 0px;
-      }
-
-      .scrollable-div {
-        overflow-y: auto;
-        padding-bottom:20px;
-      }
-    
-
-      #right-column {
-        flex: 1;
-        height: 100%;
-        position: relative;
-        background-color: #dddddd;
-        font-family: "Roboto", sans-serif;
-        display: flex;
-        flex-direction: column;
-      }
-      #right-header-div {
-        height: 100px;
-        background-color: #444444;
-        color: white;
-        padding: 10px;
-        align-content: left;
-      }
-
-      .intro, .user, .footnote{
-        font-family: "Roboto", sans-serif;
-        color: white;
-        font-size: 17px;
-        font-weight: 400;
-      }
-  
-      .user {
-        font-weight: 900;
-        font-size: 20px;
-      }
-      .footnote {
-        font-size: 10px;
-      }
-  
-      #right-content-div {
-        flex: 1;
-        overflow-y: auto;
-        background-color: #dddddd;
-        color: black;
-        padding: 10px;
-      }
-
-      #right-footer-div {
-        height: 100px;
-        background-color: #999999;
-        padding: 10px;
-      }
-
-      .card-div-line-item {
-        display:flex;
-        list-style-type: none;
-        justify-content: space-between;
-        margin: 1px 0px;
-      }
-
-      .div-line-item-content {
-        padding: 20px;
-      }
-
-      .card-div-line-item-description {
-        font-size: 14px
-      }
-
-      .card-div-line-item-delete-button {
-        flex: 0 0 15px;
-        width: 15px;
-        height: 15px;
-        background-color: red;
-        border: 0;            /* for flat appearence */
-        background: none;
-        box-shadow: none;
-        border-radius: 0px;
-        background-image: url("static_content/big-red-x.gif");
-      }
-
-      .card-div-line-item-delete-button-img {
-        position: absolute;
-        top: 0px;
-        left: 0px;
-        background-color: red;
-        color: white;
-        pointer-events: none;
-      }
-
-    </style>
+    <link rel="stylesheet" href="styles.css">
   </head>
   <body>
     <div id="left-container">
@@ -291,7 +33,8 @@
     </div>
     <div id="bulls-eye">+</div>
     
-    <script type="text/javascript" src="static_content/jobs.js"></script>
+    <script type="text/javascript" src="static_content/jobs/jobs.js"></script>
+    <script type="text/javascript" src="static_content/media/image_paths.js"></script>
     <script>
 
       // --------------------------------------
@@ -799,7 +542,8 @@
       // id * TOP_TO_TOP.
       // give each random x,y offsets and random
       // z levels, and z-varied brightness and blur.
-      // return the newly created cardDiv
+      // return the newly created cardDiv that has 
+      // been appended to its parent canvas.
       function createCardDiv(tagLink) {
 
         var cardDivId = getNextCardDivId();
@@ -816,14 +560,6 @@
         // card-div tops can be UNIFORMLY REDISTRIBUTED
         // and given random offsets after all card-divs 
         // have been created
-
-        var height = MEAN_CARD_HEIGHT + getRandomInt(-MAX_CARD_SIZE_OFFSET,MAX_CARD_SIZE_OFFSET);
-        var width = MEAN_CARD_WIDTH + getRandomInt(-MAX_CARD_SIZE_OFFSET,MAX_CARD_SIZE_OFFSET);
-
-        cardDiv.style.border = CARD_BORDER_STYLE;
-        cardDiv.style.height = `${height + 2*CARD_BORDER}px`;
-        cardDiv.style.width = `${width + 2*CARD_BORDER}px`;
-
         const verticalOffset = getRandomInt(-MAX_CARD_POSITION_OFFSET,MAX_CARD_POSITION_OFFSET);
         var top = vt_top + verticalOffset
         cardDiv.style.top = `${top}px`;
@@ -856,19 +592,54 @@
         cardDiv.style.backgroundColor = cardDiv.getAttribute("saved-background-color");
         cardDiv.style.color = cardDiv.getAttribute("saved-color");
 
-        const tagLinkText = tagLink['text'];
-        cardDiv.innerHTML = `<span class="carddiv-html">${tagLinkText}</span>`;
-        var imgUrl = tagLink['url'];
-        var imgSrc = getImgSrc(imgUrl,width,height);
-        if ( imgSrc ) {
-          var img = document.createElement("img");
-          img.className = "card-div-img";
-          img.src = imgSrc;
-          img.style.width = `${width}px`;
-          img.style.height = `${height}px`;
-          img.alt = cardDiv.id;
-          cardDiv.appendChild(img);
+        // the tagLink is used to define the contents of this cardDiv
+        const tag_img_url = tagLink['url'];
+        const tag_link_html = tagLink['text'];
+        cardDiv.innerHTML = `<span class="carddiv-html">${tag_link_html}</span>`;
+
+        // ==================================================================
+        // divCard img_src and dimensions
+
+        var img_src, img_width, img_height = null;
+
+        // given a tag_img_url try to get the real img_src and dimensions of the actual image
+        result = get_real_img_src_from_img_url(tag_img_url);
+        if ( result ) {
+          const { real_img_src, real_img_width, real_img_height } = result;
+            img_src = real_img_src;
+            img_width = real_img_width;
+            img_height = real_img_height;
         }
+
+        // try to select a random image path
+        if ( !img_src ) {
+          result = select_random_img_src();
+          if ( result ) {
+            const { random_img_src, random_img_width, random_img_height} = result;
+            img_src = random_img_src;
+            img_width = random_img_width;
+            img_height = random_img_height;
+          }
+        }
+
+        // just generate a random img_src using a random img_width and img_height
+        if( !img_src ) {
+          img_width = MEAN_CARD_WIDTH + getRandomInt(-MAX_CARD_SIZE_OFFSET,MAX_CARD_SIZE_OFFSET);
+          img_height = MEAN_CARD_HEIGHT + getRandomInt(-MAX_CARD_SIZE_OFFSET,MAX_CARD_SIZE_OFFSET);
+          img_src = `https://picsum.photos/${img_width}/${img_height}`;
+        }
+
+        cardDiv.style.border = CARD_BORDER_STYLE;
+        cardDiv.style.width = `${img_width + 2*CARD_BORDER}px`;
+        cardDiv.style.height = `${img_height + 2*CARD_BORDER}px`;
+
+        var img = document.createElement("img");
+        img.className = "card-div-img";
+        img.src = img_src;
+        img.style.width = `${img_width}px`;
+        img.style.height = `${img_height}px`;
+        img.alt = cardDiv.id;
+        cardDiv.appendChild(img);
 
         cardDiv.addEventListener("mouseenter", handleCardDivMouseEnter);
         cardDiv.addEventListener("mouseleave", handleCardDivMouseLeave);
@@ -881,9 +652,46 @@
         return cardDiv;
       }
 
-      // ignore the given imgUrl for now
-      function getImgSrc(imgUrl,width,height) {
-        return `https://picsum.photos/${width}/${height}`;
+      // these are used by select_random_img_src
+      var selected_image_paths = [];
+      var invalid_image_paths = [];
+
+      // returns { image_src, width, height } or null
+      function select_random_img_src() {
+        if (selected_image_paths.length + invalid_image_paths.length === image_paths.length) {
+          return null; // All image paths have been selected or marked as invalid
+        }
+        while (true) {
+          const randomIndex = Math.floor(Math.random() * image_paths.length);
+          const filePath = image_paths[randomIndex];
+      
+          if (!selected_image_paths.includes(filePath) && !invalid_image_paths.includes(filePath)) {
+            const filename = filePath.split('/').pop();
+            const regex = /^(.*?)-(\d+)x(\d+)\.(\w+)$/;
+            const match = filename.match(regex);
+            if (!match) {
+              logError(errorLog, `Invalid filename format: ${filename}`);
+              invalid_image_paths.push(filePath);
+              continue;
+            }
+            const name = match[1];
+            const random_img_width = parseInt(match[2]);
+            const random_img_height = parseInt(match[3]);
+            const extension = match[4];
+            selected_image_paths.push(filePath);
+            const random_img_src = filePath;
+            return { random_img_src, random_img_width, random_img_height };
+          }
+        }
+      }
+      
+      // Given an img_url returns null if its format is invalid
+      // of if an actual image file cannot be loaded using that url.
+      // Otherwise returns an object with real values
+      // 
+      function get_real_img_src_from_img_url(img_url) {
+        // return { real_img_src, real_img_width, real_img_height };
+        return null;
       }
 
       /**
