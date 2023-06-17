@@ -5,8 +5,7 @@
 **/dist/*
 /tmp
 /out-tsc
-/static_files/venv/*
-
+/static_files/venv/*v
 # Runtime data
 pids
 *.pid
@@ -61,7 +60,7 @@ yarn-error.log*
 
 
 # Dependency directories
-node_modules/
+**/node_modules/
 jspm_packages/
 
 # Optional npm cache directory
@@ -93,3 +92,4 @@ lerna-debug.log
 **/.DS_Store
 Thumbs.db
 **/venv
+**/images/*
