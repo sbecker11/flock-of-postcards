@@ -1,0 +1,10 @@
+#!/bin/bash
+
+echo "image_paths = [" > tmp_file ; 
+for i in $(ls images/images_12.5); do 
+  echo "@@static_content/media/images/images_12.5/$i@@," >> tmp_file; 
+done; 
+echo "];" >> tmp_file;
+sed 's/@@/"/g' tmp_file > image_paths.js
+rm tmp_file
+
