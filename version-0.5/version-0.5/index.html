@@ -3,10 +3,6 @@
   <head>
     <title>flock-of-cards-v0.5</title>
     <link rel="stylesheet" href="styles.css">
-    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.7.0/jquery.min.js"></script>
-    <script>
-      $('#resume-header').load('static-content/resume-header.html');
-    </script>
   </head>
   <body>
     <div id="left-container">
@@ -19,12 +15,15 @@
     </div>
     <div id="right-column">
       <div id="right-header-div">
-        <p id="resume-header"></p>
-      </div>
+        <!-- your resume head goes here -->
+        <table cellspacing="0" style="color:#fff;font-family:-apple-system,sans-serif;font-size:13px;width:100%;line-height:100%"><tbody><tr><td style="border-bottom:2px solid #2f5496;vertical-align:top"><p><span style="font-size:30px">Shawn Becker</span></p><p><strong><span style="font-size:11pt">Data Engineer / Software Developer</span></strong></p><p>sbecker@alum.mit.edu &bull; 857-891-0896<br>LinkedIn.com/in/shawnbecker &bull; Lehi - Utah, USA</p></td></tr></tbody></table>
+         <!-- your resume head goes here -->
+        </div>
       <div id="right-content-div"> 
+        <div id="skills" style="color:black;height:50px;width:100%;"></div>
       </div> 
       <div id="right-footer-div">
-        <p class="footnote">
+        <p class="footnote" style="text-alignment:bottom;">
           create a flock-of-postcards for yourself at 
           <a target="_blank" href="https://www.beckerstudio.com/">beckerstudio.com</a>"
         </p>
@@ -43,7 +42,7 @@
 
       // the global set of tagLinks created while creating all bizcard-divs from
       // the list of all `job` objects defined in "static_content/jobs.js"
-      const allTagLinks = [];
+      var allTagLinks = [];
       function initAllTagLinks() {
         allTagLinks = [];
       }
@@ -429,13 +428,22 @@
           for ( var i=0; i<description_items.length; i++) {
             var description_item = description_items[i].trim();
             if ( description_item.length > 0 ) {
-              const { newTagLinks, updatedString } = process_bizcard_description_item(description_item);
+              var { newTagLinks, updatedString } = process_bizcard_description_item(description_item);
               if ( updatedString && updatedString.length > 0 )
                 processed_items.push(updatedString);
-              if ( newTagLinks && newTagLinks.length > 0 )
+              if ( newTagLinks && newTagLinks.length > 0 ) {
+
                 // update the global list of allTagLinks 
                 // created from description_HTML of all bizcard-divs
                 allTagLinks = allTagLinks.concat(newTagLinks);
+                console.log(`newTagLinks.length:${newTagLinks.length}`, Date.now());
+                if ( allTagLinks ) {
+                  console.log(`allTagLinks.length:${allTagLinks.length}`, Date.now());
+                  if( allTagLinks.length > 0 ) {
+                    updateSkillsFromAllTagLinks(allTagLinks);
+                  }
+                }
+              }
             }
           }
         }
@@ -447,16 +455,15 @@
 
       function process_bizcard_description_item(inputString) {
         const tagRegex = /\[(.*?)\]\((.*?)\)/g;
-        const tagLinks = [];
+        const newTagLinks = [];
         const updatedString = inputString.replace(tagRegex, function(match, text, url) {
           const tagLink = { text, url };
           addCardDivId(tagLink);
-          tagLinks.push(tagLink);
+          newTagLinks.push(tagLink);
           const cardDivId = tagLink['cardDivId'];
           return `<tag url="${url}" cardDivId="${cardDivId}">${text}</tag>`;
         });
-      
-        return { tagLinks, updatedString };
+        return { newTagLinks, updatedString };
       }
 
       // call this if debugging is required.
@@ -841,8 +848,12 @@
 
             cardCount += 1;
           }
-
-          cardDiv.style.translate = zTranslateStr;
+          try {
+            cardDiv.style.translate = zTranslateStr;
+          } catch (error) {
+            console.log(`applyParallax cardDiv:${cardDiv.id}`, error);
+            console.error(`applyParallax cardDiv:${cardDiv.id}`, error);
+          }
         }
         //var debug = "";
         //debug += `parallaxDhMean:${parallaxDhTotal / cardCount} <= leftColumnHzCtr zero at center\n`;
@@ -1171,7 +1182,12 @@
           const trans_dx = leftColumnCenter - divWidth / 2.0;
           const trans_dy = 0;
           const translateStr = `${trans_dx}px ${trans_dy}px`;
-          div.style.translate = translateStr;
+          try {
+            div.style.translate = translateStr;
+          } catch (error) {
+            console.log(`leftCenter div:${div.id}`, error);
+            console.error(`leftCenter div:${div.id}`, error);
+          }
         }
         // console.log(`leftColumn.scrollHeight:${leftColumn.scrollHeight}`);
       }
@@ -1203,6 +1219,17 @@
         bulls_eye.style.top = `${top}px`;
         bulls_eye.style.left = `${left}px`;
         // console.log(`bulls-eye top:${top} left:${left}`);
+      }
+
+      function updateSkillsFromAllTagLinks(allTagLinks) {
+        if ( allTagLinks && allTagLinks.length > 0 ) {
+          const html = allTagLinks.map((list) => list.text).join("\u2022");
+          const skills = document.getElementById("skills");
+          skills.innerHTML = html;
+          console.log(`skills:${skills.innerHTML}`);
+        } else {
+          console.log("no skills yet");
+        }
       }
 
       function handleWindowLoad() {
