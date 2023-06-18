@@ -187,7 +187,6 @@ body {
   background-color: #444444;
   color: white;
   padding: 10px;
-  align-content: left;
 }
 
 .intro, .user, .footnote{
@@ -203,7 +202,7 @@ body {
   color: #444444;
 }
 .footnote {
-  font-size: 20px;
+  font-size: 16px;
   color: #444444;
 }
 

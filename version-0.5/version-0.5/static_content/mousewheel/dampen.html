@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <style>
+      #leftColumn {
+        width: 300px;
+        height: 100%;
+        overflow-x: hidden;
+        overflow-y: scroll;
+        background: grey;
+        border: 1px solid black;
+        scroll-behavior: contain;
+      }
+      #canvas {
+        width: 300px;
+        height: 2000px;
+        position: relative;
+      }
+      .red-div {
+        position: absolute;
+        width: 50px;
+        height: 50px;
+        left: 175px; /* leftColumn.width/2 - redDiv.width/2 */
+        background-color: red;
+        color: white;
+      }
+    </style>
+    <script
+      type="text/javascript"
+      src="http://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"
+    ></script>
+  </head>
+  <body>
+    <div id="leftColumn">
+      <div id="canvas">DOGGY</div>
+    </div>
+
+    <script>
+      const canvas = document.getElementById("canvas");
+      const gap = 10;
+      const len = 33;
+      console.log("HELLO");
+      for (var i = 0; i < len; i++) {
+        const div = document.createElement("div");
+        div.classList.add("red-div");
+        const top = gap / 2 + (50 + gap) * i;
+        div.style.top = `${top}px`;
+        const html = `${i + 1}`;
+        div.textContent = html;
+        console.log(`div[${i}] top:${top} html:${html}`);
+        canvas.appendChild(div);
+      }
+      console.log("BYE");
+    </script>
+  </body>
+
+  <!-- applies scroll dampening to #scroller -->
+  <script type="text/javascript" src="mousewheel-plugin.js"></script>
+  <script>
+    mousewheel_setScrollerWithOwnContent(document.getElementById("leftColumn"));
+  </script>
+</html>
