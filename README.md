@@ -10,23 +10,24 @@
 * Go into the latest version folder in the newly downloaded repo  
 `cd flock-of-postcards/version4`  
 * Open this link in your default browser from your shell:  
-`open flock-of-cards-4.html`  
+`open index.html`  
 
 <br/>
 <br/>
 
 <hr/>
 
-## Version 0.4:   June 14, 2023
+## Version 0.4:   June 18, 2023
 
 <br/>
 
-<img src="https://shawn.beckerstudio.com/wp-content/uploads/2023/06/flock-of-cards-4.png" width="25%" height="25%"/>
+<img src="https://shawn.beckerstudio.com/wp-content/uploads/2023/06/flock-of-postcards-version-0.4.png" width="33%" height="33%"/>
 <br/>
 
 Features:
 
-* scripted process to convert excel jobs.xlsx spreadsheet file to a javascript file for html inclusion.
+* scripted process to convert WordPress media dump xml file into a javascript file of image paths of resized local image files (not included in github) for html inclusion.
+* scripted process to convert excel jobs.xlsx spreadsheet file (included in github) into a javascript file of job objects for html inclusion.
 * right side now has fixed header and footer and an auto-scolling content.
 * click on a any postcard or underlying buisness card to add a new deleteble line item to the right column.
 

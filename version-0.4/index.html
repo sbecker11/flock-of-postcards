@@ -658,6 +658,14 @@
 
       // returns { image_src, width, height } or null
       function select_random_img_src() {
+
+        // immedately return null if image_paths are not available
+        if((typeof image_paths === 'undefined') || 
+          (image_paths == null) || 
+            (image_paths.length == 0)) {
+          return null;
+        }
+
         if (selected_image_paths.length + invalid_image_paths.length === image_paths.length) {
           return null; // All image paths have been selected or marked as invalid
         }
