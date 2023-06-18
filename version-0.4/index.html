@@ -670,7 +670,7 @@
             const regex = /^(.*?)-(\d+)x(\d+)\.(\w+)$/;
             const match = filename.match(regex);
             if (!match) {
-              logError(errorLog, `Invalid filename format: ${filename}`);
+              console.log(`Invalid filename format: ${filename}`);
               invalid_image_paths.push(filePath);
               continue;
             }

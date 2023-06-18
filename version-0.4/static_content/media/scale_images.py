@@ -4,6 +4,7 @@ import time
 import imageio
 from PIL import Image
 import sys
+import numpy as np
 
 def process_images(src_directory, scaled_directories, error_log):
     if not os.path.exists(src_directory):
@@ -18,14 +19,14 @@ def process_images(src_directory, scaled_directories, error_log):
     num_found = {}
     start_time = time.time()
 
-    for scaled_dir, scale_factor in scaled_directories.items():
-        target_directory = f"images/{scaled_dir}"
+    for scaled_dir, scale_percentage in scaled_directories.items():
+        target_directory = scaled_dir
         os.makedirs(target_directory, exist_ok=True)
         num_resized[scaled_dir] = 0
         num_failed[scaled_dir] = 0
         num_found[scaled_dir] = 0
 
-        print(f"Processing images for scale factor {scale_factor}...")
+        print(f"Processing images for scale percentage {scale_percentage}%...")
 
         for filename in os.listdir(src_directory):
             if not os.path.isfile(os.path.join(src_directory, filename)):
@@ -34,7 +35,7 @@ def process_images(src_directory, scaled_directories, error_log):
             match = re.match(r'(.*?)-(\d+)x(\d+)\.(\w+)$', filename)
             if not match:
                 log_error(error_log, f"Invalid filename format: {filename}")
-                num_failed[scaled_dir] += 1;
+                num_failed[scaled_dir] += 1
                 continue
 
             original_name = match.group(1)
@@ -46,27 +47,27 @@ def process_images(src_directory, scaled_directories, error_log):
                 img = Image.open(os.path.join(src_directory, filename))
 
                 # Check if the image is an animated GIF
-                if img.is_animated:
+                if "duration" in img.info:
                     resized_filename = f"{original_name}.{original_extension}"
                     target_path = os.path.join(target_directory, resized_filename)
 
                     if os.path.exists(target_path):
                         print(f"Found '{filename}' already saved as '{resized_filename}' in '{scaled_dir}'")
-                        num_found[scaled_dir] += 1;
+                        num_found[scaled_dir] += 1
                         continue
 
-                    resize_animated_gif(os.path.join(src_directory, filename), target_path, scale_factor)
+                    resize_animated_gif(os.path.join(src_directory, filename), target_path, scale_percentage)
                     num_resized[scaled_dir] += 1
                     print(f"Saved resized animated GIF '{target_path}'")
                 else:
-                    resized_width = original_width // int(1/scale_factor)
-                    resized_height = original_height // int(1/scale_factor)
+                    resized_width = int(original_width * scale_percentage / 100.0)
+                    resized_height = int(original_height * scale_percentage / 100.0)
                     new_filename = f"{original_name}-{resized_width}x{resized_height}.{original_extension}"
                     target_path = os.path.join(target_directory, new_filename)
 
                     if os.path.exists(target_path):
                         print(f"Found '{filename}' already saved as '{new_filename}' in '{scaled_dir}'")
-                        num_found[scaled_dir] += 1;
+                        num_found[scaled_dir] += 1
                         continue
 
                     resized_img = img.resize((resized_width, resized_height))
@@ -79,11 +80,9 @@ def process_images(src_directory, scaled_directories, error_log):
             except ValueError as ve:
                 num_failed[scaled_dir] += 1
                 log_error(error_log, f"Error processing file '{filename}': {str(ve)}")
-                move_to_error_directory(src_directory, filename)
             except Exception as e:
                 num_failed[scaled_dir] += 1
                 log_error(error_log, f"Error processing file '{filename}': {str(e)}")
-                move_to_error_directory(src_directory, filename)
 
         print(f"Resizing phase for {scaled_dir} completed.")
         print(f"Number of files found: {num_found[scaled_dir]}")
@@ -103,13 +102,15 @@ def process_images(src_directory, scaled_directories, error_log):
     except Exception as e:
         log_error(error_log, f"Error in compare_directories function: {str(e)}")
 
-def resize_animated_gif(input_file, output_file, scale_factor):
+def resize_animated_gif(input_file, output_file, scale_percentage):
     reader = imageio.get_reader(input_file)
-    fps = reader.get_meta_data()['fps']
-    writer = imageio.get_writer(output_file, fps=fps)
+    fps = reader.get_meta_data().get('fps', 10)  # Use 10 as the default frame rate if 'fps' key is not present
+    writer = imageio.get_writer(output_file, duration=1000 / fps if fps > 0 else 100, mode='I')
 
     for frame in reader:
-        resized_frame = imageio.imresize(frame, scale_factor)
+        img = Image.fromarray(frame)
+        resized_img = img.resize((int(img.width * scale_percentage / 100.0), int(img.height * scale_percentage / 100.0)))
+        resized_frame = np.array(resized_img)
         writer.append_data(resized_frame)
 
     reader.close()
@@ -118,13 +119,6 @@ def resize_animated_gif(input_file, output_file, scale_factor):
 def log_error(log_file, error_message):
     with open(log_file, 'a') as f:
         f.write(f"Error: {error_message}\n")
-
-def move_to_error_directory(src_directory, filename):
-    source_path = os.path.join(src_directory, filename)
-    error_directory = 'error_images'
-    target_path = os.path.join(error_directory, filename)
-    os.rename(source_path, target_path)
-    print(f"Moved '{filename}' to '{error_directory}' directory")
 
 def compare_directories(directory_list, src_directory):
     try:
@@ -172,8 +166,8 @@ def compare_directories(directory_list, src_directory):
         raise Exception(f"Error in compare_directories function: {str(e)}")
 
 # Get the source directory and scaled directories from command-line arguments
-if len(sys.argv) < 5:
-    print("Usage: python scale_images.py src_directory scaled_directory1 scale_factor1 scaled_directory2 scale_factor2 ...")
+if len(sys.argv) < 4 or (len(sys.argv) - 2) % 2 != 0:
+    print("Usage: python scale_images.py src_directory scaled_directory1 scale_percentage1 scaled_directory2 scale_percentage2 ...")
     sys.exit(1)
 
 src_directory = sys.argv[1]
@@ -183,8 +177,8 @@ num_scales = (len(sys.argv) - 2) // 2
 for i in range(num_scales):
     index = 2 + i * 2
     scaled_directory = sys.argv[index]
-    scale_factor = float(sys.argv[index + 1])
-    scaled_directories[scaled_directory] = scale_factor
+    scale_percentage = float(sys.argv[index + 1])
+    scaled_directories[scaled_directory] = scale_percentage
 
 # Call the process_images function with the command-line arguments
 error_log = 'errors.log'

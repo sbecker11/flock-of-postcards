@@ -83,5 +83,5 @@ This saves scaled versions to `images/images_12.5`, `images/images_25`, and `ima
 
 ## import data into the web page 
 
-    create_image_urls_file
+    create_image_paths_js_file 
 
