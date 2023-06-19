@@ -945,7 +945,7 @@
       // ------------------------------------------
 
       var scrollingInterval = null;
-      var scrollVelocity = 0;
+      var autoscrollVelocity = 0;
 
       const smoothingFactors = [0, 10.0, 0.2, 0.3]; // Adjust smoothing factors for each degree of interpolation
 
@@ -954,6 +954,9 @@
       // to current left-column position. Given null
       // when called from onload, in this case
       // left-column center as mouse location
+      var scrollLastTop = null;
+      var scrollLastTime = null;
+
       function handleLeftColumnMouseMove(event) {
 
         var rect = leftColumn.getBoundingClientRect();
@@ -970,7 +973,7 @@
 
         var dist_v = mouseY - centerY;
         var delta_vt = ((mouseY - centerY) / centerY) * 100;
-        var parallax_dh = (parallax_dv = scrollVelocity = 0);
+        var parallax_dh = (parallax_dv = autoscrollVelocity = 0);
 
         // normal mouse-driven parallax
         if (Math.abs(delta_vt) < 50) {
@@ -982,27 +985,27 @@
 
           // start to scroll when mouse is > 50% of distance
           // from center  to top or bottom edge of viewport
-          // scrollVelocity is zero at 50% of distance from
-          // center. scrollVelocity speeds up linearly
+          // autoscrollVelocity is zero at 50% of distance from
+          // center. autoscrollVelocity speeds up linearly
           // to MAX_SCROLL_VT when mouseX reaches the top
           // or bottom edge of the viewport, in other words,
           // where |mouseY - centerY| == |centerY - topEdge (0)|
           if (Math.abs(delta_vt) >= 50) {
             var delta_vt_normalized = Math.abs(delta_vt) - 50;
-            scrollVelocity = (delta_vt_normalized / 50) * MAX_SCROLL_VT;
-            scrollVelocity = delta_vt > 0 ? scrollVelocity : -scrollVelocity;
+            autoscrollVelocity = (delta_vt_normalized / 50) * MAX_SCROLL_VT;
+            autoscrollVelocity = delta_vt > 0 ? autoscrollVelocity : -autoscrollVelocity;
           }
 
           clearInterval(scrollingInterval);
 
-          if (Math.abs(scrollVelocity) > 0.01) {
-            // use scrollVelocity to
+          if (Math.abs(autoscrollVelocity) > 0.01) {
+            // use autoscrollVelocity to
             // auto-scroll left-column from currentScrollTop
-            // to newScrollTop = currentScrollTop + scrollVelocity pixels
+            // to newScrollTop = currentScrollTop + autoscrollVelocity pixels
             // in 10 millis
             scrollingInterval = setInterval(function () {
               var currentScrollTop = leftColumn.scrollTop;
-              var newScrollTop = currentScrollTop + scrollVelocity;
+              var newScrollTop = currentScrollTop + autoscrollVelocity;
 
               if (newScrollTop < 0) {
                 newScrollTop = 0;
@@ -1014,10 +1017,14 @@
                 }
               }
 
-              // var html = "";
-              // html += `newScrollTop:${newScrollTop}<br/>`;
-              // html += `scrollVelocity:${scrollVelocity}<br/>`;
-              // debugElement.innerHTML = html;
+              var thisTime = (new Date()).getTime();
+              var thisScrollTop = leftColumn.scrollTop;
+              var deltaTime = (scrollLastTime != null) ? (thisTime-scrollLastTime) : null;
+              var deltaScroll = (scrollLastTop != null) ? (thisScrollTop-scrollLastTop) : null;
+              var scrollVelocity = (deltaTime != null && deltaScroll != null && deltaTime != 0) ? toFixedPoint(deltaScroll/deltaTime,2): "?";
+              debugScrolling("auto", leftColumn, "scrollVelocity", scrollVelocity);
+              scrollLastTime =  thisTime;
+              scrollLastTop = thisScrollTop;
 
               // apply the change and
               // then wait for 10 millis
@@ -1026,10 +1033,26 @@
           }
 
           parallax_dh = centerX - mouseX;
-          parallax_dv = -(dist_v + scrollVelocity);
+          parallax_dv = -(dist_v + autoscrollVelocity);
 
         }
         applyMotionParallax(parallax_dh, parallax_dv);
+      }
+
+      function debugScrolling(event, scrollable, scrollVelocityType, scrollVelocity) {
+        var scrollTop = scrollable.scrollTop;
+        var scrollHeight = scrollable.scrollHeight;
+        var windowHeight = scrollable.clientHeight;
+        var scrollBottom = scrollHeight - scrollTop - windowHeight;
+
+        var html = "";
+        html += `event:${event}<br/>`;
+        html += `scrollTop:${scrollTop}<br/>`;
+        html += `scrollBottom:${scrollBottom}<br/>`;
+        if(scrollVelocityType != null && scrollVelocity != null )
+          html += `${scrollVelocityType}:${scrollVelocity}<br/>`;
+
+        debugElement.innerHTML = html;
       }
 
       // Display mouse position and delta coordinates in the right-message-div  
@@ -1043,8 +1066,8 @@
       function handleMouseLeaveLeftColumn() {
         isMouseOverLeftColumn = false;
         clearInterval(scrollingInterval);
-        scrollVelocity = 0;
-        // debugElement.innerHTML = "";
+        autoscrollVelocity = 0;
+        //debugElement.innerHTML = "";
       }
 
       // calculates dh,dv parallax when
@@ -1052,6 +1075,9 @@
       // leftColumn_wheel_dh ==  leftColumn_mouse_dh
       // leftColumn_wheel_dv ==  leftColumn_mouse_dv
       // when mouse wheel is scrolling
+      var wheelLastY = null;
+      var wheelLastTime = null;
+      
       function handleLeftColumnWheel(wheelEvent) {
         const centerX = getLeftColumnHzCtr();
         const centerY = getLeftColumnVtCtr();
@@ -1062,6 +1088,14 @@
         const parallax_dv = centerY - mouseY;
 
         applyMotionParallax(parallax_dh, parallax_dv);
+
+        // var thisTime = (new Date()).getTime();
+        // var deltaTime = (wheelLastTime != null) ? (thisTime-wheelLastTime) : null;
+        // var deltaY = (wheelLastY != null) ? (mouseY - wheelLastY) : null;
+        // var wheelVelocity = (deltaTime && deltaY) ? (deltaY)/(deltaTime) : "?";
+        // debugScrolling("wheel", leftColumn, "wheelVelocity", wheelVelocity);
+        // wheelLastTime =  thisTime;
+        // wheelLastY = mouseY;
       }
 
       function handleCardDivMouseEnter(event) {
