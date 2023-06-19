@@ -20,7 +20,7 @@
          <!-- your resume head goes here -->
         </div>
       <div id="right-content-div"> 
-        <div id="skills" style="color:black;height:50px;width:100%;"></div>
+        <!-- <div id="skills" style="color:black;height:50px;width:100%;"></div> -->
       </div> 
       <div id="right-footer-div">
         <p class="footnote" style="text-alignment:bottom;">
@@ -432,19 +432,10 @@
               var { newTagLinks, updatedString } = process_bizcard_description_item(description_item);
               if ( updatedString && updatedString.length > 0 )
                 processed_items.push(updatedString);
-              if ( newTagLinks && newTagLinks.length > 0 ) {
-
+              if ( newTagLinks && newTagLinks.length > 0 )
                 // update the global list of allTagLinks 
                 // created from description_HTML of all bizcard-divs
                 allTagLinks = allTagLinks.concat(newTagLinks);
-                console.log(`newTagLinks.length:${newTagLinks.length}`, Date.now());
-                if ( allTagLinks ) {
-                  console.log(`allTagLinks.length:${allTagLinks.length}`, Date.now());
-                  if( allTagLinks.length > 0 ) {
-                    updateSkillsFromAllTagLinks(allTagLinks);
-                  }
-                }
-              }
             }
           }
         }
@@ -462,7 +453,7 @@
           addCardDivId(tagLink);
           newTagLinks.push(tagLink);
           const cardDivId = tagLink['cardDivId'];
-          return `<tag url="${url}" cardDivId="${cardDivId}">${text}</tag>`;
+          return `<span class="tagLink" href="${url}" cardDivId="${cardDivId}">${text}</span>`;
         });
         return { newTagLinks, updatedString };
       }
@@ -471,8 +462,8 @@
       function debug_process_description_item() {
         const inputString = 'I am a [strange man](http://bewildered) roaming in the [desert](url), without a care in the [world]().';
         const { tagLinks, updatedString } = processString(inputString);
-        console.log(tagLinks);
-        console.log(updatedString);
+        //console.log(tagLinks);
+        //console.log(updatedString);
       }
 
       // find or create a cardDiv and use it
@@ -1171,8 +1162,27 @@
           card_div_line_item.appendChild(line_item_delete_button);
           rightContentDiv.appendChild(card_div_line_item);
 
+          // find all .tagLinks of this card_div_line_item
+          // and give them onclick listeners
+          
+          var tagLinks = card_div_line_item.querySelectorAll('.tagLink');
+          for ( let i=0; i<tagLinks.length; i++ ) {
+            tagLinks[i].addEventListener("click", handleTagLinkClickEvent);
+            tagLinks[i].addEventListener("mouseenter", handleTagLinkMouseEnterEvent);
+            tagLinks[i].addEventListener("mouseleave", handleTagLinkMouseLeaveEvent);
+          }
           rightContentScrollToBottom();
         }
+      }
+
+      function handleTagLinkClickEvent(event) {
+        console.log(`handleTagLinkClickEvent:${JSON.stringify(event.target)}`);
+      }
+      function handleTagLinkMouseEnterEvent(event) {
+        console.log(`handleTagLinkMouseEnterEvent:${JSON.stringify(event.target)}`);
+      }
+      function handleTagLinkMouseLeaveEvent(event) {
+        console.log(`handleTagLinkMouseLeaveEvent:${JSON.stringify(event.target)}`);
       }
 
       function renderAllTranslateableDivsAtLeftColumnCenter() {
@@ -1224,10 +1234,9 @@
 
       function updateSkillsFromAllTagLinks(allTagLinks) {
         if ( allTagLinks && allTagLinks.length > 0 ) {
-          const html = allTagLinks.map((list) => list.text).join("\u2022");
+          const html = allTagLinks.map((list) => list.text).join(BULLET_JOINER);
           const skills = document.getElementById("skills");
           skills.innerHTML = html;
-          console.log(`skills:${skills.innerHTML}`);
         } else {
           console.log("no skills yet");
         }
