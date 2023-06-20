@@ -220,18 +220,16 @@ body {
 #right-footer-div {
   height: 100px;
   background-color: #999999;
-  padding: 10px;z
+  padding: 10px;
 }
 
-span .tagLink {
+.tagLink {
   font-weight: 900;
-  color: purple;
-  background-color: white;
-}
-span .tagLink : hover {
   text-decoration: underline;
-  background-color: blue;
-  color: white;
+}
+
+.tagLink:hover {
+  cursor: pointer;
 }
 
 .card-div-line-item {
