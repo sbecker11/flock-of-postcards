@@ -454,7 +454,7 @@
           newTagLinks.push(tagLink);
           const cardDivId = tagLink['cardDivId'];
           const spanId = `tagLink-${cardDivId}`;
-          return `<span id="${spanId}" class="tagLink" href="${url}">${text}</span>`;
+          return `<span id="${spanId}" class="tagLink"}>${text}</span>`;
         });
         return { newTagLinks, updatedString };
       }
@@ -1099,16 +1099,30 @@
           line_item_content.style.color = targetCardDiv.getAttribute("saved-color");
 
           // start with the innerHTML of the targetCardDiv
-          line_item_content.innerHTML = targetCardDiv.innerHTML;
+          var targetInnerHTML = targetCardDiv.innerHTML;
+          if ( targetInnerHTML && targetInnerHTML.length > 0 ) {
 
+            // ensure targetInnerHTML includes no card-div-img markup
+            if ( targetInnerHTML.includes("<img")) 
+              targetInnerHTML = removeImgTagsFromHtml(targetInnerHTML);
+
+            line_item_content.innerHTML = targetInnerHTML;
+          }
+          
           // if targetCardDiv has a "Description" attribute
           var description = targetCardDiv.getAttribute("Description");
           if( description && description.length > 0 ) {
             // split the description by BULLET_SEPARATORS and return html 
             // of the styled form <p><ul>(<li>text</li>)+</ul></p>
             var line_items_HTML = convert_description_HTML_to_line_items_HTML(description);
-            if ( line_items_HTML && line_items_HTML.length > 0 )
+            if ( line_items_HTML && line_items_HTML.length > 0 ) {
+
+              // ensure line_items_HTML includes no card-div-img markup
+              if ( line_items_HTML.includes("<img")) 
+                line_item_HTML = removeImgTagsFromHtml(line_item_html);
+        
               line_item_content.innerHTML += line_items_HTML
+            }
           }
 
           var line_item_delete_button = document.createElement("button");
@@ -1131,17 +1145,11 @@
         }
       }
 
-      // cardDivId is of the form "card-div-143"
-      function findCardDivByCardDivId(cardDivId) {
-        var index = parseInt(cardDivId.replace("card-div-",""));
-        var allCardDivs = document.getElementsByClassName("card-div");
-        if ( index >=0 && index < allCardDivs.length ) {
-          var cardDiv = allCardDivs[index];
-          if(cardDiv.id == cardDivId)
-            return cardDiv;
-        }
-        // if not found, should problably seek the entire list
-        return null;
+      function removeImgTagsFromHtml(html) {
+        var filtered = html.replace(/<img[^>"']*((("[^"]*")|('[^']*'))[^"'>]*)*>/g,"");
+        if ( filtered.includes("<img")) 
+          throw new Error("removeImgTagsFromHtml() includes <img tags! [" +filtered+ "]");
+        return filtered;
       }
 
       function handleTagLinkClickEvent(event) {
@@ -1150,11 +1158,12 @@
         // get the cardDivId from the tagLinkId
         var cardDivId = tagLinkId.replace("tagLink-","");
         // find the cardDivId is of the form "card-div-<int>""
-        var cardDiv = findCardDivByCardDivId(cardDivId);
+        var cardDiv = document.getElementById(cardDivId);
         if ( cardDiv ) {
           var tagLinkText = cardDiv.getAttribute("tagLinkText");
           var tagLinkUrl = cardDiv.getAttribute("tagLinkUrl");
-          console.log(`clicked tagLink text:[${tagLinkText}] url:(${tagLinkUrl})`);
+          var currentTime = (new Date()).getTime()
+          console.log(`clicked tagLink text:[${tagLinkText}] url:(${tagLinkUrl}) at ${currentTime}`);
         } else {
           console.log(`no cardDiv with tagLink found for cardDivId:${cardDivId}`);
         }
