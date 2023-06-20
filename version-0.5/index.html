@@ -23,7 +23,7 @@
         <!-- <div id="skills" style="color:black;height:50px;width:100%;"></div> -->
       </div> 
       <div id="right-footer-div">
-        <p class="footnote" style="text-alignment:bottom;">
+        <p class="footnote" style="text-align:bottom;">
           create a flock-of-postcards for yourself at 
           <a target="_blank" href="https://www.beckerstudio.com/">beckerstudio.com</a>"
         </p>
@@ -453,7 +453,8 @@
           addCardDivId(tagLink);
           newTagLinks.push(tagLink);
           const cardDivId = tagLink['cardDivId'];
-          return `<span class="tagLink" href="${url}" cardDivId="${cardDivId}">${text}</span>`;
+          const spanId = `tagLink-${cardDivId}`;
+          return `<span id="${spanId}" class="tagLink" href="${url}">${text}</span>`;
         });
         return { newTagLinks, updatedString };
       }
@@ -595,7 +596,7 @@
         // the tagLink is used to define the contents of this cardDiv
         const tag_img_url = tagLink['url'];
         const tag_link_html = tagLink['text'];
-        cardDiv.innerHTML = `<span class="carddiv-html">${tag_link_html}</span>`;
+        cardDiv.innerHTML = `<span class="tagLink">${tag_link_html}</span>`;
 
         // ==================================================================
         // divCard img_src and dimensions
@@ -635,6 +636,7 @@
 
         var img = document.createElement("img");
         img.className = "card-div-img";
+        img.id = "card-div-img-" +  cardDivId;
         img.src = img_src;
         img.style.width = `${img_width}px`;
         img.style.height = `${img_height}px`;
@@ -864,86 +866,6 @@
         // debugElement.innerText = debug;
       }
 
-      // ------------------------------------------
-      // Mouse interpolation
-
-      const smoothArea = leftColumn;
-      const points = [];
-  
-      function interpolateMouseMoveEvent(event, interpolationDegree) {
-      
-        const targetX = event.clientX - smoothArea.offsetLeft;
-        const targetY = event.clientY - smoothArea.offsetTop;
-  
-        points.push({ x: targetX, y: targetY });
-  
-        if (points.length > interpolationDegree + 1) {
-          points.shift();
-        }
-  
-        const interpolatedX = interpolate(points.map(p => p.x));
-        const interpolatedY = interpolate(points.map(p => p.y));
-  
-        // Use interpolatedX and interpolatedY for your visual effects or animations
-        //console.log('Client X,Y:', event.clientX, event.clientY);
-        //console.log('Interp X,Y:', interpolatedX, interpolatedY);
-
-        return {interpolatedX,interpolatedY};
-      }
-  
-      function interpolate(coordinates) {
-        const t = smoothingFactors[interpolationDegree];
-        const n = coordinates.length - 1;
-  
-        if (interpolationDegree === 0) {
-          return coordinates[n];
-        } else if (interpolationDegree === 1) {
-          const p0 = coordinates[n - 1];
-          const p1 = coordinates[n];
-          return linearInterpolation(p0, p1, t);
-        } else if (interpolationDegree === 2) {
-          const p0 = coordinates[n - 2];
-          const p1 = coordinates[n - 1];
-          const p2 = coordinates[n];
-          return quadraticInterpolation(p0, p1, p2, t);
-        } else if (interpolationDegree === 3) {
-          const p0 = coordinates[n - 3];
-          const p1 = coordinates[n - 2];
-          const p2 = coordinates[n - 1];
-          const p3 = coordinates[n];
-          return cubicInterpolation(p0, p1, p2, p3, t);
-        }
-  
-        return coordinates[n]; // Default to the latest coordinate
-      }
-  
-      // Linear interpolation function
-      function linearInterpolation(p0, p1, t) {
-        return p0 + (p1 - p0) * t;
-      }
-  
-      // Quadratic interpolation function
-      function quadraticInterpolation(p0, p1, p2, t) {
-        const u = 1 - t;
-        const tt = t * t;
-        const uu = u * u;
-        const p = u * u * p0 + 2 * u * t * p1 + t * t * p2;
-        return p;
-      }
-  
-      // Cubic interpolation function
-      function cubicInterpolation(p0, p1, p2, p3, t) {
-        const u = 1 - t;
-        const tt = t * t;
-        const uu = u * u;
-        const uuu = uu * u;
-        const ttt = tt * t;
-        const p = uuu * p0 + 3 * uu * t * p1 + 3 * u * tt * p2 + ttt * p3;
-        return p;
-      }
-
-      // ------------------------------------------
-
       var scrollingInterval = null;
       var autoscrollVelocity = 0;
 
@@ -954,8 +876,6 @@
       // to current left-column position. Given null
       // when called from onload, in this case
       // left-column center as mouse location
-      var scrollLastTop = null;
-      var scrollLastTime = null;
 
       function handleLeftColumnMouseMove(event) {
 
@@ -966,9 +886,8 @@
         var mouseX = centerX;
         var mouseY = centerY;
         if (event) {
-          var p = interpolateMouseMoveEvent(event, interpolationDegree=3);
-          mouseX = p.interpolatedX;
-          mouseY = p.interpolatedY;
+          mouseX = event.clientX;
+          mouseY = event.clientY;
         }
 
         var dist_v = mouseY - centerY;
@@ -1017,15 +936,6 @@
                 }
               }
 
-              var thisTime = (new Date()).getTime();
-              var thisScrollTop = leftColumn.scrollTop;
-              var deltaTime = (scrollLastTime != null) ? (thisTime-scrollLastTime) : null;
-              var deltaScroll = (scrollLastTop != null) ? (thisScrollTop-scrollLastTop) : null;
-              var scrollVelocity = (deltaTime != null && deltaScroll != null && deltaTime != 0) ? toFixedPoint(deltaScroll/deltaTime,2): "?";
-              debugScrolling("auto", leftColumn, "scrollVelocity", scrollVelocity);
-              scrollLastTime =  thisTime;
-              scrollLastTop = thisScrollTop;
-
               // apply the change and
               // then wait for 10 millis
               leftColumn.scrollTop = newScrollTop;
@@ -1068,6 +978,20 @@
         clearInterval(scrollingInterval);
         autoscrollVelocity = 0;
         //debugElement.innerHTML = "";
+      }
+
+      var lastScrollTop = null;
+      var lastScrollTime = null;
+      
+      function handleLeftColumnScroll(scrollEvent) {
+        var thisTime = (new Date()).getTime();
+        var thisScrollTop = leftColumn.scrollTop;
+        var deltaTime = (lastScrollTime != null) ? (thisTime-lastScrollTime) : null;
+        var deltaTop = (lastScrollTop != null) ? (thisScrollTop - lastScrollTop) : null;
+        var scrollVelocity = (deltaTime && deltaTop) ? (deltaTop)/(deltaTime) : "?";
+        debugScrolling("scroll", leftColumn, "scrollVelocity", `${deltaTop}/${deltaTime}`);
+        lastScrollTime =  thisTime;
+        lastScrollTop = thisScrollTop;
       }
 
       // calculates dh,dv parallax when
@@ -1180,7 +1104,7 @@
           // if targetCardDiv has a "Description" attribute
           var description = targetCardDiv.getAttribute("Description");
           if( description && description.length > 0 ) {
-            // split the description by BULLETS and return html 
+            // split the description by BULLET_SEPARATORS and return html 
             // of the styled form <p><ul>(<li>text</li>)+</ul></p>
             var line_items_HTML = convert_description_HTML_to_line_items_HTML(description);
             if ( line_items_HTML && line_items_HTML.length > 0 )
@@ -1202,21 +1126,38 @@
           var tagLinks = card_div_line_item.querySelectorAll('.tagLink');
           for ( let i=0; i<tagLinks.length; i++ ) {
             tagLinks[i].addEventListener("click", handleTagLinkClickEvent);
-            tagLinks[i].addEventListener("mouseenter", handleTagLinkMouseEnterEvent);
-            tagLinks[i].addEventListener("mouseleave", handleTagLinkMouseLeaveEvent);
           }
           rightContentScrollToBottom();
         }
       }
 
+      // cardDivId is of the form "card-div-143"
+      function findCardDivByCardDivId(cardDivId) {
+        var index = parseInt(cardDivId.replace("card-div-",""));
+        var allCardDivs = document.getElementsByClassName("card-div");
+        if ( index >=0 && index < allCardDivs.length ) {
+          var cardDiv = allCardDivs[index];
+          if(cardDiv.id == cardDivId)
+            return cardDiv;
+        }
+        // if not found, should problably seek the entire list
+        return null;
+      }
+
       function handleTagLinkClickEvent(event) {
-        console.log(`handleTagLinkClickEvent:${JSON.stringify(event.target)}`);
-      }
-      function handleTagLinkMouseEnterEvent(event) {
-        console.log(`handleTagLinkMouseEnterEvent:${JSON.stringify(event.target)}`);
-      }
-      function handleTagLinkMouseLeaveEvent(event) {
-        console.log(`handleTagLinkMouseLeaveEvent:${JSON.stringify(event.target)}`);
+        var tagLinkId = event.target.id;
+        // TODO verify that tagLink's id is of the form "tagLink-card-div-<int>"
+        // get the cardDivId from the tagLinkId
+        var cardDivId = tagLinkId.replace("tagLink-","");
+        // find the cardDivId is of the form "card-div-<int>""
+        var cardDiv = findCardDivByCardDivId(cardDivId);
+        if ( cardDiv ) {
+          var tagLinkText = cardDiv.getAttribute("tagLinkText");
+          var tagLinkUrl = cardDiv.getAttribute("tagLinkUrl");
+          console.log(`clicked tagLink text:[${tagLinkText}] url:(${tagLinkUrl})`);
+        } else {
+          console.log(`no cardDiv with tagLink found for cardDivId:${cardDivId}`);
+        }
       }
 
       function renderAllTranslateableDivsAtLeftColumnCenter() {
@@ -1314,6 +1255,8 @@
       });
       leftColumn.addEventListener('mouseenter', handleMouseEnterLeftColumn);
       leftColumn.addEventListener('mouseleave', handleMouseLeaveLeftColumn);
+      leftColumn.addEventListener('scroll', handleLeftColumnScroll);
+
       
     </script>
   </body>
