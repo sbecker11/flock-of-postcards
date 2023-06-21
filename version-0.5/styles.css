@@ -239,22 +239,33 @@ body {
   margin: 1px 0px;
 }
 
-.div-line-item-content {
+.card-div-line-item-content {
   padding: 20px;
+  flex-grow: 1;
 }
 
 .card-div-line-item-description {
   font-size: 14px;
 }
 
-.card-div-line-item-delete-button {
-  flex: 0 0 15px;
+.card-div-line-item-right-column {
+  width: 15px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+
+.card-div-line-item-delete-button,
+.card-div-line-item-following-button {
   width: 15px;
   height: 15px;
-  background-color: red;
   border: 0;            /* for flat appearence */
   box-shadow: none;
   border-radius: 0px;
+}
+
+.card-div-line-item-delete-button {
+  background-color: red;
   background-image: url("static_content/big-red-x.gif");
 }
 
@@ -265,5 +276,9 @@ body {
   background-color: red;
   color: white;
   pointer-events: none;
+}
+
+.card-div-line-item-follow-button {
+  background-color: green;
 }
 
