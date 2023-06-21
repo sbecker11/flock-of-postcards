@@ -832,20 +832,6 @@
         var dh = parallax_dh * PARALLAX_HZ_EXAGGERATION_FACTOR;
         var dv = parallax_dv * PARALLAX_VT_EXAGGERATION_FACTOR;
 
-        var cardCount = 0;
-        var parallaxDhTotal = 0;
-        var parallaxDvTotal = 0;
-        var dhTotal = 0;
-        var dvTotal = 0;
-
-        var cardHzCtrTotal = 0;
-        var cardVtCtrTotal = 0;
-        var zTotal = 0;
-        var zIndexTotal = 0;
-
-        var dxTotal = 0;
-        var dyTotal = 0;
-
         // compute and apply translations for all translatableDivs
         var allDivs = getAllTranslateableCardDivs();
         for (var i = 0; i < allDivs.length; i++) {
@@ -860,30 +846,10 @@
           var leftColumn_dy = leftColumnVtCtr - getElementSelfVtCtr(cardDiv);
                             
           var zTranslateStr = getZTranslateStr(dh, dv, z, leftColumn_dx, leftColumn_dy);
-
-          parallaxDhTotal += parallax_dh; // <= leftColumnHzCtr
-          parallaxDvTotal += parallax_dv; // <= leftColumnVtCtr
-          dhTotal += dh; // a fraction of parallax_dh
-          dvTotal += dv; // a fraction of parallax_dv
-
-          zTotal += z; // fixed
-          zIndexTotal += parseInt(zIndexStr); // fixed
-          
-          cardHzCtrTotal += getElementSelfHzCtr(cardDiv); // fixed
-          cardVtCtrTotal += getElementSelfVtCtr(cardDiv); // fixed
-
-          // zTranslateStr has format `${dx}px ${dy}px`;
-          var dx = parseInt(zTranslateStr.split(" ")[0].replace("px",""));
-          var dy = parseInt(zTranslateStr.split(" ")[1].replace("px",""));
-          dxTotal += dx;
-          dyTotal += dy;
-
-          cardCount += 1;
           
           try {
             cardDiv.style.translate = zTranslateStr;
           } catch (error) {
-            console.log(`applyParallax cardDiv:${cardDiv.id}`, error);
             console.error(`applyParallax cardDiv:${cardDiv.id}`, error);
           }
         }
