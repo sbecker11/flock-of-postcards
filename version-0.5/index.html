@@ -643,7 +643,9 @@
         // ==================================================================
         // divCard img_src and dimensions
 
-        var img_src, img_width, img_height = null;
+        var img_src = null;
+        var img_width = MEAN_CARD_WIDTH;
+        var img_height = MEAN_CARD_HEIGHT;
 
         // given a tagLinkImgUrl try to get the real img_src and dimensions of the actual image
         var result = get_real_img_src_from_img_url(tagLinkImgUrl);
@@ -655,35 +657,37 @@
         }
 
         // try to select a random image path
-        if ( !img_src ) {
-          var result = select_random_img_src();
-          if ( result ) {
-            const { random_img_src, random_img_width, random_img_height} = result;
-            img_src = random_img_src;
-            img_width = random_img_width;
-            img_height = random_img_height;
-          }
-        }
+        // if ( !img_src ) {
+        //   var result = select_random_img_src();
+        //   if ( result ) {
+        //     const { random_img_src, random_img_width, random_img_height} = result;
+        //     img_src = random_img_src;
+        //     img_width = random_img_width;
+        //     img_height = random_img_height;
+        //   }
+        // }
 
         // just generate a random img_src using a random img_width and img_height
-        if( !img_src ) {
-          img_width = MEAN_CARD_WIDTH + getRandomInt(-MAX_CARD_SIZE_OFFSET,MAX_CARD_SIZE_OFFSET);
-          img_height = MEAN_CARD_HEIGHT + getRandomInt(-MAX_CARD_SIZE_OFFSET,MAX_CARD_SIZE_OFFSET);
-          img_src = `https://picsum.photos/${img_width}/${img_height}`;
-        }
+        // if( !img_src ) {
+        //   img_width = MEAN_CARD_WIDTH + getRandomInt(-MAX_CARD_SIZE_OFFSET,MAX_CARD_SIZE_OFFSET);
+        //   img_height = MEAN_CARD_HEIGHT + getRandomInt(-MAX_CARD_SIZE_OFFSET,MAX_CARD_SIZE_OFFSET);
+        //   img_src = `https://picsum.photos/${img_width}/${img_height}`;
+        // }
 
         cardDiv.style.border = CARD_BORDER_STYLE;
         cardDiv.style.width = `${img_width + 2*CARD_BORDER}px`;
         cardDiv.style.height = `${img_height + 2*CARD_BORDER}px`;
 
-        var img = document.createElement("img");
-        img.className = "card-div-img";
-        img.id = "card-div-img-" +  cardDivId;
-        img.src = img_src;
-        img.style.width = `${img_width}px`;
-        img.style.height = `${img_height}px`;
-        img.alt = cardDiv.id;
-        cardDiv.appendChild(img);
+        if ( img_src !== null ) {
+          var img = document.createElement("img");
+          img.className = "card-div-img";
+          img.id = "card-div-img-" +  cardDivId;
+          img.src = img_src;
+          img.style.width = `${img_width}px`;
+          img.style.height = `${img_height}px`;
+          img.alt = cardDiv.id;
+          cardDiv.appendChild(img);
+        }
 
         cardDiv.addEventListener("mouseenter", handleCardDivMouseEnter);
         cardDiv.addEventListener("mouseleave", handleCardDivMouseLeave);
