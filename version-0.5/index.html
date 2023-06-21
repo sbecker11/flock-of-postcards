@@ -36,6 +36,8 @@
     <script type="text/javascript" src="static_content/jobs/jobs.js"></script>
     <script type="text/javascript" src="static_content/media/image_paths.js"></script>
     <script>
+      
+      // @ts-check
 
       // --------------------------------------
       // TagLink globals
@@ -270,7 +272,7 @@
           }
 
           var row = TIMELINE_MAX_YEAR - year;
-          yearDivBottom = (row+1) * YEAR_BOTTOM_TO_BOTTOM;
+          var yearDivBottom = (row+1) * YEAR_BOTTOM_TO_BOTTOM;
           timelineYearDivBottoms[`${year}`] = yearDivBottom;
 
           yearDiv.style.fontSize = `${YEARDIV_FONTSIZE}px`;
@@ -280,7 +282,7 @@
           timelineContainer.appendChild(yearDiv);
 
           for ( var month=1; month<=12; month++ ) {
-            monthTick = document.createElement("div");
+            var monthTick = document.createElement("div");
             monthTick.classList.add("month-tick");
             if(alignment == "left") 
               monthTick.classList.add("month-tick-left");
@@ -322,7 +324,7 @@
       // returns 99 for bizcard-div-99' or null
       function getBizcardDivIndex(cardDivId) {
         if( cardDivId.startsWith("bizcard-div-") ) {
-          index = parseInt(cardDivId.replace("bizcard-div-",""));
+          var index = parseInt(cardDivId.replace("bizcard-div-",""));
           return isNaN(index) ? null : index;
         }
         return null;
@@ -331,7 +333,7 @@
       // returns 99 for 'card-div-99' or null
       function getCardDivIndex(cardDivId) {
         if( cardDivId.startsWith("card-div-") ) {
-          index = parseInt(cardDivId.replace("card-div-",""));
+          var index = parseInt(cardDivId.replace("card-div-",""));
           return isNaN(index) ? null : index;
         }
         return null;
@@ -340,7 +342,7 @@
       // returns true if a bizcardDiv exists for the given index, else null
       function getBizcardDivIdFromIndex(index) {
         var bizcardDivId = `bizcard-div-${index}`;
-        bizcardDiv = document.getElementById(bizcardDivId);
+        var bizcardDiv = document.getElementById(bizcardDivId);
         return (bizcardDiv && bizcardDiv.id == bizcardDivId) ? bizcardDivId : null;
       }
 
@@ -372,7 +374,7 @@
       function createBizcardDivs() {
         var num_valid_rows = 0;
         for (let i=0; i<jobs.length; i++) {
-          job = jobs[i];
+          var job = jobs[i];
           var role = job["role"];
           validateString(role);
           var employer = job["employer"].trim();
@@ -426,14 +428,13 @@
           bizcardDiv.setAttribute("saved-color", font_color_name);
           //bizcardDiv.setAttribute("saved-focus-background-color", adjustHexBrightness(css_hex_color_str,1.5));
           //bizcardDiv.setAttribute("saved-focus-color", "black");
-
           bizcardDiv.style.backgroundColor = bizcardDiv.getAttribute("saved-background-color");
           bizcardDiv.style.color = bizcardDiv.getAttribute("saved-color");
 
           var z = get_z_from_zindexStr(`${zIndex}`);
           var filter_brightness_str = get_brightness_str_from_z(z);
           var filter_blur_str = get_blur_str_from_z(z);
-          filter_strs = `${filter_brightness_str} ${filter_blur_str}`;
+          var filter_strs = `${filter_brightness_str} ${filter_blur_str}`;
           bizcardDiv.style.filter = filter_strs;
 
           var html = "";
@@ -558,7 +559,7 @@
           }
           HTML += "</ul>"
         } else {
-          console.log(`unparsed description: ${description}`);
+          console.log(`unparsed description: ${description_HTML}`);
           HTML += description_HTML;
         }
         HTML += "</p>"
@@ -621,7 +622,7 @@
 
         var filter_brightness_str = get_brightness_str_from_z(z);
         var filter_blur_str = get_blur_str_from_z(z);
-        filter_strs = `${filter_brightness_str} ${filter_blur_str}`;
+        var filter_strs = `${filter_brightness_str} ${filter_blur_str}`;
         cardDiv.style.filter = filter_strs;
 
         var css_hex_color_str = "#888888";
@@ -645,7 +646,7 @@
         var img_src, img_width, img_height = null;
 
         // given a tagLinkImgUrl try to get the real img_src and dimensions of the actual image
-        result = get_real_img_src_from_img_url(tagLinkImgUrl);
+        var result = get_real_img_src_from_img_url(tagLinkImgUrl);
         if ( result ) {
           const { real_img_src, real_img_width, real_img_height } = result;
             img_src = real_img_src;
@@ -655,7 +656,7 @@
 
         // try to select a random image path
         if ( !img_src ) {
-          result = select_random_img_src();
+          var result = select_random_img_src();
           if ( result ) {
             const { random_img_src, random_img_width, random_img_height} = result;
             img_src = random_img_src;
@@ -753,27 +754,27 @@
        * speed of access.
        *
        * Description. (use period)
-       * @param {float}  dh           the horizontal parallax offset value
-       * @param {float}  dv           the vertical parallax offet value
-       * @param {int}    z            the random Z depth assigned to every cardDiv
+       * @param {number}  dh           the horizontal parallax offset value
+       * @param {number}  dv           the vertical parallax offet value
+       * @param {number}    z            the random Z depth assigned to every cardDiv
        *                              where z ranges from 1 as max dist to viewer
        *                              to ALL_CARDS_MAX_Z being closest to viewer
        *                              with an integer value between CARD_MIN_Z and CARD_MAX_Z
-       * @param {float}  leftColumn_dx    the x value used to convert cardDiv.x to leftColumn-relative position
-       * @param {float}  leftColumn_dy    the y value used to convert cardDiv.y to leftColumn-relative position
+       * @param {number}  leftColumn_dx    the x value used to convert cardDiv.x to leftColumn-relative position
+       * @param {number}  leftColumn_dy    the y value used to convert cardDiv.y to leftColumn-relative position
        *
-       * @return {str} Return a string with format "12.02px -156.79px"
+       * @return {string} Return a string with format "12.02px -156.79px"
        */
       function getZTranslateStr(dh, dv, z, leftColumn_dx, leftColumn_dy) {
         // z ranges from 0 (closest) to viewer to MAX_Z furthest from viewer
         // zindex ranges MAX_Z (closest to viewer) to 1 furthest from viewer
         var zindex = get_zindexStr_from_z(z);
-        zScale = zindex * 1.0;
+        var zScale = zindex * 1.0;
 
         // by definition, divs have zero mean hzCtrs so canvas translation is required
-        dx = dh * zScale + leftColumn_dx;
-        dy = dv * zScale + 0; // leftColumn_dy;
-        zTranslateStr = `${dx}px ${dy}px`;
+        var dx = dh * zScale + leftColumn_dx;
+        var dy = dv * zScale + 0; // leftColumn_dy;
+        var zTranslateStr = `${dx}px ${dy}px`;
 
         return zTranslateStr;
       }
@@ -910,7 +911,9 @@
 
         var dist_v = mouseY - centerY;
         var delta_vt = ((mouseY - centerY) / centerY) * 100;
-        var parallax_dh = (parallax_dv = autoscrollVelocity = 0);
+        var parallax_dh = 0;
+        var parallax_dv = 0;
+        var autoscrollVelocity = 0;
 
         // normal mouse-driven parallax
         if (Math.abs(delta_vt) < 50) {
@@ -1165,7 +1168,7 @@
 
             // ensure line_items_HTML includes no img tag markup
             if ( line_items_HTML.includes("<img")) 
-              line_item_HTML = removeImgTagsFromHtml(line_item_html);
+              line_items_HTML = removeImgTagsFromHtml(line_items_HTML);
       
             cardDivLineItemContent.innerHTML += line_items_HTML
           }
