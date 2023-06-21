@@ -1141,7 +1141,7 @@
         cardDivLineItemContent.style.color = targetCardDiv.getAttribute("saved-color");
 
         var cardDivLineItemRightColumn = document.createElement('div')
-        cardDivLineItemRightColumn.class = "card-div-line-item-right-column";
+        cardDivLineItemRightColumn.className = "card-div-line-item-right-column";
 
         // start with the innerHTML of the targetCardDiv
         var targetInnerHTML = targetCardDiv.innerHTML;
@@ -1185,7 +1185,6 @@
           if ( followingBizcardDivId ) {
             var cardDivLineItemFollowingButton = document.createElement("button");
             cardDivLineItemFollowingButton.className = "card-div-line-item-follow-button";
-            cardDivLineItemFollowingButton.className.innerHTML = "follow";
             cardDivLineItemFollowingButton.addEventListener("click", function () {
               // a dd another line_item
               addCardDivLineItem(followingBizcardDivId);
