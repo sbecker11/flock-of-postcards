@@ -40,7 +40,7 @@
       // --------------------------------------
       // TagLink globals
 
-      // the global set of tagLinks created while creating all bizcard-divs from
+      // the global set of tagLinks created while creating all .Bizcard-divs from
       // the list of all `job` objects defined in "static_content/jobs.js"
       var allTagLinks = [];
       function initAllTagLinks() {
@@ -95,6 +95,8 @@
       // --------------------------------------
       // Utility functions
 
+      const isString = (value) => (typeof value === 'string' || value instanceof String);
+      const isNumber = (value) => typeof value === 'number' && !isNaN(value);
       const validateKey = (obj, key) => { if (!(key in obj)) throw new Error(`Key '${key}' not found in object`); };
       const validateString = (str) => { if (typeof str === 'undefined' || str === null || typeof str !== 'string' || str.trim().length === 0) throw new Error(`Invalid string:[${str}]`); };
       const validateHexString = hexStr => { if (typeof hexStr !== 'string' || hexStr === null || hexStr === undefined || !hexStr.startsWith('#') || !/^[0-9a-fA-F]{6}$/.test(hexStr.slice(1)) || hexStr.length !== 7) throw new Error('Hexadecimal string is invalid.'); };
@@ -303,19 +305,60 @@
       }
 
       // --------------------------------------
-      // BizCardDiv functions
+      // BizcardDiv and cardDiv functions
 
-      // bizcard-divs are never deleted so next id
-      // is just the current number of the bizcard-divs
-      function getNextBizCardDivId() {
+      function isBizcardDiv(cardDiv) {
+        return (cardDiv.className == 'bizcard-div' ) ? true : false;
+      }
+      function isCardDiv(cardDiv) {
+        return (cardDiv.className == 'card-div' ) ? true : false;
+      }
+      function isBizcardDivId(cardDivId) {
+        return getBizcardDivIndex(cardDivId) == null ? false : true;
+      }
+      function isCardDivId(cardDivId) {
+        return getCardDivIndex(cardDivId) == null ? false : true;
+      }
+      // returns 99 for bizcard-div-99' or null
+      function getBizcardDivIndex(cardDivId) {
+        if( cardDivId.startsWith("bizcard-div-") ) {
+          index = parseInt(cardDivId.replace("bizcard-div-",""));
+          return isNaN(index) ? null : index;
+        }
+        return null;
+      }
+
+      // returns 99 for 'card-div-99' or null
+      function getCardDivIndex(cardDivId) {
+        if( cardDivId.startsWith("card-div-") ) {
+          index = parseInt(cardDivId.replace("card-div-",""));
+          return isNaN(index) ? null : index;
+        }
+        return null;
+      }
+
+      // returns true if a bizcardDiv exists for the given index, else null
+      function getBizcardDivIdFromIndex(index) {
+        var bizcardDivId = `bizcard-div-${index}`;
+        bizcardDiv = document.getElementById(bizcardDivId);
+        return (bizcardDiv && bizcardDiv.id == bizcardDivId) ? bizcardDivId : null;
+      }
+
+      // .Bizcard-divs are never deleted so next id
+      // is just the current number of the .Bizcard-divs
+      function getNextBizcardDivId() {
         const bizcardDivs = document.getElementsByClassName("bizcard-div");
-        const nextBizCardDivId = `bizcard-div-${bizcardDivs.length}`;
-        return nextBizCardDivId;
+        const nextBizcardDivId = `bizcard-div-${bizcardDivs.length}`;
+        return nextBizcardDivId;
       }
 
       // returns 23 for "bizcard-div-23"
-      function getBizCardDivIndex(bizCardDivId) {
-        return parseInt(bizCardDivId.replace("bizcard-div-",""));
+      function getBizcardDivIndex(bizcardDivId) {
+        if ( isString(bizcardDivId) ) {
+          var index = parseInt(bizcardDivId.replace("bizcard-div-",""));
+          return isNumber(index) ? index : null;
+        }
+        return null;
       }
 
 
@@ -326,7 +369,7 @@
       // Also parse each job's description to pull out 
       // the shared "skills" from the narrative pf each.
       //  
-      function createBizCardDivs() {
+      function createBizcardDivs() {
         var num_valid_rows = 0;
         for (let i=0; i<jobs.length; i++) {
           job = jobs[i];
@@ -363,7 +406,7 @@
 
           // here we go
           var bizcardDiv = document.createElement("div");
-          bizcardDiv.id = getNextBizCardDivId();
+          bizcardDiv.id = getNextBizcardDivId();
           bizcardDiv.className = "bizcard-div";
           bizcardDiv.style.top = `${endBottomPx}px`;
           bizcardDiv.style.height = `${heightPx}px`;
@@ -399,9 +442,9 @@
           html += `<span class="bizcard-div-dates">${jobStart} - ${jobEnd}</span><br/>`;
           bizcardDiv.innerHTML = html;
 
-          bizcardDiv.addEventListener("mouseenter", handleBizCardDivMouseEnter);
-          bizcardDiv.addEventListener("mouseleave", handleBizCardDivMouseLeave);
-          bizcardDiv.addEventListener("click", handleBizCardDivMouseClick);
+          bizcardDiv.addEventListener("mouseenter", handleBizcardDivMouseEnter);
+          bizcardDiv.addEventListener("mouseleave", handleBizcardDivMouseLeave);
+          bizcardDiv.addEventListener("click", handleBizcardDivMouseClick);
 
           canvas.appendChild(bizcardDiv);
           num_valid_rows++;
@@ -434,7 +477,7 @@
                 processed_items.push(updatedString);
               if ( newTagLinks && newTagLinks.length > 0 )
                 // update the global list of allTagLinks 
-                // created from description_HTML of all bizcard-divs
+                // created from description_HTML of all .Bizcard-divs
                 allTagLinks = allTagLinks.concat(newTagLinks);
             }
           }
@@ -454,7 +497,9 @@
           newTagLinks.push(tagLink);
           const cardDivId = tagLink['cardDivId'];
           const spanId = `tagLink-${cardDivId}`;
-          return `<span id="${spanId}" class="tagLink"}>${text}</span>`;
+          const tagLinkImgUrl = url;
+          const tagLinkHtml = text;
+          return `<span id="${spanId}" class="tagLink" targetCardDivId="${cardDivId}">${tagLinkHtml}</span>`;
         });
         return { newTagLinks, updatedString };
       }
@@ -530,11 +575,6 @@
         const nextCardDivId = `card-div-${cardDivs.length}`;
         return nextCardDivId;
       }
-
-      // returns 99 for 'card-div-99'
-      function getCardDivIndex(cardDivId) {
-        return parseInt(cardDivId.replace("card-div-",""));
-      }
       
       var prev_z = null; // to track the previous z value
 
@@ -594,17 +634,18 @@
         cardDiv.style.color = cardDiv.getAttribute("saved-color");
 
         // the tagLink is used to define the contents of this cardDiv
-        const tag_img_url = tagLink['url'];
-        const tag_link_html = tagLink['text'];
-        cardDiv.innerHTML = `<span class="tagLink">${tag_link_html}</span>`;
+        const tagLinkImgUrl = tagLink['url'];
+        const tagLinkHtml = tagLink['text'];
+        const spanId = `tagLink-${cardDivId}`;
+        cardDiv.innerHTML = `<span id="${spanId}" class="tagLink" targetCardDivId="${cardDivId}">${tagLinkHtml}</span>`;
 
         // ==================================================================
         // divCard img_src and dimensions
 
         var img_src, img_width, img_height = null;
 
-        // given a tag_img_url try to get the real img_src and dimensions of the actual image
-        result = get_real_img_src_from_img_url(tag_img_url);
+        // given a tagLinkImgUrl try to get the real img_src and dimensions of the actual image
+        result = get_real_img_src_from_img_url(tagLinkImgUrl);
         if ( result ) {
           const { real_img_src, real_img_width, real_img_height } = result;
             img_src = real_img_src;
@@ -762,7 +803,7 @@
 
 
       // return all bizcardDivs and cardDivs lazy-loaded
-      function getAllTranslateableDivs() {
+      function getAllTranslateableCardDivs() {
         var allDivs = [];
         allDivs = Array.prototype.concat.apply(
           allDivs,
@@ -801,12 +842,9 @@
         var dyTotal = 0;
 
         // compute and apply translations for all translatableDivs
-        var allDivs = getAllTranslateableDivs();
+        var allDivs = getAllTranslateableCardDivs();
         for (var i = 0; i < allDivs.length; i++) {
           var cardDiv = allDivs[i];
-
-          var isBizcardDiv = (cardDiv.className == 'bizcard-div' ) ? true : false;
-          var isCardDiv = (cardDiv.className == 'bizcard' ) ? true : false;
 
           var zIndexStr = cardDiv.style.zIndex;
 
@@ -815,33 +853,28 @@
           // leftColumn-relative cardDiv center
           var leftColumn_dx = leftColumnHzCtr - getElementSelfHzCtr(cardDiv);
           var leftColumn_dy = leftColumnVtCtr - getElementSelfVtCtr(cardDiv);
-                    
-          //keep bizcards centered only
-          //if( isBizcardDiv )
-          //  z = CARD_MAX_Z;
-        
+                            
           var zTranslateStr = getZTranslateStr(dh, dv, z, leftColumn_dx, leftColumn_dy);
 
-          if(isBizcardDiv || cardDiv ) {
-            parallaxDhTotal += parallax_dh; // <= leftColumnHzCtr
-            parallaxDvTotal += parallax_dv; // <= leftColumnVtCtr
-            dhTotal += dh; // a fraction of parallax_dh
-            dvTotal += dv; // a fraction of parallax_dv
+          parallaxDhTotal += parallax_dh; // <= leftColumnHzCtr
+          parallaxDvTotal += parallax_dv; // <= leftColumnVtCtr
+          dhTotal += dh; // a fraction of parallax_dh
+          dvTotal += dv; // a fraction of parallax_dv
 
-            zTotal += z; // fixed
-            zIndexTotal += parseInt(zIndexStr); // fixed
-            
-            cardHzCtrTotal += getElementSelfHzCtr(cardDiv); // fixed
-            cardVtCtrTotal += getElementSelfVtCtr(cardDiv); // fixed
+          zTotal += z; // fixed
+          zIndexTotal += parseInt(zIndexStr); // fixed
+          
+          cardHzCtrTotal += getElementSelfHzCtr(cardDiv); // fixed
+          cardVtCtrTotal += getElementSelfVtCtr(cardDiv); // fixed
 
-            // zTranslateStr has format `${dx}px ${dy}px`;
-            var dx = parseInt(zTranslateStr.split(" ")[0].replace("px",""));
-            var dy = parseInt(zTranslateStr.split(" ")[1].replace("px",""));
-            dxTotal += dx;
-            dyTotal += dy;
+          // zTranslateStr has format `${dx}px ${dy}px`;
+          var dx = parseInt(zTranslateStr.split(" ")[0].replace("px",""));
+          var dy = parseInt(zTranslateStr.split(" ")[1].replace("px",""));
+          dxTotal += dx;
+          dyTotal += dy;
 
-            cardCount += 1;
-          }
+          cardCount += 1;
+          
           try {
             cardDiv.style.translate = zTranslateStr;
           } catch (error) {
@@ -849,21 +882,6 @@
             console.error(`applyParallax cardDiv:${cardDiv.id}`, error);
           }
         }
-        //var debug = "";
-        //debug += `parallaxDhMean:${parallaxDhTotal / cardCount} <= leftColumnHzCtr zero at center\n`;
-        //debug += `parallaxDvMean:${parallaxDvTotal / cardCount} <= leftColumnVtCtr zero at center\n`;
-        //debug += `dhMean:${dhTotal / cardCount} fraction of parallax_dh\n`;
-        //debug += `dvMean:${dvTotal / cardCount} fraction of parallax_dv\n`;
-        //debug += `leftColumnHzCtr:${getLeftColumnHzCtr()} fixed\n`;
-        //debug += `leftColumnVtCtr:${getLeftColumnVtCtr()} fixed\n`;
-        //debug += `zMean:${zTotal / cardCount} fixed\n`; 
-        //debug += `zIndexMean:${zIndexTotal / cardCount} fixed\n`; // fixed
-        //debug += `cardHzCtrMean:${cardHzCtrTotal / cardCount} fixed\n`;
-        //debug += `cardVtCtrMean:${cardVtCtrTotal / cardCount} fixed\n`;
-        //debug += `dxMean:${dxTotal / cardCount} should be zero at center\n`;
-        //debug += `dyMean:${dyTotal / cardCount} should be zero at center\n`;
-
-        // debugElement.innerText = debug;
       }
 
       var scrollingInterval = null;
@@ -1025,7 +1043,7 @@
       function handleCardDivMouseEnter(event) {
         handleDivMouseEnter(event, "card-div");
       }
-      function handleBizCardDivMouseEnter(event) {
+      function handleBizcardDivMouseEnter(event) {
         handleDivMouseEnter(event, "bizcard-div");
       }
 
@@ -1047,7 +1065,7 @@
       function handleCardDivMouseLeave(event) {
         handleDivMouseLeave(event, "card-div");
       }
-      function handleBizCardDivMouseLeave(event) {
+      function handleBizcardDivMouseLeave(event) {
         handleDivMouseLeave(event, "bizcard-div");
       }
 
@@ -1070,81 +1088,169 @@
       function handleCardDivMouseClick(event) {
         handleCardMouseClick(event, "card-div");
       }
-      function handleBizCardDivMouseClick(event) {
+      function handleBizcardDivMouseClick(event) {
         handleCardMouseClick(event, "bizcard-div");
       }
 
       // handle mouse click event for any div element with
-      // cardClass "card-div" or "bizcard-div"
+      // cardClass "card-div" or "bizcard-div".
       function handleCardMouseClick(event, cardClass) {
         var targetCardDiv = event.target.closest('.'+cardClass);
         if (targetCardDiv) {
 
-          // test for card uniqueness
-          for ( var i=0; i<rightContentDiv.children.length; i++ ) {
-            if ( targetCardDiv.id == rightContentDiv.children[i].getAttribute("cardDivId") ) {
-              console.log(`ignoring request to add duplicate targetCardDiv.id:${targetCardDiv.id}`);
-              return;
-            }
-          }
-      
-          var card_div_line_item = document.createElement("li");
-          card_div_line_item.className = "card-div-line-item";
-          card_div_line_item.setAttribute("cardDivId", targetCardDiv.id );
-          card_div_line_item.style.backgroundColor = targetCardDiv.getAttribute("saved-background-color");
-
-          var line_item_content = document.createElement("div");
-          line_item_content.className = "div-line-item-content";
-          line_item_content.style.backgroundColor = targetCardDiv.getAttribute("saved-background-color");
-          line_item_content.style.color = targetCardDiv.getAttribute("saved-color");
-
-          // start with the innerHTML of the targetCardDiv
-          var targetInnerHTML = targetCardDiv.innerHTML;
-          if ( targetInnerHTML && targetInnerHTML.length > 0 ) {
-
-            // ensure targetInnerHTML includes no card-div-img markup
-            if ( targetInnerHTML.includes("<img")) 
-              targetInnerHTML = removeImgTagsFromHtml(targetInnerHTML);
-
-            line_item_content.innerHTML = targetInnerHTML;
-          }
-          
-          // if targetCardDiv has a "Description" attribute
-          var description = targetCardDiv.getAttribute("Description");
-          if( description && description.length > 0 ) {
-            // split the description by BULLET_SEPARATORS and return html 
-            // of the styled form <p><ul>(<li>text</li>)+</ul></p>
-            var line_items_HTML = convert_description_HTML_to_line_items_HTML(description);
-            if ( line_items_HTML && line_items_HTML.length > 0 ) {
-
-              // ensure line_items_HTML includes no card-div-img markup
-              if ( line_items_HTML.includes("<img")) 
-                line_item_HTML = removeImgTagsFromHtml(line_item_html);
-        
-              line_item_content.innerHTML += line_items_HTML
-            }
-          }
-
-          var line_item_delete_button = document.createElement("button");
-          line_item_delete_button.className = "card-div-line-item-delete-button";
-          line_item_delete_button.addEventListener("click", function () {
-            card_div_line_item.remove();
-          });
-          card_div_line_item.appendChild(line_item_content);
-          card_div_line_item.appendChild(line_item_delete_button);
-          rightContentDiv.appendChild(card_div_line_item);
-
-          // find all .tagLinks of this card_div_line_item
-          // and give them onclick listeners
-          
-          var tagLinks = card_div_line_item.querySelectorAll('.tagLink');
-          for ( let i=0; i<tagLinks.length; i++ ) {
-            tagLinks[i].addEventListener("click", handleTagLinkClickEvent);
-          }
-          rightContentScrollToBottom();
+          // if one doesn't already exist, add a new
+          // card-div-line-item for the selected cardDiv
+          var targetCardDivId = targetCardDiv.id
+          addCardDivLineItem(targetCardDivId)
         }
       }
 
+      // add a new card-div-line-item to right-column-content
+      // if one doesn't aleady exist
+      function addCardDivLineItem(targetCardDivId) {
+
+        if ( targetCardDivId == null ) {
+          console.log(`ignoring request to add cardDivLineItem with null targetCardDivId`);
+          return;
+        }
+
+        // check to see if the cardDiv exists
+        var targetCardDiv =  document.getElementById(targetCardDivId);
+        if ( targetCardDiv == null ) {
+          console.log(`no cardDiv found for targetCardDivId:${targetCardDivId}`);
+          return;
+        }
+
+        // only add a card-div-line-item for this targetCardDivId if
+        // it hasn't already been added
+        var existingCardDivLineItem = findCardDivLineItemInRightContentDiv(targetCardDivId);
+        if ( existingCardDivLineItem != null ) {
+          console.log(`ignoring request to add duplicate cardDiv with targetCardDivId:${targetCardDivId}`);
+          return;
+        }
+      
+        var cardDivLineItem = document.createElement("li");
+        cardDivLineItem.className = "card-div-line-item";
+        cardDivLineItem.id = "card-div-line-item-" + targetCardDivId;
+        cardDivLineItem.setAttribute("targetCardDivId", targetCardDivId );
+        cardDivLineItem.style.backgroundColor = targetCardDiv.getAttribute("saved-background-color");
+
+        var cardDivLineItemContent = document.createElement("div");
+        cardDivLineItemContent.className = "card-div-line-item-content";
+        cardDivLineItemContent.style.backgroundColor = targetCardDiv.getAttribute("saved-background-color");
+        cardDivLineItemContent.style.color = targetCardDiv.getAttribute("saved-color");
+
+        var cardDivLineItemRightColumn = document.createElement('div')
+        cardDivLineItemRightColumn.class = "card-div-line-item-right-column";
+
+        // start with the innerHTML of the targetCardDiv
+        var targetInnerHTML = targetCardDiv.innerHTML;
+        if ( targetInnerHTML && targetInnerHTML.length > 0 ) {
+
+          // ensure targetInnerHTML includes no img tag markup
+          if ( targetInnerHTML.includes("<img")) 
+            targetInnerHTML = removeImgTagsFromHtml(targetInnerHTML);
+
+          cardDivLineItemContent.innerHTML = targetInnerHTML;
+        }
+        
+        // if targetCardDiv has a "Description" attribute
+        var description = targetCardDiv.getAttribute("Description");
+        if( description && description.length > 0 ) {
+          // split the description by BULLET_SEPARATORS and return html 
+          // of the styled form <p><ul>(<li>text</li>)+</ul></p>
+          // where text contains spans that have targetCardDivIds
+          var line_items_HTML = convert_description_HTML_to_line_items_HTML(description);
+          if ( line_items_HTML && line_items_HTML.length > 0 ) {
+
+            // ensure line_items_HTML includes no img tag markup
+            if ( line_items_HTML.includes("<img")) 
+              line_item_HTML = removeImgTagsFromHtml(line_item_html);
+      
+            cardDivLineItemContent.innerHTML += line_items_HTML
+          }
+        }
+
+        // add line_item's delete button
+        var cardDivLineItemDeleteButton = document.createElement("button");
+        cardDivLineItemDeleteButton.className = "card-div-line-item-delete-button";
+        cardDivLineItemDeleteButton.addEventListener("click", function () {
+          cardDivLineItem.remove();
+        });
+        cardDivLineItemRightColumn.appendChild(cardDivLineItemDeleteButton);
+
+        // add line_items "add following" button which adds the following bizcardDiv if
+        if ( isBizcardDiv(targetCardDiv) ) {
+          var followingBizcardDivId = getFollowingBizcardDivId(targetCardDivId);
+          if ( followingBizcardDivId ) {
+            var cardDivLineItemFollowingButton = document.createElement("button");
+            cardDivLineItemFollowingButton.className = "card-div-line-item-follow-button";
+            cardDivLineItemFollowingButton.className.innerHTML = "follow";
+            cardDivLineItemFollowingButton.addEventListener("click", function () {
+              // a dd another line_item
+              addCardDivLineItem(followingBizcardDivId);
+            });
+            cardDivLineItemRightColumn.appendChild(cardDivLineItemFollowingButton);
+          }
+        }
+
+        cardDivLineItem.appendChild(cardDivLineItemContent);
+        cardDivLineItem.appendChild(cardDivLineItemRightColumn);
+        rightContentDiv.appendChild(cardDivLineItem);
+
+        // find all .tagLinks of this cardDivLineItem
+        // and give them onclick listeners
+        
+        var tagLinks = cardDivLineItem.querySelectorAll('.tagLink');
+        for ( let i=0; i<tagLinks.length; i++ ) {
+          tagLinks[i].addEventListener("click", handleTagLinkClickEvent);
+        }
+        rightContentScrollToBottom();
+      }
+    
+      // return the cardDivLineItem in rightCOntentDiv for cardDivId or null if not found
+      function findCardDivLineItemInRightContentDiv(cardDivId) {
+        if ( cardDivId == null )
+          throw new Error("given null cardDivId");
+        for ( var i=0; i<rightContentDiv.children.length; i++ ) {
+          var child = rightContentDiv.children[i];
+          if ( child.className == "card-div-line-item" ) {
+            if ( child.hasAttribute("targetCardDivId") && 
+              child.getAttribute("targetCardDivId") == cardDivId ) {
+                return child;
+            }
+          }
+        }
+        return null;
+      }
+
+      // return the next bizcardDivId if one exists and has not
+      // already been added to rightColumnContentDiv, else null
+      function getFollowingBizcardDivId(bizcardDivId) {
+        if ( !isString(bizcardDivId) ) 
+          throw new Error("expected string bizcardDivId");
+        if ( bizcardDivId == null )
+          throw new Error("given null bizcardDivId");
+        var index = getBizcardDivIndex(bizcardDivId);
+        if ( index != null ) {
+          var followingBizcardDivId = getBizcardDivIdFromIndex(index+1);
+          // if we've reached the end of all bizcardDivs
+          // then start over at index 0
+          if ( followingBizcardDivId == null)
+            followingBizcardDivId = getBizcardDivIdFromIndex(0);
+
+          if( followingBizcardDivId ) {
+            // has a cardDivLineItem not already been added for followingBizcardDivId?
+            var cardDivLineItem = findCardDivLineItemInRightContentDiv(bizcardDivId);
+            if ( cardDivLineItem == null ) {
+              return followingBizcardDivId;
+            }
+          }
+        }
+        return null;
+      }
+
+      // remove multiple img tags from the given html string
       function removeImgTagsFromHtml(html) {
         var filtered = html.replace(/<img[^>"']*((("[^"]*")|('[^']*'))[^"'>]*)*>/g,"");
         if ( filtered.includes("<img")) 
@@ -1171,7 +1277,7 @@
 
       function renderAllTranslateableDivsAtLeftColumnCenter() {
         const leftColumnCenter = getLeftColumnHzCtr();
-        const translateableDivs = getAllTranslateableDivs();
+        const translateableDivs = getAllTranslateableCardDivs();
         for (const div of translateableDivs) {
           const divWidth = div.offsetWidth;
           const trans_dx = leftColumnCenter - divWidth / 2.0;
@@ -1228,17 +1334,11 @@
 
       function handleWindowLoad() {
         createTimeline();
-        createBizCardDivs();
+        createBizcardDivs();
         renderAllTranslateableDivsAtLeftColumnCenter();
         positionGradients();
         leftColumnScrollToYear(TIMELINE_DEFAULT_YEAR);
         centerBullsEye();
-
-        // var html = "";
-        // html += `next bizcardDivId:${getNextBizCardDivId()}<br/>`;
-        // html += `next cardDivId:${getNextCardDivId()}<br/>`;
-        // debugElement.innerHTML = html;
-
       }
 
       function handleWindowResize() {
