@@ -226,9 +226,6 @@ body {
 .tagLink {
   font-weight: 900;
   text-decoration: underline;
-}
-
-.tagLink:hover {
   cursor: pointer;
 }
 
@@ -256,7 +253,7 @@ body {
 }
 
 .card-div-line-item-delete-button,
-.card-div-line-item-following-button {
+.card-div-line-item-follow-button {
   width: 15px;
   height: 15px;
   border: 0;            /* for flat appearence */
@@ -264,21 +261,16 @@ body {
   border-radius: 0px;
 }
 
-.card-div-line-item-delete-button {
+.card-div-line-item-right-column .card-div-line-item-delete-button {
   background-color: red;
-  background-image: url("static_content/big-red-x.gif");
+  background: url("./static_content/big-red-x.gif");
+  cursor: pointer;
 }
 
-.card-div-line-item-delete-button-img {
-  position: absolute;
-  top: 0px;
-  left: 0px;
-  background-color: red;
-  color: white;
-  pointer-events: none;
-}
-
-.card-div-line-item-follow-button {
+.card-div-line-item-right-column .card-div-line-item-follow-button {
   background-color: green;
+  background: url("./static_content/green-next.gif");
+  cursor: pointer;
 }
+
 
