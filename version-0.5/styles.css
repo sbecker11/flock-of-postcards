@@ -125,7 +125,9 @@ body {
 
 .bizcard-div {
   position: absolute;
-  border: 3px solid white;
+  border-width: 3px;
+  border-style: solid;
+  border-color: white;
   border-radius: 25px;
   font-family: "Roboto", sans-serif;
   font-weight: bold;
@@ -149,7 +151,9 @@ body {
     
 .card-div {
   position: absolute;
-  border: 5px solid white;
+  border-width: 5px;
+  border-style: solid;
+  border-color: white;
   font-family: "Roboto", sans-serif;
   font-weight: bold;
   font-size: 10px;
@@ -273,4 +277,7 @@ body {
   cursor: pointer;
 }
 
+.selected {
+  border-color: red;
+}
 
