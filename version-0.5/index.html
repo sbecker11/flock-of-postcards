@@ -37,7 +37,7 @@
     <script type="text/javascript" src="static_content/media/image_paths.js"></script>
     <script>
       
-      // @ts-check
+      // @ts-nocheck
 
       // --------------------------------------
       // TagLink globals
@@ -408,14 +408,31 @@
 
           // here we go
           var bizcardDiv = document.createElement("div");
+          var top = endBottomPx;
+          var height = heightPx;
+          var left = indent;
+          var width = BIZCARD_WIDTH;
+
           bizcardDiv.id = getNextBizcardDivId();
           bizcardDiv.className = "bizcard-div";
-          bizcardDiv.style.top = `${endBottomPx}px`;
-          bizcardDiv.style.height = `${heightPx}px`;
-          bizcardDiv.style.left = `${indent}px`;
-          bizcardDiv.style.width = `${BIZCARD_WIDTH}px`;
+          bizcardDiv.style.top = `${top}px`;
+          bizcardDiv.style.height = `${height}px`;
+          bizcardDiv.style.left = `${left}px`;
+          bizcardDiv.style.width = `${width}px`;
           bizcardDiv.style.zIndex = `${zIndex}`;
 
+          // save the original center 
+          var originalCtrX = left + width/2;
+          var originalCtrY = top + height/2;
+          var originalZ = get_z_from_zindexStr(zIndex);
+          bizcardDiv.setAttribute("originalCtrX", `${originalCtrX}`);
+          bizcardDiv.setAttribute("originalCtrY", `${originalCtrY}`);
+          bizcardDiv.setAttribute("originalZ", `${originalZ}`);
+
+          bizcardDiv.addEventListener('click', function(event) {
+            selectCardDiv(bizcardDiv, WITHOUT_TIMEOUT);
+          });
+          
           var description_HTML = job["Description"];
           if ( description_HTML && description_HTML.length > 0 ) {
             validateString(description_HTML);
@@ -674,9 +691,19 @@
         //   img_src = `https://picsum.photos/${img_width}/${img_height}`;
         // }
 
+        var width = img_width + 2*CARD_BORDER;
+        var height = img_height + 2*CARD_BORDER
         cardDiv.style.border = CARD_BORDER_STYLE;
-        cardDiv.style.width = `${img_width + 2*CARD_BORDER}px`;
-        cardDiv.style.height = `${img_height + 2*CARD_BORDER}px`;
+        cardDiv.style.width = `${width}px`;
+        cardDiv.style.height = `${height}px`;
+
+        // save the original center 
+        var originalCtrX = left + width/2;
+        var originalCtrY = top + height/2;
+        var originalZ = z;
+        cardDiv.setAttribute("originalCtrX", `${originalCtrX}`);
+        cardDiv.setAttribute("originalCtrY", `${originalCtrY}`);
+        cardDiv.setAttribute("originalZ", `${originalZ}`);
 
         if ( img_src !== null ) {
           var img = document.createElement("img");
@@ -698,6 +725,30 @@
         cardDiv.setAttribute("tagLinkText", tagLink["text"]);
         cardDiv.setAttribute("tagLinkUrl", tagLink["url"]);
         return cardDiv;
+      }
+
+      function animateCardDivTowardsBizcardDiv(cardDivId, bizcardDivId) {
+        var cardDiv = document.getElementById(cardDivId);
+        var bizcardDiv = document.getElementById(bizcardDivId);
+
+        var cardOriginalCtrX = parseInt(cardDiv.getAttribute("originalCtrX"));
+        var cardOriginalCtrY = parseInt(cardDiv.getAttribute("originalCtrY"));
+        var cardOriginalZ = parseInt(cardDiv.getAttribute("originalZ"));
+
+        var bizcardOriginalCtrX = parseInt(bizcardDiv.getAttribute("originalCtrX"));
+        var bizcardOriginalCtrY = parseInt(bizcardDiv.getAttribute("originalCtrY"));
+        var bizcardOriginalZ = parseInt(bizcardDiv.getAttribute("originalZ"));
+
+        var deltaX = bizcardOriginalCtrX - cardOriginalCtrX;
+        var deltaY = bizcardOriginalCtrY - cardOriginalCtrZ;
+      }
+
+      function animateCardDivToOriginalPosition(cardDivId) {
+        var cardDiv = document.getElementById(cardDivId);
+        var originalTop = parseInt(cardDiv.getAttribute("originalTop"));
+        var originalLeft = parseInt(cardDiv.getAttribute("originalLeft"));
+        var originalZ = parseInt(cardDiv.getAttribute("originalZ"));
+
       }
 
       // these are used by select_random_img_src
@@ -1108,6 +1159,15 @@
         cardDivLineItem.setAttribute("targetCardDivId", targetCardDivId );
         cardDivLineItem.style.backgroundColor = targetCardDiv.getAttribute("saved-background-color");
 
+        // click on the cardDivLineItem of a bizcardDiv to select the 
+        // bizcardDiv in the left column. Then unselect it after some
+        // timeout
+        if ( isBizcardDiv(targetCardDiv) ) {
+          cardDivLineItem.addEventListener('click', function(event) {
+            selectCardDiv(targetCardDiv, WITH_TIMEOUT);
+          });
+        }
+
         var cardDivLineItemContent = document.createElement("div");
         cardDivLineItemContent.className = "card-div-line-item-content";
         cardDivLineItemContent.style.backgroundColor = targetCardDiv.getAttribute("saved-background-color");
@@ -1147,20 +1207,23 @@
         // add line_item's delete button
         var cardDivLineItemDeleteButton = document.createElement("button");
         cardDivLineItemDeleteButton.className = "card-div-line-item-delete-button";
-        cardDivLineItemDeleteButton.addEventListener("click", function () {
+        cardDivLineItemDeleteButton.addEventListener("click", function (event) {
           cardDivLineItem.remove();
+          event.stopPropagation();
         });
         cardDivLineItemRightColumn.appendChild(cardDivLineItemDeleteButton);
 
         // add line_items "add following" button which adds the following bizcardDiv if
         if ( isBizcardDiv(targetCardDiv) ) {
+
           var followingBizcardDivId = getFollowingBizcardDivId(targetCardDivId);
           if ( followingBizcardDivId ) {
             var cardDivLineItemFollowingButton = document.createElement("button");
             cardDivLineItemFollowingButton.className = "card-div-line-item-follow-button";
-            cardDivLineItemFollowingButton.addEventListener("click", function () {
-              // a dd another line_item
+            cardDivLineItemFollowingButton.addEventListener("click", function (event) {
+              // add the following line_item
               addCardDivLineItem(followingBizcardDivId);
+              event.stopPropagation();
             });
             cardDivLineItemRightColumn.appendChild(cardDivLineItemFollowingButton);
           }
@@ -1180,6 +1243,50 @@
         rightContentScrollToBottom();
       }
     
+      // ------------------------------------------------------------
+      // SelectedCardDiv vars, constants and functions
+
+      var theSelectedCardDiv = null;
+      const SELECTED_CARD_DIV_Z = ALL_CARDS_MIN_Z;
+      const SELECTED_CARD_DIV_ZINDEX_STR = get_zindexStr_from_z(SELECTED_CARD_DIV_Z);
+      const SELECTED_CARD_DIV_FILTER_STR = `${get_brightness_str_from_z(SELECTED_CARD_DIV_Z)} ${get_blur_str_from_z(SELECTED_CARD_DIV_Z)}`;
+
+      const WITH_TIMEOUT = true;
+      const WITHOUT_TIMEOUT = false;
+
+      function selectCardDiv(cardDiv, withTimeout) {
+        if ( theSelectedCardDiv != null ) 
+          unselectTheSelectedCardDiv();
+        
+        theSelectedCardDiv = cardDiv;
+        console.log(`selected ${theSelectedCardDiv.id} withTimeout:${withTimeout}`);
+
+        //theSelectedCardDiv.classList.add("ease-in-selected");
+        theSelectedCardDiv.scrollIntoView({ behavior: 'smooth', block: 'center'});
+        theSelectedCardDiv.setAttribute("originalFilterStr", theSelectedCardDiv.style.filter);
+        theSelectedCardDiv.setAttribute("originalZindexStr", theSelectedCardDiv.style.zIndex);
+        //theSelectedCardDiv.transition = "z-index 4s, filter 4s"; // duration
+        theSelectedCardDiv.style.zIndex = SELECTED_CARD_DIV_ZINDEX_STR;
+        theSelectedCardDiv.style.filter = SELECTED_CARD_DIV_FILTER_STR;
+
+        // automatically unselect it after 5000 millis
+        if ( withTimeout )
+          setTimeout( function() { unselectTheSelectedCardDiv(); }, 5000);
+      }
+
+      function unselectTheSelectedCardDiv() {
+        if( theSelectedCardDiv != null ) {
+          console.log(`unselecting ${theSelectedCardDiv.id}`);
+
+          //theSelectedCardDiv.transition = "z-index 4s, filter 4s"; // duration
+          theSelectedCardDiv.style.filter = theSelectedCardDiv.getAttribute("originalFilterStr");
+          theSelectedCardDiv.style.zIndex = theSelectedCardDiv.getAttribute("originalZindexStr");
+          theSelectedCardDiv = null;
+        }
+      }
+
+      // --------------------------------------------------------------
+
       // return the cardDivLineItem in rightCOntentDiv for cardDivId or null if not found
       function findCardDivLineItemInRightContentDiv(cardDivId) {
         if ( cardDivId == null )
