@@ -54,7 +54,7 @@
 
       // --------------------------------------
       // theSelected globals
-      
+
       var theSelectedCardDiv = null;
       var theSelectedCardDivLineItem = null;
 
@@ -934,8 +934,18 @@
         return allDivs;
       }
 
+      var theMotionParallax_dh = null;
+      var theMotionParallax_dv = null;
+
+      function easeIntoZeroMotionParallax() {
+        applyMotionParallax(0, 0);
+      }
+
       // applies z-depth scaled parallax to all translateableDiv
       function applyMotionParallax(parallax_dh, parallax_dv) {
+
+        theMotionParallax_dh = parallax_dh;
+        theMotionParallax_dv = parallax_dv;
 
         // constant for the current view
         var leftColumnHzCtr = getLeftColumnHzCtr();
@@ -1081,6 +1091,7 @@
         isMouseOverLeftColumn = false;
         clearInterval(scrollingInterval);
         autoscrollVelocity = 0;
+        zeroMotionParallax();
         //debugElement.innerHTML = "";
       }
 
