@@ -153,6 +153,7 @@ body {
   padding: 20px;
   box-sizing: border-box;
   overflow: hidden;
+  cursor: pointer;
 }
 
 .bizcard-div-role {
@@ -177,6 +178,7 @@ body {
   font-size: 10px;
   padding: 0px;
   box-sizing: border-box;
+  cursor: pointer;
 }
 
 .bizcard-div-header {
@@ -256,6 +258,7 @@ body {
   list-style-type: none;
   justify-content: space-between;
   margin: 1px 0px;
+  cursor: pointer;
 }
 
 .card-div-line-item-content {

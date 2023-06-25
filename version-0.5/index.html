@@ -183,8 +183,6 @@
         return acro;
       }
 
-
-
       // --------------------------------------
       // Z globals
 
@@ -210,7 +208,7 @@
       //--------------------------------------
       // Z functions
 
-      function get_zindexStr_from_z(z) {
+      function get_zIndexStr_from_z(z) {
         return `${ALL_CARDS_MAX_Z - z}`;
       }
       function get_z_from_zIndexStr(zindex) {
@@ -219,11 +217,12 @@
       // brightness max CARD_MIN_Z is 1.0 is normal
       // brightness dims as z increated to CARD_MAX_Z
       function get_brightness_value_from_z(z) {
-        var z_brightness_value = linearInterp(
+        var z_interp = linearInterp(
           z,
           CARD_MIN_Z, 1.0,
           CARD_MAX_Z, MIN_BRIGHTNESS_PERCENT / 100.0
         );
+        var z_brightness_value = (z > 0 ) ? z_interp : 1.0;
         return z_brightness_value;
       }
       // return a filter brightness string
@@ -234,7 +233,7 @@
       // returns a filter blur string
       // blur increases as z increases
       function get_blur_str_from_z(z) {
-        var blur = (z - CARD_MIN_Z) / BLUR_Z_SCALE_FACTOR;
+        var blur = (z > 0) ? (z - CARD_MIN_Z) / BLUR_Z_SCALE_FACTOR : 0;
         return `blur(${blur}px)`;
       }
 
@@ -341,16 +340,16 @@
       // BizcardDiv and cardDiv functions
 
       function isBizcardDiv(cardDiv) {
-        return cardDiv.classList.contains('bizcard-div') ? true : false;
+        return cardDiv != null && cardDiv.classList.contains('bizcard-div') ? true : false;
       }
       function isCardDiv(cardDiv) {
-        return cardDiv.classList.contains('card-div') ? true : false;
+        return cardDiv != null && cardDiv.classList.contains('card-div') ? true : false;
       }
       function isBizcardDivId(cardDivId) {
-        return getBizcardDivIndex(cardDivId) == null ? false : true;
+        return isString(cardDivId) && getBizcardDivIndex(cardDivId) == null ? false : true;
       }
       function isCardDivId(cardDivId) {
-        return getCardDivIndex(cardDivId) == null ? false : true;
+        return isString(cardDivId) && getCardDivIndex(cardDivId) == null ? false : true;
       }
       // returns 99 for bizcard-div-99' or null
       function getBizcardDivIndex(cardDivId) {
@@ -667,7 +666,7 @@
         }
         prev_z = z;
 
-        var zIndexStr = get_zindexStr_from_z(z);
+        var zIndexStr = get_zIndexStr_from_z(z);
 
         // inherit colors of bizcardDiv
         cardDiv.setAttribute("bizcardDivId", bizcardDiv.id);
@@ -889,8 +888,8 @@
       function getZTranslateStr(dh, dv, z, leftColumn_dx, leftColumn_dy) {
         // z ranges from 0 (closest) to viewer to MAX_Z furthest from viewer
         // zindex ranges MAX_Z (closest to viewer) to 1 furthest from viewer
-        var zindex = get_zindexStr_from_z(z);
-        var zScale = z * 1.0;
+        var zIndex = parseInt(get_zIndexStr_from_z(z));
+        var zScale = (zIndex <= ALL_CARDS_MAX_Z) ? zIndex : 0.0;
 
         // by definition, divs have zero mean hzCtrs so canvas translation is required
         var dx = dh * zScale + leftColumn_dx;
@@ -1165,12 +1164,10 @@
 
       // works for card-div, bizcard-div, and card-div-line-item
       function setSelectedStyle(div) {
-        console.assert(div != null && div.classList != null);
         if (div.classList.contains("card-div-line-item") == false) {
           div.style.zIndex = SELECTED_CARD_DIV_ZINDEX_STR;
           div.style.filter = SELECTED_CARD_DIV_FILTER_STR;
         }
-        console.assert(div.hasAttribute("saved-selected-color") &&  div.hasAttribute("saved-selected-background-color"));
         div.style.color = div.getAttribute("saved-selected-color");
         div.style.backgroundColor = div.getAttribute("saved-selected-background-color");
         div.classList.add('selected');
@@ -1178,13 +1175,10 @@
 
       // works for card-div, bizcard-div, and card-div-line-item
       function restoreSavedStyle(div) {
-        console.assert(div != null && div.classList != null);
         if (div.classList.contains("card-div-line-item") == false) {
-          console.assert(div.hasAttribute("saved-zIndexStr") && div.hasAttribute("saved-filterStr"));
           div.style.zIndex = div.getAttribute("saved-zIndexStr");
           div.style.filter = div.getAttribute("saved-filterStr");
         }
-        console.assert(div.hasAttribute("saved-selected-color") &&  div.hasAttribute("saved-selected-background-color"));
         div.style.color = div.getAttribute("saved-color");
         div.style.backgroundColor = div.getAttribute("saved-background-color");
         div.classList.remove('selected');
@@ -1193,8 +1187,8 @@
       // ------------------------------------------------------------
       // theSelectedCardDiv vars, constants and functions
 
-      const SELECTED_CARD_DIV_Z = ALL_CARDS_MIN_Z;
-      const SELECTED_CARD_DIV_ZINDEX_STR = get_zindexStr_from_z(SELECTED_CARD_DIV_Z);
+      const SELECTED_CARD_DIV_Z = -10;
+      const SELECTED_CARD_DIV_ZINDEX_STR = get_zIndexStr_from_z(SELECTED_CARD_DIV_Z);
       const SELECTED_CARD_DIV_FILTER_STR = get_filterStr_from_z(SELECTED_CARD_DIV_Z);
 
       const DEFAULT_TRANSITION_MILLIS = 2000;
@@ -1216,8 +1210,12 @@
       }
 
       function selectTheCardDiv(cardDiv) {
-        console.assert(cardDiv != null && cardDiv.classList != null);
-
+        // click on selected to deselect
+        if(theSelectedCardDiv != null &&
+          cardDiv.id == theSelectedCardDiv.id) {
+            deselectTheSelectedCardDiv();
+            return;
+        }
         // calls deselectTheSelectedCardDiv
         deselectTheSelectedCardDiv();
         // saves self as theSelected
@@ -1240,18 +1238,22 @@
       // handle mouse click event for any div element with
       // cardClass "card-div" or "bizcard-div".
       function addCardDivClickListener(cardDiv) {
-        console.assert(cardDiv != null && isString(cardDiv.id) && cardDiv.classList != null);
-
         cardDiv.addEventListener("click", function (event) {
+          if ( theSelectedCardDiv != null && 
+            cardDiv.id == theSelectedCardDiv.id ) {
+            // click on selected card to deselect
+            deselectTheSelectedCardDiv();
+            return;
+          }
           // calls selectTheCardDiv(cardDiv)
           selectTheCardDiv(cardDiv);
           // calls addCardDivLineItem()
           addCardDivLineItem(cardDiv.id);
           var cardDivLineItem = getCardDivLineItem(cardDiv.id);
           console.assert(cardDivLineItem != null );
-          // calls selectCardDivLineItem
+          // calls selectCardDivLineItem - does scroll self into view
           selectTheCardDivLineItem(cardDivLineItem);
-          // does not scroll self into view
+
           event.stopPropagation();
         })
       }
@@ -1313,8 +1315,12 @@
 
 
       function selectTheCardDivLineItem(cardDivLineItem) {
-        console.assert(cardDivLineItem != null && cardDivLineItem.classList != null);
-
+        // click on selected to deselect
+        if ( theSelectedCardDivLineItem !== null &&
+          cardDivLineItem.id == theSelectedCardDivLineItem.id ) {
+            deselectTheSelectedCardDivLineItem();
+            return;
+        }
         // calls  deselectTheSelectedCardDivLineItem
         deselectTheSelectedCardDivLineItem();
         // saves self as theSelected
@@ -1322,7 +1328,7 @@
         // styles self as selected
         setSelectedStyle(theSelectedCardDivLineItem);
         // does scroll self into view
-        console.log(`scrollIntoView id:${theSelectedCardDivLineItem.id}`);
+        console.log(`scrollCardDivLineItemIntoView id:${theSelectedCardDivLineItem.id}`);
         theSelectedCardDivLineItem.scrollIntoView(DEFAULT_SCROLL_INTO_VIEW_OPTIONS);
       }
 
@@ -1337,22 +1343,27 @@
       }
 
       function addCardDivLineItemClickListener(cardDivLineItem, cardDiv) {
-        console.assert(cardDivLineItem != null && cardDiv != null);
 
         cardDivLineItem.addEventListener("click", function (event) {
+          
           // cardDivLineItem selected not clicked
+          // does scroll self into view
           selectTheCardDivLineItem(cardDivLineItem);
+
           // selectTheCardDiv not clicked
+          // does not scroll self into view
           selectTheCardDiv(cardDiv);
-          // does scroll theSelectedCardDiv into view
+
           console.log(`scrollIntoView id:${cardDiv.id}`);
           cardDiv.scrollIntoView(DEFAULT_SCROLL_INTO_VIEW_OPTIONS);
+
           event.stopPropagation();
         })
       }
 
       // add a new card-div-line-item to right-column-content
       // if one doesn't aleady exist
+      // returns the newly addedCardDivLineItem or null
       function addCardDivLineItem(targetCardDivId) {
 
         if (targetCardDivId == null) {
@@ -1397,8 +1408,11 @@
           cardDivLineItemContent.style.backgroundColor = targetCardDiv.getAttribute("saved-background-color") || "";
           cardDivLineItemContent.style.color = targetCardDiv.getAttribute("saved-color") || "";
 
+          // set right column
           var cardDivLineItemRightColumn = document.createElement('div')
           cardDivLineItemRightColumn.classList.add("card-div-line-item-right-column");
+          cardDivLineItemRightColumn.style.backgroundColor = targetCardDiv.getAttribute("saved-background-color") || "";
+          cardDivLineItemRightColumn.style.color = targetCardDiv.getAttribute("saved-color") || "";
 
           // start with the innerHTML of the targetCardDiv
           var targetInnerHTML = targetCardDiv.innerHTML;
@@ -1439,17 +1453,10 @@
 
           // add cardDivLineItem "following" button if the targetCardDiv is a bizcardDiv
           if (isBizcardDiv(targetCardDiv)) {
-            var followingBizcardDivId = getFollowingBizcardDivId(targetCardDivId);
-            if (followingBizcardDivId) {
               var cardDivLineItemFollowingButton = document.createElement("button");
               cardDivLineItemFollowingButton.classList.add("card-div-line-item-follow-button");
-              cardDivLineItemFollowingButton.addEventListener("click", function (event) {
-                // add a new cardDivLineItem if possible
-                addCardDivLineItem(followingBizcardDivId);
-                event.stopPropagation();
-              });
+              addCardDivLineItemFollowingButtonClickHandler(cardDivLineItemFollowingButton);
               cardDivLineItemRightColumn.appendChild(cardDivLineItemFollowingButton);
-            }
           }
 
           cardDivLineItem.appendChild(cardDivLineItemContent);
@@ -1463,12 +1470,13 @@
             addTagLinkClickListener(tagLinks[i]);
           }
         } else {
-          console.log(`ignoring request to add duplicate cardDiv with targetCardDivId:${targetCardDivId}`);
+          console.log(`returning preexisting cardDivLineItem for targetCardDivId:${targetCardDivId}`);
+          cardDivLineItem = existingCardDivLineItem
         }
         // does not select self
         // does scroll self into view
+        return cardDivLineItem;
       }
-
 
       // --------------------------------------------------------------
 
@@ -1485,6 +1493,36 @@
           }
         }
         return null;
+      }
+
+      function getCardDivOfCardDivLineItem(cardDivLineItem) {
+        var cardDivId = cardDivLineItem.id.replace("card-div-line-item-","");
+        return document.getElementById(cardDivId);
+      }
+
+      function addCardDivLineItemFollowingButtonClickHandler(cardDivLineItemFollowingButton) {        
+        cardDivLineItemFollowingButton.addEventListener("click", function (event) {
+          var cardDivLineItem = event.target.parentElement.parentElement;
+          console.assert( cardDivLineItem != null && cardDivLineItem.classList.contains("card-div-line-item") );
+          var cardDiv = getCardDivOfCardDivLineItem(cardDivLineItem);
+          var followingBizcardDivId = getFollowingBizcardDivId(cardDiv.id);
+          console.assert( isBizcardDivId(followingBizcardDivId) );
+          var followingBizcardDiv = document.getElementById(followingBizcardDivId);
+          console.assert(isBizcardDiv(followingBizcardDiv));
+
+          // select the followingBizcardDiv
+          selectTheCardDiv(followingBizcardDiv);
+          console.log(`scrollIntoView id:${followingBizcardDiv.id}`);
+          followingBizcardDiv.scrollIntoView(DEFAULT_SCROLL_INTO_VIEW_OPTIONS);
+
+          // find or add the nextCardDivLineItem
+          var nextCardDivLineItem = 
+            addCardDivLineItem(followingBizcardDivId);
+          // scrolls self into view
+          selectTheCardDivLineItem(nextCardDivLineItem);
+
+          event.stopPropagation();
+        });
       }
 
       // return the next bizcardDivId if one exists and has not
@@ -1579,10 +1617,16 @@
 
         var newScrollTop = (TIMELINE_MAX_YEAR - year) * leftColumScrollPixelsPerYear;
         newScrollTop = clamp(newScrollTop, 0, leftColumn.scrollHeight);
-        // console.log(`newScrollTop:${newScrollTop}`);
 
         leftColumn.scrollTop = newScrollTop;
       }
+
+      function leftColumnScrollToTop() {
+        leftColumn.scrollTo({ top: 0, behavior: 'smooth' });
+      }
+      function leftColumnScrollToBottom() {
+        leftColumn.scrollTo({ top: leftColumn.scrollHeight, behavior: 'smooth' });
+      }      
 
       function centerBullsEye() {
         var top = getLeftColumnVtCtr() - getElementSelfVtCtr(bullsEye);
