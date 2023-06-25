@@ -42,9 +42,11 @@
         </p>
 
         <div id="debugElement"></div>
+        <div id="debugFocalPointElement"></div>
       </div>
     </div>
     <div id="bulls-eye">+</div>
+    <div id="focal-point">⦻</div>
 
     <script type="text/javascript" src="static_content/jobs/jobs.js"></script>
     <script type="text/javascript" src="static_content/media/image_paths.js"></script>
@@ -73,11 +75,13 @@
 
       const rightContentDiv = document.getElementById("right-content-div");
       const debugElement = document.getElementById("debugElement");
+      const debugFocalPointElement = document.getElementById("debugFocalPointElement");
       const leftColumn = document.getElementById("left-column");
       const canvas = document.getElementById("canvas");
       const bottomGradient = document.getElementById("bottom-gradient");
       const timelineContainer = document.getElementById("timeline-container");
-      const bulls_eye = document.getElementById("bulls-eye");
+      const bullsEye = document.getElementById("bulls-eye");
+      const focalPoint = document.getElementById("focal-point");
 
       // --------------------------------------
       // Miscellaneous globals
@@ -109,8 +113,8 @@
       // --------------------------------------
       // Motion parallax constants
 
-      const PARALLAX_HZ_EXAGGERATION_FACTOR = 0.05;
-      const PARALLAX_VT_EXAGGERATION_FACTOR = 0.1;
+      const PARALLAX_X_EXAGGERATION_FACTOR = 0.05;
+      const PARALLAX_Y_EXAGGERATION_FACTOR = 0.1;
 
       // --------------------------------------
       // Utility functions
@@ -350,7 +354,7 @@
       }
       // returns 99 for bizcard-div-99' or null
       function getBizcardDivIndex(cardDivId) {
-        console.assert( isString(divCardId) );
+        console.assert( isString(cardDivId) );
         if (cardDivId.startsWith("bizcard-div-")) {
           var index = parseInt(cardDivId.replace("bizcard-div-", ""));
           return isNaN(index) ? null : index;
@@ -896,29 +900,41 @@
         return zTranslateStr;
       }
 
-      function getElementCtr(element) {
-        var hzCtr = (element.offsetLeft + element.offsetWidth) / 2;
-        var vtCtr = (element.offsetTop + element.offsetHeight) / 2;
-        return { hzCtr: hzCtr, vtCtr: vtCtr };
+      // leftColumn's self-relative center
+      function getLeftColumnCtr() {
+        var leftColumnX = leftColumn.offsetWidth / 2;
+        var leftColumnY = leftColumn.offsetHeight / 2;
+        return { leftColumnX, leftColumnY };
       }
-
-      // return the horizontal center of the left-column
+      // leftColumn's self-relative horizontal center
       function getLeftColumnHzCtr() {
         return leftColumn.offsetWidth / 2;
       }
-      // return the vertical center of the left-column
+      // leftColumn's self-relative vertical center
       function getLeftColumnVtCtr() {
         return leftColumn.offsetHeight / 2;
       }
-      // return the horizontal center of the given element relative to itself
+
+      // element's leftColumn-relative center
+      function getElementCtr(element) {
+        var elementX = (element.offsetLeft + element.offsetWidth) / 2;
+        var elementY = (element.offsetTop + element.offsetHeight) / 2;
+        return { elementX, elementY };
+      }
+      // element's self-relative center
+      function getElementSelfCtr(element) {
+        var elementX = element.offsetWidth / 2;
+        var elementY = element.offsetHeight / 2;
+        return { elementX, elementY };
+      } 
+      // element's self-relative horizontal center
       function getElementSelfHzCtr(element) {
         return element.offsetWidth / 2;
       }
-      // return the vertical center of the given element relative to itself
+      // element's self-relative vertical center
       function getElementSelfVtCtr(element) {
         return element.offsetHeight / 2;
       }
-
 
       // return all bizcardDivs and cardDivs lazy-loaded
       function getAllTranslateableCardDivs() {
@@ -934,26 +950,15 @@
         return allDivs;
       }
 
-      var theMotionParallax_dh = null;
-      var theMotionParallax_dv = null;
-
-      function easeIntoZeroMotionParallax() {
-        applyMotionParallax(0, 0);
-      }
-
       // applies z-depth scaled parallax to all translateableDiv
-      function applyMotionParallax(parallax_dh, parallax_dv) {
+      function applyParallax() {
 
-        theMotionParallax_dh = parallax_dh;
-        theMotionParallax_dv = parallax_dv;
-
-        // constant for the current view
-        var leftColumnHzCtr = getLeftColumnHzCtr();
-        var leftColumnVtCtr = getLeftColumnVtCtr();
+        var { parallaxX, parallaxY } = getParallax();
+        var { leftColumnX, leftColumnY } = getLeftColumnCtr();
 
         // constants for this parallax
-        var dh = parallax_dh * PARALLAX_HZ_EXAGGERATION_FACTOR;
-        var dv = parallax_dv * PARALLAX_VT_EXAGGERATION_FACTOR;
+        var dh = parallaxX * PARALLAX_X_EXAGGERATION_FACTOR;
+        var dv = parallaxY * PARALLAX_Y_EXAGGERATION_FACTOR;
 
         // compute and apply translations for all translatableDivs
         var allDivs = getAllTranslateableCardDivs();
@@ -964,9 +969,11 @@
 
           var z = get_z_from_zIndexStr(zIndexStr);
 
+          var {elementX, elementY} = getElementSelfCtr(cardDiv);
+
           // leftColumn-relative cardDiv center
-          var leftColumn_dx = leftColumnHzCtr - getElementSelfHzCtr(cardDiv);
-          var leftColumn_dy = leftColumnVtCtr - getElementSelfVtCtr(cardDiv);
+          var leftColumn_dx = leftColumnX - elementX;
+          var leftColumn_dy = leftColumnY - elementY;
 
           var zTranslateStr = getZTranslateStr(dh, dv, z, leftColumn_dx, leftColumn_dy);
 
@@ -978,89 +985,94 @@
         }
       }
 
-      var scrollingInterval = null;
-      var autoscrollVelocity = 0;
-
-      const smoothingFactors = [0, 10.0, 0.2, 0.3]; // Adjust smoothing factors for each degree of interpolation
-
-
-      // Function to handle transform cardDivs according
-      // to current left-column position. Given null
-      // when called from onload, in this case
-      // left-column center as mouse location
-
       function handleLeftColumnMouseMove(event) {
+        moveFocalPointToMouse(event.clientX,event.clientY);
+      }
 
-        var rect = leftColumn.getBoundingClientRect();
-        var centerX = rect.left + rect.width / 2;
-        var centerY = rect.top + rect.height / 2;
-
-        var mouseX = centerX;
-        var mouseY = centerY;
-        if (event) {
-          mouseX = event.clientX;
-          mouseY = event.clientY;
+      function focalPointInRect(rect) {
+        var { focalPointX, focalPointY } = getFocalPoint();
+        if ( focalPointX >= rect.left && focalPointX <= rect.right ) {
+          if ( focalPointY >= rect.top && focalPointY <= rect.bottom )
+            return true;
         }
+        return false;
+      }
 
-        var dist_v = mouseY - centerY;
-        var delta_vt = ((mouseY - centerY) / centerY) * 100;
-        var parallax_dh = 0;
-        var parallax_dv = 0;
-        var autoscrollVelocity = 0;
+      var autoScrollingInterval = null;
+      var autoScrollVelocity = 0;
+      var oldAutoScrollVelocity = 0;
+      const AUTOSCROLL_REPEAT_MILLIS = 10; 
+      const MAX_AUTOSCROLL_VELOCITY = 10.0; 
+      const MIN_AUTOSCROLL_VELOCITY = 2.0;
+      const AUTOSCROLL_CHANGE_THRESHOLD = 2.0;
 
-        // normal mouse-driven parallax
-        if (Math.abs(delta_vt) < 50) {
-          parallax_dh = centerX - mouseX;
-          parallax_dv = centerY - mouseY;
+      // set autoScrollVelocity based on current focalPoint 
+      function updateAutoScrollVelocity() {
+        var { focalPointX, focalPointY } = getFocalPoint();
+        var topHeight = leftColumn.offsetHeight / 4;
+        var centerTop = topHeight;
+        var centerHeight = topHeight * 2;
+        var centerBottom = topHeight + centerHeight;
+        var bottomHeight = topHeight;
+
+        if ( focalPointY < centerTop ) {
+          autoScrollVelocity = (focalPointY-centerTop)/topHeight * MAX_AUTOSCROLL_VELOCITY;
+        } else if ( focalPointY > centerBottom ) {
+          autoScrollVelocity = (focalPointY-centerBottom)/bottomHeight * MAX_AUTOSCROLL_VELOCITY;
         } else {
-          // maximum vertical auto-scroll velocity
-          const MAX_SCROLL_VT = 10.0;
-
-          // start to scroll when mouse is > 50% of distance
-          // from center  to top or bottom edge of viewport
-          // autoscrollVelocity is zero at 50% of distance from
-          // center. autoscrollVelocity speeds up linearly
-          // to MAX_SCROLL_VT when mouseX reaches the top
-          // or bottom edge of the viewport, in other words,
-          // where |mouseY - centerY| == |centerY - topEdge (0)|
-          if (Math.abs(delta_vt) >= 50) {
-            var delta_vt_normalized = Math.abs(delta_vt) - 50;
-            autoscrollVelocity = (delta_vt_normalized / 50) * MAX_SCROLL_VT;
-            autoscrollVelocity = delta_vt > 0 ? autoscrollVelocity : -autoscrollVelocity;
-          }
-
-          clearInterval(scrollingInterval);
-
-          if (Math.abs(autoscrollVelocity) > 0.01) {
-            // use autoscrollVelocity to
-            // auto-scroll left-column from currentScrollTop
-            // to newScrollTop = currentScrollTop + autoscrollVelocity pixels
-            // in 10 millis
-            scrollingInterval = setInterval(function () {
-              var currentScrollTop = leftColumn.scrollTop;
-              var newScrollTop = currentScrollTop + autoscrollVelocity;
-
-              if (newScrollTop < 0) {
-                newScrollTop = 0;
-              } else {
-                var maxScrollTop =
-                  leftColumn.scrollHeight - leftColumn.clientHeight;
-                if (newScrollTop > maxScrollTop) {
-                  newScrollTop = maxScrollTop;
-                }
-              }
-
-              // apply the change and
-              // then wait for 10 millis
-              leftColumn.scrollTop = newScrollTop;
-            }, 10);
-          }
-
-          parallax_dh = centerX - mouseX;
-          parallax_dv = -(dist_v + autoscrollVelocity);
-
+          autoScrollVelocity = 0;
         }
-        applyMotionParallax(parallax_dh, parallax_dv);
+      }
+
+      // implement autoscrolling and then apply 
+      // parallax transformations to all 
+      // transformable elements
+      function handleFocalPointMove() {
+
+        updateAutoScrollVelocity();
+
+        // if the velocity changed
+        if ( Math.abs(autoScrollVelocity-oldAutoScrollVelocity) >= AUTOSCROLL_CHANGE_THRESHOLD ) {
+
+          // if the velocity is near zero
+          if (Math.abs(autoScrollVelocity) < MIN_AUTOSCROLL_VELOCITY ) {
+            // stop the interval if needed
+            if (autoScrollingInterval != null) {
+              clearInterval(autoScrollingInterval);
+              autoScrollingInterval = null;
+            }
+          } else {
+            // start the inteval if needed
+            if (autoScrollingInterval == null) {
+              autoScrollingInterval = setInterval(function () {
+
+                // apply the velocity
+                var currentScrollTop = leftColumn.scrollTop;
+                var newScrollTop = currentScrollTop + autoScrollVelocity;
+
+                // clamp newScrollTop to the boundaries
+                var minScrollTop = 0;
+                var maxScrollTop = leftColumn.scrollHeight - leftColumn.clientHeight;
+                newScrollTop = clamp(newScrollTop, minScrollTop, maxScrollTop);
+
+                // if there is room to scroll 
+                if (Math.abs(leftColumn.scrollTop-newScrollTop) > 0) {
+                  // go ahead and scroll
+                  leftColumn.scrollTop = newScrollTop;
+                } else {
+                  //  we've reached a boundary so 
+                  // stop the auto-scroll
+                  autoScrollVelocity = 0;
+                  clearInterval(autoScrollingInterval);
+                  autoScrollingInterval = null;
+                }
+              }, AUTOSCROLL_REPEAT_MILLIS);
+            }
+          }
+          oldAutoScrollVelocity = autoScrollVelocity;
+        }
+        // apply the parallax transformations
+        applyParallax();
       }
 
       function debugScrolling(event, scrollable, scrollVelocityType, scrollVelocity) {
@@ -1082,17 +1094,14 @@
       // Display mouse position and delta coordinates in the right-message-div  
       var isMouseOverLeftColumn = false;
 
-      function handleMouseEnterLeftColumn() {
+      function handleMouseEnterLeftColumn(event) {
         isMouseOverLeftColumn = true;
+        moveFocalPointTo(event.clientX, event.clientY,0);
       }
 
-      // stop scrolling when mouse is no longer over the left column
-      function handleMouseLeaveLeftColumn() {
+      function handleMouseLeaveLeftColumn(event) {
         isMouseOverLeftColumn = false;
-        clearInterval(scrollingInterval);
-        autoscrollVelocity = 0;
-        zeroMotionParallax();
-        //debugElement.innerHTML = "";
+        moveFocalPointToOrigin(0);
       }
 
       var lastScrollTop = null;
@@ -1118,15 +1127,8 @@
       var wheelLastTime = null;
 
       function handleLeftColumnWheel(wheelEvent) {
-        const centerX = getLeftColumnHzCtr();
-        const centerY = getLeftColumnVtCtr();
-        const mouseX = wheelEvent.clientX;
-        const mouseY = wheelEvent.clientY;
 
-        const parallax_dh = centerX - mouseX;
-        const parallax_dv = centerY - mouseY;
-
-        applyMotionParallax(parallax_dh, parallax_dv);
+        moveFocalPointToMouse(wheelEvent.clientX, wheelEvent.clientY);
 
         // var thisTime = (new Date()).getTime();
         // var deltaTime = (wheelLastTime != null) ? (thisTime-wheelLastTime) : null;
@@ -1144,6 +1146,12 @@
         if (targetCardDiv) {
           setSelectedStyle(targetCardDiv);
         }
+      }
+
+      function handleLeftColumnMouseClick() {
+        deselectTheSelectedCardDiv();
+        deselectTheSelectedCardDivLineItem();
+        handleFocalPointMove();
       }
 
       // handle mouse leave event for any div element with
@@ -1192,7 +1200,7 @@
       const DEFAULT_TRANSITION_MILLIS = 2000;
       const NO_TRANSITION = 0;
       const NO_TIMEOUT = 0;
-      const DEFAULT_SCROLL_INTO_VIEW_OPTIONS = { behavior: 'smooth', block: 'center' };
+      const DEFAULT_SCROLL_INTO_VIEW_OPTIONS = {behavior:'smooth',block:'center',inline:'center'};
 
       function transitionStyleMilis(cardDiv, millis) {
         if (millis > 0) {
@@ -1235,7 +1243,6 @@
         console.assert(cardDiv != null && isString(cardDiv.id) && cardDiv.classList != null);
 
         cardDiv.addEventListener("click", function (event) {
-
           // calls selectTheCardDiv(cardDiv)
           selectTheCardDiv(cardDiv);
           // calls addCardDivLineItem()
@@ -1245,6 +1252,7 @@
           // calls selectCardDivLineItem
           selectTheCardDivLineItem(cardDivLineItem);
           // does not scroll self into view
+          event.stopPropagation();
         })
       }
 
@@ -1339,6 +1347,7 @@
           // does scroll theSelectedCardDiv into view
           console.log(`scrollIntoView id:${cardDiv.id}`);
           cardDiv.scrollIntoView(DEFAULT_SCROLL_INTO_VIEW_OPTIONS);
+          event.stopPropagation();
         })
       }
 
@@ -1481,7 +1490,7 @@
       // return the next bizcardDivId if one exists and has not
       // already been added to rightColumnContentDiv, else null
       function getFollowingBizcardDivId(bizcardDivId) {
-        if (!isString(bizcardDivId) && bizcardDivId != null);
+        console.assert( isString(bizcardDivId) );
         var index = getBizcardDivIndex(bizcardDivId);
         if (index != null) {
           var followingBizcardDivId = getBizcardDivIdFromIndex(index + 1);
@@ -1532,17 +1541,16 @@
             console.log(`no cardDiv with tagLink found for cardDivId:${cardDivId}`);
           }
           event.stopPropagation();
-
         });
       }
 
 
       function renderAllTranslateableDivsAtLeftColumnCenter() {
-        const leftColumnCenter = getLeftColumnHzCtr();
+        const { leftColumnX, leftColumnY }  = getLeftColumnCtr();
         const translateableDivs = getAllTranslateableCardDivs();
         for (const div of translateableDivs) {
           const divWidth = div.offsetWidth;
-          const trans_dx = leftColumnCenter - divWidth / 2.0;
+          const trans_dx = leftColumnX - divWidth / 2.0;
           const trans_dy = 0;
           const translateStr = `${trans_dx}px ${trans_dy}px`;
           try {
@@ -1577,11 +1585,74 @@
       }
 
       function centerBullsEye() {
-        var top = getLeftColumnVtCtr() - getElementSelfVtCtr(bulls_eye);
-        var left = getLeftColumnHzCtr() - getElementSelfHzCtr(bulls_eye);
-        bulls_eye.style.top = `${top}px`;
-        bulls_eye.style.left = `${left}px`;
+        var top = getLeftColumnVtCtr() - getElementSelfVtCtr(bullsEye);
+        var left = getLeftColumnHzCtr() - getElementSelfHzCtr(bullsEye);
+        bullsEye.style.top = `${top}px`;
+        bullsEye.style.left = `${left}px`;
         // console.log(`bulls-eye top:${top} left:${left}`);
+      }
+
+      // returns the leftCanvas-relative 
+      // location of the focalPoint's origin center
+      function getFocalPointOrigin() {
+        var {leftColumnX, leftColumnY} = getLeftColumnCtr();
+        var originX = leftColumnX;
+        var originY = leftColumnY;
+        return {originX, originY};
+      }
+
+      // returns the current leftCanvas-relative 
+      // location of the focalPoint center
+      function getFocalPoint() {
+        var focalPointX = focalPoint.offsetLeft + focalPoint.offsetWidth/2;
+        var focalPointY = focalPoint.offsetTop + focalPoint.offsetHeight/2;
+       return {focalPointX, focalPointY};
+      }
+
+      function getParallax() {
+        var {originX, originY} = getFocalPointOrigin();
+        var {focalPointX, focalPointY} = getFocalPoint();
+        var parallaxX = originX - focalPointX;
+        var parallaxY = originY - focalPointY;
+        return { parallaxX, parallaxY};
+      }
+
+      function moveFocalPointToOrigin(transitionMillis) {
+        var {originX, originY} = getFocalPointOrigin();
+        moveFocalPointTo(originX, originY, transitionMillis);
+      }
+
+      // move focalPoint to the given leftCanvas-relative location
+      function moveFocalPointTo(x, y, transitionMillis) {
+        var {focalPointX, focalPointY} = getFocalPoint();
+        var newLeft = x - focalPoint.offsetWidth / 2;
+        var newTop = y - focalPoint.offsetHeight / 2;
+        if ( transitionMillis > 0 ) {
+          var dx = x - focalPointX;
+          var dy = y - focalPointY;
+          focalPoint.style.transition = `transform ${transitionMillis}ms`; 
+          focalPoint.style.transform = `translate(${dx}px,${dy}px)`;
+          // how to handleFocalPointMove during transition?
+        } else {
+          focalPoint.style.left = `${newLeft}px`;
+          focalPoint.style.top = `${newTop}px`;
+        }
+        updateAutoScrollVelocity();
+        debugFocalPoint();
+        handleFocalPointMove();
+      }
+
+      function debugFocalPoint() {
+        var {focalPointX, focalPointY} = getFocalPoint();
+        var {parallaxX, parallaxY} = getParallax();
+        debugFocalPointElement.innerHTML = `focalPoint [${focalPointX},${focalPointY}] parallax [${parallaxX},${parallaxY}]`;
+      }
+
+      function moveFocalPointToMouse(mouseX,mouseY) {
+        // adjust relative to tip of default cursor
+        var newY = mouseY - 8;
+        var newX = mouseX - 3;
+        moveFocalPointTo(newX,newY, NO_TRANSITION);
       }
 
       function updateSkillsFromAllTagLinks(allTagLinks) {
@@ -1607,10 +1678,8 @@
         // resize the left-column and the canvas since they don't do it themselves?
         var windowWidth = window.innerWidth;
         var leftColumnWidth = windowWidth / 2;
-
-        document.getElementById("left-column").style.width =
-          leftColumnWidth + "px";
-        document.getElementById("canvas").style.width = leftColumnWidth + "px";
+        leftColumn.style.width = leftColumnWidth + "px";
+        canvas.style.width = leftColumnWidth + "px";
         renderAllTranslateableDivsAtLeftColumnCenter();
         positionGradients();
         centerBullsEye();
@@ -1627,6 +1696,7 @@
       leftColumn.addEventListener('mouseenter', handleMouseEnterLeftColumn);
       leftColumn.addEventListener('mouseleave', handleMouseLeaveLeftColumn);
       leftColumn.addEventListener('scroll', handleLeftColumnScroll);
+      leftColumn.addEventListener('click', handleLeftColumnMouseClick);
 
 
     </script>

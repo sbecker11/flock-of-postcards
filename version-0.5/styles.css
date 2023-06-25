@@ -6,7 +6,9 @@ body {
   overflow: hidden;
 }
 
-#debugElement {
+#debugElement, #focalPointDebugElement {
+  display: block;
+  font-family: Roboto, sans-serif;
   font-size: 12px;
 }
 
@@ -14,6 +16,22 @@ body {
   position: absolute;
   width: 50px;
   height: 50px;
+  border-radius: 50%;
+  border: 2px solid gray;
+  z-index: 99;
+  pointer-events: none;
+  display: flex; /* or inline-flex */
+  align-items: center; 
+  justify-content: center;
+  font-size: 31px;
+  font-weight: 700;
+  color: gray;
+}
+
+#focal-point {
+  position: absolute;
+  width: 25px;
+  height: 25px;
   border-radius: 50%;
   border: 2px solid gray;
   z-index: 99;
