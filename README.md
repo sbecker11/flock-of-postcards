@@ -25,7 +25,7 @@
 
 Features:
 
-* A flock of small skill postcards and larger business postcards float over the left-side canvas column.
+* A flock of small skill postcards and larger business cards float over the left-side canvas column.
 * A timeline is displayed at ground level, to visualize the date range of employment for each business card.
 * A 3-D parallax effect on cards is controlled by the "focalPoint", which tracks the mouse while over the canvas.
 * Add line items to the right-side resume column by selecting business cards.
@@ -41,6 +41,8 @@ Features:
 * Autoscrolling stops when the focalPoint moves to viewport center and when the mouse leaves the canvas.
 * Click on a resume line item's top-right delete button to delete it.
 * Click on the bottom-right green next button to open and select the resume line item for the next business card.
+* Skill postcards inherit the color of its parent business card.
+* Click the underlined text in the description a resume line item of a business card to select and bring that skill postcard into view over the flock.
 
 <br/>
 <br/>
