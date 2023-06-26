@@ -31,7 +31,7 @@ Features:
 * Add line items to the right-side resume column by selecting business cards.
 * Select a postcard or resume line item by clicking it, click again to deselect it.
 * Selected postcards and line-items have a red-dashed border.
-* Once selected, a postcard is temporarily moved above the flock where is not subject to motion parallax.
+* Once selected, a postcard or business card is temporarily moved above the flock where is not subject to motion parallax.
 * Click on a postcard to select and scroll its resume line item into view.
 * Click on a resume line item to select and scroll its postcard into view.
 * The canvas viewport shows "bullseye" with a plus sign at canvas center, where parallax effect is zero.
