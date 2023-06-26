@@ -149,6 +149,10 @@
         const f = (n, k = (n + h / 60) % 6) => v - v * s * Math.max(Math.min(k, 4 - k, 1), 0);
         return [f(5), f(3), f(1)].map(Math.round);
       };
+      const calculateDistance = (x1, y1, x2, y2) => Math.sqrt(Math.pow(x2 - x1, 2) + Math.pow(y2 - y1, 2));
+      const isBetween = (value, min, max) => value >= min && value <= max;
+      const createRect = (x1, y1, x2, y2) => ({ left: Math.min(x1, x2), top: Math.min(y1, y2), right: Math.max(x1, x2), bottom: Math.max(y1, y2) });
+      const isPointInsideRect = (x, y, rect) => x >= rect.left && x <= rect.right && y >= rect.top && y <= rect.bottom;
 
       // --------------------------------------
       // Javascript hacks
@@ -989,9 +993,9 @@
       }
 
       function focalPointInRect(rect) {
-        var { focalPointX, focalPointY } = getFocalPoint();
-        if ( focalPointX >= rect.left && focalPointX <= rect.right ) {
-          if ( focalPointY >= rect.top && focalPointY <= rect.bottom )
+        var { fpX, fpY } = getFocalPoint();
+        if ( fpX >= rect.left && fpX <= rect.right ) {
+          if ( fpY >= rect.top && fpY <= rect.bottom )
             return true;
         }
         return false;
@@ -1007,17 +1011,17 @@
 
       // set autoScrollVelocity based on current focalPoint 
       function updateAutoScrollVelocity() {
-        var { focalPointX, focalPointY } = getFocalPoint();
+        var { fpX, fpY } = getFocalPoint();
         var topHeight = leftColumn.offsetHeight / 4;
         var centerTop = topHeight;
         var centerHeight = topHeight * 2;
         var centerBottom = topHeight + centerHeight;
         var bottomHeight = topHeight;
 
-        if ( focalPointY < centerTop ) {
-          autoScrollVelocity = (focalPointY-centerTop)/topHeight * MAX_AUTOSCROLL_VELOCITY;
-        } else if ( focalPointY > centerBottom ) {
-          autoScrollVelocity = (focalPointY-centerBottom)/bottomHeight * MAX_AUTOSCROLL_VELOCITY;
+        if ( fpY < centerTop ) {
+          autoScrollVelocity = (fpY-centerTop)/topHeight * MAX_AUTOSCROLL_VELOCITY;
+        } else if ( fpY > centerBottom ) {
+          autoScrollVelocity = (fpY-centerBottom)/bottomHeight * MAX_AUTOSCROLL_VELOCITY;
         } else {
           autoScrollVelocity = 0;
         }
@@ -1095,12 +1099,12 @@
 
       function handleMouseEnterLeftColumn(event) {
         isMouseOverLeftColumn = true;
-        moveFocalPointTo(event.clientX, event.clientY,0);
+        easeFocalPointTo(event.clientX, event.clientY);
       }
 
       function handleMouseLeaveLeftColumn(event) {
         isMouseOverLeftColumn = false;
-        moveFocalPointToOrigin(0);
+        easeFocalPointToOrigin();
       }
 
       var lastScrollTop = null;
@@ -1648,55 +1652,57 @@
       // returns the current leftCanvas-relative 
       // location of the focalPoint center
       function getFocalPoint() {
-        var focalPointX = focalPoint.offsetLeft + focalPoint.offsetWidth/2;
-        var focalPointY = focalPoint.offsetTop + focalPoint.offsetHeight/2;
-       return {focalPointX, focalPointY};
+        var fpX = focalPoint.offsetLeft + focalPoint.offsetWidth/2;
+        var fpY = focalPoint.offsetTop + focalPoint.offsetHeight/2;
+       return {fpX, fpY};
       }
 
       function getParallax() {
         var {originX, originY} = getFocalPointOrigin();
-        var {focalPointX, focalPointY} = getFocalPoint();
-        var parallaxX = originX - focalPointX;
-        var parallaxY = originY - focalPointY;
+        var {fpX, fpY} = getFocalPoint();
+        var parallaxX = originX - fpX;
+        var parallaxY = originY - fpY;
         return { parallaxX, parallaxY};
       }
 
-      function moveFocalPointToOrigin(transitionMillis) {
+      function moveFocalPointToOrigin() {
         var {originX, originY} = getFocalPointOrigin();
-        moveFocalPointTo(originX, originY, transitionMillis);
+        moveFocalPointTo(originX, originY);
+      }
+      function easeFocalPointToOrigin() {
+        var {originX, originY} = getFocalPointOrigin();
+        easeFocalPointTo(originX, originY);
       }
 
       // move focalPoint to the given leftCanvas-relative location
-      function moveFocalPointTo(x, y, transitionMillis) {
-        var {focalPointX, focalPointY} = getFocalPoint();
+      function moveFocalPointTo(x, y) {
+        var {fpX, fpY} = getFocalPoint();
         var newLeft = x - focalPoint.offsetWidth / 2;
         var newTop = y - focalPoint.offsetHeight / 2;
-        if ( transitionMillis > 0 ) {
-          var dx = x - focalPointX;
-          var dy = y - focalPointY;
-          focalPoint.style.transition = `transform ${transitionMillis}ms`; 
-          focalPoint.style.transform = `translate(${dx}px,${dy}px)`;
-          // how to handleFocalPointMove during transition?
-        } else {
-          focalPoint.style.left = `${newLeft}px`;
-          focalPoint.style.top = `${newTop}px`;
-        }
+        focalPoint.style.left = `${newLeft}px`;
+        focalPoint.style.top = `${newTop}px`;
         updateAutoScrollVelocity();
         debugFocalPoint();
         handleFocalPointMove();
       }
 
+      function easeFocalPointTo(x, y) {
+        moveFocalPointTo( x, y);
+      }
+
+
+
       function debugFocalPoint() {
-        var {focalPointX, focalPointY} = getFocalPoint();
+        var {fpX, fpY} = getFocalPoint();
         var {parallaxX, parallaxY} = getParallax();
-        debugFocalPointElement.innerHTML = `focalPoint [${focalPointX},${focalPointY}] parallax [${parallaxX},${parallaxY}]`;
+        debugFocalPointElement.innerHTML = `focalPoint [${fpX},${fpY}] parallax [${parallaxX},${parallaxY}]`;
       }
 
       function moveFocalPointToMouse(mouseX,mouseY) {
         // adjust relative to tip of default cursor
         var newY = mouseY - 8;
         var newX = mouseX - 3;
-        moveFocalPointTo(newX,newY, NO_TRANSITION);
+        moveFocalPointTo(newX,newY);
       }
 
       function updateSkillsFromAllTagLinks(allTagLinks) {
@@ -1716,6 +1722,7 @@
         positionGradients();
         leftColumnScrollToYear(TIMELINE_DEFAULT_YEAR);
         centerBullsEye();
+        moveFocalPointToOrigin();
       }
 
       function handleWindowResize() {
