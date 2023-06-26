@@ -42,7 +42,7 @@ Features:
 * Click on a resume line item's top-right delete button to delete it.
 * Click on the bottom-right green next button to open and select the resume line item for the next business card.
 * Skill postcards inherit the color of its parent business card.
-* Click the underlined text in the description a resume line item of a business card to select and bring that skill postcard into view over the flock.
+* Click the underlined text in a business cards resume line item to select and bring that skill postcard into view over the flock.
 
 <br/>
 <br/>
