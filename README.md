@@ -8,9 +8,39 @@
 `cd <your-local-dev-folder>`  
 `git clone git@github.com:sbecker11/flock-of-postcards.git`
 * Go into the latest version folder in the newly downloaded repo  
-`cd flock-of-postcards/version4`  
+`cd flock-of-postcards/version-0.5`  
 * Open this link in your default browser from your shell:  
 `open index.html`  
+
+<br/>
+<br/>
+
+<hr/>
+
+## Version 0.5:   June 26, 2023
+<br/>
+
+<img src="https://shawn.beckerstudio.com/wp-content/uploads/2023/06/flock-of-postcards-version-0.5.png" width="33%" height="33%"/>
+<br/>
+
+Features:
+
+* A flock of small skill postcards and larger business postcards float over the left-side canvas column.
+* A timeline is displayed at ground level, to visualize the date range of employment for each business card.
+* A 3-D parallax effect on cards is controlled by the "focalPoint", which tracks the mouse while over the canvas.
+* Add line items to the right-side resume column by selecting business cards.
+* Select a postcard or resume line item by clicking it, click again to deselect it.
+* Selected postcards and line-items have a red-dashed border.
+* Once selected, a postcard is temporarily moved above the flock where is not subject to motion parallax.
+* Click on a postcard to select and scroll its resume line item into view.
+* Click on a resume line item to select and scroll its postcard into view.
+* The canvas viewport shows "bullseye" with a plus sign at canvas center, where parallax effect is zero.
+* FocalPoint defaults back to the viewport center bullseye when it leaves the canvas.
+* The focalPoint starts tracking the mouse as soon as it re-enters the canvas area.
+* Canvas auto-scrolling starts when the focalPoint is in top or bottom quqrter of the canvas.
+* Autoscrolling stops when the focalPoint moves to viewport center and when the mouse leaves the canvas.
+* Click on a resume line item's top-right delete button to delete it.
+* Click on the bottom-right green next button to open and select the resume line item for the next business card.
 
 <br/>
 <br/>
