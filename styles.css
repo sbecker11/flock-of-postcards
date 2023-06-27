@@ -288,13 +288,13 @@ body {
 
 .card-div-line-item-right-column .card-div-line-item-delete-button {
   background-color: red;
-  background: url("./static_content/big-red-x.gif");
+  background: url("./static_content/icons/big-red-x.gif");
   cursor: pointer;
 }
 
 .card-div-line-item-right-column .card-div-line-item-follow-button {
   background-color: green;
-  background: url("./static_content/green-next.gif");
+  background: url("./static_content/icons/green-next.gif");
   cursor: pointer;
 }
 
