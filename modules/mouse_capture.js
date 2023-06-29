@@ -4,6 +4,7 @@ let canvasElement;
 let yourMouseMoveHandler;
 let callOnStart;
 let callOnFinish;
+let delay = 500;
 
 export function startCapturingMouseMovement(canvas, yourHandler, signalStart, signalFinish) {
     if (!isMouseMoving) {
@@ -20,7 +21,7 @@ export function startCapturingMouseMovement(canvas, yourHandler, signalStart, si
     }
 
     clearTimeout(timeoutId);
-    timeoutId = setTimeout(stopCapturingMouseMovement, 100); // Change the delay as per your requirement
+    timeoutId = setTimeout(stopCapturingMouseMovement, delay); // Change the delay as per your requirement
 }
 
 function stopCapturingMouseMovement() {
@@ -34,5 +35,5 @@ function handleMouseMove(event) {
     let mouseY = event.clientY;
     yourMouseMoveHandler(mouseX, mouseY);
     clearTimeout(timeoutId);
-    timeoutId = setTimeout(stopCapturingMouseMovement, 100); // Change the delay as per your requirement
+    timeoutId = setTimeout(stopCapturingMouseMovement, delay); // Change the delay as per your requirement
 }
