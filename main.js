@@ -4,6 +4,8 @@
 
 import * as utils from './modules/utils.js';
 import * as timeline from './modules/timeline.js';
+import * as mouseCapture from './modules/mouse_capture.js';
+
 
 // --------------------------------------
 // Element reference globals
@@ -42,7 +44,7 @@ const MAX_CARD_POSITION_OFFSET = 200;
 const MEAN_CARD_LEFT = 0;
 const MEAN_CARD_HEIGHT = 75;
 const MEAN_CARD_WIDTH = 100;
-// @ts-ignore
+
 const MAX_CARD_SIZE_OFFSET = 20;
 const CARD_BORDER_WIDTH = 5;
 
@@ -61,13 +63,13 @@ const PARALLAX_Y_EXAGGERATION_FACTOR = 0.1;
 // conversely 
 // zindex = MAX_Z - z.
 const ALL_CARDS_MAX_Z = 15;
-// @ts-ignore
+
 const BIZCARD_MAX_Z = 14;
-// @ts-ignore
+
 const BIZCARD_MIN_Z = 12;
 const CARD_MAX_Z = 8;
 const CARD_MIN_Z = 1;
-// @ts-ignore
+
 const ALL_CARDS_MIN_Z = 1;
 
 // brightness decreases to MIN_BRIGHTNESS_PERCENT as z increases
@@ -124,14 +126,14 @@ function get_filterStr_from_z(z) {
 function isBizcardDiv(cardDiv) {
     return cardDiv != null && cardDiv.classList.contains('bizcard-div') ? true : false;
 }
-// @ts-ignore
+
 function isCardDiv(cardDiv) {
     return cardDiv != null && cardDiv.classList.contains('card-div') ? true : false;
 }
 function isBizcardDivId(cardDivId) {
     return utils.isString(cardDivId) && getBizcardDivIndex(cardDivId) == null ? false : true;
 }
-// @ts-ignore
+
 function isCardDivId(cardDivId) {
     return utils.isString(cardDivId) && getCardDivIndex(cardDivId) == null ? false : true;
 }
@@ -181,9 +183,9 @@ function getNextBizcardDivId() {
 //  
 function createBizcardDivs() {
     var num_valid_rows = 0;
-    // @ts-ignore
+    
     for (let i = 0; i < jobs.length; i++) {
-        // @ts-ignore
+        
         var job = jobs[i];
         var role = job["role"];
         utils.validateString(role);
@@ -202,7 +204,7 @@ function createBizcardDivs() {
         utils.validateString(endYearStr);
         var endMonthStr = jobEnd.split("-")[1];
         utils.validateString(endMonthStr);
-        // @ts-ignore
+        
         var endBottomPx =timeline.getTimelineYearMonthBottom(endYearStr, endMonthStr);
 
         var jobStart = job["start"].trim().replace("-01", "");
@@ -211,7 +213,7 @@ function createBizcardDivs() {
         utils.validateString(startYearStr);
         var startMonthStr = jobStart.split("-")[1];
         utils.validateString(startMonthStr);
-        // @ts-ignore
+        
         var startBottomPx = timeline.getTimelineYearMonthBottom(startYearStr, startMonthStr);
 
         var heightPx = startBottomPx - endBottomPx;
@@ -279,7 +281,7 @@ function createBizcardDivs() {
         // does not select self
         // does not scroll self into view
 
-        // @ts-ignore
+        
         canvas.appendChild(bizcardDiv);
 
         num_valid_rows++;
@@ -293,7 +295,7 @@ function createBizcardDivs() {
 // the global set of tagLinks created while creating all .Bizcard-divs from
 // the list of all `job` objects defined in "static_content/jobs.js"
 var allTagLinks = [];
-// @ts-ignore
+
 function initAllTagLinks() {
     allTagLinks = [];
 }
@@ -339,14 +341,14 @@ function process_bizcard_description_item(bizcardDiv, inputString) {
     console.assert(bizcardDiv != null);
     const tagRegex = /\[(.*?)\]\((.*?)\)/g;
     const newTagLinks = [];
-    // @ts-ignore
+    
     const updatedString = inputString.replace(tagRegex, function (match, text, url) {
         const tagLink = { text, url };
         addCardDivId(bizcardDiv, tagLink);
         newTagLinks.push(tagLink);
         const cardDivId = tagLink['cardDivId'];
         const spanId = `tagLink-${cardDivId}`;
-        // @ts-ignore
+        
         const tagLinkImgUrl = url;
         const tagLinkHtml = text;
         return `<span id="${spanId}" class="tagLink" targetCardDivId="${cardDivId}">${tagLinkHtml}</span>`;
@@ -434,11 +436,11 @@ function createCardDiv(bizcardDiv, tagLink) {
     var cardDiv = document.createElement('div');
     cardDiv.classList.add("card-div");
     cardDiv.id = cardDivId;
-    // @ts-ignore
+    
     canvas.appendChild(cardDiv);
 
     const cardDivIndex = getCardDivIndex(cardDivId) || 0;
-    // @ts-ignore
+    
     const total_vt_distance = timeline.getTimelineHeight();
     const vt_top_to_top = total_vt_distance / ESTIMATED_NUMBER_CARD_DIVS;
     const vt_top = cardDivIndex * vt_top_to_top - vt_top_to_top / 2;
@@ -446,21 +448,21 @@ function createCardDiv(bizcardDiv, tagLink) {
     // card-div tops can be UNIFORMLY REDISTRIBUTED
     // and given random offsets after all card-divs 
     // have been created
-    // @ts-ignore
+    
     const verticalOffset = utils.getRandomInt(-MAX_CARD_POSITION_OFFSET, MAX_CARD_POSITION_OFFSET);
     var top = vt_top + verticalOffset
     cardDiv.style.top = `${top}px`;
 
-    // @ts-ignore
+    
     const horizontalOffset = utils.getRandomInt(-MAX_CARD_POSITION_OFFSET, MAX_CARD_POSITION_OFFSET);
     var left = MEAN_CARD_LEFT + horizontalOffset;
     cardDiv.style.left = `${left}px`;
 
-    // @ts-ignore
+    
     var z = utils.getRandomInt(CARD_MIN_Z, CARD_MAX_Z);
     while (z === prev_z) {
         // Generate a new z if it's the same as the previous one
-        // @ts-ignore
+        
         z = utils.getRandomInt(CARD_MIN_Z, CARD_MAX_Z);
     }
     prev_z = z;
@@ -577,7 +579,7 @@ function copyAttributes(dstDiv, srcDiv, attrs) {
 }
 
 // returns the number of attribute value differences 
-// @ts-ignore
+
 function diffAttributes(dstDiv, srcDiv, attrs) {
     var numErrors = 0;
     for (var i = 0; i < attrs.length; i++) {
@@ -592,39 +594,39 @@ function diffAttributes(dstDiv, srcDiv, attrs) {
     return numErrors;
 }
 
-// @ts-ignore
+
 function animateCardDivTowardsBizcardDiv(cardDivId, bizcardDivId) {
     var cardDiv = document.getElementById(cardDivId);
     var bizcardDiv = document.getElementById(bizcardDivId);
 
-    // @ts-ignore
+    
     var cardOriginalCtrX = parseInt(cardDiv.getAttribute("originalCtrX") || "0");
-    // @ts-ignore
+    
     var cardOriginalCtrY = parseInt(cardDiv.getAttribute("originalCtrY") || "0");
-    // @ts-ignore
+    
     var cardOriginalZ = parseInt(cardDiv.getAttribute("originalZ") || "0");
 
-    // @ts-ignore
+    
     var bizcardOriginalCtrX = parseInt(bizcardDiv.getAttribute("originalCtrX") || "0");
-    // @ts-ignore
+    
     var bizcardOriginalCtrY = parseInt(bizcardDiv.getAttribute("originalCtrY") || "0");
-    // @ts-ignore
+    
     var bizcardOriginalZ = parseInt(bizcardDiv.getAttribute("originalZ") || "0");
 
-    // @ts-ignore
+    
     var deltaX = bizcardOriginalCtrX - cardOriginalCtrX;
-    // @ts-ignore
+    
     var deltaY = bizcardOriginalCtrY - cardOriginalCtrY;
 }
 
-// @ts-ignore
+
 function animateCardDivToOriginalPosition(cardDivId) {
     var cardDiv = document.getElementById(cardDivId);
-    // @ts-ignore
+    
     var originalTop = parseInt(cardDiv.getAttribute("originalTop") || "0");
-    // @ts-ignore
+    
     var originalLeft = parseInt(cardDiv.getAttribute("originalLeft") || "0");
-    // @ts-ignore
+    
     var originalZ = parseInt(cardDiv.getAttribute("originalZ") || "0");
 
 }
@@ -634,27 +636,27 @@ var selected_image_paths = [];
 var invalid_image_paths = [];
 
 // returns { image_src, width, height } or null
-// @ts-ignore
+
 function select_random_img_src() {
 
     // immedately return null if image_paths are not available
-    // @ts-ignore
+    
     if ((typeof image_paths === 'undefined') ||
-        // @ts-ignore
+        
         (image_paths == null) ||
-        // @ts-ignore
+        
         (image_paths.length == 0)) {
         return null;
     }
 
-    // @ts-ignore
+    
     if (selected_image_paths.length + invalid_image_paths.length === image_paths.length) {
         return null; // All image paths have been selected or marked as invalid
     }
     while (true) {
-        // @ts-ignore
+        
         const randomIndex = Math.floor(Math.random() * image_paths.length);
-        // @ts-ignore
+        
         const filePath = image_paths[randomIndex];
 
         if (!selected_image_paths.includes(filePath) && !invalid_image_paths.includes(filePath)) {
@@ -666,11 +668,11 @@ function select_random_img_src() {
                 invalid_image_paths.push(filePath);
                 continue;
             }
-            // @ts-ignore
+            
             const name = match[1];
             const random_img_width = parseInt(match[2]);
             const random_img_height = parseInt(match[3]);
-            // @ts-ignore
+            
             const extension = match[4];
             selected_image_paths.push(filePath);
             const random_img_src = filePath;
@@ -683,7 +685,7 @@ function select_random_img_src() {
 // of if an actual image file cannot be loaded using that url.
 // Otherwise returns an object with real values
 // 
-// @ts-ignore
+
 function get_real_img_src_from_img_url(img_url) {
     // return { real_img_src, real_img_width, real_img_height };
     return null;
@@ -708,7 +710,7 @@ function get_real_img_src_from_img_url(img_url) {
  *
  * @return {string} Return a string with format "12.02px -156.79px"
  */
-// @ts-ignore
+
 function getZTranslateStr(dh, dv, z, leftColumn_dx, leftColumn_dy) {
     // z ranges from 0 (closest) to viewer to MAX_Z furthest from viewer
     // zindex ranges MAX_Z (closest to viewer) to 1 furthest from viewer
@@ -725,25 +727,25 @@ function getZTranslateStr(dh, dv, z, leftColumn_dx, leftColumn_dy) {
 
 // leftColumn's self-relative center
 function getLeftColumnCtr() {
-    // @ts-ignore
+    
     var leftColumnX = leftColumn.offsetWidth / 2;
-    // @ts-ignore
+    
     var leftColumnY = leftColumn.offsetHeight / 2;
     return { leftColumnX, leftColumnY };
 }
 // leftColumn's self-relative horizontal center
 function getLeftColumnHzCtr() {
-    // @ts-ignore
+    
     return leftColumn.offsetWidth / 2;
 }
 // leftColumn's self-relative vertical center
 function getLeftColumnVtCtr() {
-    // @ts-ignore
+    
     return leftColumn.offsetHeight / 2;
 }
 
 // element's leftColumn-relative center
-// @ts-ignore
+
 function getElementCtr(element) {
     var elementX = (element.offsetLeft + element.offsetWidth) / 2;
     var elementY = (element.offsetTop + element.offsetHeight) / 2;
@@ -769,12 +771,12 @@ function getAllTranslateableCardDivs() {
     var allDivs = [];
     allDivs = Array.prototype.concat.apply(
         allDivs,
-        // @ts-ignore
+        
         canvas.getElementsByClassName("bizcard-div")
     );
     allDivs = Array.prototype.concat.apply(
         allDivs,
-        // @ts-ignore
+        
         canvas.getElementsByClassName("card-div")
     );
     return allDivs;
@@ -816,10 +818,56 @@ function applyParallax() {
 }
 
 function handleLeftColumnMouseMove(event) {
-    moveFocalPointToMouse(event.clientX, event.clientY);
-}
+    console.log("starting mouseCapture");
 
-// @ts-ignore
+    mouseCapture.startCapturingMouseMovement(
+        leftColumn, 
+        function handleMouseMotion ( mouseX, mouseY) {
+            function animate() {
+                // console.log(`animate:${mouseX}.${mouseY}`);
+    
+                var { fpX, fpY } = getFocalPoint();
+        
+                // Calculate the distance between the current and target position
+                const dx = mouseX - fpX;
+                const dy = mouseY - fpY;
+        
+                // Calculate the easing values
+                const ease = 0.1;
+                const easingX = dx * ease;
+                const easingY = dy * ease;
+        
+                // Update the current position with easing
+                fpX += easingX;
+                fpY += easingY;
+        
+                // Apply the new position to the element
+                focalPoint.style.transform = `translate(${fpX}px, ${fpY}px)`;
+        
+                // Keep animating until the current position reaches the target position
+                if (Math.abs(dx) > 1 || Math.abs(dy) > 1) {
+                    window.requestAnimationFrame(animate);
+                }
+            }
+            // Start the animation
+            animate();
+    
+        },
+        function signalStart() {
+            console.log("signalStart");
+            removeLeftColumnEventListeners();
+        },
+        function signalFinish() {
+            restoreLeftColumnEventListeners();
+        }
+    );
+
+}
+    
+
+
+
+
 function focalPointInRect(rect) {
     var { fpX, fpY } = getFocalPoint();
     if (fpX >= rect.left && fpX <= rect.right) {
@@ -839,9 +887,11 @@ const AUTOSCROLL_CHANGE_THRESHOLD = 2.0;
 
 // set autoScrollVelocity based on current focalPoint 
 function updateAutoScrollVelocity() {
-    // @ts-ignore
+    // IMMEDIATE RETURN
+    return;
+    
     var { fpX, fpY } = getFocalPoint();
-    // @ts-ignore
+    
     var topHeight = leftColumn.offsetHeight / 4;
     var centerTop = topHeight;
     var centerHeight = topHeight * 2;
@@ -861,6 +911,8 @@ function updateAutoScrollVelocity() {
 // parallax transformations to all 
 // transformable elements
 function handleFocalPointMove() {
+    // IMMEDIATE RETURN
+    return;
 
     updateAutoScrollVelocity();
 
@@ -880,22 +932,22 @@ function handleFocalPointMove() {
                 autoScrollingInterval = setInterval(function () {
 
                     // apply the velocity
-                    // @ts-ignore
+                    
                     var currentScrollTop = leftColumn.scrollTop;
                     var newScrollTop = currentScrollTop + autoScrollVelocity;
 
                     // clamp newScrollTop to the boundaries
                     var minScrollTop = 0;
-                    // @ts-ignore
+                    
                     var maxScrollTop = leftColumn.scrollHeight - leftColumn.clientHeight;
-                    // @ts-ignore
+                    
                     newScrollTop = utils.clamp(newScrollTop, minScrollTop, maxScrollTop);
 
                     // if there is room to scroll 
-                    // @ts-ignore
+                    
                     if (Math.abs(leftColumn.scrollTop - newScrollTop) > 0) {
                         // go ahead and scroll
-                        // @ts-ignore
+                        
                         leftColumn.scrollTop = newScrollTop;
                     } else {
                         //  we've reached a boundary so 
@@ -926,12 +978,11 @@ function debugScrolling(event, scrollable, scrollVelocityType, scrollVelocity) {
     if (scrollVelocityType != null && scrollVelocity != null)
         html += `${scrollVelocityType}:${scrollVelocity}<br/>`;
 
-    // @ts-ignore
     debugElement.innerHTML = html;
 }
 
 // Display mouse position and delta coordinates in the right-message-div  
-// @ts-ignore
+
 var isMouseOverLeftColumn = false;
 
 function handleMouseEnterLeftColumn(event) {
@@ -939,7 +990,7 @@ function handleMouseEnterLeftColumn(event) {
     easeFocalPointTo(event.clientX, event.clientY);
 }
 
-// @ts-ignore
+
 function handleMouseLeaveLeftColumn(event) {
     isMouseOverLeftColumn = false;
     easeFocalPointToOrigin();
@@ -948,14 +999,17 @@ function handleMouseLeaveLeftColumn(event) {
 var lastScrollTop = null;
 var lastScrollTime = null;
 
-// @ts-ignore
+
 function handleLeftColumnScroll(scrollEvent) {
+    // IMMEDIATE RETURN
+    return;
+
     var thisTime = (new Date()).getTime();
-    // @ts-ignore
+    
     var thisScrollTop = leftColumn.scrollTop;
     var deltaTime = (lastScrollTime != null) ? (thisTime - lastScrollTime) : null;
     var deltaTop = (lastScrollTop != null) ? (thisScrollTop - lastScrollTop) : null;
-    // @ts-ignore
+    
     var scrollVelocity = (deltaTime && deltaTop) ? (deltaTop) / (deltaTime) : "?";
     debugScrolling("scroll", leftColumn, "scrollVelocity", `${deltaTop}/${deltaTime}`);
     lastScrollTime = thisTime;
@@ -967,22 +1021,13 @@ function handleLeftColumnScroll(scrollEvent) {
 // leftColumn_wheel_dh ==  leftColumn_mouse_dh
 // leftColumn_wheel_dv ==  leftColumn_mouse_dv
 // when mouse wheel is scrolling
-// @ts-ignore
+
 var wheelLastY = null;
-// @ts-ignore
+
 var wheelLastTime = null;
 
 function handleLeftColumnWheel(wheelEvent) {
-
     moveFocalPointToMouse(wheelEvent.clientX, wheelEvent.clientY);
-
-    // var thisTime = (new Date()).getTime();
-    // var deltaTime = (wheelLastTime != null) ? (thisTime-wheelLastTime) : null;
-    // var deltaY = (wheelLastY != null) ? (mouseY - wheelLastY) : null;
-    // var wheelVelocity = (deltaTime && deltaY) ? (deltaY)/(deltaTime) : "?";
-    // debugScrolling("wheel", leftColumn, "wheelVelocity", wheelVelocity);
-    // wheelLastTime =  thisTime;
-    // wheelLastY = mouseY;
 }
 
 // handle mouse enter event for any div element with
@@ -993,8 +1038,6 @@ function handleCardDivMouseEnter(event, cardClass) {
         setSelectedStyle(targetCardDiv);
     }
 }
-
-
 
 function handleLeftColumnMouseClick() {
     deselectTheSelectedCardDiv();
@@ -1043,13 +1086,13 @@ const SELECTED_CARD_DIV_Z = -10;
 const SELECTED_CARD_DIV_ZINDEX_STR = get_zIndexStr_from_z(SELECTED_CARD_DIV_Z);
 const SELECTED_CARD_DIV_FILTER_STR = get_filterStr_from_z(SELECTED_CARD_DIV_Z);
 
-// @ts-ignore
+
 const DEFAULT_TRANSITION_MILLIS = 2000;
-// @ts-ignore
+
 const NO_TRANSITION = 0;
-// @ts-ignore
+
 const NO_TIMEOUT = 0;
-// @ts-ignore
+
 const DEFAULT_SCROLL_INTO_VIEW_OPTIONS = { behavior: 'smooth', block: 'center', inline: 'center' };
 
 function selectTheCardDiv(cardDiv) {
@@ -1304,7 +1347,7 @@ function addCardDivLineItem(targetCardDivId) {
 
         cardDivLineItem.appendChild(cardDivLineItemContent);
         cardDivLineItem.appendChild(cardDivLineItemRightColumn);
-        // @ts-ignore
+        
         rightContentDiv.appendChild(cardDivLineItem);
 
         // find all .tagLinks of this cardDivLineItem
@@ -1315,7 +1358,7 @@ function addCardDivLineItem(targetCardDivId) {
         }
     } else {
         console.log(`returning preexisting cardDivLineItem for targetCardDivId:${targetCardDivId}`);
-        // @ts-ignore
+        
         cardDivLineItem = existingCardDivLineItem
     }
     // does not select self
@@ -1328,9 +1371,9 @@ function addCardDivLineItem(targetCardDivId) {
 // return the cardDivLineItem in rightCOntentDiv for cardDivId or null if not found
 function getCardDivLineItem(cardDivId) {
     console.assert(utils.isString(cardDivId));
-    // @ts-ignore
+    
     for (var i = 0; i < rightContentDiv.children.length; i++) {
-        // @ts-ignore
+        
         var child = rightContentDiv.children[i];
         if (child.className == "card-div-line-item") {
             if (child.hasAttribute("targetCardDivId") &&
@@ -1352,18 +1395,18 @@ function addCardDivLineItemFollowingButtonClickHandler(cardDivLineItemFollowingB
         var cardDivLineItem = event.target.parentElement.parentElement;
         console.assert(cardDivLineItem != null && cardDivLineItem.classList.contains("card-div-line-item"));
         var cardDiv = getCardDivOfCardDivLineItem(cardDivLineItem);
-        // @ts-ignore
+        
         var followingBizcardDivId = getFollowingBizcardDivId(cardDiv.id);
         console.assert(isBizcardDivId(followingBizcardDivId));
-        // @ts-ignore
+        
         var followingBizcardDiv = document.getElementById(followingBizcardDivId);
         console.assert(isBizcardDiv(followingBizcardDiv));
 
         // select the followingBizcardDiv
         selectTheCardDiv(followingBizcardDiv);
-        // @ts-ignore
+        
         console.log(`scrollIntoView id:${followingBizcardDiv.id}`);
-        // @ts-ignore
+        
         followingBizcardDiv.scrollIntoView(DEFAULT_SCROLL_INTO_VIEW_OPTIONS);
 
         // find or add the nextCardDivLineItem
@@ -1425,7 +1468,7 @@ function addTagLinkClickListener(tagLink) {
             selectTheCardDiv(cardDiv);
             // does scroll cardDiv into view
             console.log(`scrollIntoView id:${cardDiv.id}`);
-            // @ts-ignore
+            
             cardDiv.scrollIntoView(DEFAULT_SCROLL_INTO_VIEW_OPTIONS);
         } else {
             console.log(`no cardDiv with tagLink found for cardDivId:${cardDivId}`);
@@ -1436,7 +1479,6 @@ function addTagLinkClickListener(tagLink) {
 
 
 function renderAllTranslateableDivsAtLeftColumnCenter() {
-    // @ts-ignore
     const { leftColumnX, leftColumnY } = getLeftColumnCtr();
     const translateableDivs = getAllTranslateableCardDivs();
     for (const div of translateableDivs) {
@@ -1455,37 +1497,29 @@ function renderAllTranslateableDivsAtLeftColumnCenter() {
 }
 
 function positionGradients() {
-    // @ts-ignore
     const canvasHeight = canvas.scrollHeight;
-    // @ts-ignore
     const bottomGradientHeight = bottomGradient.offsetHeight;
-    // @ts-ignore
     bottomGradient.style.top = `${canvasHeight - bottomGradientHeight}px`;
 }
 
-// @ts-ignore
+
 function rightContentScrollToBottom() {
-    // @ts-ignore
     rightContentDiv.scrollTop = rightContentDiv.scrollHeight;
 }
 
-// @ts-ignore
+
 function leftColumnScrollToTop() {
-    // @ts-ignore
     leftColumn.scrollTo({ top: 0, behavior: 'smooth' });
 }
-// @ts-ignore
+
 function leftColumnScrollToBottom() {
-    // @ts-ignore
     leftColumn.scrollTo({ top: leftColumn.scrollHeight, behavior: 'smooth' });
 }
 
 function centerBullsEye() {
     var top = getLeftColumnVtCtr() - getElementSelfVtCtr(bullsEye);
     var left = getLeftColumnHzCtr() - getElementSelfHzCtr(bullsEye);
-    // @ts-ignore
     bullsEye.style.top = `${top}px`;
-    // @ts-ignore
     bullsEye.style.left = `${left}px`;
     // console.log(`bulls-eye top:${top} left:${left}`);
 }
@@ -1502,9 +1536,7 @@ function getFocalPointOrigin() {
 // returns the current leftCanvas-relative 
 // location of the focalPoint center
 function getFocalPoint() {
-    // @ts-ignore
     var fpX = focalPoint.offsetLeft + focalPoint.offsetWidth / 2;
-    // @ts-ignore
     var fpY = focalPoint.offsetTop + focalPoint.offsetHeight / 2;
     return { fpX, fpY };
 }
@@ -1528,17 +1560,11 @@ function easeFocalPointToOrigin() {
 
 // move focalPoint to the given leftCanvas-relative location
 function moveFocalPointTo(x, y) {
-    // @ts-ignore
     var { fpX, fpY } = getFocalPoint();
-    // @ts-ignore
     var newLeft = x - focalPoint.offsetWidth / 2;
-    // @ts-ignore
     var newTop = y - focalPoint.offsetHeight / 2;
-    // @ts-ignore
     focalPoint.style.left = `${newLeft}px`;
-    // @ts-ignore
     focalPoint.style.top = `${newTop}px`;
-    updateAutoScrollVelocity();
     debugFocalPoint();
     handleFocalPointMove();
 }
@@ -1547,28 +1573,27 @@ function easeFocalPointTo(x, y) {
     moveFocalPointTo(x, y);
 }
 
-
-
 function debugFocalPoint() {
+    var { originX, originY } = getFocalPointOrigin();
     var { fpX, fpY } = getFocalPoint();
     var { parallaxX, parallaxY } = getParallax();
-    // @ts-ignore
-    debugFocalPointElement.innerHTML = `focalPoint [${fpX},${fpY}] parallax [${parallaxX},${parallaxY}]`;
+    
+    debugFocalPointElement.innerHTML = `org:${originX},${originY} fp:[${fpX},${fpY}] px:[${parallaxX},${parallaxY}]`;
 }
 
 function moveFocalPointToMouse(mouseX, mouseY) {
     // adjust relative to tip of default cursor
-    var newY = mouseY - 8;
-    var newX = mouseX - 3;
+    var newX = mouseX+1;
+    var newY = mouseY+1;
     moveFocalPointTo(newX, newY);
 }
 
-// @ts-ignore
+
 function updateSkillsFromAllTagLinks(allTagLinks) {
     if (allTagLinks && allTagLinks.length > 0) {
         const html = allTagLinks.map((list) => list.text).join(BULLET_JOINER);
         const skills = document.getElementById("skills");
-        // @ts-ignore
+        
         skills.innerHTML = html;
     } else {
         console.log("no skills yet");
@@ -1589,9 +1614,9 @@ function handleWindowResize() {
     // resize the left-column and the canvas since they don't do it themselves?
     var windowWidth = window.innerWidth;
     var leftColumnWidth = windowWidth / 2;
-    // @ts-ignore
+    
     leftColumn.style.width = leftColumnWidth + "px";
-    // @ts-ignore
+    
     canvas.style.width = leftColumnWidth + "px";
     renderAllTranslateableDivsAtLeftColumnCenter();
     positionGradients();
@@ -1603,23 +1628,49 @@ console.log("WELCOME");
 // Attach event listeners
 window.addEventListener("load", handleWindowLoad);
 window.addEventListener("resize", handleWindowResize);
-// @ts-ignore
-leftColumn.addEventListener("mousemove", handleLeftColumnMouseMove);
-// @ts-ignore
-leftColumn.addEventListener("load", handleLeftColumnMouseMove);
-// @ts-ignore
-leftColumn.addEventListener("wheel", handleLeftColumnWheel, {
-    passive: true,
-});
-// @ts-ignore
-leftColumn.addEventListener('mouseenter', handleMouseEnterLeftColumn);
-// @ts-ignore
-leftColumn.addEventListener('mouseleave', handleMouseLeaveLeftColumn);
-// @ts-ignore
-leftColumn.addEventListener('scroll', handleLeftColumnScroll);
-// @ts-ignore
-leftColumn.addEventListener('click', handleLeftColumnMouseClick);
+
+var leftColumnEventListeners = [];
+
+function addLeftColumnEventListener(eventType, listener, options) {
+    leftColumnEventListeners.push({eventType, listener, options});
+    leftColumn.addEventListener(eventType, listener, options);
+}
+
+function removeLeftColumnEventListeners() {
+    for ( let i=0; i<leftColumnEventListeners.length; i++ ) {
+        let listener = leftColumnEventListeners[i];
+        if ( listener.options != null )
+            leftColumn.removeEventListener(listener.eventType, listener.listener, listener.options);
+        else
+            leftColumn.removeEventListener(listener.eventType, listener.listener);
+    }
+}
+
+function restoreLeftColumnEventListeners() {
+    for ( let i=0; i<leftColumnEventListeners.length; i++ ) {
+        let listener = leftColumnEventListeners[i];
+        if ( listener.options != null )
+            leftColumn.addEventListener(listener.eventType, listener.listener, listener.options);
+        else
+            leftColumn.addEventListener(listener.eventType, listener.listener);
+    }
+}
 
 
-// @ts-ignore
+addLeftColumnEventListener("mousemove", handleLeftColumnMouseMove);
+
+addLeftColumnEventListener("load", handleLeftColumnMouseMove);
+
+addLeftColumnEventListener("wheel", handleLeftColumnWheel, {passive: true});
+
+addLeftColumnEventListener('mouseenter', handleMouseEnterLeftColumn);
+
+addLeftColumnEventListener('mouseleave', handleMouseLeaveLeftColumn);
+
+addLeftColumnEventListener('scroll', handleLeftColumnScroll);
+
+addLeftColumnEventListener('click', handleLeftColumnMouseClick);
+
+
+
 
