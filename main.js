@@ -817,8 +817,21 @@ function applyParallax() {
     }
 }
 
+var timeStart = null;
+var timeFinish = null;
+
+function setTimeStart() {
+    timeStart = (new Date()).getTime();
+}
+function setTimeFinish() {
+    timeFinish = (new Date()).getTime();
+}
+function getTimeElapsed() {
+    return timeFinish - timeStart;
+}
+
 function handleLeftColumnMouseMove(event) {
-    console.log("starting mouseCapture");
+    //console.log("starting mouseCapture");
 
     mouseCapture.startCapturingMouseMovement(
         leftColumn, 
@@ -833,7 +846,7 @@ function handleLeftColumnMouseMove(event) {
                 const dy = mouseY - fpY;
         
                 // Calculate the easing values
-                const ease = 0.1;
+                const ease = 1.0;
                 const easingX = dx * ease;
                 const easingY = dy * ease;
         
@@ -854,10 +867,14 @@ function handleLeftColumnMouseMove(event) {
     
         },
         function signalStart() {
+            setTimeStart();
             console.log("signalStart");
             removeLeftColumnEventListeners();
         },
         function signalFinish() {
+            setTimeFinish();
+            console.log("signalFinish with elapsedTime", getTimeElapsed());
+
             restoreLeftColumnEventListeners();
         }
     );
