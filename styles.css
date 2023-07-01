@@ -19,7 +19,7 @@ body {
   height: 50px;
   border-radius: 50%;
   border: 2px solid gray;
-  z-index: 99;
+  z-index: 98;
   pointer-events: none;
   display: flex; /* or inline-flex */
   align-items: center; 

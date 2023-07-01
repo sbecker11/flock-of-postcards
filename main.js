@@ -727,9 +727,7 @@ function getZTranslateStr(dh, dv, z, leftColumn_dx, leftColumn_dy) {
 
 // leftColumn's self-relative center
 function getLeftColumnCtr() {
-    
     var leftColumnX = leftColumn.offsetWidth / 2;
-    
     var leftColumnY = leftColumn.offsetHeight / 2;
     return { leftColumnX, leftColumnY };
 }
@@ -820,14 +818,21 @@ function applyParallax() {
 var timeStart = null;
 var timeFinish = null;
 
-function setTimeStart() {
-    timeStart = (new Date()).getTime();
-}
-function setTimeFinish() {
-    timeFinish = (new Date()).getTime();
-}
-function getTimeElapsed() {
-    return timeFinish - timeStart;
+//function setTimeStart() {
+//    timeStart = (new Date()).getTime();
+//}
+//function setTimeFinish() {
+//    timeFinish = (new Date()).getTime();
+//}
+//function getTimeElapsed() {
+//    return timeFinish - timeStart;
+//}
+
+let theMouseX;
+let theMouseY;
+
+function getTheMouse() {
+    return { theMouseX, theMouseY };
 }
 
 function handleLeftColumnMouseMove(event) {
@@ -836,6 +841,10 @@ function handleLeftColumnMouseMove(event) {
     mouseCapture.startCapturingMouseMovement(
         leftColumn, 
         function handleMouseMotion ( mouseX, mouseY) {
+            theMouseX = mouseX;
+            theMouseY = mouseY;
+            console.log(`handleMouseMotion ${theMouseX} ${theMouseY}`);
+
             function animate() {
                 // console.log(`animate:${mouseX}.${mouseY}`);
     
@@ -867,13 +876,13 @@ function handleLeftColumnMouseMove(event) {
     
         },
         function signalStart() {
-            setTimeStart();
-            console.log("signalStart");
+            //setTimeStart();
+            //console.log("signalStart");
             removeLeftColumnEventListeners();
         },
         function signalFinish() {
-            setTimeFinish();
-            console.log("signalFinish with elapsedTime", getTimeElapsed());
+            //setTimeFinish();
+            //console.log("signalFinish with elapsedTime", getTimeElapsed());
 
             restoreLeftColumnEventListeners();
         }
@@ -1018,6 +1027,7 @@ var lastScrollTime = null;
 
 
 function handleLeftColumnScroll(scrollEvent) {
+
     // IMMEDIATE RETURN
     return;
 
@@ -1031,6 +1041,7 @@ function handleLeftColumnScroll(scrollEvent) {
     debugScrolling("scroll", leftColumn, "scrollVelocity", `${deltaTop}/${deltaTime}`);
     lastScrollTime = thisTime;
     lastScrollTop = thisScrollTop;
+
 }
 
 // calculates dh,dv parallax when
@@ -1591,11 +1602,12 @@ function easeFocalPointTo(x, y) {
 }
 
 function debugFocalPoint() {
+    var { theMouseX, theMouseY } = getTheMouse();
     var { originX, originY } = getFocalPointOrigin();
     var { fpX, fpY } = getFocalPoint();
     var { parallaxX, parallaxY } = getParallax();
     
-    debugFocalPointElement.innerHTML = `org:${originX},${originY} fp:[${fpX},${fpY}] px:[${parallaxX},${parallaxY}]`;
+    debugFocalPointElement.innerHTML = `mm:[${theMouseX},${theMouseY}] org:${originX},${originY} fp:[${fpX},${fpY}] px:[${parallaxX},${parallaxY}]`;
 }
 
 function moveFocalPointToMouse(mouseX, mouseY) {
@@ -1620,8 +1632,8 @@ function updateSkillsFromAllTagLinks(allTagLinks) {
 const DEFAULT_TIMELINE_YEAR = 2023;
 function handleWindowLoad() {
     timeline.createTimeline(timelineContainer, leftColumn, DEFAULT_TIMELINE_YEAR);
-    createBizcardDivs();
-    renderAllTranslateableDivsAtLeftColumnCenter();
+    //createBizcardDivs();
+    //renderAllTranslateableDivsAtLeftColumnCenter();
     positionGradients();
     centerBullsEye();
     moveFocalPointToOrigin();
