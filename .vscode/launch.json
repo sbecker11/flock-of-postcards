@@ -5,16 +5,13 @@
     "version": "0.2.0",
     "configurations": [
 
-    {
-        "name": "Launch Chrome",
-        "request": "launch",
-        "type": "chrome",
-        "url": "http://localhost:8080/file.html",
-        "webRoot": "${workspaceFolder}"
-    },
-
-
-
+        {
+            "name": "Launch Chrome",
+            "request": "launch",
+            "type": "chrome",
+            "url": "http://localhost:5500/index.html",
+            "webRoot": "${workspaceFolder}"
+        },
         {
             "name": "size_images",
             "type": "python",
