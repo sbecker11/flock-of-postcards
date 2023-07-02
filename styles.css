@@ -45,12 +45,12 @@ body {
   color: gray;
 }
 
-#left-container {
+#main-container {
   display: flex;
   height: 100%;
 }
 
-#left-column {
+#canvas-container {
   flex: 1;
   height: 100%;
   overflow-y: scroll; 
@@ -60,7 +60,7 @@ body {
   background-color: black;
 }
 
-#left-column::-webkit-scrollbar {
+#canvas-container::-webkit-scrollbar {
   display: none; /* Hide scrollbar for Chrome, Safari, and Opera */
 }
 
@@ -87,60 +87,6 @@ body {
   pointer-events: none;
 }
 
-#timeline-container {
-  position: absolute;
-  z-index: 0;
-  width: 200px;
-  top: 0px;
-  bottom: 0px;
-  pointer-events: none;
-}
-.timeline-container-left {
-  left: 0px;
-}
-.timeline-container-right {
-  right: 0px;
-}
-
-.year-div, .year-div-right, .year-div-left {
-  position: absolute;
-  font-family: "Roboto", sans-serif;
-  font-weight: bold;
-  color: #444444;
-  border-bottom : 1px solid #444444;
-  pointer-events: none;
-}
-
-.year-div-right {
-  text-align: left; /* should have trailing &nbsp; */
-  right: 40px;
-  width: 120px;
-}
-
-.year-div-left {
-  text-align: right; /* should have leading &nbsp; */
-  left: 40px;
-  width: 120px;
-}
-
-.month-tick, .month-tick-left, .month-tick-right {
-  position: absolute;
-  font-family: "Roboto", sans-serif;
-  color: #666666;
-  border-bottom: 1px dashed #666666;
-  pointer-events: none;
-  width: 40px;
-}
-
-.month-tick-left {
-  text-align: right;
-  left: 5px;
-}
-
-.month-tick-right {
-  text-align: left;
-  right: 5px;
-}
 
 .bizcard-div {
   position: absolute;
@@ -243,7 +189,7 @@ body {
 }
 
 #right-footer-div {
-  height: 100px;
+  height: 120px;
   background-color: #999999;
   padding: 10px;
 }

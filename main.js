@@ -1,24 +1,22 @@
 
-// @ts-check
+// @ts-nocheck
 'use strict';
 
 import * as utils from './modules/utils.js';
 import * as timeline from './modules/timeline.js';
-import * as mouseCapture from './modules/mouse_capture.js';
+import * as focalPoint from './modules/focal_point.js';
 
 
 // --------------------------------------
 // Element reference globals
 
-const timelineContainer = document.getElementById("timeline-containr");
 const rightContentDiv = document.getElementById("right-content-div");
 const debugElement = document.getElementById("debugElement");
 const debugFocalPointElement = document.getElementById("debugFocalPointElement");
-const leftColumn = document.getElementById("left-column");
+const canvasContainer = document.getElementById("canvas-container");
 const canvas = document.getElementById("canvas");
 const bottomGradient = document.getElementById("bottom-gradient");
 const bullsEye = document.getElementById("bulls-eye");
-const focalPoint = document.getElementById("focal-point");
 
 // --------------------------------------
 // Miscellaneous globals
@@ -119,21 +117,18 @@ function get_filterStr_from_z(z) {
     return filterStr;
 }
 
-
 // --------------------------------------
 // BizcardDiv and cardDiv functions
 
 function isBizcardDiv(cardDiv) {
     return cardDiv != null && cardDiv.classList.contains('bizcard-div') ? true : false;
 }
-
 function isCardDiv(cardDiv) {
     return cardDiv != null && cardDiv.classList.contains('card-div') ? true : false;
 }
 function isBizcardDivId(cardDivId) {
     return utils.isString(cardDivId) && getBizcardDivIndex(cardDivId) == null ? false : true;
 }
-
 function isCardDivId(cardDivId) {
     return utils.isString(cardDivId) && getCardDivIndex(cardDivId) == null ? false : true;
 }
@@ -182,6 +177,9 @@ function getNextBizcardDivId() {
 // the shared "skills" from the narrative pf each.
 //  
 function createBizcardDivs() {
+    return;
+    // RETURN IMMEDIATELY
+
     var num_valid_rows = 0;
     
     for (let i = 0; i < jobs.length; i++) {
@@ -286,7 +284,6 @@ function createBizcardDivs() {
 
         num_valid_rows++;
     }
-    // renderAllTranslateableDivsAtLeftColumnCenter();
 }
 
 // --------------------------------------
@@ -559,7 +556,7 @@ function createCardDiv(bizcardDiv, tagLink) {
     // does not select self
     // does not scroll self into view
 
-    renderAllTranslateableDivsAtLeftColumnCenter();
+    renderAllTranslateableDivsAtCanvasContainerCenter();
 
     cardDiv.setAttribute("tagLinkText", tagLink["text"]);
     cardDiv.setAttribute("tagLinkUrl", tagLink["url"]);
@@ -579,7 +576,6 @@ function copyAttributes(dstDiv, srcDiv, attrs) {
 }
 
 // returns the number of attribute value differences 
-
 function diffAttributes(dstDiv, srcDiv, attrs) {
     var numErrors = 0;
     for (var i = 0; i < attrs.length; i++) {
@@ -594,53 +590,14 @@ function diffAttributes(dstDiv, srcDiv, attrs) {
     return numErrors;
 }
 
-
-function animateCardDivTowardsBizcardDiv(cardDivId, bizcardDivId) {
-    var cardDiv = document.getElementById(cardDivId);
-    var bizcardDiv = document.getElementById(bizcardDivId);
-
-    
-    var cardOriginalCtrX = parseInt(cardDiv.getAttribute("originalCtrX") || "0");
-    
-    var cardOriginalCtrY = parseInt(cardDiv.getAttribute("originalCtrY") || "0");
-    
-    var cardOriginalZ = parseInt(cardDiv.getAttribute("originalZ") || "0");
-
-    
-    var bizcardOriginalCtrX = parseInt(bizcardDiv.getAttribute("originalCtrX") || "0");
-    
-    var bizcardOriginalCtrY = parseInt(bizcardDiv.getAttribute("originalCtrY") || "0");
-    
-    var bizcardOriginalZ = parseInt(bizcardDiv.getAttribute("originalZ") || "0");
-
-    
-    var deltaX = bizcardOriginalCtrX - cardOriginalCtrX;
-    
-    var deltaY = bizcardOriginalCtrY - cardOriginalCtrY;
-}
-
-
-function animateCardDivToOriginalPosition(cardDivId) {
-    var cardDiv = document.getElementById(cardDivId);
-    
-    var originalTop = parseInt(cardDiv.getAttribute("originalTop") || "0");
-    
-    var originalLeft = parseInt(cardDiv.getAttribute("originalLeft") || "0");
-    
-    var originalZ = parseInt(cardDiv.getAttribute("originalZ") || "0");
-
-}
-
 // these are used by select_random_img_src
 var selected_image_paths = [];
 var invalid_image_paths = [];
 
 // returns { image_src, width, height } or null
-
 function select_random_img_src() {
 
     // immedately return null if image_paths are not available
-    
     if ((typeof image_paths === 'undefined') ||
         
         (image_paths == null) ||
@@ -654,11 +611,8 @@ function select_random_img_src() {
         return null; // All image paths have been selected or marked as invalid
     }
     while (true) {
-        
         const randomIndex = Math.floor(Math.random() * image_paths.length);
-        
         const filePath = image_paths[randomIndex];
-
         if (!selected_image_paths.includes(filePath) && !invalid_image_paths.includes(filePath)) {
             const filename = filePath.split('/').pop();
             const regex = /^(.*?)-(\d+)x(\d+)\.(\w+)$/;
@@ -668,7 +622,6 @@ function select_random_img_src() {
                 invalid_image_paths.push(filePath);
                 continue;
             }
-            
             const name = match[1];
             const random_img_width = parseInt(match[2]);
             const random_img_height = parseInt(match[3]);
@@ -705,63 +658,24 @@ function get_real_img_src_from_img_url(img_url) {
  *                              where z ranges from 1 as max dist to viewer
  *                              to ALL_CARDS_MAX_Z being closest to viewer
  *                              with an integer value between CARD_MIN_Z and CARD_MAX_Z
- * @param {number}  leftColumn_dx    the x value used to convert cardDiv.x to leftColumn-relative position
- * @param {number}  leftColumn_dy    the y value used to convert cardDiv.y to leftColumn-relative position
+ * @param {number}  canvasContainer_dx    the x value used to convert cardDiv.x to canvasContainer-relative position
+ * @param {number}  canvasContainer_dy    the y value used to convert cardDiv.y to canvasContainer-relative position
  *
  * @return {string} Return a string with format "12.02px -156.79px"
  */
 
-function getZTranslateStr(dh, dv, z, leftColumn_dx, leftColumn_dy) {
+function getZTranslateStr(dh, dv, z, canvasContainer_dx, canvasContainer_dy) {
     // z ranges from 0 (closest) to viewer to MAX_Z furthest from viewer
     // zindex ranges MAX_Z (closest to viewer) to 1 furthest from viewer
     var zIndex = parseInt(get_zIndexStr_from_z(z));
     var zScale = (zIndex <= ALL_CARDS_MAX_Z) ? zIndex : 0.0;
 
     // by definition, divs have zero mean hzCtrs so canvas translation is required
-    var dx = dh * zScale + leftColumn_dx;
-    var dy = dv * zScale + 0; // leftColumn_dy;
+    var dx = dh * zScale + canvasContainer_dx;
+    var dy = dv * zScale + 0; // canvasContainer_dy;
     var zTranslateStr = `${dx}px ${dy}px`;
 
     return zTranslateStr;
-}
-
-// leftColumn's self-relative center
-function getLeftColumnCtr() {
-    var leftColumnX = leftColumn.offsetWidth / 2;
-    var leftColumnY = leftColumn.offsetHeight / 2;
-    return { leftColumnX, leftColumnY };
-}
-// leftColumn's self-relative horizontal center
-function getLeftColumnHzCtr() {
-    
-    return leftColumn.offsetWidth / 2;
-}
-// leftColumn's self-relative vertical center
-function getLeftColumnVtCtr() {
-    
-    return leftColumn.offsetHeight / 2;
-}
-
-// element's leftColumn-relative center
-
-function getElementCtr(element) {
-    var elementX = (element.offsetLeft + element.offsetWidth) / 2;
-    var elementY = (element.offsetTop + element.offsetHeight) / 2;
-    return { elementX, elementY };
-}
-// element's self-relative center
-function getElementSelfCtr(element) {
-    var elementX = element.offsetWidth / 2;
-    var elementY = element.offsetHeight / 2;
-    return { elementX, elementY };
-}
-// element's self-relative horizontal center
-function getElementSelfHzCtr(element) {
-    return element.offsetWidth / 2;
-}
-// element's self-relative vertical center
-function getElementSelfVtCtr(element) {
-    return element.offsetHeight / 2;
 }
 
 // return all bizcardDivs and cardDivs lazy-loaded
@@ -769,12 +683,10 @@ function getAllTranslateableCardDivs() {
     var allDivs = [];
     allDivs = Array.prototype.concat.apply(
         allDivs,
-        
         canvas.getElementsByClassName("bizcard-div")
     );
     allDivs = Array.prototype.concat.apply(
         allDivs,
-        
         canvas.getElementsByClassName("card-div")
     );
     return allDivs;
@@ -784,11 +696,12 @@ function getAllTranslateableCardDivs() {
 function applyParallax() {
 
     var { parallaxX, parallaxY } = getParallax();
-    var { leftColumnX, leftColumnY } = getLeftColumnCtr();
+    const canvasContainerX = canvasContainer.offsetWidth/2;
+    const canvasContainerY = canvasContainer.offsetHeight/2;
 
     // constants for this parallax
-    var dh = parallaxX * PARALLAX_X_EXAGGERATION_FACTOR;
-    var dv = parallaxY * PARALLAX_Y_EXAGGERATION_FACTOR;
+    const dh = parallaxX * PARALLAX_X_EXAGGERATION_FACTOR;
+    const dv = parallaxY * PARALLAX_Y_EXAGGERATION_FACTOR;
 
     // compute and apply translations for all translatableDivs
     var allDivs = getAllTranslateableCardDivs();
@@ -799,13 +712,14 @@ function applyParallax() {
 
         var z = get_z_from_zIndexStr(zIndexStr);
 
-        var { elementX, elementY } = getElementSelfCtr(cardDiv);
+        var cardDivX = cardDiv.offsetWidth/2;
+        var cardDivY = cardDiv.offsetHeight/2;
 
-        // leftColumn-relative cardDiv center
-        var leftColumn_dx = leftColumnX - elementX;
-        var leftColumn_dy = leftColumnY - elementY;
+        // canvasContainer-relative cardDiv center
+        var canvasContainer_dx = canvasContainerX - cardDivX;
+        var canvasContainer_dy = canvasContainerY - cardDivY;
 
-        var zTranslateStr = getZTranslateStr(dh, dv, z, leftColumn_dx, leftColumn_dy);
+        var zTranslateStr = getZTranslateStr(dh, dv, z, canvasContainer_dx, canvasContainer_dy);
 
         try {
             cardDiv.style.translate = zTranslateStr;
@@ -815,83 +729,15 @@ function applyParallax() {
     }
 }
 
-var timeStart = null;
-var timeFinish = null;
+let mouseX;
+let mouseY;
 
-//function setTimeStart() {
-//    timeStart = (new Date()).getTime();
-//}
-//function setTimeFinish() {
-//    timeFinish = (new Date()).getTime();
-//}
-//function getTimeElapsed() {
-//    return timeFinish - timeStart;
-//}
-
-let theMouseX;
-let theMouseY;
-
-function getTheMouse() {
-    return { theMouseX, theMouseY };
+function handleCanvasContainerMouseMove(event) {
+    mouseX = event.clientX;
+    mouseY = event.clientY;
+    focalPoint.easeFocalPointTo(mouseX, mouseY);
+    debugFocalPoint();
 }
-
-function handleLeftColumnMouseMove(event) {
-    //console.log("starting mouseCapture");
-
-    mouseCapture.startCapturingMouseMovement(
-        leftColumn, 
-        function handleMouseMotion ( mouseX, mouseY) {
-            theMouseX = mouseX;
-            theMouseY = mouseY;
-            console.log(`handleMouseMotion ${theMouseX} ${theMouseY}`);
-
-            function animate() {
-                // console.log(`animate:${mouseX}.${mouseY}`);
-    
-                var { fpX, fpY } = getFocalPoint();
-        
-                // Calculate the distance between the current and target position
-                const dx = mouseX - fpX;
-                const dy = mouseY - fpY;
-        
-                // Calculate the easing values
-                const ease = 1.0;
-                const easingX = dx * ease;
-                const easingY = dy * ease;
-        
-                // Update the current position with easing
-                fpX += easingX;
-                fpY += easingY;
-        
-                // Apply the new position to the element
-                focalPoint.style.transform = `translate(${fpX}px, ${fpY}px)`;
-        
-                // Keep animating until the current position reaches the target position
-                if (Math.abs(dx) > 1 || Math.abs(dy) > 1) {
-                    window.requestAnimationFrame(animate);
-                }
-            }
-            // Start the animation
-            animate();
-    
-        },
-        function signalStart() {
-            //setTimeStart();
-            //console.log("signalStart");
-            removeLeftColumnEventListeners();
-        },
-        function signalFinish() {
-            //setTimeFinish();
-            //console.log("signalFinish with elapsedTime", getTimeElapsed());
-
-            restoreLeftColumnEventListeners();
-        }
-    );
-
-}
-    
-
-
 
 
 function focalPointInRect(rect) {
@@ -913,21 +759,19 @@ const AUTOSCROLL_CHANGE_THRESHOLD = 2.0;
 
 // set autoScrollVelocity based on current focalPoint 
 function updateAutoScrollVelocity() {
-    // IMMEDIATE RETURN
     return;
-    
-    var { fpX, fpY } = getFocalPoint();
-    
-    var topHeight = leftColumn.offsetHeight / 4;
+    // RETURN IMMEDIATELY
+
+    var topHeight = canvasContainer.offsetHeight / 4;
     var centerTop = topHeight;
     var centerHeight = topHeight * 2;
     var centerBottom = topHeight + centerHeight;
     var bottomHeight = topHeight;
 
     if (fpY < centerTop) {
-        autoScrollVelocity = (fpY - centerTop) / topHeight * MAX_AUTOSCROLL_VELOCITY;
+        autoScrollVelocity = (focalPointY - centerTop) / topHeight * MAX_AUTOSCROLL_VELOCITY;
     } else if (fpY > centerBottom) {
-        autoScrollVelocity = (fpY - centerBottom) / bottomHeight * MAX_AUTOSCROLL_VELOCITY;
+        autoScrollVelocity = (focalPointY - centerBottom) / bottomHeight * MAX_AUTOSCROLL_VELOCITY;
     } else {
         autoScrollVelocity = 0;
     }
@@ -937,8 +781,8 @@ function updateAutoScrollVelocity() {
 // parallax transformations to all 
 // transformable elements
 function handleFocalPointMove() {
-    // IMMEDIATE RETURN
     return;
+    // RETURN IMMEDIATELY
 
     updateAutoScrollVelocity();
 
@@ -959,22 +803,22 @@ function handleFocalPointMove() {
 
                     // apply the velocity
                     
-                    var currentScrollTop = leftColumn.scrollTop;
+                    var currentScrollTop = canvasContainer.scrollTop;
                     var newScrollTop = currentScrollTop + autoScrollVelocity;
 
                     // clamp newScrollTop to the boundaries
                     var minScrollTop = 0;
                     
-                    var maxScrollTop = leftColumn.scrollHeight - leftColumn.clientHeight;
+                    var maxScrollTop = canvasContainer.scrollHeight - canvasContainer.clientHeight;
                     
                     newScrollTop = utils.clamp(newScrollTop, minScrollTop, maxScrollTop);
 
                     // if there is room to scroll 
                     
-                    if (Math.abs(leftColumn.scrollTop - newScrollTop) > 0) {
+                    if (Math.abs(canvasContainer.scrollTop - newScrollTop) > 0) {
                         // go ahead and scroll
                         
-                        leftColumn.scrollTop = newScrollTop;
+                        canvasContainer.scrollTop = newScrollTop;
                     } else {
                         //  we've reached a boundary so 
                         // stop the auto-scroll
@@ -992,6 +836,8 @@ function handleFocalPointMove() {
 }
 
 function debugScrolling(event, scrollable, scrollVelocityType, scrollVelocity) {
+    return;
+    // RETURN IMMEDIATELY
     var scrollTop = scrollable.scrollTop;
     var scrollHeight = scrollable.scrollHeight;
     var windowHeight = scrollable.clientHeight;
@@ -1009,36 +855,35 @@ function debugScrolling(event, scrollable, scrollVelocityType, scrollVelocity) {
 
 // Display mouse position and delta coordinates in the right-message-div  
 
-var isMouseOverLeftColumn = false;
+var isMouseOverCanvasContainer = false;
 
-function handleMouseEnterLeftColumn(event) {
-    isMouseOverLeftColumn = true;
-    easeFocalPointTo(event.clientX, event.clientY);
+function handleMouseEnterCanvasContainer(event) {
+    isMouseOverCanvasContainer = true;
+    focalPoint.easeFocalPointTo(event.clientX, event.clientY);
+    debugFocalPoint();
 }
 
-
-function handleMouseLeaveLeftColumn(event) {
-    isMouseOverLeftColumn = false;
-    easeFocalPointToOrigin();
+function handleMouseLeaveCanvasContainer(event) {
+    isMouseOverCanvasContainer = false;
+    easeFocalPointToBullsEye();
+    debugFocalPoint();
 }
 
 var lastScrollTop = null;
 var lastScrollTime = null;
 
-
-function handleLeftColumnScroll(scrollEvent) {
-
-    // IMMEDIATE RETURN
+function handleCanvasContainerScroll(scrollEvent) {
     return;
+    // RETURN IMMEDIATELY
 
     var thisTime = (new Date()).getTime();
     
-    var thisScrollTop = leftColumn.scrollTop;
+    var thisScrollTop = canvasContainer.scrollTop;
     var deltaTime = (lastScrollTime != null) ? (thisTime - lastScrollTime) : null;
     var deltaTop = (lastScrollTop != null) ? (thisScrollTop - lastScrollTop) : null;
     
     var scrollVelocity = (deltaTime && deltaTop) ? (deltaTop) / (deltaTime) : "?";
-    debugScrolling("scroll", leftColumn, "scrollVelocity", `${deltaTop}/${deltaTime}`);
+    debugScrolling("scroll", canvasContainer, "scrollVelocity", `${deltaTop}/${deltaTime}`);
     lastScrollTime = thisTime;
     lastScrollTop = thisScrollTop;
 
@@ -1046,16 +891,16 @@ function handleLeftColumnScroll(scrollEvent) {
 
 // calculates dh,dv parallax when
 // mouse wheel is moving
-// leftColumn_wheel_dh ==  leftColumn_mouse_dh
-// leftColumn_wheel_dv ==  leftColumn_mouse_dv
+// canvasContainer_wheel_dh ==  canvasContainer_mouse_dh
+// canvasContainer_wheel_dv ==  canvasContainer_mouse_dv
 // when mouse wheel is scrolling
 
 var wheelLastY = null;
 
 var wheelLastTime = null;
 
-function handleLeftColumnWheel(wheelEvent) {
-    moveFocalPointToMouse(wheelEvent.clientX, wheelEvent.clientY);
+function handleCanvasContainerWheel(wheelEvent) {
+    focalPoint.easeFocalPointTo(wheelEvent.clientX, wheelEvent.clientY);
 }
 
 // handle mouse enter event for any div element with
@@ -1067,7 +912,7 @@ function handleCardDivMouseEnter(event, cardClass) {
     }
 }
 
-function handleLeftColumnMouseClick() {
+function handleCanvasContainerMouseClick() {
     deselectTheSelectedCardDiv();
     deselectTheSelectedCardDivLineItem();
     handleFocalPointMove();
@@ -1279,6 +1124,8 @@ function addCardDivLineItemClickListener(cardDivLineItem, cardDiv) {
 // if one doesn't aleady exist
 // returns the newly addedCardDivLineItem or null
 function addCardDivLineItem(targetCardDivId) {
+    return;
+    // RETURN IMMEDIATELY
 
     if (targetCardDivId == null) {
         console.log(`ignoring request to add cardDivLineItem with null targetCardDivId`);
@@ -1505,13 +1352,15 @@ function addTagLinkClickListener(tagLink) {
     });
 }
 
-
-function renderAllTranslateableDivsAtLeftColumnCenter() {
-    const { leftColumnX, leftColumnY } = getLeftColumnCtr();
+function renderAllTranslateableDivsAtCanvasContainerCenter() {
+    return;
+    // RETURN IMMEDIATELY
+    const canvasContainerX = canvasContainer.offsetWidth/2;
+    const canvasContainerY = canvasContainer.offsetHeight/2;
     const translateableDivs = getAllTranslateableCardDivs();
     for (const div of translateableDivs) {
         const divWidth = div.offsetWidth;
-        const trans_dx = leftColumnX - divWidth / 2.0;
+        const trans_dx = canvasContainerX - divWidth / 2.0;
         const trans_dy = 0;
         const translateStr = `${trans_dx}px ${trans_dy}px`;
         try {
@@ -1521,7 +1370,6 @@ function renderAllTranslateableDivsAtLeftColumnCenter() {
             console.error(`leftCenter div:${div.id}`, error);
         }
     }
-    // console.log(`leftColumn.scrollHeight:${leftColumn.scrollHeight}`);
 }
 
 function positionGradients() {
@@ -1536,169 +1384,145 @@ function rightContentScrollToBottom() {
 }
 
 
-function leftColumnScrollToTop() {
-    leftColumn.scrollTo({ top: 0, behavior: 'smooth' });
+function canvasContainerScrollToTop() {
+    canvasContainer.scrollTo({ top: 0, behavior: 'smooth' });
 }
 
-function leftColumnScrollToBottom() {
-    leftColumn.scrollTo({ top: leftColumn.scrollHeight, behavior: 'smooth' });
+function canvasContainerScrollToBottom() {
+    canvasContainer.scrollTo({ top: canvasContainer.scrollHeight, behavior: 'smooth' });
 }
+
+var bullsEyeX;
+var bullsEyeY;
 
 function centerBullsEye() {
-    var top = getLeftColumnVtCtr() - getElementSelfVtCtr(bullsEye);
-    var left = getLeftColumnHzCtr() - getElementSelfHzCtr(bullsEye);
-    bullsEye.style.top = `${top}px`;
-    bullsEye.style.left = `${left}px`;
-    // console.log(`bulls-eye top:${top} left:${left}`);
+    bullsEyeX = canvasContainer.offsetWidth/2;
+    bullsEyeY = canvasContainer.offsetHeight/2;
+    var newLeft = bullsEyeX - bullsEye.offsetWidth/2;
+    var newTop =  bullsEyeY - bullsEye.offsetHeight/2;
+    bullsEye.style.left = `${newLeft}px`;
+    bullsEye.style.top = `${newTop}px`;
 }
 
-// returns the leftCanvas-relative 
-// location of the focalPoint's origin center
-function getFocalPointOrigin() {
-    var { leftColumnX, leftColumnY } = getLeftColumnCtr();
-    var originX = leftColumnX;
-    var originY = leftColumnY;
-    return { originX, originY };
+var focalPointX;
+var focalPointY;
+
+function focalPointListener(x,y) {
+    focalPointX = x;
+    focalPointY = y;
+    debugFocalPoint();
 }
 
-// returns the current leftCanvas-relative 
-// location of the focalPoint center
-function getFocalPoint() {
-    var fpX = focalPoint.offsetLeft + focalPoint.offsetWidth / 2;
-    var fpY = focalPoint.offsetTop + focalPoint.offsetHeight / 2;
-    return { fpX, fpY };
-}
+var parallaxX;
+var parallaxY;
 
 function getParallax() {
-    var { originX, originY } = getFocalPointOrigin();
-    var { fpX, fpY } = getFocalPoint();
-    var parallaxX = originX - fpX;
-    var parallaxY = originY - fpY;
+    parallaxX = bullsEyeX - focalPointX;
+    parallaxY = bullsEyeY - focalPointY;
     return { parallaxX, parallaxY };
 }
 
-function moveFocalPointToOrigin() {
-    var { originX, originY } = getFocalPointOrigin();
-    moveFocalPointTo(originX, originY);
-}
-function easeFocalPointToOrigin() {
-    var { originX, originY } = getFocalPointOrigin();
-    easeFocalPointTo(originX, originY);
-}
-
-// move focalPoint to the given leftCanvas-relative location
-function moveFocalPointTo(x, y) {
-    var { fpX, fpY } = getFocalPoint();
-    var newLeft = x - focalPoint.offsetWidth / 2;
-    var newTop = y - focalPoint.offsetHeight / 2;
-    focalPoint.style.left = `${newLeft}px`;
-    focalPoint.style.top = `${newTop}px`;
-    debugFocalPoint();
-    handleFocalPointMove();
-}
-
-function easeFocalPointTo(x, y) {
-    moveFocalPointTo(x, y);
+function easeFocalPointToBullsEye() {
+    focalPoint.easeFocalPointTo(bullsEyeX, bullsEyeY);
 }
 
 function debugFocalPoint() {
-    var { theMouseX, theMouseY } = getTheMouse();
-    var { originX, originY } = getFocalPointOrigin();
-    var { fpX, fpY } = getFocalPoint();
-    var { parallaxX, parallaxY } = getParallax();
-    
-    debugFocalPointElement.innerHTML = `mm:[${theMouseX},${theMouseY}] org:${originX},${originY} fp:[${fpX},${fpY}] px:[${parallaxX},${parallaxY}]`;
+    var html = "";
+    if ( isMouseOverCanvasContainer && mouseX && mouseY )
+        html += `mouse in canvas [${mouseX},${mouseY}]<br/>`;
+    else 
+        html += "mouse not in canvas<br/>";
+
+    html += `bullsEye:[${bullsEyeX},${bullsEyeY}]<br/>`;
+    html += `focalPoint:[${focalPointX},${focalPointY}]<br/>`;
+    const { parallaxX, parallaxY } = getParallax();
+    html += `parallax:[${parallaxX},${parallaxY}]<br/>`;
+
+    var time = (new Date()).getTime();
+    html += `time:${time}<br/>`;
+
+    debugFocalPointElement.innerHTML = html;
 }
 
-function moveFocalPointToMouse(mouseX, mouseY) {
-    // adjust relative to tip of default cursor
-    var newX = mouseX+1;
-    var newY = mouseY+1;
-    moveFocalPointTo(newX, newY);
-}
-
-
-function updateSkillsFromAllTagLinks(allTagLinks) {
-    if (allTagLinks && allTagLinks.length > 0) {
-        const html = allTagLinks.map((list) => list.text).join(BULLET_JOINER);
-        const skills = document.getElementById("skills");
-        
-        skills.innerHTML = html;
-    } else {
-        console.log("no skills yet");
-    }
-}
-
-const DEFAULT_TIMELINE_YEAR = 2023;
 function handleWindowLoad() {
-    timeline.createTimeline(timelineContainer, leftColumn, DEFAULT_TIMELINE_YEAR);
+    const focal_point = document.getElementById("focal-point");
+    focalPoint.createFocalPoint(focal_point, focalPointListener);
+
+    const timelineContainer = document.getElementById("timeline-container");
+    const DEFAULT_TIMELINE_YEAR = 2020;
+    timeline.createTimeline(timelineContainer, canvasContainer, DEFAULT_TIMELINE_YEAR);
+    
     //createBizcardDivs();
-    //renderAllTranslateableDivsAtLeftColumnCenter();
+    //renderAllTranslateableDivsAtCanvasContainerCenter();
     positionGradients();
     centerBullsEye();
-    moveFocalPointToOrigin();
+    easeFocalPointToBullsEye();
+
+    // set up animation loop
+    (function drawFrame() {
+        window.requestAnimationFrame(drawFrame);
+        focalPoint.drawFocalPointAnimationFrame();
+    })();
+    
 }
 
 function handleWindowResize() {
-    // resize the left-column and the canvas since they don't do it themselves?
+    // resize the canvas-container and the canvas since they don't do it themselves?
     var windowWidth = window.innerWidth;
-    var leftColumnWidth = windowWidth / 2;
+    var canvasContainerWidth = windowWidth / 2;
     
-    leftColumn.style.width = leftColumnWidth + "px";
+    canvasContainer.style.width = canvasContainerWidth + "px";
     
-    canvas.style.width = leftColumnWidth + "px";
-    renderAllTranslateableDivsAtLeftColumnCenter();
+    canvas.style.width = canvasContainerWidth + "px";
+    renderAllTranslateableDivsAtCanvasContainerCenter();
     positionGradients();
     centerBullsEye();
+    easeFocalPointToBullsEye();
 }
-
-console.log("WELCOME");
 
 // Attach event listeners
 window.addEventListener("load", handleWindowLoad);
 window.addEventListener("resize", handleWindowResize);
 
-var leftColumnEventListeners = [];
+var canvasContainerEventListeners = [];
 
-function addLeftColumnEventListener(eventType, listener, options) {
-    leftColumnEventListeners.push({eventType, listener, options});
-    leftColumn.addEventListener(eventType, listener, options);
+function addCanvasContainerEventListener(eventType, listener, options) {
+    canvasContainerEventListeners.push({eventType, listener, options});
+    canvasContainer.addEventListener(eventType, listener, options);
 }
 
-function removeLeftColumnEventListeners() {
-    for ( let i=0; i<leftColumnEventListeners.length; i++ ) {
-        let listener = leftColumnEventListeners[i];
+function removeCanvasContainerEventListeners() {
+    for ( let i=0; i<canvasContainerEventListeners.length; i++ ) {
+        let listener = canvasContainerEventListeners[i];
         if ( listener.options != null )
-            leftColumn.removeEventListener(listener.eventType, listener.listener, listener.options);
+            canvasContainer.removeEventListener(listener.eventType, listener.listener, listener.options);
         else
-            leftColumn.removeEventListener(listener.eventType, listener.listener);
+            canvasContainer.removeEventListener(listener.eventType, listener.listener);
     }
 }
 
-function restoreLeftColumnEventListeners() {
-    for ( let i=0; i<leftColumnEventListeners.length; i++ ) {
-        let listener = leftColumnEventListeners[i];
+function restoreCanvasContainerEventListeners() {
+    for ( let i=0; i<canvasContainerEventListeners.length; i++ ) {
+        let listener = canvasContainerEventListeners[i];
         if ( listener.options != null )
-            leftColumn.addEventListener(listener.eventType, listener.listener, listener.options);
+            canvasContainer.addEventListener(listener.eventType, listener.listener, listener.options);
         else
-            leftColumn.addEventListener(listener.eventType, listener.listener);
+            canvasContainer.addEventListener(listener.eventType, listener.listener);
     }
 }
 
 
-addLeftColumnEventListener("mousemove", handleLeftColumnMouseMove);
+addCanvasContainerEventListener("mousemove", handleCanvasContainerMouseMove);
 
-addLeftColumnEventListener("load", handleLeftColumnMouseMove);
+addCanvasContainerEventListener("wheel", handleCanvasContainerWheel, {passive: true});
 
-addLeftColumnEventListener("wheel", handleLeftColumnWheel, {passive: true});
+addCanvasContainerEventListener('mouseenter', handleMouseEnterCanvasContainer);
 
-addLeftColumnEventListener('mouseenter', handleMouseEnterLeftColumn);
+addCanvasContainerEventListener('mouseleave', handleMouseLeaveCanvasContainer);
 
-addLeftColumnEventListener('mouseleave', handleMouseLeaveLeftColumn);
+addCanvasContainerEventListener('scroll', handleCanvasContainerScroll);
 
-addLeftColumnEventListener('scroll', handleLeftColumnScroll);
-
-addLeftColumnEventListener('click', handleLeftColumnMouseClick);
+addCanvasContainerEventListener('click', handleCanvasContainerMouseClick);
 
 
 
