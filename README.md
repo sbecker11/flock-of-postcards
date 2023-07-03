@@ -13,29 +13,27 @@
 
 ## VSCode + LiverServer Installation
 
-The static website has been upgraded to be a webapp that uses ES6 Modules.  
-This requires that you have an ultra light weight webserver running on your local machine.  
-I recommend vscode + LiveServer + Google Chrome Browser.
+The static 'flock-of-postcards' website has been upgraded to be a webapp that uses ES6 Modules. This requires that you have an ultra light weight webserver running on your local machine that supports ES6. LiveServer is an ultra light weight webserver that works with Google Chrome browser. Installation of the vscode IDE and the LiveServer extension is easy-peasy.  
 
-* Install the  <a href="https://code.visualstudio.com">vscode IDE</a>  
-<a href="https://code.visualstudio.com/"><img src="https://shawn.beckerstudio.com/wp-content/uploads/2023/07/vscode-IDE-logo.png"></a>
+## Installation instructions for vscode IDE + LiveServer extension
+
+* Install the  <a href="https://code.visualstudio.com">vscode IDE</a> on your local OS.    
+<a href="https://code.visualstudio.com/"><img src="https://shawn.beckerstudio.com/wp-content/uploads/2023/07/vscode-IDE-logo.png"/></a>
 * Start vscode and open the newly cloned `flock-of-postcards` folder in vscode  
-* Click on the "extensions" icon in the left panel of vscode  
+* Click the "extensions" icon in the left panel of vscode to search for vscode extensions  
 <img src="https://shawn.beckerstudio.com/wp-content/uploads/2023/07/vscode-extensions-icon.png"/>  
 * Search for and install vscode's <a href="https://marketplace.visualstudio.com/items?itemName=ritwickdey.LiveServer">LiveServer</a> extension  
-<a href="https://marketplace.visualstudio.com/items?itemName=ritwickdey.LiveServer"><img src="https://shawn.beckerstudio.com/wp-content/uploads/2023/07/vscode-liveserver-logo.png"/></a>
-* Click on the "explorer" icon at the top left of vscode  
-<img href="https://shawn.beckerstudio.com/wp-content/uploads/2023/07/vscode-explorer-icon.png"/>  
-* Select the `index.html` file in vscode  
-* Click the "go-live" button at the bottom right in vscode  
-<img src="https://shawn.beckerstudio.com/wp-content/uploads/2023/07/vscode-go-live-icon.png">  
-* Now open your Google Chrome browser to "http://localhost:5500/index.html"  
+<a href="https://marketplace.visualstudio.com/items?itemName=ritwickdey.LiveServer"><img src="https://shawn.beckerstudio.com/wp-content/uploads/2023/07/vscode-liveserver-logo.png"/></a>  
 
+## 'flock-of-postcards' start up instructions  
 
+* Click the "explorer" icon at the top left of vscode to explore your local filesystem  
+<img src="https://shawn.beckerstudio.com/wp-content/uploads/2023/07/vscode-explorer-icon.png"/>  
+* Select the `index.html` file    
+* Click the "go-live" button at the bottom right in vscode to start the vscode-embedded webserver  
+<img src="https://shawn.beckerstudio.com/wp-content/uploads/2023/07/vscode-go-live-icon.png"/>  
+* Now open your Google Chrome browser to "http://localhost:5500/index.html" and have fun with your local copy of the 'flock-of-postcards' webapp.  
 
- 324 KB
-https://shawn.beckerstudio.com/wp-content/uploads/2023/07/version-0.6-50.gif 5 MB
-  8MB
 
 <br/>
 <br/>
@@ -50,8 +48,9 @@ https://shawn.beckerstudio.com/wp-content/uploads/2023/07/version-0.6-50.gif 5 M
 
 Features:
 
-* The focal point now eases towards the mouse when it enters the canvas area.
-* The focal point now eases toward the bullsEye when it leaves the canvas areas.
+* Upgraded static website to use ES6 modules, thus requiring a local webserver that supports ES6.  
+* The focal point now eases towards the mouse when it enters the canvas area.  
+* The focal point now eases toward the bullsEye when it leaves the canvas areas.  
 * Checkout the <a href="https://shawn.beckerstudio.com/wp-content/uploads/2023/07/version-0.6.gif">8 MB animated gif</a>
 <br/>
 <br/>
