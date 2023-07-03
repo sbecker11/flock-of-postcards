@@ -8,9 +8,28 @@
 `cd <your-local-dev-folder>`  
 `git clone git@github.com:sbecker11/flock-of-postcards.git`
 * Go into the latest version folder in the newly downloaded repo  
-`cd flock-of-postcards/version-0.5`  
-* Open this link in your default browser from your shell:  
-`open index.html`  
+`cd flock-of-postcards`  
+
+
+## VSCode + LiverServer Installation
+
+The static website has been upgraded to be a webapp that uses ES6 Modules.  
+This requires that you have an ultra light weight webserver running on your local machine.  
+I recommend vscode + LiveServer + Google Chrome Browser.
+
+* Install the  <a href="https://code.visualstudio.com">vscode IDE</a>  
+<a href="https://code.visualstudio.com/"><img src="https://shawn.beckerstudio.com/wp-content/uploads/2023/07/vscode-IDE-logo.png"></a>
+* Start vscode and open the newly cloned `flock-of-postcards` folder in vscode  
+* Click on the "extensions" icon in the left panel of vscode  
+<img src="https://shawn.beckerstudio.com/wp-content/uploads/2023/07/vscode-extensions-icon.png"/>  
+* Search for and install vscode's <a href="https://marketplace.visualstudio.com/items?itemName=ritwickdey.LiveServer">LiveServer</a> extension  
+<a href="https://marketplace.visualstudio.com/items?itemName=ritwickdey.LiveServer"><img src="https://shawn.beckerstudio.com/wp-content/uploads/2023/07/vscode-liveserver-logo.png"/></a>
+* Click on the "explorer" icon at the top left of vscode  
+<img href="https://shawn.beckerstudio.com/wp-content/uploads/2023/07/vscode-explorer-icon.png"/>  
+* Select the `index.html` file in vscode  
+* Click the "go-live" button at the bottom right in vscode  
+<img src="https://shawn.beckerstudio.com/wp-content/uploads/2023/07/vscode-go-live-icon.png">  
+* Now open your Google Chrome browser to "http://localhost:5500/index.html"  
 
 
 
