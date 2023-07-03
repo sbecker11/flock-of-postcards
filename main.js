@@ -177,11 +177,7 @@ function getNextBizcardDivId() {
 // the shared "skills" from the narrative pf each.
 //  
 function createBizcardDivs() {
-    return;
-    // RETURN IMMEDIATELY
-
     var num_valid_rows = 0;
-    
     for (let i = 0; i < jobs.length; i++) {
         
         var job = jobs[i];
@@ -279,7 +275,6 @@ function createBizcardDivs() {
         // does not select self
         // does not scroll self into view
 
-        
         canvas.appendChild(bizcardDiv);
 
         num_valid_rows++;
@@ -827,8 +822,7 @@ function handleFocalPointMove() {
         oldAutoScrollVelocity = autoScrollVelocity;
     }
     // apply the parallax transformations
-    // RETURN IMMEDIATELY
-    // applyParallax();
+    applyParallax();
 }
 
 function debugScrolling(event, scrollable, scrollVelocityType, scrollVelocity) {
@@ -1076,7 +1070,7 @@ function selectTheCardDivLineItem(cardDivLineItem) {
     // styles self as selected
     setSelectedStyle(theSelectedCardDivLineItem);
     // does scroll self into view
-    console.log(`scrollCardDivLineItemIntoView id:${theSelectedCardDivLineItem.id}`);
+    //console.log(`scrollCardDivLineItemIntoView id:${theSelectedCardDivLineItem.id}`);
     theSelectedCardDivLineItem.scrollIntoView(DEFAULT_SCROLL_INTO_VIEW_OPTIONS);
 }
 
@@ -1102,7 +1096,7 @@ function addCardDivLineItemClickListener(cardDivLineItem, cardDiv) {
         // does not scroll self into view
         selectTheCardDiv(cardDiv);
 
-        console.log(`scrollIntoView id:${cardDiv.id}`);
+        //console.log(`scrollIntoView id:${cardDiv.id}`);
         cardDiv.scrollIntoView(DEFAULT_SCROLL_INTO_VIEW_OPTIONS);
 
         event.stopPropagation();
@@ -1113,8 +1107,6 @@ function addCardDivLineItemClickListener(cardDivLineItem, cardDiv) {
 // if one doesn't aleady exist
 // returns the newly addedCardDivLineItem or null
 function addCardDivLineItem(targetCardDivId) {
-    return;
-    // RETURN IMMEDIATELY
 
     if (targetCardDivId == null) {
         console.log(`ignoring request to add cardDivLineItem with null targetCardDivId`);
@@ -1221,8 +1213,7 @@ function addCardDivLineItem(targetCardDivId) {
             addTagLinkClickListener(tagLinks[i]);
         }
     } else {
-        console.log(`returning preexisting cardDivLineItem for targetCardDivId:${targetCardDivId}`);
-        
+        //console.log(`returning preexisting cardDivLineItem for targetCardDivId:${targetCardDivId}`);
         cardDivLineItem = existingCardDivLineItem
     }
     // does not select self
@@ -1269,8 +1260,7 @@ function addCardDivLineItemFollowingButtonClickHandler(cardDivLineItemFollowingB
         // select the followingBizcardDiv
         selectTheCardDiv(followingBizcardDiv);
         
-        console.log(`scrollIntoView id:${followingBizcardDiv.id}`);
-        
+        //console.log(`scrollIntoView id:${followingBizcardDiv.id}`);
         followingBizcardDiv.scrollIntoView(DEFAULT_SCROLL_INTO_VIEW_OPTIONS);
 
         // find or add the nextCardDivLineItem
@@ -1328,11 +1318,10 @@ function addTagLinkClickListener(tagLink) {
             console.assert(tagLinkText != null && tagLinkUrl != null);
 
             // calls selectTheCardDiv
-            console.log(`tagLink with text:[${tagLinkText}] url:(${tagLinkUrl}) selected cardDiv:%{cardDiv.id}`);
+            //console.log(`tagLink with text:[${tagLinkText}] url:(${tagLinkUrl}) selected cardDiv:%{cardDiv.id}`);
             selectTheCardDiv(cardDiv);
             // does scroll cardDiv into view
-            console.log(`scrollIntoView id:${cardDiv.id}`);
-            
+            //console.log(`scrollIntoView id:${cardDiv.id}`);
             cardDiv.scrollIntoView(DEFAULT_SCROLL_INTO_VIEW_OPTIONS);
         } else {
             console.log(`no cardDiv with tagLink found for cardDivId:${cardDivId}`);
@@ -1342,8 +1331,7 @@ function addTagLinkClickListener(tagLink) {
 }
 
 function renderAllTranslateableDivsAtCanvasContainerCenter() {
-    return;
-    // RETURN IMMEDIATELY
+
     const canvasContainerX = utils.half(canvasContainer.offsetWidth);
     const canvasContainerY = utils.half(canvasContainer.offsetHeight);
     const translateableDivs = getAllTranslateableCardDivs();
@@ -1442,8 +1430,8 @@ function handleWindowLoad() {
     const DEFAULT_TIMELINE_YEAR = 2020;
     timeline.createTimeline(timelineContainer, canvasContainer, DEFAULT_TIMELINE_YEAR);
     
-    //createBizcardDivs();
-    //renderAllTranslateableDivsAtCanvasContainerCenter();
+    createBizcardDivs();
+    renderAllTranslateableDivsAtCanvasContainerCenter();
     positionGradients();
     centerBullsEye();
     easeFocalPointToBullsEye();
@@ -1460,9 +1448,7 @@ function handleWindowResize() {
     // resize the canvas-container and the canvas since they don't do it themselves?
     var windowWidth = window.innerWidth;
     var canvasContainerWidth = windowWidth / 2;
-    
     canvasContainer.style.width = canvasContainerWidth + "px";
-    
     canvas.style.width = canvasContainerWidth + "px";
     renderAllTranslateableDivsAtCanvasContainerCenter();
     positionGradients();
