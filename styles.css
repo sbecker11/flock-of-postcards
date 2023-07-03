@@ -67,6 +67,7 @@ body {
 #canvas {
   position: relative;
   height: fit-content;
+  scroll-behavior: smooth;
 }
 
 #bottom-gradient {
