@@ -12,6 +12,28 @@
 * Open this link in your default browser from your shell:  
 `open index.html`  
 
+
+
+ 324 KB
+https://shawn.beckerstudio.com/wp-content/uploads/2023/07/version-0.6-50.gif 5 MB
+  8MB
+
+<br/>
+<br/>
+
+<hr/>
+
+## Version 0.6:   July 3, 2023
+<br/>
+
+<a href="https://shawn.beckerstudio.com/wp-content/uploads/2023/07/version-0.6.gif"><img src="https://shawn.beckerstudio.com/wp-content/uploads/2023/07/version-0.6.png" width="33%" height="33%"/><br/>Click here to see 8MB animated gif</a>
+<br/>
+
+Features:
+
+* The focal point now eases towards the mouse when it enters the canvas area.
+* The focal point now eases toward the bullsEye when it leaves the canvas areas.
+* Checkout the <a href="https://shawn.beckerstudio.com/wp-content/uploads/2023/07/version-0.6.gif">8 MB animated gif</a>
 <br/>
 <br/>
 
