@@ -7,7 +7,7 @@ body {
   background-color: blueviolet;
 }
 
-#debugElement, #focalPointDebugElement {
+#debugScrollingElement, #debugFocalPointElement {
   display: block;
   font-family: Roboto, sans-serif;
   font-size: 12px;
@@ -189,7 +189,7 @@ body {
 }
 
 #right-footer-div {
-  height: 120px;
+  height: 170px;
   background-color: #999999;
   padding: 10px;
 }

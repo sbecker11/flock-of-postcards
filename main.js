@@ -11,7 +11,7 @@ import * as focalPoint from './modules/focal_point.js';
 // Element reference globals
 
 const rightContentDiv = document.getElementById("right-content-div");
-const debugElement = document.getElementById("debugElement");
+const debugScrollingElement = document.getElementById("debugScrollingElement");
 const debugFocalPointElement = document.getElementById("debugFocalPointElement");
 const canvasContainer = document.getElementById("canvas-container");
 const canvas = document.getElementById("canvas");
@@ -696,8 +696,8 @@ function getAllTranslateableCardDivs() {
 function applyParallax() {
 
     var { parallaxX, parallaxY } = getParallax();
-    const canvasContainerX = canvasContainer.offsetWidth/2;
-    const canvasContainerY = canvasContainer.offsetHeight/2;
+    const canvasContainerX = utils.half(canvasContainer.offsetWidth);
+    const canvasContainerY = utils.half(canvasContainer.offsetHeight);
 
     // constants for this parallax
     const dh = parallaxX * PARALLAX_X_EXAGGERATION_FACTOR;
@@ -712,8 +712,8 @@ function applyParallax() {
 
         var z = get_z_from_zIndexStr(zIndexStr);
 
-        var cardDivX = cardDiv.offsetWidth/2;
-        var cardDivY = cardDiv.offsetHeight/2;
+        var cardDivX = utils.half(cardDiv.offsetWidth);
+        var cardDivY = utils.half(cardDiv.offsetHeight);
 
         // canvasContainer-relative cardDiv center
         var canvasContainer_dx = canvasContainerX - cardDivX;
@@ -739,19 +739,10 @@ function handleCanvasContainerMouseMove(event) {
     debugFocalPoint();
 }
 
-
-function focalPointInRect(rect) {
-    var { fpX, fpY } = getFocalPoint();
-    if (fpX >= rect.left && fpX <= rect.right) {
-        if (fpY >= rect.top && fpY <= rect.bottom)
-            return true;
-    }
-    return false;
-}
-
 var autoScrollingInterval = null;
 var autoScrollVelocity = 0;
 var oldAutoScrollVelocity = 0;
+var autoScrollEase = 0;
 const AUTOSCROLL_REPEAT_MILLIS = 10;
 const MAX_AUTOSCROLL_VELOCITY = 10.0;
 const MIN_AUTOSCROLL_VELOCITY = 2.0;
@@ -759,20 +750,25 @@ const AUTOSCROLL_CHANGE_THRESHOLD = 2.0;
 
 // set autoScrollVelocity based on current focalPoint 
 function updateAutoScrollVelocity() {
-    return;
-    // RETURN IMMEDIATELY
 
-    var topHeight = canvasContainer.offsetHeight / 4;
-    var centerTop = topHeight;
-    var centerHeight = topHeight * 2;
-    var centerBottom = topHeight + centerHeight;
-    var bottomHeight = topHeight;
+    const topHeight = Math.floor(canvasContainer.offsetHeight / 4);
+    const centerTop = topHeight;
+    const centerHeight = topHeight * 2;
+    const centerBottom = topHeight + centerHeight;
+    const bottomHeight = topHeight;
+    const scrollHeight = canvasContainer.scrollHeight;
+    const scrollTop = canvasContainer.scrollTop;
+    const windowHeight = canvasContainer.clientHeight;
+    const scrollBottom = scrollHeight - scrollTop -  windowHeight;
 
-    if (fpY < centerTop) {
+    if (focalPointY < centerTop) { 
+        autoScrollEase = (scrollTop < 150) ? 1 : 0;
         autoScrollVelocity = (focalPointY - centerTop) / topHeight * MAX_AUTOSCROLL_VELOCITY;
-    } else if (fpY > centerBottom) {
+    } else if (focalPointY > centerBottom) {
+        autoScrollEase = (scrollBottom < 150) ? 1 : 0;
         autoScrollVelocity = (focalPointY - centerBottom) / bottomHeight * MAX_AUTOSCROLL_VELOCITY;
     } else {
+        autoScrollEase = 0;
         autoScrollVelocity = 0;
     }
 }
@@ -781,8 +777,6 @@ function updateAutoScrollVelocity() {
 // parallax transformations to all 
 // transformable elements
 function handleFocalPointMove() {
-    return;
-    // RETURN IMMEDIATELY
 
     updateAutoScrollVelocity();
 
@@ -795,6 +789,7 @@ function handleFocalPointMove() {
             if (autoScrollingInterval != null) {
                 clearInterval(autoScrollingInterval);
                 autoScrollingInterval = null;
+                autoScrollVelocity = 0;
             }
         } else {
             // start the inteval if needed
@@ -832,12 +827,11 @@ function handleFocalPointMove() {
         oldAutoScrollVelocity = autoScrollVelocity;
     }
     // apply the parallax transformations
-    applyParallax();
+    // RETURN IMMEDIATELY
+    // applyParallax();
 }
 
 function debugScrolling(event, scrollable, scrollVelocityType, scrollVelocity) {
-    return;
-    // RETURN IMMEDIATELY
     var scrollTop = scrollable.scrollTop;
     var scrollHeight = scrollable.scrollHeight;
     var windowHeight = scrollable.clientHeight;
@@ -847,10 +841,10 @@ function debugScrolling(event, scrollable, scrollVelocityType, scrollVelocity) {
     html += `event:${event}<br/>`;
     html += `scrollTop:${scrollTop}<br/>`;
     html += `scrollBottom:${scrollBottom}<br/>`;
+    html += `autoScrollEase:${autoScrollEase}<br/>`;
     if (scrollVelocityType != null && scrollVelocity != null)
         html += `${scrollVelocityType}:${scrollVelocity}<br/>`;
-
-    debugElement.innerHTML = html;
+    debugScrollingElement.innerHTML = html;
 }
 
 // Display mouse position and delta coordinates in the right-message-div  
@@ -873,11 +867,7 @@ var lastScrollTop = null;
 var lastScrollTime = null;
 
 function handleCanvasContainerScroll(scrollEvent) {
-    return;
-    // RETURN IMMEDIATELY
-
     var thisTime = (new Date()).getTime();
-    
     var thisScrollTop = canvasContainer.scrollTop;
     var deltaTime = (lastScrollTime != null) ? (thisTime - lastScrollTime) : null;
     var deltaTop = (lastScrollTop != null) ? (thisScrollTop - lastScrollTop) : null;
@@ -886,7 +876,6 @@ function handleCanvasContainerScroll(scrollEvent) {
     debugScrolling("scroll", canvasContainer, "scrollVelocity", `${deltaTop}/${deltaTime}`);
     lastScrollTime = thisTime;
     lastScrollTop = thisScrollTop;
-
 }
 
 // calculates dh,dv parallax when
@@ -1355,12 +1344,12 @@ function addTagLinkClickListener(tagLink) {
 function renderAllTranslateableDivsAtCanvasContainerCenter() {
     return;
     // RETURN IMMEDIATELY
-    const canvasContainerX = canvasContainer.offsetWidth/2;
-    const canvasContainerY = canvasContainer.offsetHeight/2;
+    const canvasContainerX = utils.half(canvasContainer.offsetWidth);
+    const canvasContainerY = utils.half(canvasContainer.offsetHeight);
     const translateableDivs = getAllTranslateableCardDivs();
     for (const div of translateableDivs) {
         const divWidth = div.offsetWidth;
-        const trans_dx = canvasContainerX - divWidth / 2.0;
+        const trans_dx = canvasContainerX - utils.half(divWidth);
         const trans_dy = 0;
         const translateStr = `${trans_dx}px ${trans_dy}px`;
         try {
@@ -1396,10 +1385,10 @@ var bullsEyeX;
 var bullsEyeY;
 
 function centerBullsEye() {
-    bullsEyeX = canvasContainer.offsetWidth/2;
-    bullsEyeY = canvasContainer.offsetHeight/2;
-    var newLeft = bullsEyeX - bullsEye.offsetWidth/2;
-    var newTop =  bullsEyeY - bullsEye.offsetHeight/2;
+    bullsEyeX = utils.half(canvasContainer.offsetWidth);
+    bullsEyeY = utils.half(canvasContainer.offsetHeight);
+    var newLeft = bullsEyeX - utils.half(bullsEye.offsetWidth);
+    var newTop =  bullsEyeY - utils.half(bullsEye.offsetHeight);
     bullsEye.style.left = `${newLeft}px`;
     bullsEye.style.top = `${newTop}px`;
 }
@@ -1410,6 +1399,7 @@ var focalPointY;
 function focalPointListener(x,y) {
     focalPointX = x;
     focalPointY = y;
+    handleFocalPointMove();
     debugFocalPoint();
 }
 
