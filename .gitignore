@@ -93,3 +93,6 @@ lerna-debug.log
 Thumbs.db
 **/venv
 **/images/*
+
+# Large .mov files
+*.mov
