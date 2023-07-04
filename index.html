@@ -10,6 +10,7 @@
         content="ie=edge"/>
   <title>flock-of-cards-v0.5</title>
   <link rel="stylesheet" href="styles.css">
+  <link rel="stylesheet" href="modules/timeline.css">
 </head>
 
 <body>
@@ -17,13 +18,15 @@
   <script type="text/javascript" src="static_content/media/image_paths.js"></script>
   <script type="module" src="./main.js" ></script>
 
-  <div id="left-container">
-    <div id="left-column">
+  <div id="main-container">
+    <div id="canvas-container">
       <div id="canvas">
         <div id="top-gradient"></div>
         <div id="bottom-gradient"></div>
         <div id="timeline-container" class="timeline-container-left"></div>
       </div>
+      <div id="bulls-eye">+</div>
+      <div id="focal-point">⦻</div>
     </div>
     <div id="right-column">
       <div id="right-header-div">
@@ -50,13 +53,11 @@
           <a target="_blank" href="https://www.beckerstudio.com/">beckerstudio.com</a>"
         </p>
 
-        <div id="debugElement"></div>
+        <div id="debugScrollingElement"></div>
         <div id="debugFocalPointElement"></div>
       </div>
     </div>
-    <div id="bulls-eye">+</div>
-    <div id="focal-point">⦻</div>
-    
+
 
 </body>
 

@@ -2,7 +2,7 @@
 
 import * as timeline from './timeline.js';
 import * as utils from './utils.js';
-
+  
 // --------------------------------------
 // TimeLine globals 
 
@@ -20,7 +20,6 @@ function inittimelineYearDivBottoms() {
     timelineYearDivBottoms = {}
 }
 
-const TIMELINE_DEFAULT_YEAR = 2007;
 const TIMELINE_MAX_YEAR = 2023;
 const TIMELINE_MIN_YEAR = 1977;
 
@@ -47,7 +46,7 @@ export function getTimelineHeight() {
 }
 
 // append year-divs and year-dashes into timeline-container
-export function createTimeline(container, leftColumn, defaultYear) {
+export function createTimeline(container, canvasContainer, defaultYear) {
     if ( container == null )
         container = document.getElementById("timeline-container");
     initTimelineContainer(container);
@@ -102,21 +101,21 @@ export function createTimeline(container, leftColumn, defaultYear) {
             timelineContainer.appendChild(monthTick);
         }
     }
-    leftColumnScrollToYear(leftColumn, year);
+    canvasContainerScrollToYear(canvasContainer, defaultYear);
 }
 
-export function leftColumnScrollToYear(leftColumn, year) {
+export function canvasContainerScrollToYear(canvasContainer, year) {
     // @ts-ignore
     var totalYears = TIMELINE_MAX_YEAR - TIMELINE_MIN_YEAR + 1;
     // @ts-ignore
-    var leftColumScrollPixelsPerYear = leftColumn.scrollHeight / totalYears;
+    var leftColumScrollPixelsPerYear = canvasContainer.scrollHeight / totalYears;
 
     // @ts-ignore
     var newScrollTop = (TIMELINE_MAX_YEAR - year) * leftColumScrollPixelsPerYear;
     // @ts-ignore
-    newScrollTop = utils.clamp(newScrollTop, 0, leftColumn.scrollHeight);
+    newScrollTop = utils.clamp(newScrollTop, 0, canvasContainer.scrollHeight);
 
     // @ts-ignore
-    leftColumn.scrollTop = newScrollTop;
+    canvasContainer.scrollTop = newScrollTop;
 }
 
