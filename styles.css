@@ -159,7 +159,7 @@ body {
   flex-direction: column;
 }
 #right-header-div {
-  height: 100px;
+  height: 140px;
   background-color: #444444;
   color: white;
   padding: 10px;
@@ -251,3 +251,12 @@ body {
   border-style: dashed !important;
 }
 
+.buttons {
+  text-align:justify;
+}
+
+.menu-button {
+  background-color: green;
+  color: white;
+  float: right;
+}
