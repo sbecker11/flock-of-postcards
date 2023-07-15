@@ -20,8 +20,8 @@ function inittimelineYearDivBottoms() {
     timelineYearDivBottoms = {}
 }
 
-const TIMELINE_MAX_YEAR = 2023;
-const TIMELINE_MIN_YEAR = 1977;
+const TIMELINE_MAX_YEAR = 2024;
+const TIMELINE_MIN_YEAR = 1976;
 
 // YEAR dimensions are in px
 const YEAR_BOTTOM_TO_BOTTOM = 162;
