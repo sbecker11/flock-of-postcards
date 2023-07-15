@@ -17,9 +17,10 @@ const canvasContainer = document.getElementById("canvas-container");
 const canvas = document.getElementById("canvas");
 const bottomGradient = document.getElementById("bottom-gradient");
 const bullsEye = document.getElementById("bulls-eye");
-const selectNextButton = document.getElementById("select-next");
-const selectAllButton = document.getElementById("select-all");
-const clearAllButton = document.getElementById("clear-all");
+const selectNextBizcardButton = document.getElementById("select-next-bizcard");
+const selectAllBizcardsButton = document.getElementById("select-all-bizcards");
+const selectAllSkillsButton = document.getElementById("select-all-skills");
+const clearAllLineItemsButton = document.getElementById("clear-all-line-items");
 
 // --------------------------------------
 // Miscellaneous globals
@@ -241,8 +242,8 @@ function createBizcardDivs() {
         bizcardDiv.style.width = `${width}px`;
         bizcardDiv.style.zIndex = zIndexStr;
 
-        bizcardDiv.setAttribute("endDate", endDate.toISOString().slice(0, 10));
-        bizcardDiv.setAttribute("startDate", startDate.toISOString().slice(0, 10));
+        bizcardDiv.setAttribute("endDate", utils.getIsoDateString(endDate));
+        bizcardDiv.setAttribute("startDate", utils.getIsoDateString(endDate));
 
         // save the original center 
         var originalCtrX = left + width / 2;
@@ -451,7 +452,10 @@ function createCardDiv(bizcardDiv, tagLink) {
     // have been created
 
     const verticalOffset = utils.getRandomInt(-MAX_CARD_POSITION_OFFSET, MAX_CARD_POSITION_OFFSET);
-    var top = vt_top + verticalOffset
+
+    var top = vt_top + verticalOffset;
+    if ( top < 200 )
+        top += 200;
     cardDiv.style.top = `${top}px`;
 
 
@@ -1106,7 +1110,6 @@ function addCardDivLineItemClickListener(cardDivLineItem, cardDiv) {
         // selectTheCardDiv not clicked
         // does not scroll self into view
         selectTheCardDiv(cardDiv);
-
         scrollElementIntoView(cardDiv);
 
         event.stopPropagation();
@@ -1519,12 +1522,16 @@ function restoreCanvasContainerEventListeners() {
 //---------------------------------------
 // selectAllButton - adds a cardDivLineItem for all bizcardDivs
 
-selectAllButton.addEventListener("click", function (event) {
+selectAllBizcardsButton.addEventListener("click", function (event) {
+
+    // delete all cardDivLineItems in reverse order
+    clearAllDivCardLineItems();
+    
     var allBizcardDivs = document.getElementsByClassName("bizcard-div");
     for (let i = 0; i < allBizcardDivs.length; i++) {
         var bizcardDiv = allBizcardDivs[ i ];
 
-        // select the bizcardDiv
+        // select the bizcardDiv and scroll it into view
         selectTheCardDiv(bizcardDiv)
         scrollElementIntoView(bizcardDiv);
 
@@ -1533,16 +1540,74 @@ selectAllButton.addEventListener("click", function (event) {
         // select brings the cardDivLineItem into viw
         selectTheCardDivLineItem(bizcardDivLineItem);
     }
+
+    // select and scroll to the first bizcardDiv and its line item
+    selectAndScrollToCardDiv(allBizcardDivs[0]);
 });
 
-//---------------------------------------
-// clearAllButton - remove all cardDivLineItems in reverse order
 
-clearAllButton.addEventListener("click", function (event) {
+//---------------------------------------
+// selectAllSkillsButton - remove all cardDivLineItems 
+// in reverse order and then select all cardDivs from 0 to N
+// and scroll cardDivs and lineItems to see the first skill
+selectAllSkillsButton.addEventListener("click", function (event) {
+
+    // delete all cardDivLineItems in reverse order
+    clearAllDivCardLineItems();
+
+    var allCardDivs = document.getElementsByClassName("card-div");
+    for (let i=0; i < allCardDivs.length; i++) {
+        var cardDiv = allCardDivs[i];
+        // select each cardDiv 
+        selectTheCardDiv(cardDiv);
+        // and scroll it into view
+        scrollElementIntoView(cardDiv);
+
+        // add a cardDivLineItem and select it
+        var cardDivLineItem = addCardDivLineItem(cardDiv.id);
+        // which brings it into view
+        selectTheCardDivLineItem(cardDivLineItem);
+    }
+    // select and scroll to the first cardDiv and its line item
+    selectAndScrollToCardDiv(allCardDivs[0]);
+});
+
+// delete all cardDivLineItems in reverse order
+function clearAllDivCardLineItems() {
     var allCardDivLineItems = document.getElementsByClassName("card-div-line-item");
     for (let i=allCardDivLineItems.length-1; i >= 0 ; i--) {
         allCardDivLineItems[i].remove();
     }
+}
+
+// select the given cardDiv and its line item 
+// and scroll each into view
+function selectAndScrollToCardDiv(cardDiv) {
+    var cardDivLineItem = getCardDivLineItem(cardDiv.id)
+
+    // avoid in case another select would ignore the select
+    deselectTheSelectedCardDivLineItem();
+    selectTheCardDivLineItem(cardDivLineItem);
+
+    // extra umph
+    cardDivLineItem.scrollIntoView({behavior: 'instant', block: 'start'});
+
+    // avoid in case another select would ignore the select
+    deselectTheSelectedCardDiv();
+    selectTheCardDiv(cardDiv);
+    // and bring it into view
+    scrollElementIntoView(cardDiv);
+
+    // extra umph
+    cardDiv.scrollIntoView({behavior: 'instant', block: 'start'});
+}
+
+//---------------------------------------
+// clearAllLineItemsButton - remove all cardDivLineItems in reverse order
+
+clearAllLineItemsButton.addEventListener("click", function (event) {
+    // delete all cardDivLineItems in reverse order
+    clearAllDivCardLineItems();
 });
 
 //---------------------------------------
@@ -1595,10 +1660,10 @@ function selectNextBizcard() {
         if (bizcardDivLineItem == null)
             bizcardDivLineItem = addCardDivLineItem(nextBizcardDivId);
 
-        // select the new or existing bizcardDivLineItem and scroll it into view
+        // select the new or existing bizcardDivLineItem which
+        // scroll it into view
         console.assert(bizcardDivLineItem != null);
         selectTheCardDivLineItem(bizcardDivLineItem);
-        scrollElementIntoView(bizcardDivLineItem);
 
         // select the nextBizcardDiv and scroll it into view
         var nextBizCardDiv = document.getElementById(nextBizcardDivId);
@@ -1631,7 +1696,7 @@ function getLastBizcardDivWithLineItem() {
     return null;
 }
 
-selectNextButton.addEventListener("click", function (event) {
+selectNextBizcardButton.addEventListener("click", function (event) {
     selectNextBizcard();
 });
 
