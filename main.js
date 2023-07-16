@@ -980,6 +980,12 @@ function selectTheCardDiv(cardDiv) {
     setSelectedStyle(theSelectedCardDiv);
 }
 
+function getTheSelectedCardDivId() {
+    if ( theSelectedCardDiv != null )
+       return theSelectedCardDiv.id;
+    return null;
+}
+
 function deselectTheSelectedCardDiv() {
     // if theSelectedCardDiv is defined
     if (theSelectedCardDiv != null) {
@@ -1633,6 +1639,13 @@ function getdateSortedBizcardIds() {
     return dateSortedBizcardIds;
 }
 
+function getFirstBizcardDivId() {
+    var sorted = getdateSortedBizcardIds();
+    if ( sorted )
+        return sorted[0].id;
+    return null;
+}
+
 function getBizcardDivEndDate(bizcardDiv) {
     var endDateStr = bizcardDiv.getAttribute("endDate");
     var endDate = new Date(endDateStr);
@@ -1652,24 +1665,31 @@ function getBizcardDivEndDate(bizcardDiv) {
 // moved to be after the last lineItem.
 //
 function selectNextBizcard() {
-    // get the 
-    var nextBizcardDivId = getFollowingBizcardDivId(null);
+    var nextBizcardDivId = null;
+    var theSelectedBizcardId = getTheSelectedCardDivId();
+    if ( theSelectedBizcardId == null )
+        nextBizcardDivId = getFirstBizcardDivId();
+    else
+        nextBizcardDivId = getFollowingBizcardDivId(theSelectedBizcardId);
+
     if (nextBizcardDivId != null) {
+        
+        // look for this bizcard's line item
         var bizcardDivLineItemId = `${nextBizcardDivId}-line-item`;
         var bizcardDivLineItem = document.getElementById(bizcardDivLineItemId);
+        // create the line item for this bizcard
         if (bizcardDivLineItem == null)
             bizcardDivLineItem = addCardDivLineItem(nextBizcardDivId);
-
-        // select the new or existing bizcardDivLineItem which
-        // scroll it into view
-        console.assert(bizcardDivLineItem != null);
-        selectTheCardDivLineItem(bizcardDivLineItem);
-
-        // select the nextBizcardDiv and scroll it into view
-        var nextBizCardDiv = document.getElementById(nextBizcardDivId);
-        selectTheCardDiv(nextBizCardDiv);
-        scrollElementIntoView(nextBizCardDiv);
     }
+    // select the new or existing bizcardDivLineItem which
+    // scroll it into view
+    console.assert(bizcardDivLineItem != null);
+    selectTheCardDivLineItem(bizcardDivLineItem);
+
+    // select the nextBizcardDiv and scroll it into view
+    var nextBizCardDiv = document.getElementById(nextBizcardDivId);
+    selectTheCardDiv(nextBizCardDiv);
+    scrollElementIntoView(nextBizCardDiv);
 }
 
 // return the list of all bizcardDivLineItems or null
