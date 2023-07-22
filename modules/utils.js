@@ -12,27 +12,58 @@ export const validateIntArrayLength = (arr, length) => { if (typeof arr === 'und
 export const validateFloat = (num) => { if (typeof num === 'undefined' || num === null || typeof num !== 'number' || !Number.isFinite(num)) throw new Error('Invalid floating-point number'); };
 export const clamp = (value, min, max) => Math.max(min, Math.min(max, value));
 export const adjustRgbBrightness = (rgb, brightness) => { validateIntArrayLength(rgb, 3); return rgb.map(channel => clamp(Math.round(channel * brightness), 0, 255)); }; // 1.0 is normal brightness
-export const adjustHexBrightness = (hexStr, brightness) => { validateHexString(hexStr); validateFloat(brightness); return getHexFromRGB(adjustRgbBrightness(getRGBfromHex(`${hexStr}`), brightness)); }; // 1.0 is normal brightness
-export const getHexFromRGB = rgb => { validateIntArrayLength(rgb, 3); return "#" + rgb.map(c => c.toString(16).padStart(2, "0")).join("").toLowerCase(); };
-export const getRGBfromHex = hexStr => { validateHexString(hexStr); return hexStr.match(/^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i)?.slice(1).map(c => parseInt(c, 16)); };
+export const adjustHexBrightness = (hexStr, brightness) => { validateHexString(hexStr); validateFloat(brightness); return get_Hex_from_RGB(adjustRgbBrightness(get_RGB_from_Hex(`${hexStr}`), brightness)); }; // 1.0 is normal brightness
+export const get_Hex_from_RGB = RGB => { validateIntArrayLength(RGB, 3); return "#" + RGB.map(c => c.toString(16).padStart(2, "0")).join("").toUpperCase(); };
+export const get_RGB_from_Hex = hexStr => { validateHexString(hexStr); return hexStr.match(/^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i)?.slice(1).map(c => parseInt(c, 16)); };
 export const toFixedPoint = (value, precision) => +value.toFixed(precision);
 export const linearInterp = (x, x1, y1, x2, y2) => y1 + ((x - x1) / (x2 - x1)) * (y2 - y1);
 export const getRandomInt = (min, max) => Math.floor(Math.random() * (max - min + 1)) + min;
 export const zeroPad = (num, places) => num.toString().padStart(places, "0");
-export const getHSVfromRGB = ([r, g, b]) => {
-    const min = Math.min(r, g, b);
-    const max = Math.max(r, g, b);
+export const get_HSV_from_RGB = ([ R, G, B ]) => {
+    const min = Math.min(R, G, B);
+    const max = Math.max(R, G, B);
     const delta = max - min;
     const s = max !== 0 ? delta / max : 0;
-    let h = max === min ? 0 : (max === r ? (g - b) / delta + (g < b ? 6 : 0) : max === g ? (b - r) / delta + 2 : (r - g) / delta + 4) * 60;
+    let h = max === min ? 0 : (max === R ? (G - B) / delta + (G < B ? 6 : 0) : max === G ? (B - R) / delta + 2 : (R - G) / delta + 4) * 60;
     if (isNaN(h))
         h = 0;
-    return [h, s, max];
+    return [ h, s, max ];
 };
-export const getRGBfromHSV = ([h, s, v]) => {
+export const get_RGB_from_HSV = ([ h, s, v ]) => {
     const f = (n, k = (n + h / 60) % 6) => v - v * s * Math.max(Math.min(k, 4 - k, 1), 0);
-    return [f(5), f(3), f(1)].map(Math.round);
+    return [ f(5), f(3), f(1) ].map(Math.round);
 };
+export function get_RGB_from_RgbStr(rgbStr) {
+    validateString(rgbStr);
+    rgbStr = rgbStr.replaceAll(" ","");
+    const regex = /rgb\((\d+),(\d+),(\d+)\)/;
+    const matches = rgbStr.match(regex);
+    if (!matches)
+        throw new Error('Invalid RGB format. Expected format: rgb(r,g,b)');
+    const [ , rStr, gStr, bStr ] = matches;
+    const R = parseInt(rStr, 10);
+    const G = parseInt(gStr, 10);
+    const B = parseInt(bStr, 10);
+    return [ R, G, B ];
+}
+export function get_ColorStr_from_RGB(RGB) {
+    validateIntArrayLength(RGB,3);
+    return `color(${RGB[0]},${RGB[1]},${RGB[2]})`;
+}
+export function get_RGB_from_ColorStr(colorStr) {
+    validateString(colorStr);
+    if (colorStr.startsWith("#"))
+        return get_RGB_from_Hex(colorStr);
+    if (colorStr.startsWith('rgb'))
+        return get_RGB_from_RgbStr(colorStr);
+    return colorStr;
+}
+export function get_Hex_from_ColorStr(colorStr) {
+    var RGB = get_RGB_from_ColorStr(colorStr);
+    return get_Hex_from_RGB(RGB);
+}
+
+
 export const calculateDistance = (x1, y1, x2, y2) => Math.sqrt(Math.pow(x2 - x1, 2) + Math.pow(y2 - y1, 2));
 export const isBetween = (value, min, max) => value >= min && value <= max;
 export const createRect = (x1, y1, x2, y2) => ({ left: Math.min(x1, x2), top: Math.min(y1, y2), right: Math.max(x1, x2), bottom: Math.max(y1, y2) });
@@ -40,6 +71,24 @@ export const isPointInsideRect = (x, y, rect) => x >= rect.left && x <= rect.rig
 export const half = (value) => typeof value === 'number' ? Math.floor(value / 2) : (() => { throw new Error(`Value '${value}' is not a number`); })();
 export const getMonthDates = (year, month) => ({ start: new Date(year, month - 1, 1), end: new Date(year, month, 0) });
 export const getIsoDateString = (date) => date.toISOString().slice(0, 10);
+export const linearInterpArray = (t, array1, array2) => {
+    const interpolatedArray = [];
+    for (let i = 0; i < array1.length; i++) {
+        const channelInterpolation = linearInterp(t, 0, array1[ i ], 1, array2[ i ]);
+        interpolatedArray.push(Math.round(channelInterpolation));
+    }
+    return interpolatedArray;
+};
+
+export const is_numeric_array = (arr) => {
+    for (let i = 0; i < arr.length; i++) {
+        if (typeof arr[ i ] !== 'number' || isNaN(arr[ i ])) {
+            return false;
+        }
+    }
+    return true;
+};
+
 
 // --------------------------------------
 // Javascript hacks
@@ -63,10 +112,10 @@ export function acronym(text) {
     text = text.replace(/[.,\/#!@$%\^&\*;:{}=\-_`~()]/g, "").toUpperCase();
     var parts = text.trim().split(" ");
     for (var i = 0; i < parts.length; i++) {
-        var part = parts[i].trim()
+        var part = parts[ i ].trim()
         if (part.length > 0) {
             // add first char
-            acro += part[0];
+            acro += part[ 0 ];
         }
     }
     if (acro.length == 0)

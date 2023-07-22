@@ -22,7 +22,8 @@
 # excel will edit the local spreadsheet from now on
 # cp /Users/sbecker11/workspace-rawgraphs/jobs.xlsx .
 source venv/bin/activate
-in2csv jobs.xlsx | csvjson > jobs.json
+in2csv jobs.xlsx > jobs.csv
+cat jobs.csv | csvjson > jobs.json
 echo "const jobs = " > jobs.js
 truncate -s -1 jobs.js
 cat jobs.json >> jobs.js
