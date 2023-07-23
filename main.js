@@ -930,30 +930,20 @@ function handleCardDivMouseLeave(event, cardClass) {
     }
 }
 
-function addAnimationEndListener(div, funcName, targetDivStyleArray) {
-
-    if ( ['setSelectedStyle','restoreSavedStyle'].indexOf(funcName) === -1 ) {
-        throw Error("invalid funcName:", funcName);
+function endAnimation(div, funcName, targetDivStyleArray) {
+    console.log(`animationend for ${funcName} ${div.id}`);
+    // apply the targetStyle on animationend
+    if ( targetDivStyleArray != null ) {
+        applyDivStyleArray(div, targetDivStyleArray);
+        console.log(`${funcName} styling reached for ${div.id}`)
+    } else {
+        console.log(`ERROR ${funcName} styling not reached for ${div.id}`);
     }
-    function handleAnimationEnd() {
-        console.log(`animationend for ${funcName} ${div.id}`);
-        // apply the targetStyle on animationend
-        if ( targetDivStyleArray != null ) {
-           applyDivStyleArray(div, targetDivStyleArray);
-           console.log(`${funcName} styling reached for ${div.id}`)
-        } else {
-            console.log(`ERROR ${funcName} styling not reached for ${div.id}`);
-        }
-        if ( funcName == 'setSelectedStyle' )
-            div.classList.add('selected');
-        else
-            div.classList.remove('selected');
-        console.log(`animationend for ${funcName} ${div.id}`);
-    }
-
-    div.addEventListener('animationend', handleAnimationEnd, {once:true});
-    div.addEventListener('webkitAnimationEnd', handleAnimationEnd, {once:true});
-    div.addEventListener('oAnimationEnd', handleAnimationEnd, {once:true});
+    if ( funcName == 'setSelectedStyle' )
+        div.classList.add('selected');
+    else
+        div.classList.remove('selected');
+    console.log(`animationend for ${funcName} ${div.id}`);
 }
 
 
@@ -988,7 +978,7 @@ function setSelectedStyle(div) {
         var interpDivStyleArray = utils.linearInterpArray(t, currentDivStyleArray, targetDivStyleArray);
         keyframes.push( createKeyFrame(div, interpDivStyleArray) );
     } 
-    addAnimationEndListener( div, 'setSelectedStyle', targetDivStyleArray );
+    setTimeout( function() { endAnimation(div, 'setSelectedStyle', targetDivStyleArray); }, 2000);
     div.animate( keyframes, {duration:2000, iterations:1} );
 }
 
@@ -1004,7 +994,7 @@ function restoreSavedStyle(div) {
         var interpDivStyleArray = utils.linearInterpArray(t, currentDivStyleArray, targetDivStyleArray);
         keyframes.push( createKeyFrame(div, interpDivStyleArray) );
     }
-    addAnimationEndListener( div, 'restoreSavedStyle', targetDivStyleArray );
+    setTimeout( function() { endAnimation(div, 'restoreSavedStyle', targetDivStyleArray); }, 2000);
     div.animate( keyframes, {duration:2000, iterations:1} );
 }
 
@@ -1067,7 +1057,7 @@ function applyDivStyleArray(div, array) {
         div.style.top = array[1] + 'px';
         var z = array[2];
         div.style.zIndex = get_zIndexStr_from_z(z);
-        div.style.filter = get_filter_str_from_z(z);
+        div.style.filter = get_filterStr_from_z(z);
     }
     div.style.color = utils.get_Hex_from_RGB(array.slice(3,6));
     div.style.backgroundColor = utils.get_Hex_from_RGB(array.slice(6,9));
