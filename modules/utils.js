@@ -73,6 +73,9 @@ export const getMonthDates = (year, month) => ({ start: new Date(year, month - 1
 export const getIsoDateString = (date) => date.toISOString().slice(0, 10);
 export const linearInterpArray = (t, array1, array2) => {
     const interpolatedArray = [];
+    if (array1.length != array2.length)
+        throw new Error('linearInterpArray length mismatch');
+
     for (let i = 0; i < array1.length; i++) {
         const channelInterpolation = linearInterp(t, 0, array1[ i ], 1, array2[ i ]);
         interpolatedArray.push(Math.round(channelInterpolation));
