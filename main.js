@@ -717,9 +717,7 @@ function getAllTranslateableCardDivs() {
     return allDivs;
 }
 
-// applies z-depth scaled parallax to all translateableDiv
-function applyParallax() {
-
+function applyParallaxToOneCardDivStyle(cardDiv, divStyle ) {
     var { parallaxX, parallaxY } = getParallax();
     const canvasContainerX = utils.half(canvasContainer.offsetWidth);
     const canvasContainerY = utils.half(canvasContainer.offsetHeight);
@@ -728,29 +726,38 @@ function applyParallax() {
     const dh = parallaxX * PARALLAX_X_EXAGGERATION_FACTOR;
     const dv = parallaxY * PARALLAX_Y_EXAGGERATION_FACTOR;
 
-    // compute and apply translations for all translatableDivs
+    // compute and apply translations to this translatableDiv
+    var zIndexStr = divStyle.zIndex;
+
+    var z = get_z_from_zIndexStr(zIndexStr);
+
+    var cardDivX = utils.half(cardDiv.offsetWidth);
+    var cardDivY = utils.half(cardDiv.offsetHeight);
+
+    // canvasContainer-relative cardDiv center
+    var canvasContainer_dx = canvasContainerX - cardDivX;
+    var canvasContainer_dy = canvasContainerY - cardDivY;
+
+    var zTranslateStr = getZTranslateStr(dh, dv, z, canvasContainer_dx, canvasContainer_dy);
+
+    try {
+        divStyle.translate = zTranslateStr;
+    } catch (error) {
+        console.error(`applyParallax cardDiv:${cardDiv.id}`, error);
+    }
+    return divStyle;
+}
+
+function applyParallaxToOneCardDiv(cardDiv) {
+    applyParallaxToOneCardDivStyle(cardDiv, cardDiv.style);
+}
+
+// applies z-depth scaled parallax to all translateableDiv
+function applyParallax() {
     var allDivs = getAllTranslateableCardDivs();
     for (var i = 0; i < allDivs.length; i++) {
         var cardDiv = allDivs[ i ];
-
-        var zIndexStr = cardDiv.style.zIndex;
-
-        var z = get_z_from_zIndexStr(zIndexStr);
-
-        var cardDivX = utils.half(cardDiv.offsetWidth);
-        var cardDivY = utils.half(cardDiv.offsetHeight);
-
-        // canvasContainer-relative cardDiv center
-        var canvasContainer_dx = canvasContainerX - cardDivX;
-        var canvasContainer_dy = canvasContainerY - cardDivY;
-
-        var zTranslateStr = getZTranslateStr(dh, dv, z, canvasContainer_dx, canvasContainer_dy);
-
-        try {
-            cardDiv.style.translate = zTranslateStr;
-        } catch (error) {
-            console.error(`applyParallax cardDiv:${cardDiv.id}`, error);
-        }
+        applyParallaxToOneCardDiv(cardDiv)
     }
 }
 
@@ -975,7 +982,13 @@ function setSelectedStyle(div) {
     var keyframes = [];
     for( let frame=0; frame<NUM_ANIMATION_FRAMES; frame++ ) {
         var t = frame / (NUM_ANIMATION_FRAMES-1);
-        var interpDivStyleArray = utils.linearInterpArray(t, currentDivStyleArray, targetDivStyleArray);
+        var interpDivStyleArray;
+        if (NUM_ANIMATION_FRAMES == 2) {
+            // avoid divStyleArray length mismatch when isDivCard(currentDiv !== isDivCard(targetDiv)
+            interpDivStyleArray = (t == 0) ? currentDivStyleArray : targetDivStyleArray;
+        } else {
+            interpDivStyleArray = utils.linearInterpArray(t, currentDivStyleArray, targetDivStyleArray);
+        }
         keyframes.push( createKeyFrame(div, interpDivStyleArray) );
     } 
     setTimeout( function() { endAnimation(div, 'setSelectedStyle', targetDivStyleArray); }, 2000);
@@ -988,10 +1001,18 @@ function setSelectedStyle(div) {
 function restoreSavedStyle(div) {
     var currentDivStyleArray = createDivStyleArray(div, null);
     var targetDivStyleArray = createDivStyleArray(div,"saved");
+    var targetDivStyle = getDivStyleFromDivStyleArray(div, targetDivStyleArray);
+    targetDivStyle  = applyParallaxToOneCardDivStyle(div, targetDivStyle);
+    targetDivStyleArray = getDivStyleArrayFromDivStyle(div,targetDivStyle)
     var keyframes = [];
     for( let frame=0; frame<NUM_ANIMATION_FRAMES; frame++ ) {
         var t = frame / (NUM_ANIMATION_FRAMES-1);
-        var interpDivStyleArray = utils.linearInterpArray(t, currentDivStyleArray, targetDivStyleArray);
+        var interpDivStyleArray;
+        if ( NUM_ANIMATION_FRAMES == 2 )
+            // avoid divStyleArray length mismatch when isDivCard(currentDiv !== isDivCard(targetDiv)
+            interpDivStyleArray = (t == 0) ? currentDivStyleArray : targetDivStyleArray;
+        else 
+            interpDivStyleArray = utils.linearInterpArray(t, currentDivStyleArray, targetDivStyleArray);
         keyframes.push( createKeyFrame(div, interpDivStyleArray) );
     }
     setTimeout( function() { endAnimation(div, 'restoreSavedStyle', targetDivStyleArray); }, 2000);
@@ -1003,33 +1024,29 @@ function createDivStyleArray(div, prefix) {
     let array = [];
     var RGB;
     if (prefix) { // use div.getAttribute
+        array = array.concat(utils.get_RGB_from_ColorStr(div.getAttribute(`${prefix}-color`)));
+        array = array.concat(utils.get_RGB_from_ColorStr(div.getAttribute(`${prefix}-background-color`)));
         if ( !isCardDivLineItem(div) ) { // positionals
             var left = parseInt(div.getAttribute(`${prefix}-left`));
-            console.assert(left>0, `X ${prefix}-left is ${left}`);
             array.push(left);
             var top = parseInt(div.getAttribute(`${prefix}-top`));
-            console.assert(top>0, `Y ${prefix}-top is ${top}`);
             array.push(top);
             array.push(get_z_from_zIndexStr(div.getAttribute(`${prefix}-zIndex`)))
         } else {
             array = array.concat([0,0,0]);
         }
-        array = array.concat(utils.get_RGB_from_ColorStr(div.getAttribute(`${prefix}-color`)));
-        array = array.concat(utils.get_RGB_from_ColorStr(div.getAttribute(`${prefix}-background-color`)));
     } else { // use div or div.style
+        array = array.concat(utils.get_RGB_from_ColorStr(div.style.color));
+        array = array.concat(utils.get_RGB_from_ColorStr(div.style.backgroundColor));
         if ( !isCardDivLineItem(div) ) { // positionals
             var left = div.offsetLeft;
-            console.assert(left>0, 'T left is ${left} for null prefix');
             array.push(left);
             var top = div.offsetTop;
-            console.assert(top>0, 'Z top is ${top} for null prefix');
             array.push(top);
             array.push(get_z_from_zIndexStr(div.style.zIndex));
         } else {
             array = array.concat([0,0,0]);
         }
-        array = array.concat(utils.get_RGB_from_ColorStr(div.style.color));
-        array = array.concat(utils.get_RGB_from_ColorStr(div.style.backgroundColor));
     }
     return array;
 }
@@ -1037,31 +1054,62 @@ function createDivStyleArray(div, prefix) {
 // return a keyFrame dict
 function createKeyFrame(div, divStyleArray) {
     var keyFrame = {};
+    keyFrame['color'] = utils.get_Hex_from_RGB(divStyleArray.slice(0,3));
+    keyFrame['background-color'] = utils.get_Hex_from_RGB(divStyleArray.slice(3,6));
     if ( !isCardDivLineItem(div) ) { // positionals
-        keyFrame['left'] = `${divStyleArray[0]}px`;
-        keyFrame['top'] = `${divStyleArray[1]}px`;
-        var z = divStyleArray[2];
+        keyFrame['left'] = `${divStyleArray[6]}px`;
+        keyFrame['top'] = `${divStyleArray[7]}px`;
+        var z = divStyleArray[8];
         keyFrame['zIndex'] = get_zIndexStr_from_z(z);
         keyFrame['filter'] = get_filterStr_from_z(z);
-    }
-    keyFrame['color'] = utils.get_Hex_from_RGB(divStyleArray.slice(3,6));
-    keyFrame['background-color'] = utils.get_Hex_from_RGB(divStyleArray.slice(6,9));
+    } 
     //keyFrame['offset'] = `${offset}`;
     return keyFrame;
 }
 
-
 function applyDivStyleArray(div, array) {
+    div.style.color = utils.get_Hex_from_RGB(array.slice(0,3));
+    div.style.backgroundColor = utils.get_Hex_from_RGB(array.slice(3,6));
     if ( !isCardDivLineItem(div) ) { // positionals
-        div.style.left = array[0] + 'px';
-        div.style.top = array[1] + 'px';
-        var z = array[2];
+        div.style.left = array[6] + 'px';
+        div.style.top = array[7] + 'px';
+        var z = array[8];
         div.style.zIndex = get_zIndexStr_from_z(z);
         div.style.filter = get_filterStr_from_z(z);
     }
-    div.style.color = utils.get_Hex_from_RGB(array.slice(3,6));
-    div.style.backgroundColor = utils.get_Hex_from_RGB(array.slice(6,9));
 }
+
+function getDivStyleArrayFromDivStyle(div, divStyle) {
+    var array = [];
+    var RGB = utils.get_RGB_from_Hex(divStyle.color);
+    array.push(...RGB);
+    var RGB = utils.get_RGB_from_Hex(divStyle.backgroundColor);
+    array.push(...RGB);
+    if ( !isCardDivLineItem(div) ) { // positionals
+        array.push(div.offsetLeft)
+        array.push(div.offsetTop)
+        var z = get_z_from_zIndexStr(divStyle.zIndex);
+        array.push(z);
+    } else {
+        array = array.concat([0,0,0]);
+    }
+    return array;
+}
+
+function getDivStyleFromDivStyleArray(div, array) {
+    var divStyle = document.createElement('style');
+    divStyle.color = utils.get_Hex_from_RGB(array.slice(0,3));
+    divStyle.backgroundColor = utils.get_Hex_from_RGB(array.slice(3,6));
+    if ( !isCardDivLineItem(div) ) { // positionals
+        divStyle.left = array[6] + 'px';
+        divStyle.top = array[7] + 'px';
+        var z = array[8];
+        divStyle.zIndex = get_zIndexStr_from_z(z);
+        divStyle.filter = get_filterStr_from_z(z);
+    }
+    return divStyle;
+}
+
 
 // ------------------------------------------------------------
 // theSelectedCardDiv vars, constants and functions
