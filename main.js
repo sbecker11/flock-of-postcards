@@ -1635,13 +1635,41 @@ function debugFocalPoint() {
     debugFocalPointElement.innerHTML = html;
 }
 
+// return the min and max years over the list of jobs
+function getMinMaxTimelineYears(jobs) {
+    var minYear = 10000;
+    var maxYear = -10000;
+    for (let i = 0; i < jobs.length; i++) {
+        var job = jobs[ i ];
+        var jobEnd = job[ "end" ].trim().replace("-01", "");
+        utils.validateString(jobEnd);
+        var endYearStr = jobEnd.split("-")[ 0 ];
+        var endYear = parseInt(endYearStr);
+        if ( endYear > maxYear )
+            maxYear = endYear;
+
+        var jobStart = job[ "start" ].trim().replace("-01", "");
+        utils.validateString(jobStart);
+        var startYearStr = jobStart.split("-")[ 0 ];
+        var startYear = parseInt(startYearStr);
+        if ( startYear < minYear )
+            minYear = startYear;
+    }
+    minYear -= 1;
+    maxYear += 1;
+    return [minYear, maxYear];
+}
+
 function handleWindowLoad() {
     const focal_point = document.getElementById("focal-point");
     focalPoint.createFocalPoint(focal_point, focalPointListener);
 
     const timelineContainer = document.getElementById("timeline-container");
+
+    const [MIN_TIMELINE_YEAR, MAX_TIMELINE_YEAR] = getMinMaxTimelineYears(jobs);
     const DEFAULT_TIMELINE_YEAR = 2020;
-    timeline.createTimeline(timelineContainer, canvasContainer, DEFAULT_TIMELINE_YEAR);
+
+    timeline.createTimeline(timelineContainer, canvasContainer, MIN_TIMELINE_YEAR, MAX_TIMELINE_YEAR, DEFAULT_TIMELINE_YEAR);
 
     createBizcardDivs();
     renderAllTranslateableDivsAtCanvasContainerCenter();

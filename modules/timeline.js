@@ -9,8 +9,13 @@ import * as utils from './utils.js';
 // @ts-ignore
 var timelineContainer = null;
 
-function initTimelineContainer(container) {
+var TIMELINE_MAX_YEAR = 0;
+var TIMELINE_MIN_YEAR = 0;
+
+function initTimelineContainer(container, minYear, maxYear) {
     timelineContainer = container;
+    TIMELINE_MIN_YEAR = minYear;
+    TIMELINE_MAX_YEAR = maxYear;
 }
 
 // the global set of all yearDivBottoms created 
@@ -19,9 +24,6 @@ var timelineYearDivBottoms = {};
 function inittimelineYearDivBottoms() {
     timelineYearDivBottoms = {}
 }
-
-const TIMELINE_MAX_YEAR = 2024;
-const TIMELINE_MIN_YEAR = 1976;
 
 // YEAR dimensions are in px
 const YEAR_BOTTOM_TO_BOTTOM = 162;
@@ -46,10 +48,11 @@ export function getTimelineHeight() {
 }
 
 // append year-divs and year-dashes into timeline-container
-export function createTimeline(container, canvasContainer, defaultYear) {
+export function createTimeline(container, canvasContainer, minYear, maxYear, defaultYear) {
     if ( container == null )
         container = document.getElementById("timeline-container");
-    initTimelineContainer(container);
+    
+    initTimelineContainer(container, minYear, maxYear);
     inittimelineYearDivBottoms();
 
     console.assert(timelineContainer != null);
