@@ -32,7 +32,9 @@ The static 'flock-of-postcards' website has been upgraded to be a webapp that us
 * Select the `index.html` file    
 * Click the "go-live" button at the bottom right in vscode to start the vscode-embedded webserver  
 <img src="https://shawn.beckerstudio.com/wp-content/uploads/2023/07/vscode-go-live-icon.png"/>  
-* Now open your Google Chrome browser to "http://localhost:5500/index.html" and have fun with your local copy of the 'flock-of-postcards' webapp.  
+* Note the port number displayed in the 'Go Live' box. It should be 5500 or 5501
+* Now open your Google Chrome browser to "http://localhost:5500/index.html". Change the port number if needed.
+* Have fun with your local copy of the 'flock-of-postcards' webapp.  
 
 
 <br/>
