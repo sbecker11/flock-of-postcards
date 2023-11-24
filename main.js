@@ -1667,7 +1667,7 @@ function handleWindowLoad() {
     const timelineContainer = document.getElementById("timeline-container");
 
     const [MIN_TIMELINE_YEAR, MAX_TIMELINE_YEAR] = getMinMaxTimelineYears(jobs);
-    const DEFAULT_TIMELINE_YEAR = 2020;
+    const DEFAULT_TIMELINE_YEAR = Math.round((MIN_TIMELINE_YEAR + MAX_TIMELINE_YEAR) / 2);
 
     timeline.createTimeline(timelineContainer, canvasContainer, MIN_TIMELINE_YEAR, MAX_TIMELINE_YEAR, DEFAULT_TIMELINE_YEAR);
 
