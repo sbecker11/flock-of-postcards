@@ -6,11 +6,6 @@ import * as utils from './modules/utils.js';
 import * as timeline from './modules/timeline.js';
 import * as focalPoint from './modules/focal_point.js';
 
-
-
-
-
-
 // --------------------------------------
 // Element reference globals
 
@@ -419,7 +414,7 @@ function convert_description_HTML_to_line_items_HTML(description_HTML) {
         }
         HTML += "</ul>"
     } else {
-        console.log(`unparsed description: ${description_HTML}`);
+        // console.log(`unparsed description: ${description_HTML}`);
         HTML += description_HTML;
     }
     HTML += "</p>"
@@ -609,7 +604,7 @@ function diffAttributes(dstDiv, srcDiv, attrs) {
         var dstVal = dstDiv.getAttribute(attr);
         var srcVal = srcDiv.getAttribute(attr);
         if (dstVal = srcVal) {
-            console.log(`attr:${attr} dst:${dstVal} != src:${srcVal}`);
+            // console.log(`attr:${attr} dst:${dstVal} != src:${srcVal}`);
             numErrors += 1;
         }
     }
@@ -643,7 +638,7 @@ function select_random_img_src() {
             const regex = /^(.*?)-(\d+)x(\d+)\.(\w+)$/;
             const match = filename.match(regex);
             if (!match) {
-                console.log(`Invalid filename format: ${filename}`);
+                // console.log(`Invalid filename format: ${filename}`);
                 invalid_image_paths.push(filePath);
                 continue;
             }
@@ -936,19 +931,19 @@ function handleCardDivMouseLeave(event, cardClass) {
 }
 
 function endAnimation(div, funcName, targetDivStyleArray) {
-    console.log(`animationend for ${funcName} ${div.id}`);
+    // console.log(`animationend for ${funcName} ${div.id}`);
     // apply the targetStyle on animationend
     if ( targetDivStyleArray != null ) {
         applyDivStyleArray(div, targetDivStyleArray);
-        console.log(`${funcName} styling reached for ${div.id}`)
+        // console.log(`${funcName} styling reached for ${div.id}`)
     } else {
-        console.log(`ERROR ${funcName} styling not reached for ${div.id}`);
+        // console.log(`ERROR ${funcName} styling not reached for ${div.id}`);
     }
     if ( funcName == 'setSelectedStyle' )
         div.classList.add('selected');
     else
         div.classList.remove('selected');
-    console.log(`animationend for ${funcName} ${div.id}`);
+    // console.log(`animationend for ${funcName} ${div.id}`);
 }
 
 
@@ -1264,7 +1259,7 @@ function selectTheCardDivLineItem(cardDivLineItem) {
     // styles self as selected
     setSelectedStyle(theSelectedCardDivLineItem);
     // does scroll self into view
-    //console.log(`scrollCardDivLineItemIntoView id:${theSelectedCardDivLineItem.id}`);
+    //// console.log(`scrollCardDivLineItemIntoView id:${theSelectedCardDivLineItem.id}`);
     scrollElementIntoView(theSelectedCardDivLineItem);
 }
 
@@ -1301,14 +1296,14 @@ function addCardDivLineItemClickListener(cardDivLineItem, cardDiv) {
 function addCardDivLineItem(targetCardDivId) {
 
     if (targetCardDivId == null) {
-        console.log(`ignoring request to add cardDivLineItem with null targetCardDivId`);
+        // console.log(`ignoring request to add cardDivLineItem with null targetCardDivId`);
         return;
     }
 
     // check to see if the cardDiv exists
     var targetCardDiv = document.getElementById(targetCardDivId);
     if (targetCardDiv == null) {
-        console.log(`no cardDiv found for targetCardDivId:${targetCardDivId}`);
+        // console.log(`no cardDiv found for targetCardDivId:${targetCardDivId}`);
         return;
     }
 
@@ -1404,7 +1399,7 @@ function addCardDivLineItem(targetCardDivId) {
             addTagLinkClickListener(tagLinks[ i ]);
         }
     } else {
-        //console.log(`returning preexisting cardDivLineItem for targetCardDivId:${targetCardDivId}`);
+        //// console.log(`returning preexisting cardDivLineItem for targetCardDivId:${targetCardDivId}`);
         cardDivLineItem = existingCardDivLineItem
     }
     // does not select self
@@ -1534,7 +1529,7 @@ function addTagLinkClickListener(tagLink) {
             // need to scroll cardDiv into view
             scrollElementIntoView(cardDiv);
         } else {
-            console.log(`no cardDiv with tagLink found for cardDivId:${cardDivId}`);
+            // console.log(`no cardDiv with tagLink found for cardDivId:${cardDivId}`);
         }
         event.stopPropagation();
     });
@@ -1553,7 +1548,7 @@ function renderAllTranslateableDivsAtCanvasContainerCenter() {
         try {
             div.style.translate = translateStr;
         } catch (error) {
-            console.log(`leftCenter div:${div.id}`, error);
+            // console.log(`leftCenter div:${div.id}`, error);
             console.error(`leftCenter div:${div.id}`, error);
         }
     }
@@ -1726,12 +1721,11 @@ function restoreCanvasContainerEventListeners() {
 
 //---------------------------------------
 // selectAllButton - adds a cardDivLineItem for all bizcardDivs
-
-selectAllBizcardsButton.addEventListener("click", function (event) {
-
+//
+function selectAllBizCards() {
     // delete all cardDivLineItems in reverse order
     clearAllDivCardLineItems();
-    
+
     var allBizcardDivs = document.getElementsByClassName("bizcard-div");
     for (let i = 0; i < allBizcardDivs.length; i++) {
         var bizcardDiv = allBizcardDivs[ i ];
@@ -1748,8 +1742,9 @@ selectAllBizcardsButton.addEventListener("click", function (event) {
 
     // select and scroll to the first bizcardDiv and its line item
     selectAndScrollToCardDiv(allBizcardDivs[0]);
-});
+}
 
+selectAllBizcardsButton.addEventListener("click", selectAllBizCards);
 
 //---------------------------------------
 // selectAllSkillsButton - remove all cardDivLineItems 
@@ -1933,7 +1928,4 @@ addCanvasContainerEventListener('mouseleave', handleMouseLeaveCanvasContainer);
 addCanvasContainerEventListener('scroll', handleCanvasContainerScroll);
 
 addCanvasContainerEventListener('click', handleCanvasContainerMouseClick);
-
-
-
 
