@@ -9,6 +9,7 @@ import * as utils from './utils.js';
 // @ts-ignore
 var timelineContainer = null;
 
+
 var TIMELINE_MAX_YEAR = 0;
 var TIMELINE_MIN_YEAR = 0;
 
@@ -16,6 +17,7 @@ function initTimelineContainer(container, minYear, maxYear) {
     timelineContainer = container;
     TIMELINE_MIN_YEAR = minYear;
     TIMELINE_MAX_YEAR = maxYear;
+
 }
 
 // the global set of all yearDivBottoms created 

@@ -356,7 +356,6 @@ function process_bizcard_description_item(bizcardDiv, inputString) {
     console.assert(bizcardDiv != null);
     const tagRegex = /\[(.*?)\]\((.*?)\)/g;
     const newTagLinks = [];
-
     const updatedString = inputString.replace(tagRegex, function (match, text, url) {
         const tagLink = { text, url };
         addCardDivId(bizcardDiv, tagLink);
@@ -631,7 +630,6 @@ function select_random_img_src() {
         return null;
     }
 
-
     if (selected_image_paths.length + invalid_image_paths.length === image_paths.length) {
         return null; // All image paths have been selected or marked as invalid
     }
@@ -829,7 +827,6 @@ function handleFocalPointMove() {
                 autoScrollingInterval = setInterval(function () {
 
                     // apply the velocity
-
                     var currentScrollTop = canvasContainer.scrollTop;
                     var newScrollTop = currentScrollTop + autoScrollVelocity;
 
@@ -902,7 +899,6 @@ function handleCanvasContainerScroll(scrollEvent) {
     var thisScrollTop = canvasContainer.scrollTop;
     var deltaTime = (lastScrollTime != null) ? (thisTime - lastScrollTime) : null;
     var deltaTop = (lastScrollTop != null) ? (thisScrollTop - lastScrollTop) : null;
-
     var scrollVelocity = (deltaTime && deltaTop) ? (deltaTop) / (deltaTime) : "?";
     debugScrolling("scroll", canvasContainer, "scrollVelocity", `${deltaTop}/${deltaTime}`);
     lastScrollTime = thisTime;
@@ -1397,7 +1393,6 @@ function addCardDivLineItem(targetCardDivId) {
 
         cardDivLineItem.appendChild(cardDivLineItemContent);
         cardDivLineItem.appendChild(cardDivLineItemRightColumn);
-
         rightContentDiv.appendChild(cardDivLineItem);
 
         // find all .tagLinks of this cardDivLineItem
@@ -1682,7 +1677,6 @@ function handleWindowLoad() {
         window.requestAnimationFrame(drawFrame);
         focalPoint.drawFocalPointAnimationFrame();
     })();
-
 }
 
 function handleWindowResize() {
