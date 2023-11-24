@@ -91,7 +91,7 @@ body {
 
 .bizcard-div {
   position: absolute;
-  border-width: 3px;
+  border-width: 1px;
   border-style: solid;
   border-color: white;
   border-radius: 25px;
@@ -118,7 +118,7 @@ body {
     
 .card-div {
   position: absolute;
-  border-width: 5px;
+  border-width: 1px;
   border-style: solid;
   border-color: white;
   font-family: "Roboto", sans-serif;
@@ -247,8 +247,7 @@ body {
 }
 
 .selected {
-  border-color: red !important;
-  border-style: dashed !important;
+  border-width: 7px;
 }
 
 .buttons {

@@ -48,7 +48,7 @@ const MEAN_CARD_HEIGHT = 75;
 const MEAN_CARD_WIDTH = 100;
 
 const MAX_CARD_SIZE_OFFSET = 20;
-const CARD_BORDER_WIDTH = 5;
+const CARD_BORDER_WIDTH = 1;
 
 // --------------------------------------
 // Motion parallax constants
@@ -969,7 +969,7 @@ function setSelectedStyle(div) {
         top = parseInt(div.getAttribute("saved-selected-top"))
         console.assert( top > 0,`B saved-selected-top is ${top}`);
     }
-
+    var durationMillis = 2000;
     var currentDivStyleArray = createDivStyleArray(div,"saved");
     var targetDivStyleArray = createDivStyleArray(div,"saved-selected");
     var keyframes = [];
@@ -984,8 +984,8 @@ function setSelectedStyle(div) {
         }
         keyframes.push( createKeyFrame(div, interpDivStyleArray) );
     } 
-    setTimeout( function() { endAnimation(div, 'setSelectedStyle', targetDivStyleArray); }, 2000);
-    div.animate( keyframes, {duration:2000, iterations:1} );
+    setTimeout( function() { endAnimation(div, 'setSelectedStyle', targetDivStyleArray); }, durationMillis);
+    div.animate( keyframes, {duration:durationMillis, iterations:1} );
 }
 
 // works for card-div, bizcard-div, and card-div-line-item
@@ -1114,7 +1114,7 @@ const SELECTED_CARD_DIV_Z = -10;
 const SELECTED_CARD_DIV_ZINDEX_STR = get_zIndexStr_from_z(SELECTED_CARD_DIV_Z);
 const SELECTED_CARD_DIV_FILTER_STR = get_filterStr_from_z(SELECTED_CARD_DIV_Z);
 
-const DEFAULT_SCROLL_INTO_VIEW_OPTIONS = { behavior: 'smooth', block: 'top', inline: 'center' };
+const DEFAULT_SCROLL_INTO_VIEW_OPTIONS = { behavior: 'smooth', block: 'top', inline: 'start' };
 
 // returns the nearest ancestor with className or null
 function findNearestAncestorWithClassName(element, className) {
@@ -1127,7 +1127,12 @@ function scrollElementIntoView(item) {
     if (!scrollingContainer) {
         item.scrollIntoView(DEFAULT_SCROLL_INTO_VIEW_OPTIONS);
     } else {
-        let count = item.offsetTop - scrollingContainer.scrollTop - 60; // xx = any extra distance from top ex. 60
+        var topOffset = 0;
+        if ( isCardDivLineItem(item) ) {
+            var topOffset = rightContentDiv.getBoundingClientRect().top;
+        }
+        console.log('topOffset: ' + topOffset);
+        let count = item.offsetTop - scrollingContainer.scrollTop - topOffset;
         scrollingContainer.scrollBy(Object.assign({}, { top: count, left: 0 }, DEFAULT_SCROLL_INTO_VIEW_OPTIONS));
     }
 };
@@ -1146,6 +1151,10 @@ function selectTheCardDiv(cardDiv) {
     theSelectedCardDiv = cardDiv;
     // styles self as selected
     setSelectedStyle(theSelectedCardDiv);
+    
+    // if the stop of the selected cardDiv is not
+    // already visible then scroll it into view
+    scrollElementIntoView(cardDiv);
 }
 
 function getTheSelectedCardDivId() {
@@ -1159,6 +1168,7 @@ function deselectTheSelectedCardDiv() {
     if (theSelectedCardDiv != null) {
         // styles self as saved
         restoreSavedStyle(theSelectedCardDiv);
+
         // sets the theSelectedCardDiv to null
         theSelectedCardDiv = null;
     }
@@ -1284,7 +1294,6 @@ function addCardDivLineItemClickListener(cardDivLineItem, cardDiv) {
         // selectTheCardDiv not clicked
         // does not scroll self into view
         selectTheCardDiv(cardDiv);
-        scrollElementIntoView(cardDiv);
 
         event.stopPropagation();
     })
