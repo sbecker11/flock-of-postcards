@@ -25,10 +25,6 @@ const selectNextBizcardButton = document.getElementById("select-next-bizcard");
 const selectAllBizcardsButton = document.getElementById("select-all-bizcards");
 const selectAllSkillsButton = document.getElementById("select-all-skills");
 const clearAllLineItemsButton = document.getElementById("clear-all-line-items");
-const selectNextBizcardButton = document.getElementById("select-next-bizcard");
-const selectAllBizcardsButton = document.getElementById("select-all-bizcards");
-const selectAllSkillsButton = document.getElementById("select-all-skills");
-const clearAllLineItemsButton = document.getElementById("clear-all-line-items");
 
 // --------------------------------------
 // Miscellaneous globals
@@ -36,7 +32,7 @@ const clearAllLineItemsButton = document.getElementById("clear-all-line-items");
 const BULLET_DELIMITER = "\u2022";
 const BULLET_JOINER = ' ' + BULLET_DELIMITER + ' '
 const NUM_ANIMATION_FRAMES = 2;
-// --------------------------------------
+// --------------------------------------  
 // BizcardDiv globals
 
 // width decreases as zindex increases
