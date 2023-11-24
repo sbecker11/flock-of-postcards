@@ -8,7 +8,7 @@
         initial-scale=1.0"/>
   <meta http-equiv= "X-UA-Compatible"
         content="ie=edge"/>
-  <title>flock-of-cards-v0.5</title>
+  <title>flock-of-cards-v0.7</title>
   <link rel="stylesheet" href="styles.css">
   <link rel="stylesheet" href="modules/timeline.css">
 </head>
@@ -19,7 +19,7 @@
   <script type="module" src="./main.js" ></script>
 
   <div id="main-container">
-    <div id="canvas-container">
+    <div id="canvas-container" class="scrollable-container">
       <div id="canvas">
         <div id="top-gradient"></div>
         <div id="bottom-gradient"></div>
@@ -30,11 +30,12 @@
     </div>
     <div id="right-column">
       <div id="right-header-div">
+
         <!-- your resume head goes here -->
         <table cellspacing="0" style="color:#fff;font-family:-apple-system,sans-serif;font-size:13px;width:100%;line-height:100%">
           <tbody>
             <tr>
-              <td style="border-bottom:2px solid #2f5496;vertical-align:top">
+              <td style="vertical-align:top">
                 <p><span style="font-size:30px">Shawn Becker</span></p>
                 <p><strong><span style="font-size:11pt">Data Engineer / Software Developer</span></strong></p>
                 <p>sbecker@alum.mit.edu &bull; 857-891-0896<br>LinkedIn.com/in/shawnbecker &bull; Lehi - Utah, USA</p>
@@ -43,8 +44,15 @@
           </tbody>
         </table>
         <!-- your resume head goes here -->
+        <div class="buttons">
+          <button id="clear-all-line-items" class="menu-button">Clear All</button>
+          <button id="select-all-skills" class="menu-button">Select Skills</button>
+          <button id="select-all-bizcards" class="menu-button">Select All</button>
+          <button id="select-next-bizcard" class="menu-button">Select Next</button>
+        </div>
+
       </div>
-      <div id="right-content-div">
+      <div id="right-content-div" class="scrollable-container">
         <!-- <div id="skills" style="color:black;height:50px;width:100%;"></div> -->
       </div>
       <div id="right-footer-div">

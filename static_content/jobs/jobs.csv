@@ -1,0 +1,100 @@
+role,employer,start,end,z-index,css name,css RGB,css color,text color,Description
+Consulting Data Engineer ,The Cigna Group,2023-05-01,2023-08-01,3,darkcyan,#006688,,#FFFFFF,• Working as a consulting data engineer in the data cyber security team of the [Cigna Group](url).
+Consulting Data Engineer ,Warner Brothers Interactive Entertainment,2022-09-01,2023-05-01,2,blue,#0000ff,,#FFFFFF,"• Worked as a consulting data engineer in the analytics team of [Warner Brothers Interactive Entertainment](url) Division.
+• Implemented high-volume pipeline integrations shuffling game telemetry and [user PII data](URL) between WB-distributed consumer games and [marketing service platforms](URL) via [Segment customer data platform](url) using [Kafka](url), [Redshift](url), and [Airflow](url). 
+• Employed [Python](url), [Amazon Glue](url) and [Apache Airflow](url) for external [3rd-party integrations](url) and internal [dev-ops integrations](url) with [Jenkins](url), [DataDog](url), and [ZenDesk](url) 
+• Integrated with [Google BigQuery](url) [data warehouse](url) and [AWS-managed services](url) [Airflow](url), [S3](url), [Glue](url), and [Redshift warehouse](url)."
+Consulting Data Engineer ,Angel Studios ,2021-11-01,2022-09-01,1,mediumblue,#4400cd,,#FFFFFF,"• Worked as a consulting data engineer for [Angel Studios](url], a streaming media service that offers family-friendly entertainment that amplifies light, with titles including The Chosen, Dry Bar Comedy, and Tuttle Twins.
+• Used [Python](url), [Pandas](url]), [Numpy](url), [Keras](url), and [Jupyter](url) to build and tune [hyperparameters](url) of a [convolutional neural network](url) with [supervised learning](url) on [AWS Sagemaker](url) to classify movie frames from episodic programs stored in [S3](url). 
+• Built web client apps using [Python](url) with [Postman](url) that made [RESTful API](url) requests to pull monthly usage data from various web marketing partners like [FaceBook](url), [Google Play](url), and [Vimeo](url). 
+• Worked with [Segment customer data platform](url), [Excel](url), and [Tableau](url) to create scheduled [reports] for the company's sales and finance teams."
+Consulting Data Engineer ,Greenseed Tech,2020-11-01,2021-11-01,2,blueviolet,#8a2be2,,#FFFFFF,"• Worked as a consulting data engineer for Greenseed Tech, an internet company that provides daily lead reports for independent real-estage agents world-wide.
+• [Containerized](url) legacy web applications using [Docker](url) and [AWS Secrets Manager](url). 
+• Documented existing data architecture as [ERDs](url) using [DBeaver Enterprise](url). 
+• Used [Selenium](url) and [Python](url) to [screem scrape](url) publicly available data from selected websites."
+Consulting Full-Stack Developer ,NuSkin,2019-11-01,2020-11-01,1,purple,#800080,,#FFFFFF,"• Worked as a consulting front-end software developer for NuSkin, an international company known for its excellent  skin and beauty products.
+• Created new [Vue](url), [Nuxt](url), and [Vuetify](url) components using [NodeJS](url) and [SCSS](url).  
+• [Internationalized](url) content using [Adobe Experience Cloud](url)."
+Senior Data Engineer ,b,2017-03-01,2019-11-01,2,maroon,#800000,,#FFFFFF,"• As a senior data engineer for SeniorLink a homeservices support platform, helped create [ETL](url) processes using [AWS Kinesis](url), [Python](url), [PySpark](url), and pAWS Data Pipeline](url) to load structured event data from [PostgreSQL](url) databases into a centralized [Redshift warehouse](url). 
+• Saved data as [self-describing data assets](url) in [S3](url) using [AWS Kinesis](url) and [AWS Lambda](url) to aggregate event data into [schema-on-read](url) file formats, [Apache Avro](url), and [Parquet](url).
+• Steered efforts in creating a [Data Lake](url) using [PostgreSQL](url) and [FlyWay](url) with [Python](url) and [PySpark](url) pre-processing on [EC2 instances](url) with [AWS EFS](url), [EBS](url), and [S3](url) storage.
+• Used streaming event messages queued in [RabbitMQ](url) and [AWS Kinesis](url) to build [type-2 slowly changing dimensions]](url) and accumulative facts tables. 
+• Designed and implemented a custom [star-schema warehouse](url) and [ETL](url) processes to [de-normalize](url) and load data into an [AWS Redshift](url) data warehouse for BI reporting using [Tableau](url).
+• [Test-driven development]](url) using [Python](url), [PyCharm](url), [PyTest](url), [GitHub](url), [Jira](url), and [Jenkins CI/CD](url)."
+Consulting Back-End Engineer ,BigR.io,2016-12-01,2017-03-01,1,crimson,#dc143c,,#FFFFFF,"• Created back-end [AWS microservices](url) for custom voice-based [natural language processing](url) applications.
+• Used [ActiveMQ](url), [Swagger](url), [JSON](url), [Jackson](url), [AOP](url), [Eclipse](url), [Maven](url), [Git](url), [Jira](url), and [Jenkins CI/CD](url).
+• [Java 8](url), [J2EE](url), [Servlets](url), [Spring](url), [SpringBoot](url), [JAX-RS](url), [JUnit](url), [JMeter](url), and [JProfile](url)"
+Software Architect / Co-Founder ,ClipFile LLC,2011-02-01,2016-12-01,2,orangered,#ff4500,,#000000,"• Co-founded a company that envisioned building a web destination where users could easily record and share their favorite pieces of content like facts, authored stories, quotes, articles, chapters, or personal thoughts, as a way of concretely defining their personal mindset.
+• Implemented [fuzzy matching](url), word clustering](url), [semantic similarity scores](url), and collaborative filtering](url) to help users find content that matched or differed from thieir own mindset.
+• Launched a novel [SaaS](url) using [Amazon Web Services](url) that let individuals and content creators search and share [mindsets](url).
+• Conceptualized patented technology by designing and implementing a fuil-stack consumer-facing [CMS](url) that supported tuned matching among selected attributes.
+• [Java 8](url), [JSP](url), [Servlets](url), [Spring](url), [AWS services](url), [JavaScript](url), [JQuery](url), [HTML5](url), [CSS](url), [JUnit](url), [JMeter](url), JProfile.
+• Utilized [REST](url), [Swagger](url), [Apache Shiro](url), [Eclipse IDE](url), [Maven](url), [Ant](url), [Git](url), [Hibernate](url), [SimpleDB](url), [CentOS Linux](url), [Tomcat](url), [Jetty](url), and [Spring MVC](url).
+• Served as co-founder and co-authored [four patents](url)."
+Software Architect / Co-Founder ,Sierra Vista Group LLC,2002-11-01,2011-02-01,1,orange,#ffa500,,#000000,"• Co-founded a finance and technology boutique called Sierra Vista Group that delivered support in planning and proposing effective IT strategies for key clients in several industries. 
+• Performed various services, including system and architecture assessment and solutions design, to ensure the smooth running of technical projects.
+• Managed project schedules and technical specifications to match business requirements within contractual budget constraints. 
+• Identified opportunities for potential clients requiring expertise in product development, software engineering, and data modeling. Negotiated and communicated with c-level client management regarding project milestone agreements.
+• Increased ROI for each client’s project by hiring and managing contractors to deliver custom software solutions.
+• Delivered high-level leadership and guidance to a team of software engineering consultants for several projects to accelerate operational excellence."
+Software Architect / Co-Founder ,HomePorfolio LLC ,1998-02-01,2002-11-01,1,teal,#008080,,#000000,"• As co-founder and CTO, designed and led the development of a public website used by discerning home designers and builders called HomePortfolio.com. 
+• Hired a staff of   10 software and databases developers. 
+• Worked with data acquisition team to scan and tag over 700,000 premium home design products from over 2,000 manufactures and vendors.
+• Designed datamodel and data entry tools for category-specific product attribution. 
+• Helped extended the business model to provide online product selection tools for participating vendors and manufacturers.
+• Instrumental in raising over $70M in venture capital. 
+• Used [Oracle IIi](url), [ATG Dyanamo](url), [Java 8](url), [Akamai](url), [WebTrends](url), [FileMakerPro](url), [ImageMagik](url), and [Omnigraph](url) for data modeling and workflow designs."
+Lead Software Developer ,BuildingBlocks LLC ,1996-06-01,1998-02-01,1,darkcyan,#008b8b,,#000000,"• As lead software developer, built a CD-ROM-based home design application for selecting premium home design products for previewing in the context of images of any household rooms. 
+• Built the prototype using [Adobe Photoshop](url) and [Macromedia Director](url).
+• Built the actual application using using [Java5](url) and [Marimba Bongo](url) widget layout tool.
+• Updates for the self-updating application were delivered over the internet using [Mariba Castanet](url) push-technology."
+Ph.D. Media Arts & Science,MIT Media Lab,1990-09-01,1997-04-01,2,blue,#0000ff,,#FFFFFF,"•	Doctor of Philosopy degree, Massachusetts Institute of Technology, Cambridge, Massachusettes
+•	Media Laboratory, Media Arts and Sciences
+•	Took courses in machine vision, signals and systems, digital signal processing, and stochastics.
+•	Helped build the operating system for the Cheops multi-processor system used for digital video research and for holographic video
+•	“Vision-assisted modeling for model-based video representations”, (Ph.D. Dissertation) MIT, Program in Media Arts & Sciences, 1997
+•	“Semiautomatic 3-D Model Extraction from Uncalibrated 2-D Camera Views.” S. Becker & V. M. Bove, Jr., Proc. SPIE Image Synthesis, 2410, 1995, pp. 447-461.
+•	“Semiautomatic Scene Modeling From 2-D Views with Partially Known Structure.” Shawn Becker, MIT Media Lab Reports, 1995
+•	“Semiautomatic Camera Lens Calibration from Partially Known Structure”, Shawn Becker, MIT Media Lab Reports, 1994
+•	“Formulating a scene probability equation to differentiate the effects of shape & albedo on image brightness.” Shawn Becker, MIT Media Lab Reports, 1994
+•	“Computation of some projective-chirplet-transform & metaplectic-chirplet-transform subspaces, with applications in image processing.” Steve Mann & Shawn Becker, DSP World Symposium, Boston, Massachusetts, November 1992."
+MS Computer Science,BYU,1987-09-01,1990-09-01,2,mediumblue,#0000cd,,#FFFFFF,"• Masters of Science degree, Brigham Young University, Provo, Utah
+Took all courses required for both bachelors and masters degrees in Computer Science
+• Thesis project “Interactive Measurement of Three-Dimensional Objects Using a Depth Buffer & Linear Probe.” (CS MS Thesis) Shawn Becker, William A. Barrett & Dan R. Olsen, ACM Transactions on Graphics, Vol. 10, No. 2, April 1991
+• Top Research Presentation – New Tech Research Conference - Brigham Young University – Provo, UT – March 1990
+• “Fast Automated Object Detection Using Signature Parsing.” Tim Heaton; Shawn Becker; Kelley Anderson; William Barrett: Proceedings Volume 1192, Intelligent Robots & Computer Vision VIII: Algorithms & Techniques; (1990) https://doi.org/10.1117/12.969720
+• “Probabilistic Segmentation of Myocardial Tissue by Deterministic Relaxation.” Jerome A. Broekhuijsen, Shawn C. Becker, & William A. Barrett: IEEE Proceedings of Computers in Cardiology, pp. 99-12, Jerusalem, September 1989.
+• “Interactive Measurement of three-Dimensional Cardiac Morphology.” Shawn C Becker, William A Barrett, October 1989, DOI: 10.1109/CIC.1989.130586, Conference: Computers in Cardiology."
+Software Developer,Cimmetrix LLC,1988-06-01,1989-09-01,3,blueviolet,#8a2be2,,#000000,"• Front-end software developer of a reverse kinametics path planning system for multi-axis industrial robots.
+• Technologies used include C, [Borne shell](url), [X11 Window System](url), [Xt toolkit intrinsics](url), [Silicon Graphics Irix](url), and [HP-UX](url)."
+BS Design Engineering Technology,BYU,1984-09-01,1987-09-01,2,purple,#800080,,#FFFFFF,"• Completed bachelor degree in Design Engineering Technologies
+• Drafting, CAD/CAM, machine design, fluid dynamics, ferrous metallurgy, static load bearing mathematics."
+Call Center Reservationist,Dell Webb Properties,1984-01-01,1984-09-01,1,maroon,#800000,,#FFFFFF,"• Worked as a reservations agent for Dell Webb [resorts](url) nnd rentals for [skiboats](url) and [houseboats](url) at the various [marinas](url) on [Lake Powell](uirl) in Utah.
+• Made occasional visits in [small aircraft](url)."
+Missonary,Taiwan Taibei Mission,1982-07-01,1984-01-01,3,crimson,#dc143c,,#FFFFFF,"• Served as a missionary for the Church of Jesus Christ of Latter-day Saints in the Taiwan Taibei mission.
+• Served as branch president in the town Yuli in the Hualien County on the east coast of Taiwan."
+BS GED,BYU,1981-09-01,1982-07-01,2,orangered,#ff4500,,#000000,"• Majored in mathematics, took general education required classes as well as design and oil painting."
+Data Processing,Greyhound Corp,1981-04-01,1981-09-01,1,orange,#ffa500,,#000000,"• Worked as an intern in the Pension Department at Greyhound Corporaate.
+• Manully sorted thousands of pension checks and doing handwriting comparisons to find fraudulent cashing of checks for deceased pensioners."
+Newspaper Delivery,Arizona Republic,1977-09-01,1981-04-01,1,gold,#ffd700,,#000000,"• Seven-day paper delivery for the Arizona Republic Newspaper.
+• Weekly collections
+• Used [Schwinn banana seat](url), [Schwinn 10 speed](url)."
+Project Manager / Technical Lead ,MSC ,2007-12-01,2010-08-01,2,yellow,#ffff00,,#000000,"• MSC, now called [OneCall](url), is a leading workers compensation services company. 
+• As project manager and technical lead for this Sierra Vista Group project, I presented fixed schedule-fixed budget project proposals to C-level executives to add features to their legacy call center system used by 10 different healthcare divisions. 
+• Interviewed stakeholders to create functional requirements and technical spefications for each stage of development.
+• Worked with development team to create work plan, assign tasks.
+• Oversaw quality assurance and customer approval testing.
+• Used the [MS Office](url) suite of business apps a well as [Visio](url). "
+Consulting Architect ,Eleven LLC,2006-02-01,2007-12-01,2,lime,#00ff00,,#000000,"• [Eleven LLC](url) built mobile apps used by beverage industry distributors to help manage placement  of their products in the shelves and coolers in retail locations. The work done by the Sierra Vista Group was instrumental in their company being acquired by [Trimble Mobile Solutions](url). 
+• As the consulting architect and team lead, we used [Java 5](url) and  [JBoss](url) message-oriented middleware platform, [Sybase Anywhere](url) for the client/server based database, and [Windows Mobile 5](url) running on ruggedized mobile devices. "
+Consulting Architect,Intrusic LLC,2005-02-01,2006-02-01,2,limegreen,#32cd32,,#000000,"• [Intrusic LLC](url) built real-time network monitoring systems that identified external and internal network intrusion attempts
+• As a Sierra Vista Group consulting architech, I helped design and develop an approach for buffering live streaming network traffic for asynchronous package processing. 
+• Used [Debian Linux](url), [C](url), and [Visio](url)."
+Consulting Architect / Technical Lead ,AMI Entertainment ,2004-02-01,2005-02-01,2,olivedrab,#6b8e23,,#000000,"•  AMI (America Music Incorporated) was the internet-music distribution incarnation of Rowe International.  
+•  As a Sierra Vista Group consulting architect and technical lead, I helped design and implement their system for making monthly ACH royalty payments to music copyright owners for mechanical and performance licensing rights.
+•  Used [FileMaker Pro](url} and [Visio](url)."
+Consulting Architect / Technical Lead ,Rowe International,2003-03-01,2004-02-01,2,forestgreen,#228b22,,#000000,"•  Rowe International was the leading manufacturer of music jukeboxes. 
+•  Sierra Vista Group was consulted to assess their available technologies and create a plan to build their back-end systems to let them become a leading provider of internet-based music.
+•  As consulting architect and technical lead created the project plan and led the development of a full-stack web application used by  jukebox owners and Rowe sales and marketing.
+•  Used [Java](url), [ObjectDesign](url), [JavaScript ES3](url), [MySQL 4](url), and [Adobe Photoshop v5.0](url). 
+"
