@@ -36,13 +36,13 @@ The static 'flock-of-postcards' website has been upgraded to be a webapp that us
 
 ## Development history  
 
-### Outstanding bugs
+### Features planned
 - Bizcards need to smoothly transition to/from focus position
 - Need to add stamp icons to post cards
 - Click on post card to see full-size image in right-side panel
 - Render bizcards as 3D blocks with rounded corners
 - Rotate 3D bizcard blocks during transitions
-- Toggle debug panel visiblilty
+- Toggle debug panel visiblilty with button or key
 
 ### version 0.7:   November 18, 2023
 
