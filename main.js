@@ -9,6 +9,8 @@ import * as focalPoint from './modules/focal_point.js';
 
 
 
+
+
 // --------------------------------------
 // Element reference globals
 
@@ -19,6 +21,10 @@ const canvasContainer = document.getElementById("canvas-container");
 const canvas = document.getElementById("canvas");
 const bottomGradient = document.getElementById("bottom-gradient");
 const bullsEye = document.getElementById("bulls-eye");
+const selectNextBizcardButton = document.getElementById("select-next-bizcard");
+const selectAllBizcardsButton = document.getElementById("select-all-bizcards");
+const selectAllSkillsButton = document.getElementById("select-all-skills");
+const clearAllLineItemsButton = document.getElementById("clear-all-line-items");
 const selectNextBizcardButton = document.getElementById("select-next-bizcard");
 const selectAllBizcardsButton = document.getElementById("select-all-bizcards");
 const selectAllSkillsButton = document.getElementById("select-all-skills");
