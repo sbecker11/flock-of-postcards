@@ -48,7 +48,7 @@ const MEAN_CARD_HEIGHT = 75;
 const MEAN_CARD_WIDTH = 100;
 
 const MAX_CARD_SIZE_OFFSET = 20;
-const CARD_BORDER_WIDTH = 1;
+const CARD_BORDER_WIDTH = 3;
 
 // --------------------------------------
 // Motion parallax constants
@@ -1668,7 +1668,7 @@ function handleWindowLoad() {
     const timelineContainer = document.getElementById("timeline-container");
 
     const [MIN_TIMELINE_YEAR, MAX_TIMELINE_YEAR] = getMinMaxTimelineYears(jobs);
-    const DEFAULT_TIMELINE_YEAR = Math.round((MIN_TIMELINE_YEAR + MAX_TIMELINE_YEAR) / 2);
+    const DEFAULT_TIMELINE_YEAR = MAX_TIMELINE_YEAR;
 
     timeline.createTimeline(timelineContainer, canvasContainer, MIN_TIMELINE_YEAR, MAX_TIMELINE_YEAR, DEFAULT_TIMELINE_YEAR);
 
