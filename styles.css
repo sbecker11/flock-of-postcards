@@ -247,9 +247,9 @@ body {
 }
 
 .selected {
-  border-width: 3px;
-  border-style: dotted;
-  border-color: white;
+  border-width: 5px !important;
+  border-style: dotted !important;
+  border-color: white !important;
 }
 
 .buttons {

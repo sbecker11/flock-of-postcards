@@ -92,6 +92,9 @@ export const is_numeric_array = (arr) => {
     return true;
 };
 
+export const array_has_NaNs = array => array.some(element => isNaN(element));
+
+
 
 // --------------------------------------
 // Javascript hacks

@@ -951,6 +951,7 @@ function endAnimation(div, funcName, targetDivStyleArray) {
 // currentDivStyleArray describes current styling
 // targetDivStyleArray describes target styling
 function setSelectedStyle(div) {
+    console.log("setSelectedStyle() for div.id: " + div.id)
 
     // futzing required to use createDivStyleArray
     if ( !isCardDivLineItem(div)) {
@@ -992,11 +993,19 @@ function setSelectedStyle(div) {
 // currentDivStyleArray describes current styling
 // targetDivStyleArray describes target styling
 function restoreSavedStyle(div) {
+    console.log("restoreSavedStyle() for div.id: " + div.id)
     var currentDivStyleArray = createDivStyleArray(div, null);
+    if ( utils.array_has_NaNs(currentDivStyleArray))
+        throw new Error("currentDivStyleArray 1 has NaNs");
     var targetDivStyleArray = createDivStyleArray(div,"saved");
+    if ( utils.array_has_NaNs(targetDivStyleArray))
+        throw new Error("currentDitargetDivStyleArray 2 has NaNs");
     var targetDivStyle = getDivStyleFromDivStyleArray(div, targetDivStyleArray);
     targetDivStyle  = applyParallaxToOneCardDivStyle(div, targetDivStyle);
-    targetDivStyleArray = getDivStyleArrayFromDivStyle(div,targetDivStyle)
+    targetDivStyleArray = getDivStyleArrayFromDivStyle(div,targetDivStyle);
+    if ( utils.array_has_NaNs(targetDivStyleArray))
+        throw new Error("targetDivStyleArray 3 has NaNs");
+
     var keyframes = [];
     for( let frame=0; frame<NUM_ANIMATION_FRAMES; frame++ ) {
         var t = frame / (NUM_ANIMATION_FRAMES-1);
@@ -1006,6 +1015,9 @@ function restoreSavedStyle(div) {
             interpDivStyleArray = (t == 0) ? currentDivStyleArray : targetDivStyleArray;
         else 
             interpDivStyleArray = utils.linearInterpArray(t, currentDivStyleArray, targetDivStyleArray);
+
+        if ( utils.array_has_NaNs(interpDivStyleArray))
+            throw new Error("interpDivStyleArray 4 has NaNs");
         keyframes.push( createKeyFrame(div, interpDivStyleArray) );
     }
     setTimeout( function() { endAnimation(div, 'restoreSavedStyle', targetDivStyleArray); }, 2000);
@@ -1114,27 +1126,43 @@ const SELECTED_CARD_DIV_Z = -10;
 const SELECTED_CARD_DIV_ZINDEX_STR = get_zIndexStr_from_z(SELECTED_CARD_DIV_Z);
 const SELECTED_CARD_DIV_FILTER_STR = get_filterStr_from_z(SELECTED_CARD_DIV_Z);
 
-const DEFAULT_SCROLL_INTO_VIEW_OPTIONS = { behavior: 'smooth', block: 'top', inline: 'start' };
+function getScrollIntoViewOptions(element) {
+    return { behavior: 'smooth', block: getScrollIntoViewBlockOption(element) };
+}
 
+function getScrollIntoViewBlockOption(element) {
+    if (isBizcardDiv(element))
+        return 'start';
+    else if (isCardDiv(element) )
+        return 'center';
+    else if (isCardDivLineItem(element) )
+        return 'start';
+    else
+        throw new Error("unhandled element with id:" + element.id)
+}
 // returns the nearest ancestor with className or null
 function findNearestAncestorWithClassName(element, className) {
     while ((element = element.parentElement) && !element.classList.contains(className));
     return element;
 }
 
-function scrollElementIntoView(item) {
-    var scrollingContainer = findNearestAncestorWithClassName(item, "scrollable-container");
-    if (!scrollingContainer) {
-        item.scrollIntoView(DEFAULT_SCROLL_INTO_VIEW_OPTIONS);
-    } else {
-        var topOffset = 0;
-        if ( isCardDivLineItem(item) ) {
-            var topOffset = rightContentDiv.getBoundingClientRect().top;
-        }
-        console.log('topOffset: ' + topOffset);
-        let count = item.offsetTop - scrollingContainer.scrollTop - topOffset;
-        scrollingContainer.scrollBy(Object.assign({}, { top: count, left: 0 }, DEFAULT_SCROLL_INTO_VIEW_OPTIONS));
-    }
+function scrollElementIntoView(element) {
+    var scrollIntoViewOptions = getScrollIntoViewOptions(element);
+    element.scrollIntoView( scrollIntoViewOptions );
+    easeFocalPointToBullsEye();
+
+    // var scrollingContainer = findNearestAncestorWithClassName(item, "scrollable-container");
+    // if (!scrollingContainer) {
+    //     item.scrollIntoView( scrollIntoViewOptions );
+    // } else {
+    //     var topOffset = 0;
+    //     if ( isCardDivLineItem(item) ) {
+    //         var topOffset = rightContentDiv.getBoundingClientRect().top;
+    //     }
+    //     // console.log('topOffset: ' + topOffset);
+    //     let  top = item.offsetTop - scrollingContainer.scrollTop - topOffset;
+    //     scrollingContainer.scrollBy(Object.assign({}, { top: top, left: 0 }, scrollIntoViewOptions));
+    // }
 };
 
 // select the given cardDiv
@@ -1143,6 +1171,7 @@ function selectTheCardDiv(cardDiv) {
     if (theSelectedCardDiv != null &&
         cardDiv.id == theSelectedCardDiv.id) {
         deselectTheSelectedCardDiv();
+        scrollElementIntoView(cardDiv);
         return;
     }
     // calls deselectTheSelectedCardDiv
@@ -1586,6 +1615,7 @@ function canvasContainerScrollToBottom() {
 var bullsEyeX;
 var bullsEyeY;
 
+// center bullsEye at canvasContainerCenter
 function centerBullsEye() {
     bullsEyeX = utils.half(canvasContainer.offsetWidth);
     bullsEyeY = utils.half(canvasContainer.offsetHeight);
@@ -1614,6 +1644,7 @@ function getParallax() {
     return { parallaxX, parallaxY };
 }
 
+// smoothly move the focalPoint to the bullsEye
 function easeFocalPointToBullsEye() {
     focalPoint.easeFocalPointTo(bullsEyeX, bullsEyeY);
 }
