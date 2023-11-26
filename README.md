@@ -38,8 +38,8 @@ The static 'flock-of-postcards' website has been upgraded to be a webapp that us
 
 ## Development history  
 
-### Features planned
-- Bizcards need to smoothly transition to/from focus position
+### Planned features:
+- Need to ease focal point to bullseye when any cardDiv is selected (or clicked?)
 - Need to add stamp icons to post cards
 - Click on post card to see full-size image in right-side panel
 - Render bizcards as 3D blocks with rounded corners
