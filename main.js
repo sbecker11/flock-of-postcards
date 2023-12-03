@@ -930,6 +930,11 @@ function handleCardDivMouseLeave(event, cardClass) {
     }
 }
 
+// this must be set to true before starting the animation
+// and then this is set to false at animation end.
+var ANIMATION_IN_PROGRESS = false;
+var ANIMATION_DURATION_MILLIS = 100;
+
 function endAnimation(div, funcName, targetDivStyleArray) {
     // console.log(`animationend for ${funcName} ${div.id}`);
     // apply the targetStyle on animationend
@@ -944,17 +949,26 @@ function endAnimation(div, funcName, targetDivStyleArray) {
     else
         div.classList.remove('selected');
     // console.log(`animationend for ${funcName} ${div.id}`);
+    ANIMATION_IN_PROGRESS = false;
 }
+
+document.addEventListener('click', function(event) {
+    if (ANIMATION_IN_PROGRESS) {
+      event.preventDefault();
+      event.stopPropagation();
+      console.log("Click blocked, animation in progress");
+    }
+  }, { capture: true });
 
 
 // works for card-div, bizcard-div, and card-div-line-item
 // currentDivStyleArray describes current styling
 // targetDivStyleArray describes target styling
 function setSelectedStyle(div) {
-    console.log("setSelectedStyle() for div.id: " + div.id)
-
+    // console.log("setSelectedStyle() for div.id: " + div.id)
+    var notLineItem = !isCardDivLineItem(div);
     // futzing required to use createDivStyleArray
-    if ( !isCardDivLineItem(div)) {
+    if ( notLineItem ) {
         // save these for restoreSavedStyle
         div.setAttribute("saved-left", `${div.offsetLeft}`);
         div.setAttribute("saved-top", `${div.offsetTop}`);
@@ -970,9 +984,16 @@ function setSelectedStyle(div) {
         top = parseInt(div.getAttribute("saved-selected-top"))
         console.assert( top > 0,`B saved-selected-top is ${top}`);
     }
-    var durationMillis = 2000;
     var currentDivStyleArray = createDivStyleArray(div,"saved");
     var targetDivStyleArray = createDivStyleArray(div,"saved-selected");
+
+    if (notLineItem && currentDivStyleArray[8] < 0) {
+        currentDivStyleArray[8] = div.getAttribute('originalZ');
+        console.log("select div.id:", div.id, "currentZ should not be negative so reset to", currentDivStyleArray[8]);
+    }
+    if (notLineItem && targetDivStyleArray[8] > 0)
+        console.log("select div.id:", div.id, "targetZ should not be positive");
+
     var keyframes = [];
     for( let frame=0; frame<NUM_ANIMATION_FRAMES; frame++ ) {
         var t = frame / (NUM_ANIMATION_FRAMES-1);
@@ -985,26 +1006,46 @@ function setSelectedStyle(div) {
         }
         keyframes.push( createKeyFrame(div, interpDivStyleArray) );
     } 
-    setTimeout( function() { endAnimation(div, 'setSelectedStyle', targetDivStyleArray); }, durationMillis);
-    div.animate( keyframes, {duration:durationMillis, iterations:1} );
+
+    setTimeout( function() { endAnimation(div, 'setSelectedStyle', targetDivStyleArray); }, ANIMATION_DURATION_MILLIS);
+    ANIMATION_IN_PROGRESS = true;
+    div.animate( keyframes, {duration:ANIMATION_DURATION_MILLIS, iterations:1} );
 }
+
+
 
 // works for card-div, bizcard-div, and card-div-line-item
 // currentDivStyleArray describes current styling
 // targetDivStyleArray describes target styling
 function restoreSavedStyle(div) {
-    console.log("restoreSavedStyle() for div.id: " + div.id)
+    // console.log("restoreSavedStyle() for div.id: " + div.id)
+    var notLineItem =  !isCardDivLineItem(div);
     var currentDivStyleArray = createDivStyleArray(div, null);
     if ( utils.array_has_NaNs(currentDivStyleArray))
-        throw new Error("currentDivStyleArray 1 has NaNs");
+        throw new Error("currentDivStyleArray has NaNs at A");
+
     var targetDivStyleArray = createDivStyleArray(div,"saved");
     if ( utils.array_has_NaNs(targetDivStyleArray))
-        throw new Error("currentDitargetDivStyleArray 2 has NaNs");
-    var targetDivStyle = getDivStyleFromDivStyleArray(div, targetDivStyleArray);
-    targetDivStyle  = applyParallaxToOneCardDivStyle(div, targetDivStyle);
-    targetDivStyleArray = getDivStyleArrayFromDivStyle(div,targetDivStyle);
-    if ( utils.array_has_NaNs(targetDivStyleArray))
-        throw new Error("targetDivStyleArray 3 has NaNs");
+        throw new Error("targetDivStyleArray has NaNs at B");
+
+    if (notLineItem && currentDivStyleArray[8] > 0) {
+        currentDivStyleArray[8] = -25;
+        console.log("select div.id:", div.id, "currentZ should not be positive so reset to", currentDivStyleArray[8]);
+    }
+    if (notLineItem && targetDivStyleArray[8] < 0)
+        console.log("restore div.id:", div.id,"targetZ should not be negative");
+
+    // restore the div to it's parallax affected stute
+    var targetParallaxedDivStyleArray;
+    if (notLineItem) {
+        var targetDivStyle = getDivStyleFromDivStyleArray(div, targetDivStyleArray);
+        var targetParallaxedDivStyle  = applyParallaxToOneCardDivStyle(div, targetDivStyle);
+        targetParallaxedDivStyleArray = getDivStyleArrayFromDivStyle(div,targetParallaxedDivStyle);
+    } else {
+        targetParallaxedDivStyleArray = targetDivStyleArray;
+    }
+    if ( utils.array_has_NaNs(targetParallaxedDivStyleArray))
+        throw new Error("targetParallaxedDivStyleArray 3 has NaNs");
 
     var keyframes = [];
     for( let frame=0; frame<NUM_ANIMATION_FRAMES; frame++ ) {
@@ -1012,17 +1053,19 @@ function restoreSavedStyle(div) {
         var interpDivStyleArray;
         if ( NUM_ANIMATION_FRAMES == 2 )
             // avoid divStyleArray length mismatch when isDivCard(currentDiv !== isDivCard(targetDiv)
-            interpDivStyleArray = (t == 0) ? currentDivStyleArray : targetDivStyleArray;
+            interpDivStyleArray = (t == 0) ? currentDivStyleArray : targetParallaxedDivStyleArray;
         else 
-            interpDivStyleArray = utils.linearInterpArray(t, currentDivStyleArray, targetDivStyleArray);
+            interpDivStyleArray = utils.linearInterpArray(t, currentDivStyleArray, targetParallaxedDivStyleArray);
 
         if ( utils.array_has_NaNs(interpDivStyleArray))
             throw new Error("interpDivStyleArray 4 has NaNs");
         keyframes.push( createKeyFrame(div, interpDivStyleArray) );
     }
-    setTimeout( function() { endAnimation(div, 'restoreSavedStyle', targetDivStyleArray); }, 2000);
-    div.animate( keyframes, {duration:2000, iterations:1} );
+    setTimeout( function() { endAnimation(div, 'restoreSavedStyle', targetParallaxedDivStyleArray); }, ANIMATION_DURATION_MILLIS);
+    ANIMATION_IN_PROGRESS = true;
+    div.animate( keyframes, {duration:ANIMATION_DURATION_MILLIS, iterations:1} );
 }
+
 
 // prefix can be "saved" or "saved-selected"
 function createDivStyleArray(div, prefix) {
@@ -1442,6 +1485,7 @@ function addCardDivLineItem(targetCardDivId) {
     }
     // does not select self
     // does scroll self into view
+    scrollElementIntoView(cardDivLineItem);
     return cardDivLineItem;
 }
 

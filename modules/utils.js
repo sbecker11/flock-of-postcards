@@ -94,6 +94,7 @@ export const is_numeric_array = (arr) => {
 
 export const array_has_NaNs = array => array.some(element => isNaN(element));
 
+export const arrays_are_equal = (arr1, arr2) => arr1.length === arr2.length && arr1.every((element, index) => element === arr2[index]);
 
 
 // --------------------------------------
