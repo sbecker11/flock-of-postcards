@@ -1,0 +1,50 @@
+
+├── README.md
+├── index.html
+├── main.js
+├── modules
+│   ├── focal_point.js
+│   ├── tests
+│   │   └── test_utils.js
+│   ├── timeline.css
+│   ├── timeline.js
+│   └── utils.js
+├── static_content
+│   ├── fragments
+│   │   ├── css-colors.json
+│   │   └── resume-header-table-mini.html
+│   ├── graphics
+│   │   ├── GoLivePort5500.png
+│   │   ├── GoLivePort5501.png
+│   │   ├── version-0.6-50.gif
+│   │   ├── version-0.6.gif
+│   │   └── version-0.6.png
+│   ├── icons
+│   │   ├── big-red-x.gif
+│   │   ├── green-next.gif
+│   │   ├── vscode-IDE-logo.png
+│   │   ├── vscode-explorer-icon.png
+│   │   ├── vscode-extensions-icon.png
+│   │   ├── vscode-go-live-icon.png
+│   │   └── vscode-liveserver-logo.png
+│   ├── jobs
+│   │   ├── convert-jobs-xslx-to-js.sh
+│   │   ├── csv2json.py
+│   │   ├── jobs.csv
+│   │   ├── jobs.js
+│   │   └── jobs.xlsx
+│   └── media
+│       ├── README.md
+│       ├── create_image_paths_js_file.sh
+│       ├── download_images.py
+│       ├── fit_images.py
+│       ├── image_paths.js
+│       ├── image_urls.js
+│       ├── img-urls.js
+│       ├── img-urls.txt
+│       ├── requirements.txt
+│       ├── scale_images.py
+│       ├── size_images.py
+│       └── wordpress-media.xml
+├── styles.css
+└── version.txt

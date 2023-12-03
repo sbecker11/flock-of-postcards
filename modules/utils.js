@@ -80,6 +80,8 @@ export const linearInterpArray = (t, array1, array2) => {
         const channelInterpolation = linearInterp(t, 0, array1[ i ], 1, array2[ i ]);
         interpolatedArray.push(Math.round(channelInterpolation));
     }
+    if ( array_has_NaNs(interpolatedArray))
+        throw new Error("interpolatedArray has NaNs at E");
     return interpolatedArray;
 };
 
@@ -130,3 +132,31 @@ export function acronym(text) {
     return acro;
 }
 
+export function formatNumber(num, format) {
+    // Parse the format string
+    const [wholeDigits, decimalDigits] = format.split('.').map(Number);
+  
+    // Separate the number into whole and decimal parts
+    let wholePart = Math.floor(num); // Keep the sign for the whole part
+    let decimalPart = num % 1;
+  
+    // Convert the whole part to a string and include the minus sign in the count if the number is negative
+    let wholePartStr = wholePart.toString();
+    let lengthToCheck = num < 0 ? wholePartStr.length - 1 : wholePartStr.length; // Subtract 1 if the number is negative
+  
+    // Check if the length exceeds the specified number of digits
+    if (lengthToCheck > wholeDigits) {
+      throw new Error(`Format error: the number ${num} has a whole part larger than ${wholeDigits} digits.`);
+    }
+  
+    // Format the whole part
+    let formattedWhole = wholePartStr.padStart(wholeDigits, '0');
+  
+    // Format the decimal part
+    let formattedDecimal = decimalPart.toFixed(decimalDigits).substring(2);
+  
+    return `${formattedWhole}.${formattedDecimal}`;
+  }
+
+  
+  

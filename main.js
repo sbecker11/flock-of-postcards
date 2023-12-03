@@ -26,7 +26,18 @@ const clearAllLineItemsButton = document.getElementById("clear-all-line-items");
 
 const BULLET_DELIMITER = "\u2022";
 const BULLET_JOINER = ' ' + BULLET_DELIMITER + ' '
-const NUM_ANIMATION_FRAMES = 2;
+
+
+// --------------------------------------
+// Animation globals
+
+const NUM_ANIMATION_FRAMES = 5;
+const ANIMATION_DURATION_MILLIS = 1000;
+
+// this must be set to true before starting the animation
+// and then this is set to false at animation end.
+var ANIMATION_IN_PROGRESS = false;
+
 // --------------------------------------  
 // BizcardDiv globals
 
@@ -930,11 +941,6 @@ function handleCardDivMouseLeave(event, cardClass) {
     }
 }
 
-// this must be set to true before starting the animation
-// and then this is set to false at animation end.
-var ANIMATION_IN_PROGRESS = false;
-var ANIMATION_DURATION_MILLIS = 100;
-
 function endAnimation(div, funcName, targetDivStyleArray) {
     // console.log(`animationend for ${funcName} ${div.id}`);
     // apply the targetStyle on animationend
@@ -997,12 +1003,11 @@ function setSelectedStyle(div) {
     var keyframes = [];
     for( let frame=0; frame<NUM_ANIMATION_FRAMES; frame++ ) {
         var t = frame / (NUM_ANIMATION_FRAMES-1);
-        var interpDivStyleArray;
-        if (NUM_ANIMATION_FRAMES == 2) {
-            // avoid divStyleArray length mismatch when isDivCard(currentDiv !== isDivCard(targetDiv)
-            interpDivStyleArray = (t == 0) ? currentDivStyleArray : targetDivStyleArray;
-        } else {
-            interpDivStyleArray = utils.linearInterpArray(t, currentDivStyleArray, targetDivStyleArray);
+        var interpDivStyleArray = utils.linearInterpArray(t, currentDivStyleArray, targetDivStyleArray);
+        if ( notLineItem ) {
+            if ( frame == 0 )
+                console.log('------ select div.id:', div.id, '------------------------------');
+            console.log( 'f:', frame, 't:',t, 'x:', interpDivStyleArray[6], 'y:', interpDivStyleArray[7], 'z:', interpDivStyleArray[8]);
         }
         keyframes.push( createKeyFrame(div, interpDivStyleArray) );
     } 
@@ -1021,12 +1026,8 @@ function restoreSavedStyle(div) {
     // console.log("restoreSavedStyle() for div.id: " + div.id)
     var notLineItem =  !isCardDivLineItem(div);
     var currentDivStyleArray = createDivStyleArray(div, null);
-    if ( utils.array_has_NaNs(currentDivStyleArray))
-        throw new Error("currentDivStyleArray has NaNs at A");
 
     var targetDivStyleArray = createDivStyleArray(div,"saved");
-    if ( utils.array_has_NaNs(targetDivStyleArray))
-        throw new Error("targetDivStyleArray has NaNs at B");
 
     if (notLineItem && currentDivStyleArray[8] > 0) {
         currentDivStyleArray[8] = -25;
@@ -1044,21 +1045,16 @@ function restoreSavedStyle(div) {
     } else {
         targetParallaxedDivStyleArray = targetDivStyleArray;
     }
-    if ( utils.array_has_NaNs(targetParallaxedDivStyleArray))
-        throw new Error("targetParallaxedDivStyleArray 3 has NaNs");
 
     var keyframes = [];
     for( let frame=0; frame<NUM_ANIMATION_FRAMES; frame++ ) {
         var t = frame / (NUM_ANIMATION_FRAMES-1);
-        var interpDivStyleArray;
-        if ( NUM_ANIMATION_FRAMES == 2 )
-            // avoid divStyleArray length mismatch when isDivCard(currentDiv !== isDivCard(targetDiv)
-            interpDivStyleArray = (t == 0) ? currentDivStyleArray : targetParallaxedDivStyleArray;
-        else 
-            interpDivStyleArray = utils.linearInterpArray(t, currentDivStyleArray, targetParallaxedDivStyleArray);
-
-        if ( utils.array_has_NaNs(interpDivStyleArray))
-            throw new Error("interpDivStyleArray 4 has NaNs");
+        var interpDivStyleArray = utils.linearInterpArray(t, currentDivStyleArray, targetParallaxedDivStyleArray);
+        if ( notLineItem ) {
+            if ( frame == 0 )
+                console.log('------------------------ restore div.id:', div.id, '------------');
+            console.log('f:', frame, 't:',t, 'x:', interpDivStyleArray[6], 'y:', interpDivStyleArray[7], 'z:', interpDivStyleArray[8])
+        }
         keyframes.push( createKeyFrame(div, interpDivStyleArray) );
     }
     setTimeout( function() { endAnimation(div, 'restoreSavedStyle', targetParallaxedDivStyleArray); }, ANIMATION_DURATION_MILLIS);
@@ -1096,6 +1092,8 @@ function createDivStyleArray(div, prefix) {
             array = array.concat([0,0,0]);
         }
     }
+    if ( utils.array_has_NaNs(array))
+        throw new Error("createDivStyleArray has NaNs");
     return array;
 }
 
@@ -1141,6 +1139,8 @@ function getDivStyleArrayFromDivStyle(div, divStyle) {
     } else {
         array = array.concat([0,0,0]);
     }
+    if ( utils.array_has_NaNs(array))
+        throw new Error("getDivStyleArrayFromDivStyle has NaNs");
     return array;
 }
 
