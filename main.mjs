@@ -2,9 +2,9 @@
 // @ts-nocheck
 'use strict';
 
-import * as utils from './modules/utils.js';
-import * as timeline from './modules/timeline.js';
-import * as focalPoint from './modules/focal_point.js';
+import * as utils from './modules/utils.mjs';
+import * as timeline from './modules/timeline.mjs';
+import * as focalPoint from './modules/focal_point.mjs';
 
 // --------------------------------------
 // Element reference globals
@@ -316,7 +316,7 @@ function createBizcardDivs() {
 // TagLink globals
 
 // the global set of tagLinks created while creating all .Bizcard-divs from
-// the list of all `job` objects defined in "static_content/jobs.js"
+// the list of all `job` objects defined in "static_content/jobs.mjs"
 var allTagLinks = [];
 
 function initAllTagLinks() {

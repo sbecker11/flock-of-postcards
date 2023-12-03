@@ -1,5 +1,6 @@
-
+.
 ├── README.md
+├── Virtual Munsell Color Wheel).webloc
 ├── index.html
 ├── main.js
 ├── modules
@@ -9,6 +10,7 @@
 │   ├── timeline.css
 │   ├── timeline.js
 │   └── utils.js
+├── project-structure.txt
 ├── static_content
 │   ├── fragments
 │   │   ├── css-colors.json
@@ -31,20 +33,10 @@
 │   │   ├── convert-jobs-xslx-to-js.sh
 │   │   ├── csv2json.py
 │   │   ├── jobs.csv
-│   │   ├── jobs.js
+│   │   ├── jobs.mjs
 │   │   └── jobs.xlsx
 │   └── media
-│       ├── README.md
-│       ├── create_image_paths_js_file.sh
-│       ├── download_images.py
-│       ├── fit_images.py
-│       ├── image_paths.js
-│       ├── image_urls.js
-│       ├── img-urls.js
-│       ├── img-urls.txt
-│       ├── requirements.txt
-│       ├── scale_images.py
-│       ├── size_images.py
-│       └── wordpress-media.xml
+│       └── scale-wordpress-images.zip
 ├── styles.css
+├── three.js examples.webloc
 └── version.txt

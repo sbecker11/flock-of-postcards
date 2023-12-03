@@ -5,7 +5,7 @@
 # cevelopment.
 # 
 # This bash script converts the jobs.xlsx file to a 
-# jobs.js file which can be referenced as static content 
+# jobs.mjs file which can be referenced as static content 
 # from any html file.
 # 
 # Details:
@@ -14,24 +14,24 @@
 # utilities that become callable after activating the local 
 # python virtual environment using `source venv/bin/activate`.
 #
-# The jobs.json file is then used to create the jobs.js file
-# using standard unix tools.  The `truncate -s -1 jobs.js` line 
+# The jobs.mjson file is then used to create the jobs.mjs file
+# using standard unix tools.  The `truncate -s -1 jobs.mjs` line 
 # removes the trailing newline character added by
-# `echo "const jobs = " > jobs.js`
+# `echo "const jobs = " > jobs.mjs`
 #
-# The new jobs.js file is then referenced from html as any 
+# The new jobs.mjs file is then referenced from html as any 
 # local javascript file using:
-#   <script type="text/javascript" src="static_files/jobs.js"></script>
+#   <script type="text/javascript" src="static_files/jobs.mjs"></script>
 #
 
-rm -f jobs.csv jobs.json jobs.js
+rm -f jobs.csv jobs.mjson jobs.mjs
 source venv/bin/activate
 in2csv jobs.xlsx > jobs.csv
-cat jobs.csv | python csv2json.py > jobs.json
-echo -n "const jobs = " > jobs.js
-cat jobs.json >> jobs.js
-truncate -s -1 jobs.js
-echo ";" >> jobs.js
+cat jobs.csv | python csv2json.py > jobs.mjson
+echo -n "const jobs = " > jobs.mjs
+cat jobs.mjson >> jobs.mjs
+truncate -s -1 jobs.mjs
+echo ";" >> jobs.mjs
 deactivate
-rm -f jobs.csv jobs.json
+rm -f jobs.csv jobs.mjson
 echo "done"

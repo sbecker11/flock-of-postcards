@@ -1,4 +1,4 @@
-import * as utils from '../utils.js';
+import * as utils from '../utils.mjs';
 
 export function testFormatNumber() {
     let testCases = [
