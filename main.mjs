@@ -20,7 +20,6 @@ const bullsEye = document.getElementById("bulls-eye");
 const selectFirstBizcardButton = document.getElementById("select-first-bizcard");
 const selectNextBizcardButton = document.getElementById("select-next-bizcard");
 const selectAllBizcardsButton = document.getElementById("select-all-bizcards");
-const selectAllSkillsButton = document.getElementById("select-all-skills");
 const clearAllLineItemsButton = document.getElementById("clear-all-line-items");
 
 // --------------------------------------
@@ -1875,25 +1874,6 @@ function selectAllBizCards() {
 }
 
 selectAllBizcardsButton.addEventListener("click", selectAllBizCards);
-
-//---------------------------------------
-// selectAllSkillsButton - remove all cardDivLineItems 
-// in reverse order and then select all cardDivs from 0 to N
-// and scroll cardDivs and lineItems to see the first skill
-selectAllSkillsButton.addEventListener("click", function (event) {
-
-    // delete all cardDivLineItems in reverse order
-    clearAllDivCardLineItems();
-
-    var allCardDivs = document.getElementsByClassName("card-div");
-    for (let i=0; i < allCardDivs.length; i++) {
-        var cardDiv = allCardDivs[i];
-        // select each cardDiv and its cardDivLineItem
-        selectTheCardDiv(cardDiv, true);
-    }
-    // select and scroll to the first cardDiv and its line item
-    selectAndScrollToCardDiv(allCardDivs[0]);
-});
 
 // delete all cardDivLineItems in reverse order
 function clearAllDivCardLineItems() {
