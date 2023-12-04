@@ -159,4 +159,21 @@ export function formatNumber(num, format) {
   }
 
   
-  
+  export function findScrollableAncestor(element) {
+    while (element && element.parentNode) {
+        element = element.parentNode;
+        if (element === document.body) {
+            // document.body is the default scrollable ancestor
+            return document.body;
+        }
+        const overflowY = window.getComputedStyle(element).overflowY;
+        const isScrollable = overflowY === 'auto' || overflowY === 'scroll';
+        const canScroll = element.scrollHeight > element.clientHeight;
+
+        if (isScrollable && canScroll) {
+            return element;
+        }
+    }
+    return null;
+}
+

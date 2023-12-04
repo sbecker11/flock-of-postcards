@@ -122,8 +122,8 @@ body {
   border-style: solid;
   border-color: white;
   font-family: "Roboto", sans-serif;
-  font-weight: bold;
-  font-size: 10px;
+  font-weight: normal;
+  font-size: 14px;
   padding: 0px;
   box-sizing: border-box;
   cursor: pointer;
@@ -189,8 +189,13 @@ body {
   padding: 10px;
 }
 
+/* lines = 15;
+ * render 13 lines as 170 px 
+ * 170/13 = px/line
+ * 15 lines = 15*170/13 = 196.154 = 196
+ */
 #right-footer-div {
-  height: 170px;
+  height: 196px;
   background-color: #999999;
   padding: 10px;
 }
