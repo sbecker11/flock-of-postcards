@@ -93,10 +93,12 @@ export function createTimeline(container, canvasContainer, minYear, maxYear, def
             var monthStr = utils.zeroPad(month, 2);
             var monthTickBottom = timeline.getTimelineYearMonthBottom(year, monthStr);
             var check = yearDivBottom - (month - 1) * YEAR_BOTTOM_TO_BOTTOM / 12;
-            if (monthTickBottom != check)
+            if (monthTickBottom != check) {
                 // console.log(`WARNING: monthTickBottom:${monthTickBottom} != check:${check}`);
-            if (timeline.getTimelineYearMonthBottom(year, "01") != timelineYearDivBottoms[`${year}`])
+            }
+            if (timeline.getTimelineYearMonthBottom(year, "01") != timelineYearDivBottoms[`${year}`]) {
                 // console.log("WARNING: year-01 != year");
+            }
 
             monthTick.style.fontSize = `${MONTHTICK_FONTSIZE}px`;
             monthTick.style.height = `${MONTHTICK_FONTSIZE}px`;
