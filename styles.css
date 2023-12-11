@@ -7,7 +7,12 @@ body {
   background-color: blueviolet;
 }
 
-#debugScrollingElement, #debugFocalPointElement {
+#debugScrollingElement, 
+#debugFocalPointElement, 
+#debugBullsEyeElement, 
+#debugCanvasElement, 
+#debugCanvasContainerElement,
+#debugTheSelectedCardDivIdElement {
   display: block;
   font-family: Roboto, sans-serif;
   font-size: 12px;

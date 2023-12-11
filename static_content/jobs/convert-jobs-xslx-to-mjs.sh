@@ -14,7 +14,7 @@
 # utilities that become callable after activating the local 
 # python virtual environment using `source venv/bin/activate`.
 #
-# The jobs.mjson file is then used to create the jobs.mjs file
+# The jobs.json file is then used to create the jobs.mjs file
 # using standard unix tools.  The `truncate -s -1 jobs.mjs` line 
 # removes the trailing newline character added by
 # `echo "const jobs = " > jobs.mjs`
@@ -24,14 +24,24 @@
 #   <script type="text/javascript" src="static_files/jobs.mjs"></script>
 #
 
-rm -f jobs.csv jobs.mjson jobs.mjs
+if [ -n "$VIRTUAL_ENV" ]; then
+    type deactivate &>/dev/null && deactivate
+else
+    echo "No virtual environment detected."
+fi
+rm -rf venv
+rm -f jobs.csv jobs.json jobs.mjs venv
+python3 -m venv venv
 source venv/bin/activate
+pip install --upgrade pip
+pip install -r requirements.txt
 in2csv jobs.xlsx > jobs.csv
-cat jobs.csv | python csv2json.py > jobs.mjson
+cat jobs.csv | python csv2json.py > jobs.json
 echo -n "const jobs = " > jobs.mjs
-cat jobs.mjson >> jobs.mjs
+cat jobs.json >> jobs.mjs
 truncate -s -1 jobs.mjs
 echo ";" >> jobs.mjs
-deactivate
-rm -f jobs.csv jobs.mjson
+type deactivate &>/dev/null && deactivate
+rm -f jobs.csv jobs.json
+rm -rf venv
 echo "done"

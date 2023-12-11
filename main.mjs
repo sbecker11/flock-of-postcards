@@ -324,7 +324,7 @@ function initAllTagLinks() {
     allTagLinks = [];
 }
 
-// Use the BULLET_DELIMITER point character as separator to split the
+// Use the BULLET_DELIMITER as separator to split the
 // `bizcard_description` into a list of `description_items`.
 //
 // Parse each description_item to find the pattern `[skill_phrase](skill_img_url)`.
@@ -333,14 +333,14 @@ function initAllTagLinks() {
 //    `<card-link card-div-id="id" card-img-url="url">skill</card-link>`
 // The `card-img-url` is ignored if its value if "url" or blank.
 //
-// Uses the BULLET_DELIMITER separator to join the list of description_items 
+// Uses the BULLET_JOINER separator to join the list of description_items 
 // back into an updated HTML description so it can be used to create an ordered 
 // list with list items.
 //
 function process_bizcard_description_HTML(bizcardDiv, description_HTML) {
     console.assert(bizcardDiv != null);
     var processed_items = [];
-    var description_items = description_HTML.split();
+    var description_items = description_HTML.split(BULLET_DELIMITER);
     if (description_items.length > 0) {
         for (var i = 0; i < description_items.length; i++) {
             var description_item = description_items[ i ].trim();
@@ -1481,7 +1481,7 @@ function addCardDivLineItem(targetCardDivId) {
         // if targetCardDiv has a "Description" attribute
         var description = targetCardDiv.getAttribute("Description");
         if (description && description.length > 0) {
-            // split the description by BULLET_SEPARATORS and return html 
+            // split the description by BULLET_DELIMITER and return html 
             // of the styled form <p><ul>(<li>text</li>)+</ul></p>
             // where text contains spans that have targetCardDivIds
             var line_items_HTML = convert_description_HTML_to_line_items_HTML(description);
