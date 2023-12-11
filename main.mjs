@@ -282,10 +282,11 @@ function createBizcardDivs() {
         bizcardDiv.setAttribute("saved-selected-color", font_color_name);
 
         var description_HTML = job[ "Description" ];
+        var bizcardTagLinks;
         if (description_HTML && description_HTML.length > 0) {
             utils.validateString(description_HTML);
             // description.replace("•","<br/j>*");
-            description_HTML = process_bizcard_description_HTML(bizcardDiv, description_HTML);
+            description_HTML, bizcardTagLinks = process_bizcard_description_HTML(bizcardDiv, description_HTML);
             bizcardDiv.setAttribute("Description", description_HTML);
         }
         bizcardDiv.setAttribute("saved-zIndexStr", zIndexStr);
@@ -327,19 +328,21 @@ function initAllTagLinks() {
 // Use the BULLET_DELIMITER as separator to split the
 // `bizcard_description` into a list of `description_items`.
 //
-// Parse each description_item to find the pattern `[skill_phrase](skill_img_url)`.
+// Parse each description_item to find the pattern `[skill_phrase](skill_img_url)(skill_url)`.
 // Finds or creates a `card-div` for each `skill_phrase` and replaces the 
-// original html with 
-//    `<card-link card-div-id="id" card-img-url="url">skill</card-link>`
+// original html with `<card-link card-div-id="id" card-img-url="url">skill</card-link>`
 // The `card-img-url` is ignored if its value if "url" or blank.
 //
-// Uses the BULLET_JOINER separator to join the list of description_items 
+// Uses the BULLET_JOINER to join the list of description_items 
 // back into an updated HTML description so it can be used to create an ordered 
 // list with list items.
+// 
+// Also returns the list of allNewTagLinks created from the description_HTML
 //
 function process_bizcard_description_HTML(bizcardDiv, description_HTML) {
     console.assert(bizcardDiv != null);
     var processed_items = [];
+    var bizcardTagLinks = [];
     var description_items = description_HTML.split(BULLET_DELIMITER);
     if (description_items.length > 0) {
         for (var i = 0; i < description_items.length; i++) {
@@ -352,27 +355,44 @@ function process_bizcard_description_HTML(bizcardDiv, description_HTML) {
                     // update the global list of allTagLinks 
                     // created from description_HTML of all .Bizcard-divs
                     allTagLinks = allTagLinks.concat(newTagLinks);
+                    bizcardTagLinks = bizcardTagLinks.concat(newTagLinks);
             }
         }
-    }
+    } 
     var processed_bizcard_description_HTML = description_HTML;
     if (processed_items.length > 0)
         processed_bizcard_description_HTML = processed_items.join(BULLET_JOINER);
-    return processed_bizcard_description_HTML;
+    console.log("bizcardTagLinks:" + bizcardTagLinks.length  + " [" + debugTagLinksToStr(bizcardTagLinks) + "]")
+    return {processed_bizcard_description_HTML, bizcardTagLinks};
 }
 
+function debugTagLinksToStr(tagLinks) {
+    var tagLinkStrs = [];
+    for( var i=0; i<tagLinks.length; i++ ) {
+        var tagLink = tagLinks[i];
+        if ( tagLink.url != "url" )
+            var tagLinkStr = tagLink.text + '<br/>' + tagLink.url;
+        else
+            var tagLinkStr = tagLink.text;
+        tagLinkStrs.push(tagLinkStr);
+    }
+    return tagLinkStrs.join("|");
+}
 function process_bizcard_description_item(bizcardDiv, inputString) {
     console.assert(bizcardDiv != null);
     const tagRegex = /\[(.*?)\]\((.*?)\)/g;
     const newTagLinks = [];
     const updatedString = inputString.replace(tagRegex, function (match, text, url) {
         const tagLink = { text, url };
-        addCardDivId(bizcardDiv, tagLink);
+        setCardDivIdOfTagLink(bizcardDiv, tagLink);
         newTagLinks.push(tagLink);
         const cardDivId = tagLink[ 'cardDivId' ];
+        // console.log("***tagLink.cardDivId:" + tagLink.cardDivId);
+        // console.log("***tagLink.text:" + tagLink.text);
+        // console.log("***tagLink.url:" + tagLink.url);
         const spanId = `tagLink-${cardDivId}`;
 
-        const tagLinkImgUrl = url;
+        const tagLinkUrl = url;
         const tagLinkHtml = text;
         return `<span id="${spanId}" class="tagLink" targetCardDivId="${cardDivId}">${tagLinkHtml}</span>`;
     });
@@ -381,7 +401,8 @@ function process_bizcard_description_item(bizcardDiv, inputString) {
 
 // find or create a cardDiv and use it
 // to set the tagLink's "cardDivId" property
-function addCardDivId(bizcardDiv, tagLink) {
+// otherwise create a new cardDiv
+function setCardDivIdOfTagLink(bizcardDiv, tagLink) {
     console.assert(bizcardDiv != null && tagLink != null);
     var cardDiv = findCardDiv(tagLink);
     if (!cardDiv) {
@@ -458,6 +479,7 @@ function createCardDiv(bizcardDiv, tagLink) {
     var cardDivId = getNextCardDivId();
     var cardDiv = document.createElement('div');
     cardDiv.classList.add("card-div");
+    cardDiv.tagLink = tagLink;
     cardDiv.id = cardDivId;
 
     canvas.appendChild(cardDiv);
@@ -512,10 +534,12 @@ function createCardDiv(bizcardDiv, tagLink) {
     cardDiv.style.color = cardDiv.getAttribute("saved-color") || "";
 
     // the tagLink is used to define the contents of this cardDiv
-    const tagLinkImgUrl = tagLink[ 'url' ];
-    const tagLinkHtml = tagLink[ 'text' ];
+    const tagLinkUrl = cardDiv.tagLink[ 'url' ];
+    const tagLinkImgUrl = cardDiv.tagLink[ 'img-url' ];
+    const tagLinkHtml = cardDiv.tagLink[ 'text' ];
     const spanId = `tagLink-${cardDivId}`;
-    cardDiv.innerHTML = `<span id="${spanId}" class="tagLink" targetCardDivId="${cardDivId}">${tagLinkHtml}<br/>(${cardDivId})</span>`;
+    // define the innerHTML when cardDiv is added to #canvas
+    cardDiv.innerHTML = `<span id="${spanId}" class="tagLink" targetCardDivId="${cardDivId}">${tagLinkHtml}</span>`;
 
     // ==================================================================
     // divCard img_src and dimensions
@@ -1430,7 +1454,6 @@ function addCardDivLineItem(targetCardDivId) {
         // console.log(`no cardDiv found for targetCardDivId:${targetCardDivId}`);
         return;
     }
-
     // only add a card-div-line-item for this targetCardDivId if
     // it hasn't already been added
     var existingCardDivLineItem = getCardDivLineItem(targetCardDivId);
@@ -1476,6 +1499,11 @@ function addCardDivLineItem(targetCardDivId) {
                 targetInnerHTML = removeImgTagsFromHtml(targetInnerHTML);
 
             cardDivLineItemContent.innerHTML = targetInnerHTML;
+
+            var tagLink = targetCardDiv.tagLink;
+            if (tagLink !== undefined && tagLink.url !== "url")
+                cardDivLineItemContent.innerHTML += "<br/>" + tagLink.url;
+
         }
 
         // if targetCardDiv has a "Description" attribute
@@ -1625,8 +1653,11 @@ function removeImgTagsFromHtml(html) {
     return filtered;
 }
 
+// tagLink is an HTML string span#tagLink-card-dive-8.tagLink { title:'', translate"true, dir: '', hidden: false, 
 function addTagLinkClickListener(tagLink) {
     console.assert(tagLink != null);
+    console.log("tagLink[text]:" + tagLink['text']);
+    console.log("tagLink[url]:" + tagLink['url']);
     tagLink.addEventListener("click", function (event) {
         var tagLinkId = event.target.id;
         // get the cardDivId from the tagLinkId
