@@ -378,25 +378,68 @@ function debugTagLinksToStr(tagLinks) {
     }
     return tagLinkStrs.join("|");
 }
-function process_bizcard_description_item(bizcardDiv, inputString) {
-    console.assert(bizcardDiv != null);
-    const tagRegex = /\[(.*?)\]\((.*?)\)/g;
-    const newTagLinks = [];
-    const updatedString = inputString.replace(tagRegex, function (match, text, url) {
-        const tagLink = { text, url };
-        setCardDivIdOfTagLink(bizcardDiv, tagLink);
-        newTagLinks.push(tagLink);
-        const cardDivId = tagLink[ 'cardDivId' ];
-        // console.log("***tagLink.cardDivId:" + tagLink.cardDivId);
-        // console.log("***tagLink.text:" + tagLink.text);
-        // console.log("***tagLink.url:" + tagLink.url);
-        const spanId = `tagLink-${cardDivId}`;
 
-        const tagLinkUrl = url;
-        const tagLinkHtml = text;
-        return `<span id="${spanId}" class="tagLink" targetCardDivId="${cardDivId}">${tagLinkHtml}</span>`;
+// This function takes a string as input, applies the regular expression to extract the 
+// "words-path-url" newTagLinks, and then replaces these newTagLinks in the original string
+// with the corresponding HTML elements. The function return both the list of 
+// these newTagLinks and the updatedString with embedded HTML elements.
+
+function process_bizcard_description_item(bizcardDiv, inputString) {
+    const regex = /\[([\w\s]+)\](\{[\w\/\-\.]+\})?(\(https?:\/\/[\w\/\.\-\?\=\&]+\))?/;
+    const matches = inputString.match(new RegExp(regex, 'g'));
+
+    if (!matches) {
+        return { newTagLinks: [], updatedString: inputString };
+    }
+    // create a newTagLink for each match
+    const newTagLinks = matches.map(match => {
+        const parsed = match.match(regex);
+        return {
+            text: parsed[1] || '',
+            img: parsed[2] || '',
+            url: parsed[3] || ''
+        };
     });
+
+    // create an htmlElement for each newTagLink
+    let updatedString = inputString;
+    newTagLinks.forEach(item => {
+        const text = item.text;
+        const img = item.img ? item.img.slice(1, -1) : ''; // Remove surrounding braces
+        const url = item.url ? item.url.slice(1, -1) : ''; // Remove surrounding parentheses
+
+        const htmlElement = text
+            ? `<a href="${url}">${text}<img src="${img}"></a>`
+            : `<a href="${url}">${text}</a>`;
+
+        // Replace the original pattern with the new HTML element
+        const originalPattern = `[${text}]${item.img}${item.url}`;
+        updatedString = updatedString.replace(originalPattern, htmlElement);
+
+        // save the htmlElement in the newTagLink
+        item.html = htmlElement;
+    });
+
+    // create a spanElement for each newTagLink
+    newTagLinks.forEach(item => {
+        // find or create a carddiv for each newTagLink  
+        setCardDivIdOfTagLink(bizcardDiv, item);
+
+        // create a spanElement for each newTagLink
+        const cardDivId = item.cardDivId;
+        const spanId = `tagLink-${cardDivId}`;
+        item.span = `<span id="${spanId}" class="tagLink" targetCardDivId="${item.cardDivId}">${item.html}<span>`;
+    });
+
     return { newTagLinks, updatedString };
+}
+
+function test_process_bizcard_description_item() {
+    // Example usage
+    const inputString = "Your string with [words]{path}(url) patterns goes here";
+    const result = processString(inputString);
+    console.log(result.newTagLinks); // Logs the list of words-path-url tagLinks
+    console.log(result.updatedString); // Logs the revised text with embedded HTML elements
 }
 
 // find or create a cardDiv and use it
@@ -408,14 +451,13 @@ function setCardDivIdOfTagLink(bizcardDiv, tagLink) {
     if (!cardDiv) {
         cardDiv = createCardDiv(bizcardDiv, tagLink);
     }
-    tagLink[ 'cardDivId' ] = cardDiv.id;
+    tagLink.cardDivId = cardDiv.id;
 }
 
 // this is an Order(N) search that could be optimized.
 function findCardDiv(tagLink) {
     var cardDivs = document.getElementsByClassName("card-div");
-    for (var i = 0; i < cardDivs.length; i++) {
-        var cardDiv = cardDivs[ i ];
+    for (const cardDiv of cardDivs) {
         if (cardDivMatchesTagLink(cardDiv, tagLink))
             return cardDiv;
     }
@@ -423,10 +465,25 @@ function findCardDiv(tagLink) {
 }
 
 function cardDivMatchesTagLink(cardDiv, tagLink) {
-    if (cardDiv.getAttribute("tagLinkText") != tagLink[ "text" ])
+    // Check if the required text attribute matches
+    if (tagLink.text !== cardDiv.getAttribute("tagLinkText")) {
         return false;
-    if (cardDiv.getAttribute("tagLinkUrl") != tagLink[ "url" ])
-        return false;
+    }
+
+    // Check if the optional img attribute matches or both are absent
+    if (tagLink.img !== cardDiv.getAttribute("tagLinkImg")) {
+        if (tagLink.img !== undefined && cardDiv.getAttribure("tagLinkImg") !== undefined) {
+            return false;
+        }
+    }
+
+    // Check if the optional url attribute matches or both are absent
+    if (tagLink.url !== cardDiv.getAttribute("tagLinkUrl")) {
+        if (tagLink.url !== undefined && cardDiv.getAttribute("tagLinkUrl") !== undefined) {
+            return false;
+        }
+    }
+
     return true;
 }
 
@@ -501,11 +558,9 @@ function createCardDiv(bizcardDiv, tagLink) {
         top += 200;
     cardDiv.style.top = `${top}px`;
 
-
     const horizontalOffset = utils.getRandomInt(-MAX_CARD_POSITION_OFFSET, MAX_CARD_POSITION_OFFSET);
     var left = MEAN_CARD_LEFT + horizontalOffset;
     cardDiv.style.left = `${left}px`;
-
 
     var z = utils.getRandomInt(CARD_MIN_Z, CARD_MAX_Z);
     while (z === prev_z) {
@@ -534,9 +589,7 @@ function createCardDiv(bizcardDiv, tagLink) {
     cardDiv.style.color = cardDiv.getAttribute("saved-color") || "";
 
     // the tagLink is used to define the contents of this cardDiv
-    const tagLinkUrl = cardDiv.tagLink[ 'url' ];
-    const tagLinkImgUrl = cardDiv.tagLink[ 'img-url' ];
-    const tagLinkHtml = cardDiv.tagLink[ 'text' ];
+    const tagLinkHtml = cardDiv.tagLink.html;
     const spanId = `tagLink-${cardDivId}`;
     // define the innerHTML when cardDiv is added to #canvas
     cardDiv.innerHTML = `<span id="${spanId}" class="tagLink" targetCardDivId="${cardDivId}">${tagLinkHtml}</span>`;
@@ -549,7 +602,7 @@ function createCardDiv(bizcardDiv, tagLink) {
     var img_height = MEAN_CARD_HEIGHT;
 
     // given a tagLinkImgUrl try to get the real img_src and dimensions of the actual image
-    var result = get_real_img_src_from_img_url(tagLinkImgUrl);
+    var result = get_real_img_src_from_img_url(tagLink.img);
     if (result) {
         const { real_img_src, real_img_width, real_img_height } = result;
         img_src = real_img_src;
@@ -617,6 +670,7 @@ function createCardDiv(bizcardDiv, tagLink) {
 
     cardDiv.setAttribute("tagLinkText", tagLink[ "text" ]);
     cardDiv.setAttribute("tagLinkUrl", tagLink[ "url" ]);
+    cardDiv.setAttribute("tagLinkImg", tagLink[ "img" ]);
     return cardDiv;
 }
 
