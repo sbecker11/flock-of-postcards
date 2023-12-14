@@ -1022,8 +1022,10 @@ function setSelectedStyle(div) {
         currentDivStyleArray[8] = parseInt(div.getAttribute('originalZ'));
         console.log("select div.id:", div.id, "currentZ should not be negative so reset to", currentDivStyleArray[8]);
     }
-    if (notLineItem && targetDivStyleArray[8] > 0)
-        console.log("select div.id:", div.id, "targetZ should not be positive");
+    if (notLineItem && targetDivStyleArray[8] > 0) {
+        targetDivStyleArray[8] = parseInt(div.getAttribute('saved-selected-zIndex'));
+        console.log("select div.id:", div.id, "targetZ should not be positive so reset to", targetDivStyleArray[8]);
+    }
 
     if ( notLineItem ) {
         var keyframes = [];
@@ -1063,8 +1065,7 @@ function restoreSavedStyle(div) {
         console.log("select div.id:", div.id, "currentZ should not be positive so reset to", currentDivStyleArray[8]);
     }
     if (notLineItem && targetDivStyleArray[8] < 0) {
-        console.log("div:",div);
-        currentDivStyleArray[8] = parseInt(div.getAttribute('originalZ'))
+        targetDivStyleArray[8] = parseInt(div.getAttribute('originalZ'))
         console.log("restore div.id:", div.id,"targetZ should not be negative so reset to", currentDivStyleArray[8]);
     }
 
