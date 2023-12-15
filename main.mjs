@@ -1551,9 +1551,6 @@ function addCardDivLineItem(targetCardDivId) {
         if (targetInnerHTML && targetInnerHTML.length > 0) {
 
             // ensure targetInnerHTML includes no img tag markup
-            if (targetInnerHTML.includes("<img"))
-                targetInnerHTML = removeImgTagsFromHtml(targetInnerHTML);
-
             cardDivLineItemContent.innerHTML = targetInnerHTML;
 
             // var tagLink = targetCardDiv.tagLink;
