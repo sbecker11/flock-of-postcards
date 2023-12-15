@@ -410,21 +410,19 @@ function process_bizcard_description_item(bizcardDiv, inputString) {
         let htmlElement = '';
     
         if (text) {
-            // Always use underlined text
-            const underlinedText = `<u>${text}</u>`;
         
             // Initialize the htmlElement with just underlined text
-            let htmlElement = underlinedText;
+            htmlElement = `<u>${text}</u>`;
         
-            // If url is defined, wrap the globe icon in an anchor tag
+            // If url is defined, wrap the geo icon in an anchor tag
             if (url) {
-                const globeAnchor = `<a href="${url}" target="_blank"><img src="static_content/icons/world.svg"></a>`;
-                htmlElement += ` ${globeAnchor}`;
+                const geoAnchorHTML = `<a href="${url}" target="_blank"><img src="static_content/icons/icons8-geography-16.png"/></a>`;
+                htmlElement += ` ${geoAnchorHTML}`;
             }
         
             // If img is defined, add an anchor tag wrapping the local image.svg
             if (img) {
-                const imageAnchor = `<a href="${img}" target="_blank"><img src="static_content/icons/image.svg"></a>`;
+                const imageAnchor = `<a href="${img}" target="_blank"><img src="static_content/icons/icons8-edit-image-16.png"/></a>`;
                 htmlElement += ` ${imageAnchor}`;
             }
         }
