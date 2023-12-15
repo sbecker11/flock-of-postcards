@@ -407,28 +407,44 @@ function process_bizcard_description_item(bizcardDiv, inputString) {
         const text = item.text;
         const img = item.img ? item.img.slice(1, -1) : ''; // Remove surrounding braces
         const url = item.url ? item.url.slice(1, -1) : ''; // Remove surrounding parentheses
-
-        const htmlElement = text
-            ? `<a href="${url}">${text}<img src="${img}"></a>`
-            : `<a href="${url}">${text}</a>`;
-
+    
+        let htmlElement = '';
+    
+        if (text) {
+            if (url) {
+                // If url is present, wrap text in an anchor tag
+                const anchorTag = `<a href="${url}" target="_blank">${text}</a>`;
+                htmlElement = img ? `${anchorTag} <img src="${img}">` : anchorTag;
+            } else {
+                // If url is not present, use underlined text
+                const underlinedText = `<u>${text}</u>`;
+                const imgTag = img ? `<img src="${img}">` : '';
+                htmlElement = img ? `${underlinedText} ${imgTag}` : underlinedText;
+            }
+        }
+    
         // Replace the original pattern with the new HTML element
         const originalPattern = `[${text}]${item.img}${item.url}`;
         updatedString = updatedString.replace(originalPattern, htmlElement);
-
+            
         // save the htmlElement in the newTagLink
         item.html = htmlElement;
     });
 
-    // create a spanElement for each newTagLink
+    // use each newTagLink to add a spanElement to the cardDiv
     newTagLinks.forEach(item => {
         // find or create a carddiv for each newTagLink  
-        setCardDivIdOfTagLink(bizcardDiv, item);
+        setCardDivIdOfTagLink(bizcardDiv, item); //xx
 
-        // create a spanElement for each newTagLink
-        const cardDivId = item.cardDivId;
-        const spanId = `tagLink-${cardDivId}`;
-        item.span = `<span id="${spanId}" class="tagLink" targetCardDivId="${item.cardDivId}">${item.html}<span>`;
+        // create a spanElement for this newTagLink
+        // const cardDivId = item.cardDivId;
+        // const spanId = `tagLink-${cardDivId}`;
+        // const spanHtml = `<span id="${spanId}" class="tagLink" targetCardDivId="${item.cardDivId}">${item.html}<span>`;
+        // var cardDiv = document.getElementById(cardDivId);
+        // var span = document.createElement('span');
+        // span.innerHTML = spanHtml;
+        // cardDiv.appendChild(span);
+    
     });
 
     return { newTagLinks, updatedString };
@@ -539,7 +555,7 @@ function createCardDiv(bizcardDiv, tagLink) {
     cardDiv.tagLink = tagLink;
     cardDiv.id = cardDivId;
 
-    canvas.appendChild(cardDiv);
+    canvas.appendChild(cardDiv); // xx
 
     const cardDivIndex = getCardDivIndex(cardDivId) || 0;
 
@@ -683,6 +699,7 @@ function copyAttributes(dstDiv, srcDiv, attrs) {
         dstDiv.setAttribute(attr, srcVal);
         var dstVal = dstDiv.getAttribute(attr);
         console.assert(dstVal == srcVal, `attr:${attr} dst:${dstVal} != src:${srcVal}`);
+        console.log(`${dstDiv.id} ${attr} = ${srcDiv.id} ${srcVal}`);
     }
 }
 
@@ -1555,9 +1572,9 @@ function addCardDivLineItem(targetCardDivId) {
 
             cardDivLineItemContent.innerHTML = targetInnerHTML;
 
-            var tagLink = targetCardDiv.tagLink;
-            if (tagLink !== undefined && tagLink.url !== "url")
-                cardDivLineItemContent.innerHTML += "<br/>" + tagLink.url;
+            // var tagLink = targetCardDiv.tagLink;
+            // if (tagLink !== undefined && tagLink.url !== "url")
+            //     cardDivLineItemContent.innerHTML += "<br/>" + tagLink.url;
 
         }
 
@@ -1571,8 +1588,8 @@ function addCardDivLineItem(targetCardDivId) {
             if (line_items_HTML && line_items_HTML.length > 0) {
 
                 // ensure line_items_HTML includes no img tag markup
-                if (line_items_HTML.includes("<img"))
-                    line_items_HTML = removeImgTagsFromHtml(line_items_HTML);
+                // if (line_items_HTML.includes("<img"))
+                //     line_items_HTML = removeImgTagsFromHtml(line_items_HTML);
 
                 cardDivLineItemContent.innerHTML += line_items_HTML
             }
