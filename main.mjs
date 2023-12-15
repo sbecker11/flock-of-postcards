@@ -281,13 +281,12 @@ function createBizcardDivs() {
         bizcardDiv.setAttribute("saved-selected-background-color", utils.adjustHexBrightness(css_hex_background_color_str, 1.7));
         bizcardDiv.setAttribute("saved-selected-color", font_color_name);
 
-        var description_HTML = job[ "Description" ];
-        var bizcardTagLinks;
-        if (description_HTML && description_HTML.length > 0) {
-            utils.validateString(description_HTML);
-            // description.replace("•","<br/j>*");
-            description_HTML, bizcardTagLinks = process_bizcard_description_HTML(bizcardDiv, description_HTML);
+        var description_raw = job[ "Description" ];
+        if (description_raw && description_raw.length > 0) {
+            utils.validateString(description_raw);
+            const [description_HTML, bizcardTagLinks] = process_bizcard_description_HTML(bizcardDiv, description_raw);
             bizcardDiv.setAttribute("Description", description_HTML);
+            bizcardDiv.setAttribute("TagLinks", JSON.stringify(bizcardTagLinks));
         }
         bizcardDiv.setAttribute("saved-zIndexStr", zIndexStr);
         bizcardDiv.setAttribute("saved-filterStr", get_filterStr_from_z(z));
@@ -363,7 +362,7 @@ function process_bizcard_description_HTML(bizcardDiv, description_HTML) {
     if (processed_items.length > 0)
         processed_bizcard_description_HTML = processed_items.join(BULLET_JOINER);
     console.log("bizcardTagLinks:" + bizcardTagLinks.length  + " [" + debugTagLinksToStr(bizcardTagLinks) + "]")
-    return {processed_bizcard_description_HTML, bizcardTagLinks};
+    return [processed_bizcard_description_HTML, bizcardTagLinks];
 }
 
 function debugTagLinksToStr(tagLinks) {
@@ -379,13 +378,13 @@ function debugTagLinksToStr(tagLinks) {
     return tagLinkStrs.join("|");
 }
 
-// This function takes a string as input, applies the regular expression to extract the 
-// "words-path-url" newTagLinks, and then replaces these newTagLinks in the original string
-// with the corresponding HTML elements. The function return both the list of 
-// these newTagLinks and the updatedString with embedded HTML elements.
+// This function takes an inputString, applies the regular expression to extract the 
+// newTagLink objects with properties text, img, url, and html, and then replaces 
+// these newTagLinks in the original string with their html values. The function return 
+// both the list of newTagLinks and the updatedString with embedded HTML elements.
 
 function process_bizcard_description_item(bizcardDiv, inputString) {
-    const regex = /\[([\w\s]+)\](\{[\w\/\-\.]+\})?(\(https?:\/\/[\w\/\.\-\?\=\&]+\))?/;
+    const regex = /\[([\w\s\:\-\|\/]+)\](\{[\w\/\-\.]+\})?(\(https?:\/\/[\w\/\.\-\?\=\&]+\))?/;
     const matches = inputString.match(new RegExp(regex, 'g'));
 
     if (!matches) {
@@ -396,11 +395,11 @@ function process_bizcard_description_item(bizcardDiv, inputString) {
         const parsed = match.match(regex);
         return {
             text: parsed[1] || '',
-            img: parsed[2] || '',
-            url: parsed[3] || ''
+            img: (parsed[2] && parsed[2] !== 'img') ? parsed[2] : '',
+            url: (parsed[3] && parsed[3] !== 'url') ? parsed[3] : ''
         };
     });
-
+    
     // create an htmlElement for each newTagLink
     let updatedString = inputString;
     newTagLinks.forEach(item => {
@@ -411,21 +410,30 @@ function process_bizcard_description_item(bizcardDiv, inputString) {
         let htmlElement = '';
     
         if (text) {
+            // Always use underlined text
+            const underlinedText = `<u>${text}</u>`;
+        
+            // Initialize the htmlElement with just underlined text
+            let htmlElement = underlinedText;
+        
+            // If url is defined, wrap the globe icon in an anchor tag
             if (url) {
-                // If url is present, wrap text in an anchor tag
-                const anchorTag = `<a href="${url}" target="_blank">${text}</a>`;
-                htmlElement = img ? `${anchorTag} <img src="${img}">` : anchorTag;
-            } else {
-                // If url is not present, use underlined text
-                const underlinedText = `<u>${text}</u>`;
-                const imgTag = img ? `<img src="${img}">` : '';
-                htmlElement = img ? `${underlinedText} ${imgTag}` : underlinedText;
+                const globeAnchor = `<a href="${url}" target="_blank"><img src="static_content/icons/world.svg"></a>`;
+                htmlElement += ` ${globeAnchor}`;
+            }
+        
+            // If img is defined, add an anchor tag wrapping the local image.svg
+            if (img) {
+                const imageAnchor = `<a href="${img}" target="_blank"><img src="static_content/icons/image.svg"></a>`;
+                htmlElement += ` ${imageAnchor}`;
             }
         }
-    
+            
         // Replace the original pattern with the new HTML element
         const originalPattern = `[${text}]${item.img}${item.url}`;
         updatedString = updatedString.replace(originalPattern, htmlElement);
+        updatedString = updatedString.replace('(url)', '');
+        updatedString = updatedString.replace('{img}', '');
             
         // save the htmlElement in the newTagLink
         item.html = htmlElement;
@@ -435,16 +443,6 @@ function process_bizcard_description_item(bizcardDiv, inputString) {
     newTagLinks.forEach(item => {
         // find or create a carddiv for each newTagLink  
         setCardDivIdOfTagLink(bizcardDiv, item); //xx
-
-        // create a spanElement for this newTagLink
-        // const cardDivId = item.cardDivId;
-        // const spanId = `tagLink-${cardDivId}`;
-        // const spanHtml = `<span id="${spanId}" class="tagLink" targetCardDivId="${item.cardDivId}">${item.html}<span>`;
-        // var cardDiv = document.getElementById(cardDivId);
-        // var span = document.createElement('span');
-        // span.innerHTML = spanHtml;
-        // cardDiv.appendChild(span);
-    
     });
 
     return { newTagLinks, updatedString };
@@ -609,6 +607,12 @@ function createCardDiv(bizcardDiv, tagLink) {
     const spanId = `tagLink-${cardDivId}`;
     // define the innerHTML when cardDiv is added to #canvas
     cardDiv.innerHTML = `<span id="${spanId}" class="tagLink" targetCardDivId="${cardDivId}">${tagLinkHtml}</span>`;
+
+    // Select the newly added span element and give it the colors of its parent cardDiv
+    const spanElement = document.getElementById(spanId);
+    if (spanElement) {
+        spanElement.style.color = cardDiv.style.color;
+    }
 
     // ==================================================================
     // divCard img_src and dimensions
@@ -1278,55 +1282,37 @@ const SELECTED_CARD_DIV_Z = -10;
 const SELECTED_CARD_DIV_ZINDEX_STR = get_zIndexStr_from_z(SELECTED_CARD_DIV_Z);
 const SELECTED_CARD_DIV_FILTER_STR = get_filterStr_from_z(SELECTED_CARD_DIV_Z);
 
-function getScrollIntoViewOptions(element) {
-    return { behavior: 'smooth', block: getScrollIntoViewBlockOption(element) };
-}
-
-function getScrollIntoViewBlockOption(element) {
+function scrollElementIntoView(element) {
     if ( element == null )
         throw new Error("null element");
     else if ( element.id == null )
         throw new Error("null element.id");
-    else if (isBizcardDiv(element))
-        return 'start';
+    else if (isBizcardDiv(element) || isCardDivLineItem(element))
+        scrollElementToStart(element);
     else if (isCardDiv(element) )
-        return 'center';
-    else if (isCardDivLineItem(element) )
-        return 'start';
+        scrollElementToCenter(element);
     else
         throw new Error("unhandled element with id:" + element.id)
 }
+
+function scrollElementToStart(element) {
+    element.scrollIntoView({ behavior:'smooth',block: 'start'});
+}
+
+function scrollElementToCenter(element) {
+    const container = findNearestAncestorWithClassName(element, "scrollable-container");
+    const containerHeight = container.clientHeight;
+    const elementTop = element.offsetTop;
+    const elementHeight = element.clientHeight;
+    const scrollTop = elementTop + (elementHeight / 2) - (containerHeight / 2);
+    container.scrollTo({ top: scrollTop, behavior: 'smooth' });
+}
+
 // returns the nearest ancestor with className or null
 function findNearestAncestorWithClassName(element, className) {
     while ((element = element.parentElement) && !element.classList.contains(className));
     return element;
 }
-
-function scrollElementIntoView(element) {
-    easeFocalPointToBullsEye();
-    var scrollIntoViewOptions = getScrollIntoViewOptions(element);
-
-    // if ( scrollIntoViewOptions.block == 'start' ) {
-    //     var container = utils.findScrollableAncestor(element);
-    //     const elementTop = element.offsetTop;
-    //     container.scrollTo({ top: elementTop, behavior: 'smooth' });
-    // } else {
-    //     element.scrollIntoView( scrollIntoViewOptions );
-    // }
-
-    var scrollingContainer = findNearestAncestorWithClassName(element, "scrollable-container");
-    if (!scrollingContainer) {
-        element.scrollIntoView( scrollIntoViewOptions );
-    } else {
-        var topOffset = 0;
-        if ( isCardDivLineItem(element) ) {
-            var topOffset = rightContentDiv.getBoundingClientRect().top;
-        }
-        // console.log('topOffset: ' + topOffset);
-        let  top = element.offsetTop - scrollingContainer.scrollTop - topOffset;
-        scrollingContainer.scrollBy(Object.assign({}, { top: top, left: 0 }, scrollIntoViewOptions));
-    }
-};
 
 // select the given cardDiv
 function selectTheCardDiv(cardDiv, selectTheCardDivLineItemFlag=false) {
@@ -1335,7 +1321,7 @@ function selectTheCardDiv(cardDiv, selectTheCardDivLineItemFlag=false) {
 
     // if the top of the selected cardDiv is not
     // already visible then scroll it into view
-    scrollElementIntoView(cardDiv);
+    //scrollElementIntoView(cardDiv);
 
     // click on selected to deselect
     if (theSelectedCardDiv != null && cardDiv.id == theSelectedCardDiv.id ) {
@@ -1725,11 +1711,24 @@ function removeImgTagsFromHtml(html) {
     return filtered;
 }
 
+function getStyleString(tagLink) {
+    let styleString = '';
+    if ( tagLink ) {
+        for (const property in tagLink.style) {
+            if (tagLink.style[property] !== '') {
+                styleString += `${property}: ${tagLink.style[property]}; `;
+            }
+        }
+    }
+    return styleString;
+}
+
 // tagLink is an HTML string span#tagLink-card-dive-8.tagLink { title:'', translate"true, dir: '', hidden: false, 
 function addTagLinkClickListener(tagLink) {
     console.assert(tagLink != null);
-    console.log("tagLink[text]:" + tagLink['text']);
-    console.log("tagLink[url]:" + tagLink['url']);
+    const styleString = getStyleString(tagLink);
+    console.log(`tagLinkClickLister added to tagLink.style: ${styleString}`);
+    console.log(`tagLinkClickLister added to tagLink.innerHTML: ${tagLink.innerHTML}`);
     tagLink.addEventListener("click", function (event) {
         var tagLinkId = event.target.id;
         // get the cardDivId from the tagLinkId
