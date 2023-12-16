@@ -1,7 +1,7 @@
 // @ts-check
 
 // --------------------------------------
-// Utility functions
+// Utility export functions
 
 export const isString = (value) => (typeof value === 'string' || value instanceof String);
 export const isNumber = (value) => typeof value === 'number' && !isNaN(value);
@@ -80,12 +80,11 @@ export const linearInterpArray = (t, array1, array2) => {
         const channelInterpolation = linearInterp(t, 0, array1[ i ], 1, array2[ i ]);
         interpolatedArray.push(Math.round(channelInterpolation));
     }
-    if ( array_has_NaNs(interpolatedArray))
-        throw new Error("interpolatedArray has NaNs at E");
+    validateIsNumericArray(interpolatedArray);
     return interpolatedArray;
 };
 
-export const is_numeric_array = (arr) => {
+export const isNumericArray = (arr) => {
     for (let i = 0; i < arr.length; i++) {
         if (typeof arr[ i ] !== 'number' || isNaN(arr[ i ])) {
             return false;
@@ -94,9 +93,133 @@ export const is_numeric_array = (arr) => {
     return true;
 };
 
-export const array_has_NaNs = array => array.some(element => isNaN(element));
+export const arrayHasNaNs = array => array.some(element => isNaN(element));
 
-export const arrays_are_equal = (arr1, arr2) => arr1.length === arr2.length && arr1.every((element, index) => element === arr2[index]);
+export const arraysAreEqual = (arr1, arr2) => arr1.length === arr2.length && arr1.every((element, index) => element === arr2[index]);
+
+export function validateIsArray(arr) {
+    if (!Array.isArray(arr)) {
+        const inputType = typeof arr;
+        throw new Error(`ValueError: Input is not an array, it is a(n) ${inputType}`);
+    }
+    if (arr.length === 0) {
+        throw new Error("ValueError: Array length must be greater than 0");
+    }
+    if ( arrayHasNaNs(arr))
+        throw new Error("ValueError: Array has NaNs");
+}
+
+export function validateIsNumericArray(arr) {    
+    if (!isNumericArray(arr)) {
+        throw new Error("ValueError: Array must contain only numeric values");
+    }
+}
+
+export function validateIsArrayOfArrays(obj) {
+    // Check if the input is an array
+    if (!Array.isArray(obj)) {
+        throw new Error("ValueError: Input is not an array");
+    }
+
+    // Check if the input array is not empty
+    if (obj.length === 0) {
+        throw new Error("ValueError: Array must not be empty");
+    }
+
+    // Check each element in the array
+    obj.forEach(element => {
+        validateIsArray(element);
+    });
+}
+
+// export function to check if the input is a plain object
+export function isPlainObject(obj) {
+    if (typeof obj !== 'object' || obj === null) return false;
+    if (Array.isArray(obj) || obj instanceof Date || obj instanceof RegExp) return false;
+    return true;
+}
+
+export function validateIsKeyFrame(obj) {
+    validateIsStyle(obj);
+}
+export function validateIsKeyFrameArray(obj) {
+    validateIsArray(obj);
+    obj.forEach(element => {
+        validateIsKeyFrame(element);
+    });
+}
+function validateIsStyle(element) {
+    if (!(element instanceof HTMLStyleElement)) {
+        throw new Error('Argument is not an HTMLStyle element.');
+    }
+}
+export function validateIsDivStyle(obj) {
+    validateIsStyle(obj);
+}
+export function validateIsDivStyleArray(obj) {
+    validateIsArray(obj);
+    obj.forEach(element => {
+        validateIsDivStyle(element);
+    });
+}
+export function validateIsDiv(obj) {
+    if (!(obj instanceof HTMLElement) || obj.tagName !== 'DIV') {
+        throw new Error('Argument is not an HTML div element.');
+    }
+}
+export function validateIsCardDiv(obj) {
+    validateIsDiv(obj);
+    if (!obj.classList.contains('card-div')) {
+        throw new Error('Argument does not have "card-div" class.');
+    }
+}
+export function validateIsBizcardDiv(obj) {
+    validateIsDiv(obj);
+    if (!obj.classList.contains('bizcard-div')) {
+        throw new Error('Argument does not have "bizcard-div" class.');
+    }
+}
+export function validateIsCardDivLineItem(obj) {
+    validateIsDiv(obj);
+    if (!obj.classList.contains('card-div-line-item')) {
+        throw new Error('Argument does not have "card-div-line-item" class.');
+    }
+}
+export function validatIsElement(element) {
+    if (!(element instanceof HTMLElement)) {
+        throw new Error('Argument is not an HTML element.');
+    }
+}
+
+// export function to validate that the input is an array of objects
+export function validateIsArray_of_objects(arr) {
+    if (!Array.isArray(arr)) {
+        throw new Error("ValueError: Input is not an array");
+    }
+
+    if (arr.length === 0) {
+        throw new Error("ValueError: Array must not be empty");
+    }
+
+    arr.forEach(element => {
+        if (!isPlainObject(element)) {
+            throw new Error("ValueError: Each element of the array must be a object (plain object)");
+        }
+    });
+}
+
+export function getStyleString(element) {
+    let styleString = '';
+    if ( element ) {
+        for (const property in element.style) {
+            if (element.style[property] !== '') {
+                styleString += `${property}: ${element.style[property]}; `;
+            }
+        }
+    }
+    return styleString;
+}
+
 
 
 // --------------------------------------
