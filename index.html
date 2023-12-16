@@ -55,19 +55,26 @@
       <div id="right-content-div" class="scrollable-container">
         <!-- <div id="skills" style="color:black;height:50px;width:100%;"></div> -->
       </div>
-      <div id="right-footer-div">
-        <p class="footnote" style="text-align:bottom;">
-          create a flock-of-postcards for yourself at
-          <a target="_blank" href="https://www.beckerstudio.com/">beckerstudio.com</a>"
-        </p>
-
+      
+      <div id="right-footer-div" style="display: flex; flex-direction: column;">
+        <div style="display: flex; justify-content: space-between; align-items: center;">
+            <p class="footnote" style="margin: 0;">
+                create a flock-of-postcards for yourself at
+                <a target="_blank" href="https://www.beckerstudio.com/">beckerstudio.com</a><br>
+                Another line of footnote text.
+            </p>
+            <div>
+                <img src="static_content/icons/colors.png" alt="Colors Icon" width="16" height="16" onclick="alert('setting color pallet');" style="cursor: pointer;">
+                <img src="static_content/icons/greys.png" alt="Greys Icon" width="16" height="16" onclick="alert('setting mono pallet');" style="cursor: pointer;">
+            </div>
+        </div>
+    
         <div id="debugScrollingElement"></div>
-        <div id="debugFocalPointElement"></div>
-        <div id="debugTheSelectedCardDivIdElement"></div>
-      </div>
+        <div id="debugFocalPointElement">mouse not in canvas<br>bullsEye:[303,452]<br>focalPoint:[303,452]<br>parallax:[0,0]<br>time:1702688539746<br></div>
+        <div id="debugTheSelectedCardDivIdElement">theSelectedCardDivIdStr:null<br>theSelectedCardDivLineItemIdStr:null<br></div>
     </div>
-
-
+        
+  </div>
 </body>
 
 </html>
