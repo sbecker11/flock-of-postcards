@@ -1,6 +1,6 @@
 // @ts-nocheck
-export function customAlert(newlineDelimitedString) {
-    const alertBox = document.getElementById('customAlert');
+export function textListAlert(newlineDelimitedString) {
+    const alertBox = document.getElementById('textListAlert');
     const overlay = document.getElementById('overlay');
 
     // Clear previous content

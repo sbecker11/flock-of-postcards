@@ -5,9 +5,9 @@
     left: 50%;
     top: 50%;
     transform: translate(-50%, -50%);
-    border: 1px solid #000;
+    border: 20px solid #2d7f3c;
     padding: 20px;
-    background-color: white;
+    background-color: rgb(209, 196, 166);
     z-index: 1000;
     max-width: 80%;
     max-height: 80%;

@@ -205,32 +205,32 @@ function createBizcardDivs() {
 
         var job = sortedJobs[ i ];
         var role = job[ "role" ];
-        utils.validateString(role);
+        // utils.validateString(role);
         var employer = job[ "employer" ].trim();
-        utils.validateString(employer);
+        // utils.validateString(employer);
         var css_hex_background_color_str = job[ "css RGB" ].trim();
-        utils.validateHexString(css_hex_background_color_str);
-        utils.validateKey(job, "text color");
+        // utils.validateHexString(css_hex_background_color_str);
+        // utils.validateKey(job, "text color");
         var font_color_name = job[ "text color" ].trim();
-        utils.validateString(font_color_name);
+        // utils.validateString(font_color_name);
 
         // timeline is descending so jobEnd is always above jobStart
         var jobEnd = job[ "end" ].trim().replace("-01", "");
-        utils.validateString(jobEnd);
+        // utils.validateString(jobEnd);
         var endYearStr = jobEnd.split("-")[ 0 ];
-        utils.validateString(endYearStr);
+        // utils.validateString(endYearStr);
         var endMonthStr = jobEnd.split("-")[ 1 ];
-        utils.validateString(endMonthStr);
+        // utils.validateString(endMonthStr);
 
         var endDate = new Date(`${endYearStr}-${endMonthStr}-01`);
         var endBottomPx = timeline.getTimelineYearMonthBottom(endYearStr, endMonthStr);
 
         var jobStart = job[ "start" ].trim().replace("-01", "");
-        utils.validateString(jobStart);
+        // utils.validateString(jobStart);
         var startYearStr = jobStart.split("-")[ 0 ];
-        utils.validateString(startYearStr);
+        // utils.validateString(startYearStr);
         var startMonthStr = jobStart.split("-")[ 1 ];
-        utils.validateString(startMonthStr);
+        // utils.validateString(startMonthStr);
 
         var startDate = new Date(`${startYearStr}-${startMonthStr}-01`);
         var startBottomPx = timeline.getTimelineYearMonthBottom(startYearStr, startMonthStr);
@@ -284,7 +284,7 @@ function createBizcardDivs() {
 
         var description_raw = job[ "Description" ];
         if (description_raw && description_raw.length > 0) {
-            utils.validateString(description_raw);
+            // utils.validateString(description_raw);
             const [description_HTML, bizcardTagLinks] = process_bizcard_description_HTML(bizcardDiv, description_raw);
             bizcardDiv.setAttribute("Description", description_HTML);
             bizcardDiv.setAttribute("TagLinks", JSON.stringify(bizcardTagLinks));
@@ -825,8 +825,8 @@ function getAllTranslateableCardDivs() {
 // uses the given newStyleProps to apply parallax to the given cardDiv
 // and returns the updated styleProps of the parallaxed cardDiv
 function applyParallaxToOneCardDivStyleProps(cardDiv, newStyleProps ) {
-    utils.validateIsCardDivOrBizcardDiv(cardDiv);
-    utils.validateIsStyleProps(newStyleProps);
+    // utils.validateIsCardDivOrBizcardDiv(cardDiv);
+    // utils.validateIsStyleProps(newStyleProps);
 
     var { parallaxX, parallaxY } = getParallax();
     const canvasContainerX = utils.half(canvasContainer.offsetWidth);
@@ -860,9 +860,9 @@ function applyParallaxToOneCardDivStyleProps(cardDiv, newStyleProps ) {
 }
 
 function applyParallaxToOneCardDiv(cardDiv) {
-    utils.validateIsCardDivOrBizcardDiv(cardDiv);
+    // utils.validateIsCardDivOrBizcardDiv(cardDiv);
     const cardDivStyleProps = utils.getStyleProps(cardDiv);
-    utils.validateIsStyleProps(cardDivStyleProps);
+    // utils.validateIsStyleProps(cardDivStyleProps);
     applyParallaxToOneCardDivStyleProps(cardDiv,cardDivStyleProps);
 }
 
@@ -1058,8 +1058,8 @@ document.addEventListener('click', function(event) {
   }, { capture: true });
 
   function startAnimationWithParallax(div, styleFrameArray) {
-    utils.validateIsDivElement(div);
-    utils.validateIsStyleFrameArray(styleFrameArray);
+    // utils.validateIsDivElement(div);
+    // utils.validateIsStyleFrameArray(styleFrameArray);
     const frameInterval = ANIMATION_DURATION_MILLIS / NUM_ANIMATION_FRAMES;
     let frameCount = 0;
     const lastFrame = NUM_ANIMATION_FRAMES - 1;
@@ -1088,13 +1088,13 @@ document.addEventListener('click', function(event) {
 }
 
 function endAnimation(div, targetStyleFrame) {
-    utils.validateIsDivElement(div);
-    utils.validateIsStyleFrame(targetStyleFrame);
+    // utils.validateIsDivElement(div);
+    // utils.validateIsStyleFrame(targetStyleFrame);
     // apply the targetProps 
     if ( targetStyleFrame != null ) {
         console.log(`endAnimation targetStyleFrame:${targetStyleFrame}`)
         const targetStyleArray = targetStyleFrame;
-        utils.validateIsStyleArray(targetStyleArray);
+        // utils.validateIsStyleArray(targetStyleArray);
         applyStyleArray(div, targetStyleArray);
     }
     // console.log(`animationend for ${funcName} ${div.id}`);
@@ -1105,7 +1105,7 @@ function endAnimation(div, targetStyleFrame) {
 // currentProps describes current styling
 // targetProps describes target styling
 function setSelectedStyle(obj) {
-    utils.validateIsElement(obj);
+    // utils.validateIsElement(obj);
     var notLineItem = !isCardDivLineItem(obj);
     // futzing required to use createStyleArray
     if ( notLineItem ) {
@@ -1141,12 +1141,12 @@ function setSelectedStyle(obj) {
         for( let frame=0; frame<validateIsBizcardDiv; frame++ ) {
             var t = frame / (NUM_ANIMATION_FRAMES-1);
             const interpStyleArray = utils.linearInterpArray(t, currentStyleArray, targetStyleArray);
-            utils.validateIsStyleArray(interpStyleArray);
+            // utils.validateIsStyleArray(interpStyleArray);
             const styleFrame = interpStyleArray;
-            utils.validateIsStyleFrame(styleFrame);
+            // utils.validateIsStyleFrame(styleFrame);
             styleFrameArray.push( styleFrame );
         }
-        utils.validateIsStyleFrameArray(styleFrameArray);
+        // utils.validateIsStyleFrameArray(styleFrameArray);
         startAnimationWithParallax(obj, styleFrameArray);
     } else {
         applyStyleArray(obj, targetStyleArray);
@@ -1159,7 +1159,7 @@ function setSelectedStyle(obj) {
 // currentProps describes current styling
 // targetProps describes target styling
 function restoreSavedStyle(obj) {
-    utils.validateIsElement(obj);
+    // utils.validateIsElement(obj);
     var notLineItem =  !isCardDivLineItem(obj);
     var currentStyleArray = createStyleArray(obj, null);
     var targetStyleArray = createStyleArray(obj,"saved");
@@ -1181,19 +1181,19 @@ function restoreSavedStyle(obj) {
     // } else {
     //     targetParallaxedProps = targetProps;
     // }
-    // utils.validateIsStyleProps(targetParallaxedStyleProps);
+    // // utils.validateIsStyleProps(targetParallaxedStyleProps);
 
     if( notLineItem && NUM_ANIMATION_FRAMES > 0) {
         var styleFrameArray = [];
         for( let frame=0; frame<NUM_ANIMATION_FRAMES; frame++ ) {
             var t = frame / (NUM_ANIMATION_FRAMES-1);
             var interpStyleArray = utils.linearInterpArray(t, currentStyleArray, targetStyleArray);
-            utils.validateIsStyleArray(interpStyleArray);
+            // utils.validateIsStyleArray(interpStyleArray);
             var styleFrame = interpStyleArray;
-            utils.validateIsStyleFrame(styleFrame);
+            // utils.validateIsStyleFrame(styleFrame);
             styleFrameArray.push( styleFrame );
         }
-        utils.validateIsStyleFrameArray(styleFrameArray);
+        // utils.validateIsStyleFrameArray(styleFrameArray);
         startAnimationWithParallax(obj,styleFrameArray);
     } else {
         applyStyleArray(obj, targetStyleArray);
@@ -1204,7 +1204,7 @@ function restoreSavedStyle(obj) {
 
 // prefix can be "saved" or "saved-selected"
 function createStyleArray(obj, prefix) {
-    utils.validateIsElement(obj);
+    // utils.validateIsElement(obj);
     let array = [];
     var RGB;
     if (prefix) { // use div.getAttribute
@@ -1232,14 +1232,14 @@ function createStyleArray(obj, prefix) {
             array = array.concat([0,0,0]);
         }
     }
-    utils.validateIsStyleArray(array);
+    // utils.validateIsStyleArray(array);
     return array;
 }
 
 // return a styleProps object from a styleArray
 function createStyleProps(div, styleArray) {
-    utils.validateIsDivElement(div);
-    utils.validateIsStyleArray(styleArray);
+    // utils.validateIsDivElement(div);
+    // utils.validateIsStyleArray(styleArray);
     var styleProps = {};
     styleProps['color'] = utils.get_Hex_from_RGB(styleArray.slice(0,3));
     styleProps['background-color'] = utils.get_Hex_from_RGB(styleArray.slice(3,6));
@@ -1251,13 +1251,13 @@ function createStyleProps(div, styleArray) {
         styleProps['filter'] = get_filterStr_from_z(z);
     } 
     //styleProps['offset'] = `${offset}`;
-    utils.validateIsStyleProps(styleProps);
+    // utils.validateIsStyleProps(styleProps);
     return styleProps;
 }
 
 function applyStyleArray(obj, styleArray) {
-    utils.validateIsElement(obj);
-    utils.validateIsStyleArray(styleArray);
+    // utils.validateIsElement(obj);
+    // utils.validateIsStyleArray(styleArray);
     const rgb = styleArray.slice(0,3);
     obj.style.color = utils.get_Hex_from_RGB(rgb);
     obj.style.backgroundColor = utils.get_Hex_from_RGB(styleArray.slice(3,6));
@@ -1271,8 +1271,8 @@ function applyStyleArray(obj, styleArray) {
 }
 
 // function getStyleArrayFromStyleProps(div, styleProps) {
-//     utils.validateIsDivElement(div);
-//     utils.validateIsStyleProps(styleProps);
+//     // utils.validateIsDivElement(div);
+//     // utils.validateIsStyleProps(styleProps);
 //     var styleArray = [];
 //     var RGB = utils.get_RGB_from_Hex(styleProps.color);
 //     styleArray.push(...RGB);
@@ -1286,13 +1286,13 @@ function applyStyleArray(obj, styleArray) {
 //     } else {
 //         styleArray = styleArray.concat([0,0,0]);
 //     }
-//     utils.validateIsStyleArray(styleArray);
+//     // utils.validateIsStyleArray(styleArray);
 //     return styleArray;
 // }
 
 // function getStylePropsFromStyleArray(div, styleArray) {
-//     utils.validateIsDivElement(div);
-//     utils.validateIsStyleArray(styleArray); 
+//     // utils.validateIsDivElement(div);
+//     // utils.validateIsStyleArray(styleArray); 
 //     var styleProps={};
 //     styleProps.color = utils.get_Hex_from_RGB(styleArray.slice(0,3));
 //     styleProps.backgroundColor = utils.get_Hex_from_RGB(styleArray.slice(3,6));
@@ -1303,7 +1303,7 @@ function applyStyleArray(obj, styleArray) {
 //         styleProps.zIndex = get_zIndexStr_from_z(z);
 //         styleProps.filter = get_filterStr_from_z(z);
 //     }
-//     utils.validateIsStyleProps(styleProps);
+//     // utils.validateIsStyleProps(styleProps);
 //     return styleProps;
 // }
 
@@ -1319,7 +1319,7 @@ const SELECTED_CARD_DIV_ZINDEX_STR = get_zIndexStr_from_z(SELECTED_CARD_DIV_Z);
 const SELECTED_CARD_DIV_FILTER_STR = get_filterStr_from_z(SELECTED_CARD_DIV_Z);
 
 function scrollElementIntoView(element) {
-    utils.validateIsElement(element);
+    // utils.validateIsElement(element);
     if ( element == null )
         throw new Error("null element");
     else if ( element.id == null )
@@ -1333,12 +1333,12 @@ function scrollElementIntoView(element) {
 }
 
 function scrollElementToStart(element) {
-    utils.validateIsElement(element);
+    // utils.validateIsElement(element);
     element.scrollIntoView({ behavior:'smooth',block: 'start'});
 }
 
 function scrollElementToCenter(element) {
-    utils.validateIsElement(element);
+    // utils.validateIsElement(element);
     const container = findNearestAncestorWithClassName(element, "scrollable-container");
     const containerHeight = container.clientHeight;
     const elementTop = element.offsetTop;
@@ -1349,7 +1349,7 @@ function scrollElementToCenter(element) {
 
 // returns the nearest ancestor with className or null
 function findNearestAncestorWithClassName(element, className) {
-    utils.validateIsElement(element);
+    // utils.validateIsElement(element);
     while ((element = element.parentElement) && !element.classList.contains(className));
     return element;
 }
@@ -1358,8 +1358,8 @@ function findNearestAncestorWithClassName(element, className) {
 function selectTheCardDiv(cardDiv, selectTheCardDivLineItemFlag=false) {
     if ( cardDiv == null )
         return;
-    utils.validateIsCardDivOrBizcardDiv(cardDiv);
-    utils.validateIsBoolean(selectTheCardDivLineItemFlag);
+    // utils.validateIsCardDivOrBizcardDiv(cardDiv);
+    // utils.validateIsBoolean(selectTheCardDivLineItemFlag);
 
     // click on selected to deselect
     if (theSelectedCardDiv != null && cardDiv.id == theSelectedCardDiv.id ) {
@@ -1395,7 +1395,7 @@ function getTheSelectedCardDivId() {
 function deselectTheSelectedCardDiv(deselectTheSelectedCardDivLineItemFlag=false) {
     // if theSelectedCardDiv is defined
     if (theSelectedCardDiv != null) {
-        utils.validateIsCardDivOrBizcardDiv(theSelectedCardDiv);
+        // utils.validateIsCardDivOrBizcardDiv(theSelectedCardDiv);
         // styles self as saved
         restoreSavedStyle(theSelectedCardDiv);
 
@@ -1424,8 +1424,8 @@ function addCardDivClickListener(cardDiv) {
 function selectTheCardDivLineItem(cardDivLineItem, selectTheCardDivFlag=false) {
     if ( cardDivLineItem == null )
         return;
-    utils.validateIsCardDivLineItem(cardDivLineItem);
-    utils.validateIsBoolean(selectTheCardDivFlag);
+    // utils.validateIsCardDivLineItem(cardDivLineItem);
+    // utils.validateIsBoolean(selectTheCardDivFlag);
 
     // does scroll self into view
     scrollElementIntoView(cardDivLineItem);
@@ -1456,7 +1456,7 @@ function selectTheCardDivLineItem(cardDivLineItem, selectTheCardDivFlag=false) {
 function deselectTheSelectedCardDivLineItem(deselectTheSelectedCardDivFlag=false) {
     // if theSelectedCardDivLineItem is defined
     if (theSelectedCardDivLineItem != null) {
-        utils.validateIsCardDivLineItem(theSelectedCardDivLineItem);
+        // utils.validateIsCardDivLineItem(theSelectedCardDivLineItem);
 
         restoreSavedStyle(theSelectedCardDivLineItem);
 
@@ -1824,14 +1824,14 @@ function getMinMaxTimelineYears(jobs) {
     for (let i = 0; i < jobs.length; i++) {
         var job = jobs[ i ];
         var jobEnd = job[ "end" ].trim().replace("-01", "");
-        utils.validateString(jobEnd);
+        // utils.validateString(jobEnd);
         var endYearStr = jobEnd.split("-")[ 0 ];
         var endYear = parseInt(endYearStr);
         if ( endYear > maxYear )
             maxYear = endYear;
 
         var jobStart = job[ "start" ].trim().replace("-01", "");
-        utils.validateString(jobStart);
+        // utils.validateString(jobStart);
         var startYearStr = jobStart.split("-")[ 0 ];
         var startYear = parseInt(startYearStr);
         if ( startYear < minYear )
@@ -1950,7 +1950,7 @@ function clearAllDivCardLineItems() {
 // select the given cardDiv and its line item 
 // and scroll each into view
 function selectAndScrollToCardDiv(cardDiv) {
-    utils.validateIsCardDivOrBizcardDiv(cardDiv);
+    // utils.validateIsCardDivOrBizcardDiv(cardDiv);
     var cardDivLineItem = getCardDivLineItem(cardDiv.id)
 
     // avoid in case another select would ignore the select
@@ -2003,7 +2003,7 @@ function getFirstBizcardDivId() {
 }
 
 function getBizcardDivEndDate(bizcardDiv) {
-    utils.validateIsBizcardDiv(bizcardDiv);
+    // utils.validateIsBizcardDiv(bizcardDiv);
     var endDateStr = bizcardDiv.getAttribute("endDate");
     var endDate = new Date(endDateStr);
     return endDate;
@@ -2040,7 +2040,7 @@ function selectNextBizcard() {
 function selectFirstBizcard() {
     var firstDivId = getFirstBizcardDivId();
     var firstDiv = document.getElementById(firstDivId);
-    utils.validateIsBizcardDiv(firstDiv);
+    // utils.validateIsBizcardDiv(firstDiv);
 
     // select the cardDiv and its cardDivLineItem
     selectTheCardDiv(firstDiv, true);
