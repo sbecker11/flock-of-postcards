@@ -33,8 +33,8 @@ const BULLET_JOINER = ' ' + BULLET_DELIMITER + ' '
 // --------------------------------------
 // Animation globals
 
-const NUM_ANIMATION_FRAMES = 50;
-const ANIMATION_DURATION_MILLIS = 1000;
+const NUM_ANIMATION_FRAMES = 0;
+const ANIMATION_DURATION_MILLIS = 0;
 
 // this must be set to true before starting the animation
 // and then this is set to false at animation end.
@@ -1136,9 +1136,9 @@ function setSelectedStyle(obj) {
         // console.log("select div.id:", div.id, "targetZ should not be positive so reset to", targetProps[8]);
     }
 
-    if ( notLineItem ) { // xxx
+    if ( notLineItem && NUM_ANIMATION_FRAMES > 0) { // xxx
         var styleFrameArray = [];
-        for( let frame=0; frame<NUM_ANIMATION_FRAMES; frame++ ) {
+        for( let frame=0; frame<validateIsBizcardDiv; frame++ ) {
             var t = frame / (NUM_ANIMATION_FRAMES-1);
             const interpStyleArray = utils.linearInterpArray(t, currentStyleArray, targetStyleArray);
             utils.validateIsStyleArray(interpStyleArray);
@@ -1183,7 +1183,7 @@ function restoreSavedStyle(obj) {
     // }
     // utils.validateIsStyleProps(targetParallaxedStyleProps);
 
-    if( notLineItem ) {
+    if( notLineItem && NUM_ANIMATION_FRAMES > 0) {
         var styleFrameArray = [];
         for( let frame=0; frame<NUM_ANIMATION_FRAMES; frame++ ) {
             var t = frame / (NUM_ANIMATION_FRAMES-1);
@@ -1950,7 +1950,7 @@ function clearAllDivCardLineItems() {
 // select the given cardDiv and its line item 
 // and scroll each into view
 function selectAndScrollToCardDiv(cardDiv) {
-    utils.validateIsCardDiv(cardDiv);
+    utils.validateIsCardDivOrBizcardDiv(cardDiv);
     var cardDivLineItem = getCardDivLineItem(cardDiv.id)
 
     // avoid in case another select would ignore the select
@@ -2040,7 +2040,7 @@ function selectNextBizcard() {
 function selectFirstBizcard() {
     var firstDivId = getFirstBizcardDivId();
     var firstDiv = document.getElementById(firstDivId);
-    validateIsBizcardDiv(firstDiv);
+    utils.validateIsBizcardDiv(firstDiv);
 
     // select the cardDiv and its cardDivLineItem
     selectTheCardDiv(firstDiv, true);
