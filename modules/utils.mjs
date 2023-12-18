@@ -59,10 +59,9 @@ export function get_RGB_from_ColorStr(colorStr) {
     return colorStr;
 }
 export function get_Hex_from_ColorStr(colorStr) {
-    var RGB = get_RGB_from_ColorStr(colorStr);
+    var RGB = get_RGB_from_ColorStr(colorStr); 
     return get_Hex_from_RGB(RGB);
 }
-
 
 export const calculateDistance = (x1, y1, x2, y2) => Math.sqrt(Math.pow(x2 - x1, 2) + Math.pow(y2 - y1, 2));
 export const isBetween = (value, min, max) => value >= min && value <= max;
@@ -72,9 +71,11 @@ export const half = (value) => typeof value === 'number' ? Math.floor(value / 2)
 export const getMonthDates = (year, month) => ({ start: new Date(year, month - 1, 1), end: new Date(year, month, 0) });
 export const getIsoDateString = (date) => date.toISOString().slice(0, 10);
 export const linearInterpArray = (t, array1, array2) => {
+    validateIsNumericArray(array1);
+    validateIsNumericArray(array2);
     const interpolatedArray = [];
     if (array1.length != array2.length)
-        throw new Error('linearInterpArray length mismatch');
+        throw new Error('linearInterpArray length not equal');
 
     for (let i = 0; i < array1.length; i++) {
         const channelInterpolation = linearInterp(t, 0, array1[ i ], 1, array2[ i ]);
@@ -84,15 +85,38 @@ export const linearInterpArray = (t, array1, array2) => {
     return interpolatedArray;
 };
 
+export const isNumeric = (obj) => !isNaN(parseFloat(obj)) && isFinite(obj);
+
+export const validateIsNumeric = (obj) => {
+    if (!isNumeric(obj)) {
+        throw new Error(`ValueError: Input is not a number, but it is a(n) ${typeof obj} with value ${obj}`);
+    }
+};
 export const isNumericArray = (arr) => {
-    for (let i = 0; i < arr.length; i++) {
-        if (typeof arr[ i ] !== 'number' || isNaN(arr[ i ])) {
+    if (!Array.isArray(arr)) {
+        return false;
+    }
+    for (const element of arr) {
+        if (!isNumeric(element)) {
             return false;
         }
     }
     return true;
 };
-
+export function validateIsNumericArray(arr) {    
+    if (!isNumericArray(arr)) {
+        throw new Error("ValueError: Array must contain only numeric values");
+    }
+}
+export function validateIsStyleArray(arr) {
+    validateIsNumericArray(arr);
+    if ( arr.length != 9 ) {
+        throw new Error("ValueError: StyleArray must contain 9 numeric values");
+    }
+    if ( arrayHasNaNs(arr) ) {
+        throw new Error("ValueError: StyleArray must not contain NaNs");
+    }
+}
 export const arrayHasNaNs = array => array.some(element => isNaN(element));
 
 export const arraysAreEqual = (arr1, arr2) => arr1.length === arr2.length && arr1.every((element, index) => element === arr2[index]);
@@ -100,127 +124,147 @@ export const arraysAreEqual = (arr1, arr2) => arr1.length === arr2.length && arr
 export function validateIsArray(arr) {
     if (!Array.isArray(arr)) {
         const inputType = typeof arr;
-        throw new Error(`ValueError: Input is not an array, it is a(n) ${inputType}`);
+        throw new Error(`ValueError: Input is not an array, it is a(n) ${inputType} with value ${arr}`);
     }
     if (arr.length === 0) {
         throw new Error("ValueError: Array length must be greater than 0");
     }
-    if ( arrayHasNaNs(arr))
-        throw new Error("ValueError: Array has NaNs");
 }
-
-export function validateIsNumericArray(arr) {    
-    if (!isNumericArray(arr)) {
-        throw new Error("ValueError: Array must contain only numeric values");
-    }
-}
-
 export function validateIsArrayOfArrays(obj) {
-    // Check if the input is an array
     if (!Array.isArray(obj)) {
-        throw new Error("ValueError: Input is not an array");
+        throw new Error(`ValueError: Input is not an array, but is a(n) ${typeof obj} with value ${obj}`);
     }
-
-    // Check if the input array is not empty
     if (obj.length === 0) {
         throw new Error("ValueError: Array must not be empty");
     }
-
-    // Check each element in the array
     obj.forEach(element => {
         validateIsArray(element);
     });
 }
-
-// export function to check if the input is a plain object
+export function validateIsStyleFrame(styleFrame) {
+    validateIsStyleArray(styleFrame);
+}
+export function validateIsStyleFrameArray(obj) {
+    validateIsArray(obj);
+    obj.forEach(element => {
+        validateIsStyleFrame(element);
+    });
+}
+export function validateIsBoolean(arg) {
+    if (typeof arg !== 'boolean') {
+        throw new Error(`Argument is not a boolean. but it is a(n) ${typeof arg} with value ${arg}`);
+    }
+}
 export function isPlainObject(obj) {
     if (typeof obj !== 'object' || obj === null) return false;
     if (Array.isArray(obj) || obj instanceof Date || obj instanceof RegExp) return false;
     return true;
 }
-
-export function validateIsKeyFrame(obj) {
-    validateIsStyle(obj);
-}
-export function validateIsKeyFrameArray(obj) {
-    validateIsArray(obj);
-    obj.forEach(element => {
-        validateIsKeyFrame(element);
-    });
-}
-function validateIsStyle(element) {
-    if (!(element instanceof HTMLStyleElement)) {
-        throw new Error('Argument is not an HTMLStyle element.');
+export function validateIsPlainObject(obj) {
+    if (!isPlainObject(obj)) {
+        throw new Error(`Error: argument is not a plain object, it is a(n) ${typeof obj} with value ${obj}`);
     }
 }
-export function validateIsDivStyle(obj) {
-    validateIsStyle(obj);
+export function validateIsElement(obj) {
+    if (!(obj instanceof HTMLElement)) {
+        throw new Error(`Argument is not an HTML element. but it is a(n) ${typeof obj} with value ${obj}`);
+    }
 }
-export function validateIsDivStyleArray(obj) {
+const USABLE_STYLE_PROPS = [
+    'color','background-color','left','top', 'z-index', 'filter','translate'
+];
+
+// z-index and background-color are read-only from window.getComputedStyle(element).prop
+// let zIndex = element.getComputedStyle.getPropertyValue('z-index')
+const STYLE_PROPS_MAP = {
+    'z-index':'zIndex',
+    'background-color':'backgroundColor'
+};
+// zIndex and backgroundColor are used in element.style[prop] 
+// element.style.zIndex = styleProps.zIndex
+const PROPS_STYLE_MAP = {
+    'zIndex':'z-index',
+    'backgroundColor':'background-color'
+};
+
+// zIndex and backgroundColor are styleProps
+export function getStyleProps(element) {
+    validateIsElement(element);
+    let computedStyle = window.getComputedStyle(element);
+    let styleProps = {};
+    for (let prop of computedStyle) {
+        if ( USABLE_STYLE_PROPS.includes(prop) ) {
+            var dstProp = prop;
+            if (prop in STYLE_PROPS_MAP) {
+                dstProp = STYLE_PROPS_MAP[prop];
+            }
+            styleProps[dstProp] = computedStyle.getPropertyValue(prop);
+        }
+    }
+    validateIsStyleProps(styleProps);
+    return styleProps;
+}
+
+// z-index and background-color are styleProps
+export function applyStyleProps(element, styleProps) {
+    validateIsStyleProps(styleProps);
+    for (let prop in styleProps) {
+        if (styleProps.hasOwnProperty(prop)) {
+            var dstProp = prop;
+            if (prop in PROPS_STYLE_MAP) {
+                dstProp = PROPS_STYLE_MAP[prop];
+            }
+            element.style[dstProp] = styleProps[prop];
+        }
+    }
+} 
+export function validateIsStyleProps(obj) {
+    validateIsPlainObject(obj);
+}
+export function validateIsStylePropsArray(obj) {
     validateIsArray(obj);
     obj.forEach(element => {
-        validateIsDivStyle(element);
+        validateIsStyleProps(element);
     });
 }
-export function validateIsDiv(obj) {
+export function validateIsDivElement(obj) {
     if (!(obj instanceof HTMLElement) || obj.tagName !== 'DIV') {
-        throw new Error('Argument is not an HTML div element.');
+        throw new Error(`Argument is not an HTML div element. bit is a(n) ${typeof obj} with value ${obj}`);
+    }
+}
+export function validateIsLineItemElement(obj) {
+    if (!(obj instanceof HTMLElement) || obj.tagName !== 'LI') {
+        throw new Error(`Argument is not an HTML li element, but is a(n) ${typeof obj} with value ${obj}`);
     }
 }
 export function validateIsCardDiv(obj) {
-    validateIsDiv(obj);
+    validateIsDivElement(obj);
     if (!obj.classList.contains('card-div')) {
-        throw new Error('Argument does not have "card-div" class.');
+        throw new Error(`Argument does not have "card-div" class but does have ${obj.classList}.`);
     }
 }
 export function validateIsBizcardDiv(obj) {
-    validateIsDiv(obj);
+    validateIsDivElement(obj);
     if (!obj.classList.contains('bizcard-div')) {
-        throw new Error('Argument does not have "bizcard-div" class.');
+        throw new Error(`Argument does not have "bizcard-div" class but does have ${obj.classList}.`);
+    }
+}
+export function validateIsCardDivOrBizcardDiv(obj) {
+    validateIsDivElement(obj);
+    if (!obj.classList.contains('card-div') && !obj.classList.contains('bizcard-div')) {
+        throw new Error(`Argument does not have "card-div" or "bizcard-div" class but does have ${obj.classList}.`);
     }
 }
 export function validateIsCardDivLineItem(obj) {
-    validateIsDiv(obj);
+    validateIsLineItemElement(obj);
     if (!obj.classList.contains('card-div-line-item')) {
-        throw new Error('Argument does not have "card-div-line-item" class.');
+        throw new Error(`Argument does not have "card-div-line-item" class but does have ${obj.classList}.`);
     }
 }
-export function validatIsElement(element) {
-    if (!(element instanceof HTMLElement)) {
-        throw new Error('Argument is not an HTML element.');
-    }
+export function getStylePropsString(styleProps) {
+    validateIsStyleProps(styleProps);
+    return JSON.stringify(styleProps,null,2);
 }
-
-// export function to validate that the input is an array of objects
-export function validateIsArray_of_objects(arr) {
-    if (!Array.isArray(arr)) {
-        throw new Error("ValueError: Input is not an array");
-    }
-
-    if (arr.length === 0) {
-        throw new Error("ValueError: Array must not be empty");
-    }
-
-    arr.forEach(element => {
-        if (!isPlainObject(element)) {
-            throw new Error("ValueError: Each element of the array must be a object (plain object)");
-        }
-    });
-}
-
-export function getStyleString(element) {
-    let styleString = '';
-    if ( element ) {
-        for (const property in element.style) {
-            if (element.style[property] !== '') {
-                styleString += `${property}: ${element.style[property]}; `;
-            }
-        }
-    }
-    return styleString;
-}
-
-
 
 // --------------------------------------
 // Javascript hacks
@@ -281,7 +325,6 @@ export function formatNumber(num, format) {
     return `${formattedWhole}.${formattedDecimal}`;
   }
 
-  
   export function findScrollableAncestor(element) {
     while (element && element.parentNode) {
         element = element.parentNode;
