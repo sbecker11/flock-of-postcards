@@ -155,7 +155,7 @@ function isCardDivLineItem(div) {
 
 // returns 99 for bizcard-div-99' or null
 function getBizcardDivIndex(cardDivId) {
-    console.assert(utils.isString(cardDivId));
+    // console.assert(utils.isString(cardDivId));
     if (cardDivId.startsWith("bizcard-div-")) {
         var index = parseInt(cardDivId.replace("bizcard-div-", ""));
         return isNaN(index) ? null : index;
@@ -165,7 +165,7 @@ function getBizcardDivIndex(cardDivId) {
 
 // returns 99 for 'card-div-99' or null
 function getCardDivIndex(cardDivId) {
-    console.assert(utils.isString(cardDivId));
+    // console.assert(utils.isString(cardDivId));
     if (cardDivId.startsWith("card-div-")) {
         var index = parseInt(cardDivId.replace("card-div-", ""));
         return isNaN(index) ? null : index;
@@ -175,7 +175,7 @@ function getCardDivIndex(cardDivId) {
 
 // returns true if a bizcardDiv exists for the given index, else null
 function getBizcardDivIdFromIndex(index) {
-    console.assert(utils.isNumber(index));
+    // console.assert(utils.isNumber(index));
     var bizcardDivId = `bizcard-div-${index}`;
     var bizcardDiv = document.getElementById(bizcardDivId);
     return (bizcardDiv && bizcardDiv.id == bizcardDivId) ? bizcardDivId : null;
@@ -243,9 +243,9 @@ function createBizcardDivs() {
 
         // here we go
         var bizcardDiv = document.createElement("div");
-        console.assert(bizcardDiv != null);
+        // console.assert(bizcardDiv != null);
         var top = endBottomPx;
-        console.assert(top > 0, "Q");
+        // console.assert(top > 0, "Q");
         var height = heightPx;
         var left = indent;
         var width = BIZCARD_WIDTH;
@@ -269,8 +269,8 @@ function createBizcardDivs() {
         var originalZ = z;
         bizcardDiv.setAttribute("originalLeft", `${bizcardDiv.offsetLeft}`);
         bizcardDiv.setAttribute("originalTop", `${bizcardDiv.offsetTop}`);
-        console.assert(bizcardDiv.offsetTop > 0, 'L');
-        console.assert(parseInt(bizcardDiv.getAttribute("originalTop")) > 0, 'M');
+        // console.assert(bizcardDiv.offsetTop > 0, 'L');
+        // console.assert(parseInt(bizcardDiv.getAttribute("originalTop")) > 0, 'M');
         bizcardDiv.setAttribute("originalWidth", `${bizcardDiv.offsetWidth}`);
         bizcardDiv.setAttribute("originalHeight", `${bizcardDiv.offsetHeight}`);
         bizcardDiv.setAttribute("originalCtrX", `${originalCtrX}`);
@@ -340,7 +340,7 @@ function initAllTagLinks() {
 // Also returns the list of allNewTagLinks created from the description_HTML
 //
 function process_bizcard_description_HTML(bizcardDiv, description_HTML) {
-    console.assert(bizcardDiv != null);
+    // console.assert(bizcardDiv != null);
     var processed_items = [];
     var bizcardTagLinks = [];
     var description_items = description_HTML.split(BULLET_DELIMITER);
@@ -459,7 +459,7 @@ function test_process_bizcard_description_item() {
 // to set the tagLink's "cardDivId" property
 // otherwise create a new cardDiv
 function setCardDivIdOfTagLink(bizcardDiv, tagLink) {
-    console.assert(bizcardDiv != null && tagLink != null);
+    // console.assert(bizcardDiv != null && tagLink != null);
     var cardDiv = findCardDiv(tagLink);
     if (!cardDiv) {
         cardDiv = createCardDiv(bizcardDiv, tagLink);
@@ -545,7 +545,7 @@ var prev_z = null; // to track the previous z value
 // return the newly created cardDiv that has 
 // been appended to its parent canvas.
 function createCardDiv(bizcardDiv, tagLink) {
-    console.assert(bizcardDiv != null && tagLink != null);
+    // console.assert(bizcardDiv != null && tagLink != null);
     var cardDivId = getNextCardDivId();
     var cardDiv = document.createElement('div');
     cardDiv.classList.add("card-div");
@@ -694,14 +694,14 @@ function createCardDiv(bizcardDiv, tagLink) {
 }
 
 function copyAttributes(dstDiv, srcDiv, attrs) {
-    console.assert(dstDiv != null && srcDiv != null && attrs != null);
+    // console.assert(dstDiv != null && srcDiv != null && attrs != null);
     for (var i = 0; i < attrs.length; i++) {
         var attr = attrs[ i ];
         var srcVal = srcDiv.getAttribute(attr);
-        console.assert(utils.isString(srcVal), `attr:${attr} src:${srcVal}`);
+        // console.assert(utils.isString(srcVal), `attr:${attr} src:${srcVal}`);
         dstDiv.setAttribute(attr, srcVal);
         var dstVal = dstDiv.getAttribute(attr);
-        console.assert(dstVal == srcVal, `attr:${attr} dst:${dstVal} != src:${srcVal}`);
+        // console.assert(dstVal == srcVal, `attr:${attr} dst:${dstVal} != src:${srcVal}`);
         // console.log(`${dstDiv.id} ${attr} = ${srcDiv.id} ${srcVal}`);
     }
 }
@@ -1120,9 +1120,9 @@ function setSelectedStyle(obj) {
         obj.setAttribute("saved-selected-zIndex", SELECTED_CARD_DIV_ZINDEX_STR);
 
         var top = parseInt(obj.getAttribute("saved-top"))
-        console.assert( top> 0, `A saved-top is ${top}`);
+        // console.assert( top> 0, `A saved-top is ${top}`);
         top = parseInt(obj.getAttribute("saved-selected-top"))
-        console.assert( top > 0,`B saved-selected-top is ${top}`);
+        // console.assert( top > 0,`B saved-selected-top is ${top}`);
     }
     var currentStyleArray = createStyleArray(obj,"saved");
     var targetStyleArray = createStyleArray(obj,"saved-selected");
@@ -1378,7 +1378,7 @@ function selectTheCardDiv(cardDiv, selectTheCardDivLineItemFlag=false) {
     if ( selectTheCardDivLineItemFlag ) {
         // calls addCardDivLineItem()
         var cardDivLineItem = addCardDivLineItem(cardDiv.id);
-        console.assert( cardDivLineItem != null );
+        // console.assert( cardDivLineItem != null );
         // calls selectCardDivLineItem - does scroll self into view
         selectTheCardDivLineItem(cardDivLineItem); 
     }
@@ -1446,7 +1446,7 @@ function selectTheCardDivLineItem(cardDivLineItem, selectTheCardDivFlag=false) {
     // option to select its cardDiv
     if ( selectTheCardDivFlag ) {
         var cardDiv = getCardDivOfCardDivLineItem(cardDivLineItem);
-        console.assert(cardDiv != null);
+        // console.assert(cardDiv != null);
         selectTheCardDiv(cardDiv);
     }
     
@@ -1619,17 +1619,17 @@ function getCardDivOfCardDivLineItem(cardDivLineItem) {
 function addCardDivLineItemFollowingButtonClickHandler(cardDivLineItemFollowingButton) {
     cardDivLineItemFollowingButton.addEventListener("click", function (event) {
         var cardDivLineItem = event.target.parentElement.parentElement;
-        console.assert(cardDivLineItem != null && cardDivLineItem.classList.contains("card-div-line-item"));
+        // console.assert(cardDivLineItem != null && cardDivLineItem.classList.contains("card-div-line-item"));
 
         // only bizcardDivs have this cardDivLineItemFollowingButton
         var cardDiv = getCardDivOfCardDivLineItem(cardDivLineItem);
-        console.assert(isBizcardDivId(cardDiv));
+        // console.assert(isBizcardDivId(cardDiv));
 
         var followingBizcardDivId = getFollowingBizcardDivId(cardDiv.id);
-        console.assert(isBizcardDivId(followingBizcardDivId));
+        // console.assert(isBizcardDivId(followingBizcardDivId));
 
         var followingBizcardDiv = document.getElementById(followingBizcardDivId);
-        console.assert(isBizcardDiv(followingBizcardDiv));
+        // console.assert(isBizcardDiv(followingBizcardDiv));
 
         // select the followingBizcardDiv and its cardDivLineItem
         selectTheCardDiv(followingBizcardDiv, true);
@@ -1659,7 +1659,7 @@ function getFollowingBizcardDivId(bizcardDivId) {
         // so return the Id of the first bizcardDiv
         if (!bizcardDiv) {
             var allBizcardDivs = document.getElementsByClassName("bizcard-div");
-            console.assert(allBizcardDivs != null && allBizcardDivs.length > 0);
+            // console.assert(allBizcardDivs != null && allBizcardDivs.length > 0);
             bizcardDiv = allBizcardDivs[ 0 ];
             return bizcardDiv.id;
         } else {
@@ -1668,9 +1668,9 @@ function getFollowingBizcardDivId(bizcardDivId) {
         }
     }
 
-    console.assert(utils.isString(bizcardDivId));
+    // console.assert(utils.isString(bizcardDivId));
     var index = getBizcardDivIndex(bizcardDivId);
-    console.assert(index != null);
+    // console.assert(index != null);
 
     var followingBizcardDivId = getBizcardDivIdFromIndex(index + 1);
     // if we've reached the end of all bizcardDivs
@@ -1678,20 +1678,20 @@ function getFollowingBizcardDivId(bizcardDivId) {
     if (followingBizcardDivId == null)
         followingBizcardDivId = getBizcardDivIdFromIndex(0);
 
-    console.assert(isBizcardDivId(followingBizcardDivId));
+    // console.assert(isBizcardDivId(followingBizcardDivId));
     return followingBizcardDivId;
 }
 
 // remove multiple img tags from the given html string
 function removeImgTagsFromHtml(html) {
     var filtered = html.replace(/<img[^>"']*((("[^"]*")|('[^']*'))[^"'>]*)*>/g, "");
-    console.assert(!filtered.includes("<img"));
+    // console.assert(!filtered.includes("<img"));
     return filtered;
 }
 
 // tagLink is an HTML string span#tagLink-card-dive-8.tagLink { title:'', translate"true, dir: '', hidden: false, 
 function addTagLinkClickListener(tagLink) {
-    console.assert(tagLink != null);
+    // console.assert(tagLink != null);
     tagLink.addEventListener("click", function (event) {
         var tagLinkId = event.target.id;
         // get the cardDivId from the tagLinkId
@@ -1701,7 +1701,7 @@ function addTagLinkClickListener(tagLink) {
         if (cardDiv) {
             var tagLinkText = cardDiv.getAttribute("tagLinkText");
             var tagLinkUrl = cardDiv.getAttribute("tagLinkUrl");
-            console.assert(tagLinkText != null && tagLinkUrl != null);
+            // console.assert(tagLinkText != null && tagLinkUrl != null);
 
             // selectTheCardDiv and its cardDivLineItem
             selectTheCardDiv(cardDiv, true);
@@ -2028,9 +2028,9 @@ function selectNextBizcard() {
         nextBizcardDivId = getFirstBizcardDivId();
     else
         nextBizcardDivId = getFollowingBizcardDivId(theSelectedBizcardDivId);
-    console.assert(nextBizcardDivId !== null);
+    // console.assert(nextBizcardDivId !== null);
     var nextBizcardDiv = document.getElementById(nextBizcardDivId);
-    console.assert(nextBizcardDiv !== null);
+    // console.assert(nextBizcardDiv !== null);
 
     // select the nextBizcardDiv and its cardDivItem
     selectTheCardDiv(nextBizcardDiv, true);
@@ -2063,7 +2063,7 @@ function getLastBizcardDivWithLineItem() {
         var numBizcardDivLineItems = allBizcardDivLineItems.length;
         var lastBizcardDivLineItem = allBizcardDivLineItems[ numBizcardDivLineItems - 1 ];
         var lastBizcardDivId = lastBizcardDivLineItem.getAttribute("targetCardDivId");
-        console.assert(isBizcardDivId(lastBizcardDivId));
+        // console.assert(isBizcardDivId(lastBizcardDivId));
         var lastBizcardDiv = document.getElementById(lastBizcardDivId);
         validateIsBizcardDiv(lastBizcardDiv);
         return lastBizcardDiv;

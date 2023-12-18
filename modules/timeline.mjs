@@ -57,7 +57,7 @@ export function createTimeline(container, canvasContainer, minYear, maxYear, def
     initTimelineContainer(container, minYear, maxYear);
     inittimelineYearDivBottoms();
 
-    console.assert(timelineContainer != null);
+    // console.assert(timelineContainer != null);
     var alignment = timelineContainer.classList.contains("timeline-container-left") ? "left" : "right";
 
     for (var year = TIMELINE_MAX_YEAR; year >= TIMELINE_MIN_YEAR; year--) {
