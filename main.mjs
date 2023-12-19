@@ -318,6 +318,27 @@ function createBizcardDivs() {
         // does not scroll self into view
 
     }
+    // find all spans with class tagLinke and add click listenter
+    var tagLinks = document.getElementsByClassName("tagLink");
+    for (var i = 0; i < tagLinks.length; i++) {
+        var tagLink = tagLinks[ i ];
+        tagLink.addEventListener("click", handleTagLinkClick);
+    }   
+}
+
+function handleTagLinkClick(event) {
+    // console.assert(event != null);
+    var tagLink = event.target;
+    // console.assert(tagLink != null);
+    var targetCardDivId = tagLink.getAttribute("targetCardDivId");
+    // console.assert(targetCardDivId != null);
+    var targetCardDiv = document.getElementById(targetCardDivId);
+    // console.assert(targetCardDiv != null);
+    if (targetCardDiv) {
+        console.log(`handleTagLinkClick: ${targetCardDivId}`);
+        selectCardDiv(targetCardDiv);
+        scrollCardDivIntoView(targetCardDiv);
+    }
 }
 
 // --------------------------------------
