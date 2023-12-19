@@ -96,7 +96,7 @@ body {
 
 .bizcard-div {
   position: absolute;
-  border-width: 3px;
+  border-width: 5px;
   border-style: solid;
   border-color: white;
   border-radius: 25px;
@@ -208,15 +208,23 @@ body {
 .tagLink {
   font-weight: 900;
   text-decoration: underline;
-  cursor: pointer;
+  cursor: crosshair;
 }
 
 .card-div-line-item {
   display:flex;
   list-style-type: none;
   justify-content: space-between;
-  margin: 1px 0px;
+  margin: 0px 0px;
   cursor: pointer;
+  border-width: 5px;
+  border-style: solid;
+  border-color: white;
+}
+
+.monocolor {
+  color: black !important;
+  background-color: #dddddd !important;
 }
 
 .card-div-line-item-content {

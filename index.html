@@ -22,6 +22,7 @@
   <script type="module" src="./main.mjs" ></script>
   <script type="module" src="./modules/alerts.mjs" ></script>
   <script type="module" src="./modules/welcomeAlert.mjs" ></script>
+  <script type="module" src="./modules/monoColor.mjs" ></script>
 
   <div id="main-container">
     <div id="canvas-container" class="scrollable-container">
@@ -69,8 +70,7 @@
                 Another line of footnote text.
             </p>
             <div>
-                <img src="static_content/icons/colors.png" alt="Colors Icon" width="16" height="16" onclick="alert('setting color pallet');" style="cursor: pointer;">
-                <img src="static_content/icons/greys.png" alt="Greys Icon" width="16" height="16" onclick="alert('setting mono pallet');" style="cursor: pointer;">
+                <img id="monoColorIcon" src="static_content/icons/greys.png" alt="MonoCoolor Icon" width="16" height="16" onclick="toggleMonoColor();" style="cursor: pointer;">
             </div>
         </div>
     

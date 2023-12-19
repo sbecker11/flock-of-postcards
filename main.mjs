@@ -64,8 +64,14 @@ const MAX_CARD_SIZE_OFFSET = 20;
 const CARD_BORDER_WIDTH = 3;
 
 // --------------------------------------
-// Motion parallax constants
+// CardDivLineItem globals
+// --------------------------------------
+var CARDDIVLINEITEIM_USE_GLOBAL_BACKGROUND_COLOR= false;
+var CARDDIVLINEITEIM_GLOBAL_BACKGROUND_COLOR = "lightgray";
 
+// --------------------------------------
+// Parallax globals
+// --------------------------------------
 const PARALLAX_X_EXAGGERATION_FACTOR = 0.05;
 const PARALLAX_Y_EXAGGERATION_FACTOR = 0.1;
 
@@ -1428,7 +1434,7 @@ function selectTheCardDivLineItem(cardDivLineItem, selectTheCardDivFlag=false) {
     // utils.validateIsBoolean(selectTheCardDivFlag);
 
     // does scroll self into view
-    scrollElementIntoView(cardDivLineItem);
+    scrollElementToStart(cardDivLineItem);
 
     // click on selected to deselect and deselect its cardDiv
     if (theSelectedCardDivLineItem !== null &&
@@ -1448,6 +1454,7 @@ function selectTheCardDivLineItem(cardDivLineItem, selectTheCardDivFlag=false) {
         var cardDiv = getCardDivOfCardDivLineItem(cardDivLineItem);
         // console.assert(cardDiv != null);
         selectTheCardDiv(cardDiv);
+        scrollElementIntoView(cardDiv);
     }
     
     debugTheSelectedCardDivId();
@@ -1475,7 +1482,7 @@ function addCardDivLineItemClickListener(cardDivLineItem, cardDiv) {
 
         // cardDivLineItem selected not clicked
         // scrolls self into view
-        // then select its cardDiv
+        // then select its cardDiv and bring it into view
         selectTheCardDivLineItem(cardDivLineItem, true);
 
         event.stopPropagation();
