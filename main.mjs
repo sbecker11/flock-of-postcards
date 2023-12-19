@@ -409,45 +409,47 @@ function process_bizcard_description_item(bizcardDiv, inputString) {
     
     // create an htmlElement for each newTagLink
     let updatedString = inputString;
-    newTagLinks.forEach(item => {
-        const text = item.text;
-        const img = item.img ? item.img.slice(1, -1) : ''; // Remove surrounding braces
-        const url = item.url ? item.url.slice(1, -1) : ''; // Remove surrounding parentheses
+
+    // remove the ignorable placeholders
+    updatedString = updatedString.replace('(url)', '');
+    updatedString = updatedString.replace('{img}', '');
+
+    newTagLinks.forEach(tagLink => {
+        const text = tagLink.text;
+        const img = tagLink.img ? tagLink.img.slice(1, -1) : ''; // Remove surrounding braces
+        const url = tagLink.url ? tagLink.url.slice(1, -1) : ''; // Remove surrounding parentheses
     
-        let htmlElement = '';
+        let htmlElementStr = '';
     
         if (text) {
         
             // Initialize the htmlElement with just underlined text
-            htmlElement = `<u>${text}</u>`;
+            htmlElementStr = `<u>${text}</u>`;
         
             // If url is defined, wrap the geo icon in an anchor tag
             if (url) {
                 const geoAnchorHTML = `<a href="${url}" target="_blank"><img src="static_content/icons/icons8-geography-16.png"/></a>`;
-                htmlElement += ` ${geoAnchorHTML}`;
+                htmlElementStr += ` ${geoAnchorHTML}`;
             }
         
             // If img is defined, add an anchor tag wrapping the local image.svg
             if (img) {
                 const imageAnchor = `<a href="${img}" target="_blank"><img src="static_content/icons/icons8-edit-image-16.png"/></a>`;
-                htmlElement += ` ${imageAnchor}`;
+                htmlElementStr += ` ${imageAnchor}`;
             }
         }
-            
-        // Replace the original pattern with the new HTML element
-        const originalPattern = `[${text}]${item.img}${item.url}`;
-        updatedString = updatedString.replace(originalPattern, htmlElement);
-        updatedString = updatedString.replace('(url)', '');
-        updatedString = updatedString.replace('{img}', '');
-            
-        // save the htmlElement in the newTagLink
-        item.html = htmlElement;
-    });
+        tagLink.html = htmlElementStr;
 
-    // use each newTagLink to add a spanElement to the cardDiv
-    newTagLinks.forEach(item => {
-        // find or create a carddiv for each newTagLink  
-        setCardDivIdOfTagLink(bizcardDiv, item); //xx
+        // find or create the cardDiv that matches this tagLink and use it to set the tagLink's "cardDivId" property
+        setCardDivIdOfTagLink(bizcardDiv, tagLink);
+        
+
+        // create a tagLink span element with the targetCardDivId attribute and the htmlElementStr as its innerHTML
+        let htmlSpanElementStr = `<span class="tagLink" targetCardDivId="${tagLink.cardDivId}">${htmlElementStr}</span>`;
+
+        // Replace the original pattern with the new HTML element
+        const originalPattern = `[${text}]${tagLink.img}${tagLink.url}`;
+        updatedString = updatedString.replace(originalPattern, htmlSpanElementStr);
     });
 
     return { newTagLinks, updatedString };
@@ -557,7 +559,6 @@ function createCardDiv(bizcardDiv, tagLink) {
     cardDiv.classList.add("card-div");
     cardDiv.tagLink = tagLink;
     cardDiv.id = cardDivId;
-
     canvas.appendChild(cardDiv); 
 
     const cardDivIndex = getCardDivIndex(cardDivId) || 0;
@@ -608,10 +609,10 @@ function createCardDiv(bizcardDiv, tagLink) {
     cardDiv.style.color = cardDiv.getAttribute("saved-color") || "";
 
     // the tagLink is used to define the contents of this cardDiv
-    const tagLinkHtml = cardDiv.tagLink.html;
+    const tagLinkHtml = cardDiv.tagLink.innerHTML;
     const spanId = `tagLink-${cardDivId}`;
     // define the innerHTML when cardDiv is added to #canvas
-    cardDiv.innerHTML = `<span id="${spanId}" class="tagLink" targetCardDivId="${cardDivId}">${tagLinkHtml}</span>`;
+    cardDiv.innerHTML = `<span id="${spanId}" class="tagLink" targetCardDivId="${cardDivId}">${tagLink.html}</span>`;
 
     // Select the newly added span element and give it the colors of its parent cardDiv
     const spanElement = document.getElementById(spanId);
@@ -1331,20 +1332,26 @@ function scrollElementIntoView(element) {
     else if ( element.id == null )
         throw new Error("null element.id");
     else if (isBizcardDiv(element) || isCardDivLineItem(element))
-        scrollElementToStart(element);
+        scrollElementToTop(element);
     else if (isCardDiv(element) )
         scrollElementToCenter(element);
+    else if (isCardDivLineItem(element) )
+        scrollElementToTop(element);
     else
         throw new Error("unhandled element with id:" + element.id)
 }
 
-function scrollElementToStart(element) {
-    // utils.validateIsElement(element);
-    element.scrollIntoView({ behavior:'smooth',block: 'start'});
+function scrollElementToTop(element) {
+    console.log(`scrollElementToTop element:${element.id}`);
+    const container = findNearestAncestorWithClassName(element, "scrollable-container");
+    const elementRect = element.getBoundingClientRect();
+    const containerRect = container.getBoundingClientRect();
+    const scrollTop = container.scrollTop + elementRect.top - containerRect.top;
+    container.scrollTo({ top: scrollTop, behavior: 'smooth' });
 }
 
 function scrollElementToCenter(element) {
-    // utils.validateIsElement(element);
+    console.log(`scrollElementToCenter element:${element.id}`);
     const container = findNearestAncestorWithClassName(element, "scrollable-container");
     const containerHeight = container.clientHeight;
     const elementTop = element.offsetTop;
@@ -1378,12 +1385,16 @@ function selectTheCardDiv(cardDiv, selectTheCardDivLineItemFlag=false) {
 
     // saves self as theSelected
     theSelectedCardDiv = cardDiv;
+    console.log(`selectTheCardDiv cardDiv:${cardDiv.id}`);
+
     // style self as selected
     setSelectedStyle(theSelectedCardDiv);
 
     if ( selectTheCardDivLineItemFlag ) {
         // calls addCardDivLineItem()
         var cardDivLineItem = addCardDivLineItem(cardDiv.id);
+        console.log(`added cardDivLineItem:${cardDivLineItem.id}`);
+
         // console.assert( cardDivLineItem != null );
         // calls selectCardDivLineItem - does scroll self into view
         selectTheCardDivLineItem(cardDivLineItem); 
@@ -1434,7 +1445,7 @@ function selectTheCardDivLineItem(cardDivLineItem, selectTheCardDivFlag=false) {
     // utils.validateIsBoolean(selectTheCardDivFlag);
 
     // does scroll self into view
-    scrollElementToStart(cardDivLineItem);
+    scrollElementToTop(cardDivLineItem);
 
     // click on selected to deselect and deselect its cardDiv
     if (theSelectedCardDivLineItem !== null &&
@@ -1505,12 +1516,15 @@ function addCardDivLineItem(targetCardDivId) {
         // console.log(`no cardDiv found for targetCardDivId:${targetCardDivId}`);
         return;
     }
+    console.log(`addCardDivLineItem targetCardDivId:${targetCardDivId}`);
     // only add a card-div-line-item for this targetCardDivId if
     // it hasn't already been added
     var existingCardDivLineItem = getCardDivLineItem(targetCardDivId);
+    console.log(`existingCardDivLineItem:${existingCardDivLineItem} found for targetCardDivId:${targetCardDivId}`);
     if (existingCardDivLineItem == null) {
 
         var cardDivLineItem = document.createElement("li");
+        console.log(`created cardDivLineItem:${cardDivLineItem.id}`);
         cardDivLineItem.classList.add("card-div-line-item");
         cardDivLineItem.id = "card-div-line-item-" + targetCardDivId;
         cardDivLineItem.setAttribute("targetCardDivId", targetCardDivId);
@@ -1596,6 +1610,7 @@ function addCardDivLineItem(targetCardDivId) {
     } else {
         // console.log(`returning preexisting cardDivLineItem for targetCardDivId:${targetCardDivId}`);
         cardDivLineItem = existingCardDivLineItem
+        console.log(`returning preexisting cardDivLineItem:${cardDivLineItem.id}`);
     }
     // does not select self
     // does scroll self into view
@@ -1610,10 +1625,14 @@ function getCardDivLineItem(cardDivId) {
     if (!utils.isString(cardDivId))
         return null;
     var cardDivLineItems = document.getElementsByClassName("card-div-line-item");
+    var isBizcardDivId = utils.isString(cardDivId) && cardDivId.includes("bizcard-div-");
     for (var i = 0; i < cardDivLineItems.length; i++) {
         var cardDivLineItem = cardDivLineItems[ i ];
-        if( String(cardDivLineItem.id).includes(cardDivId) )
+        var isBizCarddivLineItemId = utils.isString(cardDivLineItem.id) && cardDivLineItem.id.includes("bizcard-div-");
+        if( String(cardDivLineItem.id).includes(cardDivId) && isBizcardDivId == isBizCarddivLineItemId ) {
+            console.log(`getCardDivId:${cardDivId} found cardDivLineItem:${cardDivLineItem.id}`);
             return cardDivLineItem;
+        }
     }
     return null;
 }

@@ -1,0 +1,159 @@
+<div 
+  id="bizcard-div-0" 
+  class="bizcard-div" 
+  enddate="2023-12-01" 
+  startdate="2023-12-01" 
+  originalleft="58" 
+  originaltop="176" 
+  originalwidth="200" 
+  originalheight="200" 
+  originalctrx="158" 
+  originalctry="275.5" 
+  originalz="12" 
+  saved-background-color="#006688" 
+  saved-color="#FFFFFF" 
+  saved-selected-background-color="#00ADE7" 
+  saved-selected-color="#FFFFFF" 
+
+description="As a consulting data engineer in the data cyber security team of the 
+
+<span class=&quot;tagLink&quot; targetCardDivId=&quot;card-div-0&quot;><u>Cigna Group</u><a href=&quot;https://www.thecignagroup.com/&quot; target=&quot;_blank&quot;><img src=&quot;static_content/icons/icons8-geography-16.png&quot;/></a></span>
+
+ created a 
+
+ <span class=&quot;tagLink&quot; targetCardDivId=&quot;card-div-1&quot;><u>REST API</u></span> using <span class=&quot;tagLink&quot; targetCardDivId=&quot;card-div-2&quot;><u>Postman</u> <a href=&quot;https://www.postman.com/&quot; target=&quot;_blank&quot;><img src=&quot;static_content/icons/icons8-geography-16.png&quot;/></a>
+ </span>
+
+  and 
+  
+  <span class=&quot;tagLink&quot; targetCardDivId=&quot;card-div-3&quot;><u>OpenAP</u> <a href=&quot;https://openapi-generator.tech/&quot; target=&quot;_blank&quot;><img src=&quot;static_content/icons/icons8-geography-16.png&quot;/></a>
+ </span>
+
+ I for pulling credentials from the 
+ 
+ <span class=&quot;tagLink&quot; targetCardDivId=&quot;card-div-4&quot;><u>CyberArk identity security platform</u> <a href=&quot;https://www.cyberark.com/&quot; target=&quot;_blank&quot;><img src=&quot;static_content/icons/icons8-geography-16.png&quot;/></a>
+ </span> 
+
+ using 
+
+ <span class=&quot;tagLink&quot; targetCardDivId=&quot;card-div-5&quot;><u>mutual TLS SSL authentication</u> <a href=&quot;https://docs.solace.com/Security/Two-Way-SSL-Authentication.htm&quot; target=&quot;_blank&quot;><img src=&quot;static_content/icons/icons8-geography-16.png&quot;/></a>
+ </span
+
+  with 
+
+  <span class=&quot;tagLink&quot; targetCardDivId=&quot;card-div-6&quot;><u>AWS API Gateway</u> <a href=&quot;https://docs.aws.amazon.com/apigateway/&quot; target=&quot;_blank&quot;><img src=&quot;static_content/icons/icons8-geography-16.png&quot;/></a></span>
+
+  . • Migrated a suite of legacy data pipeline elements running on the 
+
+  <span class=&quot;tagLink&quot; targetCardDivId=&quot;card-div-7&quot;><u>Unity IoC platform</u> <a href=&quot;http://unitycontainer.org/articles/introduction.html&quot; target=&quot;_blank&quot;><img src=&quot;static_content/icons/icons8-geography-16.png&quot;/></a></span>
+  
+   to pull credentials from the CyberArk service at runtime rather than using 
+   
+   <span class=&quot;tagLink&quot; targetCardDivId=&quot;card-div-8&quot;><u>Fernet</u> <a href=&quot;https://cryptography.io/en/latest/fernet/&quot; target=&quot;_blank&quot;><img src=&quot;static_content/icons/icons8-geography-16.png&quot;/></a></span> 
+   
+   encrypted local files. • Upgraded GitHub apps to use 
+   
+   <span class=&quot;tagLink&quot; targetCardDivId=&quot;card-div-9&quot;><u>CloudBees/Jenkins</u> <a href=&quot;https://docs.aws.amazon.com/apigateway/&quot; target=&quot;_blank&quot;><img src=&quot;static_content/icons/icons8-geography-16.png&quot;/></a></span> 
+   
+   CI/CD pipeline for build, applying sofware and cyber-secutity code checks, and on-prem server installation." 
+ 
+taglinks="[
+    {
+        &quot;text&quot;:&quot;Cigna Group&quot;,
+        &quot;img&quot;:&quot;&quot;,
+        &quot;url&quot;:&quot;(https://www.thecignagroup.com/)&quot;,
+        &quot;cardDivId&quot;:&quot;card-div-0&quot;,
+        &quot;html&quot;:&quot;<u>Cigna Group</u> <a href=\&quot;https://www.thecignagroup.com/\&quot; target=\&quot;_blank\&quot;><img src=\&quot;static_content/icons/icons8-geography-16.png\&quot;/></a>&quot;
+    },{
+        &quot;text&quot;:&quot;REST API&quot;,
+        &quot;img&quot;:&quot;&quot;,
+        &quot;url&quot;:&quot;&quot;,
+        &quot;cardDivId&quot;:&quot;card-div-1&quot;,
+        &quot;html&quot;:&quot;<u>REST API</u>&quot;
+    },{
+        &quot;text&quot;:&quot;Postman&quot;,
+        &quot;img&quot;:&quot;&quot;,
+        &quot;url&quot;:&quot;(https://www.postman.com/)&quot;,
+        &quot;cardDivId&quot;:&quot;card-div-2&quot;,
+        &quot;html&quot;:&quot;<u>Postman</u> <a href=\&quot;https://www.postman.com/\&quot; target=\&quot;_blank\&quot;><img src=\&quot;static_content/icons/icons8-geography-16.png\&quot;/></a>&quot;
+    },{
+        &quot;text&quot;:&quot;OpenAP&quot;,
+        &quot;img&quot;:&quot;&quot;,
+        &quot;url&quot;:&quot;(https://openapi-generator.tech/)&quot;,
+        &quot;cardDivId&quot;:&quot;card-div-3&quot;,
+        &quot;html&quot;:&quot;<u>OpenAP</u> <a href=\&quot;https://openapi-generator.tech/\&quot; target=\&quot;_blank\&quot;><img src=\&quot;static_content/icons/icons8-geography-16.png\&quot;/></a>&quot;
+    },{
+        &quot;text&quot;:&quot;CyberArk identity security platform&quot;,
+        &quot;img&quot;:&quot;&quot;,
+        &quot;url&quot;:&quot;(https://www.cyberark.com/)&quot;,
+        &quot;cardDivId&quot;:&quot;card-div-4&quot;,
+        &quot;html&quot;:&quot;<u>CyberArk identity security platform</u> <a href=\&quot;https://www.cyberark.com/\&quot; target=\&quot;_blank\&quot;><img src=\&quot;static_content/icons/icons8-geography-16.png\&quot;/></a>&quot;
+    },{
+        &quot;text&quot;:&quot;mutual TLS SSL authentication&quot;,
+        &quot;img&quot;:&quot;&quot;,
+        &quot;url&quot;:&quot;(https://docs.solace.com/Security/Two-Way-SSL-Authentication.htm)&quot;,
+        &quot;cardDivId&quot;:&quot;card-div-5&quot;,
+        &quot;html&quot;:&quot;<u>mutual TLS SSL authentication</u> <a href=\&quot;https://docs.solace.com/Security/Two-Way-SSL-Authentication.htm\&quot; target=\&quot;_blank\&quot;><img src=\&quot;static_content/icons/icons8-geography-16.png\&quot;/></a>&quot;
+    },{
+        &quot;text&quot;:&quot;AWS API Gateway&quot;,&quot;img&quot;:&quot;&quot;,&quot;url&quot;:&quot;(https://docs.aws.amazon.com/apigateway/)&quot;,&quot;cardDivId&quot;:&quot;card-div-6&quot;,
+        &quot;html&quot;:&quot;<u>AWS API Gateway</u> <a href=\&quot;https://docs.aws.amazon.com/apigateway/\&quot; target=\&quot;_blank\&quot;><img src=\&quot;static_content/icons/icons8-geography-16.png\&quot;/></a>&quot;
+    },{  
+        &quot;text&quot;:&quot;Unity IoC platform&quot;,
+        &quot;img&quot;:&quot;&quot;,
+        &quot;url&quot;:&quot;(http://unitycontainer.org/articles/introduction.html)&quot;,
+        &quot;cardDivId&quot;:&quot;card-div-7&quot;,
+        &quot;html&quot;:&quot;<u>Unity IoC platform</u> <a href=\&quot;http://unitycontainer.org/articles/introduction.html\&quot; target=\&quot;_blank\&quot;><img src=\&quot;static_content/icons/icons8-geography-16.png\&quot;/></a>&quot;
+    },{
+        &quot;text&quot;:&quot;Fernet&quot;,&quot;img&quot;:&quot;&quot;,&quot;url&quot;:&quot;(https://cryptography.io/en/latest/fernet/)&quot;,&quot;cardDivId&quot;:&quot;card-div-8&quot;,&quot;html&quot;:&quot;<u>Fernet</u> <a href=\&quot;https://cryptography.io/en/latest/fernet/\&quot; target=\&quot;_blank\&quot;><img src=\&quot;static_content/icons/icons8-geography-16.png\&quot;/></a>&quot;
+    },{
+        &quot;text&quot;:&quot;CloudBees/Jenkins&quot;,
+        &quot;img&quot;:&quot;&quot;,
+        &quot;url&quot;:&quot;(https://docs.aws.amazon.com/apigateway/)&quot;,
+        &quot;cardDivId&quot;:&quot;card-div-9&quot;,
+        &quot;html&quot;:&quot;<u>CloudBees/Jenkins</u> <a href=\&quot;https://docs.aws.amazon.com/apigateway/\&quot; target=\&quot;_blank\&quot;><img src=\&quot;static_content/icons/icons8-geography-16.png\&quot;/></a>&quot;
+    }
+]" 
+saved-zindexstr="3" 
+saved-filterstr="brightness(60.71428571428572%) blur(2.75px)"
+style="top: 176px; height: 200px; left: 58px; width: 200px; z-index: 3; translate: 130px; filter: brightness(60.7143%) blur(2.75px); background-color: rgb(0, 102, 136); color: rgb(255, 255, 255);" 
+saved-left="58" 
+saved-top="176" 
+saved-zindex="3" 
+saved-selected-left="58" 
+saved-selected-top="176" 
+saved-selected-zindex="25">
+<span class="bizcard-div-role">Consulting Data Engineer </span><br>
+(bizcard-div-0)<br>
+<span class="bizcard-div-employer">The Cigna Group</span><br>
+<span class="bizcard-div-dates">2023-05 - 2023-12</span>
+<br>
+</div>
+
+
+
+<div 
+    class="card-div" 
+    id="card-div-0" 
+    bizcarddivid="bizcard-div-0" 
+    saved-background-color="#006688" 
+    saved-color="#FFFFFF" 
+    saved-selected-background-color="#00ADE7" 
+    saved-selected-color="#FFFFFF" 
+    saved-zindexstr="14" 
+    saved-filterstr="brightness(100%) blur(0px)"
+    originalleft="-166" 
+    originaltop="321" 
+    originalwidth="106" 
+    originalheight="81" 
+    originalctrx="-113" 
+    originalctry="361.5377358490566" 
+    originalz="1" 
+    taglinktext="Cigna Group" 
+    taglinkurl="(https://www.thecignagroup.com/)" 
+    taglinkimg="" 
+    style="top: 321.038px; left: -166px; z-index: 14; filter: brightness(100%) blur(0px); background-color: rgb(0, 102, 136); color: rgb(255, 255, 255); border-width: 3px; border-style: solid; border-color: white; width: 106px; height: 81px; translate: -53px;"
+    >
+    <span id="tagLink-card-div-0" class="tagLink" targetcarddivid="card-div-0" style="color: rgb(255, 255, 255);">
+    undefined
+    </span>
+    </div>
