@@ -1,11 +1,35 @@
-html,
-body {
+/*
+Set the html and body elements to a height of 100%. This establishes a 
+reference for the #main-container to occupy the full height of the viewport.
+*/
+html, body {
   height: 100%;
-  margin: 0;
-  padding: 0;
-  overflow: hidden;
+  margin: 0; /* Remove default margins */
+  padding: 0; /* Remove default paddings */
   background-color: blueviolet;
+  overflow: hidden;
 }
+
+/*
+Make #main-container take the full height of the viewport using 100vh 
+(viewport height). 100vh is equal to 100% of the height of the viewport, 
+regardless of the window size.
+*/
+#main-container {
+  display: flex;
+  width: 100%; /* Full width */
+  height: 100vh; /* Full viewport height */
+}
+
+/*
+Apply box-sizing: border-box; to all elements to ensure that padding and borders 
+are included in the width and height calculations. This prevents unintentional 
+overflow and ensures consistent sizing.
+*/
+*, *::before, *::after {
+  box-sizing: border-box;
+}
+
 
 #debugScrollingElement, 
 #debugFocalPointElement, 
@@ -50,8 +74,10 @@ body {
   color: gray;
 }
 
-#main-container {
-  display: flex;
+
+
+.column-50 {
+  /* overflow-x: hidden;  Hide horizontal overflow */
   height: 100%;
 }
 
@@ -156,7 +182,7 @@ body {
 
 #right-column {
   flex: 1;
-  height: 100%;
+  overflow: hidden;
   position: relative;
   background-color: #dddddd;
   font-family: "Roboto", sans-serif;
@@ -164,7 +190,7 @@ body {
   flex-direction: column;
 }
 #right-header-div {
-  height: 140px;
+  height: 160px;
   background-color: #444444;
   color: white;
   padding: 10px;
@@ -183,24 +209,26 @@ body {
   font-size: 20px;
 }
 .footnote {
-  font-size: 10px;
+  font-size: 12px;
 }
 
 #right-content-div {
   flex: 1;
   overflow-y: auto;
+  overflow-x: hidden;
+  box-sizing: border-box; 
   background-color: #dddddd;
   color: black;
   padding: 10px;
 }
 
-/* lines = 15;
- * render 13 lines as 170 px 
- * 170/13 = px/line
- * 15 lines = 15*170/13 = 196.154 = 196
- */
+.right-content-div-child {
+  max-width: 100%;
+  height: auto;
+}
+
 #right-footer-div {
-  height: 196px;
+  height: 40px;
   background-color: #999999;
   padding: 10px;
 }
@@ -211,7 +239,13 @@ body {
   cursor: crosshair;
 }
 
+.monocolor {
+  color: black !important;
+  background-color: #dddddd !important;
+}
+
 .card-div-line-item {
+  max-width: 100%;
   display:flex;
   list-style-type: none;
   justify-content: space-between;
@@ -222,14 +256,10 @@ body {
   border-color: white;
 }
 
-.monocolor {
-  color: black !important;
-  background-color: #dddddd !important;
-}
-
 .card-div-line-item-content {
   padding: 20px;
   flex-grow: 1;
+  overflow-x: hidden;
 }
 
 .card-div-line-item-description {
