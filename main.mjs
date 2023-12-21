@@ -407,6 +407,15 @@ function debugTagLinksToStr(tagLinks) {
     return tagLinkStrs.join("|");
 }
 
+function createUrlAnchorTag(url, color = 'white') {
+    return `<a href="${url}" target="_blank"><img class="geography-icon" src="static_content/icons/icons8-geography-16-${color}.png"/></a>`;
+}
+
+function createImgAnchorTag(img, color = 'white') {
+    return `<a href="${img}" target="_blank"><img class="image-icon" src="static_content/icons/icons8-edit-image-16-${color}.png"/></a>`;
+}
+
+
 // This function takes an inputString, applies the regular expression to extract the 
 // newTagLink objects with properties text, img, url, and html, and then replaces 
 // these newTagLinks in the original string with their html values. The function return 
@@ -448,17 +457,20 @@ function process_bizcard_description_item(bizcardDiv, inputString) {
         if (text) {
             // Initialize the htmlElement with just underlined text
             htmlElementStr = `<u>${text}</u>`;
+            var line2 = '';
         
-            // If img is defined, add an anchor tag wrapping the local image.svg
+            // If img is defined, add an anchor tag wrapping the local image.png
             if (img) {
-                const imageAnchor = `<a href="${img}" target="_blank"><img class="image-icon" src="static_content/icons/icons8-edit-image-16-white.png"/></a>`;
-                htmlElementStr += `${imageAnchor}`;
+                line2 += createImgAnchorTag(img);
             }
             
-            // If url is defined, wrap the geo icon in an anchor tag
+            // If url is defined, add an anchor tag wrapping the local geo.png
             if (url) {
-                const geoAnchor = `<a href="${url}" target="_blank"><img class="geography-icon" src="static_content/icons/icons8-geography-16-white.png"/></a>`;
-                htmlElementStr += `${geoAnchor}`;
+                line2 += createUrlAnchorTag(url);
+            }
+
+            if ( line2.length > 0 ) {
+                htmlElementStr += '<br/>' + line2;
             }
     
         }
@@ -638,12 +650,11 @@ function createCardDiv(bizcardDiv, tag_link) {
     cardDiv.style.color = cardDiv.getAttribute("saved-color") || "";
 
     // the tag_link is used to define the contents of this cardDiv
-    const tagLinkHtml = cardDiv.tag_link.innerHTML;
     const spanId = `tag_link-${cardDivId}`;
+
     // define the innerHTML when cardDiv is added to #canvas
     cardDiv.innerHTML = `<span id="${spanId}" class="tag-link" targetCardDivId="${cardDivId}">${tag_link.html}</span>`;
 
-    // Select the newly added span element and give it the colors of its parent cardDiv
     const spanElement = document.getElementById(spanId);
     if (spanElement) {
         spanElement.style.color = cardDiv.style.color;
@@ -1632,11 +1643,8 @@ function addCardDivLineItem(targetCardDivId) {
             // where text contains spans that have targetCardDivIds
             var line_items_HTML = convert_description_HTML_to_line_items_HTML(description);
             if (line_items_HTML && line_items_HTML.length > 0) {
-
-                // ensure line_items_HTML includes no img tag markup
-                // if (line_items_HTML.includes("<img"))
-                //     line_items_HTML = removeImgTagsFromHtml(line_items_HTML);
-
+                // remove all line breaks <br/> from line_items_HTML
+                line_items_HTML = line_items_HTML.replace(/<br\/>/g, "");
                 cardDivLineItemContent.innerHTML += line_items_HTML
             }
         }
@@ -2015,15 +2023,6 @@ export function selectAllBizcards() {
 
         // select the bizcardDiv and its cardDivLineItem
         selectTheCardDiv(bizcardDiv, true);
-
-        // select the bizcardDiv and scroll it into view
-        // selectTheCardDiv(bizcardDiv)
-        // scrollElementIntoView(bizcardDiv);
-
-        // add == find or create a cardDivLineItem
-        // var bizcardDivLineItem = addCardDivLineItem(bizcardDiv.id);
-        // select brings the cardDivLineItem into viw
-        // selectTheCardDivLineItem(bizcardDivLineItem);
     }
 
     // select and scroll to the first bizcardDiv and its line item
@@ -2048,14 +2047,7 @@ function selectAndScrollToCardDiv(cardDiv) {
     var cardDivLineItem = getCardDivLineItem(cardDiv.id)
 
     // avoid in case another select would ignore the select
-    // avoid in case another select would ignore the select
-    //deselectTheSelectedCardDiv();
     selectTheCardDiv(cardDiv, true);
-    // and bring it into view
-    //scrollElementIntoView(cardDiv);
-
-    // extra umph
-    // cardDiv.scrollIntoView({behavior: 'instant', block: 'start'});
 }
 
 //---------------------------------------

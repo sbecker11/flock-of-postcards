@@ -32,9 +32,8 @@ export function toggleMonoColor() {
 export function applyMonoColorToElement(element) {
     let sideElement = element.parentElement.getElementsByClassName(target_side_class)[0];
     let tagLinkChildren = element.querySelectorAll('.tag-link');
-    let geographyImgChildren = element.querySelectorAll(':scope > img.geography-icon');
-    let imageImgChildren = element.querySelectorAll(':scope > img.image-icon');
-
+    let geographyImgChildren = element.querySelectorAll('li.card-div-line-item-description-list-item img.geography-icon');
+    let imageImgChildren = element.querySelectorAll('li.card-div-line-item-description-list-item img.image-icon');
     if (isMonoColor) {
         // save colors in dataset
         element.dataset.color = element.style.color;
@@ -43,8 +42,10 @@ export function applyMonoColorToElement(element) {
         // set colors to mono
         element.style.color = monoColor;
         element.style.backgroundColor = monoBackgroundColor;
-        sideElement.style.color = monoColor;
-        sideElement.style.backgroundColor = monoBackgroundColor;    
+        if ( sideElement !== null ) {
+            sideElement.style.color = monoColor;
+            sideElement.style.backgroundColor = monoBackgroundColor;
+        }
         tagLinkChildren.forEach(function(tagLinkElement) {
             tagLinkElement.style.color = monoColor;
             tagLinkElement.style.backgroundColor = monoBackgroundColor;
@@ -54,8 +55,10 @@ export function applyMonoColorToElement(element) {
         // restore colors from dataset
         element.style.color = element.dataset.color;
         element.style.backgroundColor = element.dataset.backgroundColor;
-        sideElement.style.color = element.dataset.color;
-        sideElement.style.backgroundColor = element.dataset.backgroundColor;
+        if ( sideElement !== null ) {
+            sideElement.style.color = element.dataset.color;
+            sideElement.style.backgroundColor = element.dataset.backgroundColor;
+        }
         tagLinkChildren.forEach(function(tagLinkElement) {
             tagLinkElement.style.color = element.dataset.color;
             tagLinkElement.style.backgroundColor = element.dataset.backgroundColor;    
@@ -65,8 +68,6 @@ export function applyMonoColorToElement(element) {
     utils.validateIsElement(element);
     let elementColor = element.style.color;
     let elementColorIsWhite = (elementColor == 'rgb(255, 255, 255)');
-    console.log(`*** elementColor: ${elementColor}`);
-    console.log(`*** elementColorIsWhite: ${elementColorIsWhite}`);
     geographyImgChildren.forEach(function(geographyImgElement) {
         geographyImgElement.src = elementColorIsWhite ? 
             'static_content/icons/icons8-geography-16-white.png' : 
