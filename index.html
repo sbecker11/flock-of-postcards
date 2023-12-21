@@ -12,7 +12,6 @@
   <link rel="stylesheet" href="./styles.css">
   <link rel="stylesheet" href="./modules/timeline.css">
   <link rel="stylesheet" href="./modules/alerts.css">
-  <link rel="stylesheet" href="./modules/welcomeAlert.css">
 </head>
 
 <body>
@@ -20,7 +19,6 @@
   <!-- <script type="text/javascript" src="static_content/media/image_paths.mjs"></script> -->
   <script type="module" src="./main.mjs" ></script>
   <script type="module" src="./modules/alerts.mjs" ></script>
-  <script type="module" src="./modules/welcomeAlert.mjs" ></script>
   <script type="module" src="./modules/monoColor.mjs" ></script>
 
   <div id="main-container">
@@ -45,7 +43,7 @@
               <td style="vertical-align:top">
                 <p><span style="font-size:30px">Shawn Becker</span></p>
                 <p><strong><span style="font-size:11pt">Data Engineer / Software Developer</span></strong></p>
-                <p>sbecker@alum.mit.edu &bull; 857-891-0896<br>https://linkedin.com/in/shawnbecker &bull; Lehi - Utah, USA <img src="static_content/icons/icons8-geography-16.png"/><img src="static_content/icons/icons8-edit-image-16.png"/></p>
+                <p>sbecker@alum.mit.edu &bull; 857-891-0896<br>https://linkedin.com/in/shawnbecker &bull; Lehi - Utah, USA <img src="static_content/icons/icons8-geography-16-white.png"/><img src="static_content/icons/icons8-edit-image-16-white.png"/></p>
               </td>
             </tr>
           </tbody>
@@ -83,17 +81,17 @@
     </div>
         
   </div>
-  <div class="overlay" id="overlay"></div>
-  <div class="custom-alert" id="textListAlert"></div>
 
-  <div id="welcomeAlert">
+  <div class="overlay" id="overlay"></div>
+
+  <div id="welcomeAlert" role="dialog" aria-labelledby="welcomeAlert" aria-describedby="welcomAlert-content">
     <div class="welcomeAlert-content">
-      <p id="close">Click here to get started </p>
+      <p id="welcomeAlert-close">Click here to get started </p>
     </div>
   </div>
 
   <script type="module">
-    import { showWelcomeAlert } from './modules/welcomeAlert.mjs';
+    import { showWelcomeAlert } from './modules/alerts.mjs';
     document.addEventListener('DOMContentLoaded', function() {
         showWelcomeAlert();
     });

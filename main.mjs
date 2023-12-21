@@ -6,6 +6,7 @@ import * as utils from './modules/utils.mjs';
 import * as alerts from './modules/alerts.mjs';
 import * as timeline from './modules/timeline.mjs';
 import * as focalPoint from './modules/focal_point.mjs';
+import * as monoColor from './modules/monoColor.mjs';
 
 // --------------------------------------
 // Element reference globals
@@ -319,18 +320,18 @@ function createBizcardDivs() {
 
     }
     // find all spans with class tagLinke and add click listenter
-    var tagLinks = document.getElementsByClassName("tagLink");
+    var tagLinks = document.getElementsByClassName("tag-link");
     for (var i = 0; i < tagLinks.length; i++) {
-        var tagLink = tagLinks[ i ];
-        tagLink.addEventListener("click", handleTagLinkClick);
+        var tag_link = tagLinks[ i ];
+        tag_link.addEventListener("click", handleTagLinkClick);
     }   
 }
 
 function handleTagLinkClick(event) {
     // console.assert(event != null);
-    var tagLink = event.target;
-    // console.assert(tagLink != null);
-    var targetCardDivId = tagLink.getAttribute("targetCardDivId");
+    var tag_link = event.target;
+    // console.assert(tag_link != null);
+    var targetCardDivId = tag_link.getAttribute("targetCardDivId");
     // console.assert(targetCardDivId != null);
     var targetCardDiv = document.getElementById(targetCardDivId);
     // console.assert(targetCardDiv != null);
@@ -342,7 +343,7 @@ function handleTagLinkClick(event) {
 }
 
 // --------------------------------------
-// TagLink globals
+// tag_link globals
 
 // the global set of tagLinks created while creating all .Bizcard-divs from
 // the list of all `job` objects defined in "static_content/jobs.mjs"
@@ -396,11 +397,11 @@ function process_bizcard_description_HTML(bizcardDiv, description_HTML) {
 function debugTagLinksToStr(tagLinks) {
     var tagLinkStrs = [];
     for( var i=0; i<tagLinks.length; i++ ) {
-        var tagLink = tagLinks[i];
-        if ( tagLink.url != "url" )
-            var tagLinkStr = tagLink.text + '<br/>' + tagLink.url;
+        var tag_link = tagLinks[i];
+        if ( tag_link.url != "url" )
+            var tagLinkStr = tag_link.text + '<br/>' + tag_link.url;
         else
-            var tagLinkStr = tagLink.text;
+            var tagLinkStr = tag_link.text;
         tagLinkStrs.push(tagLinkStr);
     }
     return tagLinkStrs.join("|");
@@ -413,11 +414,12 @@ function debugTagLinksToStr(tagLinks) {
 
 function process_bizcard_description_item(bizcardDiv, inputString) {
     // remove the ignorable placeholders
-    inputString = inputString.replace('(url)', '');
-    inputString = inputString.replace('{img}', '');
-    
-    const regex = /\[([^\]]+)\](\{(.+?)\})?\((.+?)\)/;
+    inputString = inputString.replace(/\(url\)/g, '');
+    inputString = inputString.replace(/\{img\}/g, '');
+        
+    //const regex = /\[([^\]]+)\](\{(.+?)\})?\((.+?)\)/;
     //const regex = /\[([\w\s\:\-\|\/]+)\](\{[\w\/\-\.]+\})?(\(https?:\/\/[\w\/\.\-\?\=\&]+\))?/;
+    const regex = /\[([^\]]+)\](?:\{([^\}]+)\})?(?:\(([^\)]+)\))?/;
     const matches = inputString.match(new RegExp(regex, 'g'));
 
     if (!matches) {
@@ -428,50 +430,55 @@ function process_bizcard_description_item(bizcardDiv, inputString) {
         const parsed = match.match(regex);
         return {
             text: parsed[1] || '',
-            img: (parsed[2] && parsed[2] !== 'img') ? parsed[2] : '',
-            url: (parsed[3] && parsed[3] !== 'url') ? parsed[3] : ''
-        };
+            img: parsed[2] || '', 
+            url: parsed[3] || ''
+            };
     });
 
     // create an htmlElement for each newTagLink
     let updatedString = inputString;
 
-    newTagLinks.forEach(tagLink => {
-        const text = tagLink.text;
-        const img = tagLink.img ? tagLink.img.slice(1, -1) : ''; // Remove surrounding braces
-        const url = tagLink.url ? tagLink.url.slice(1, -1) : ''; // Remove surrounding parentheses
+    newTagLinks.forEach(tag_link => {
+        const text = tag_link.text;
+        const img = tag_link.img ? tag_link.img : '';
+        const url = tag_link.url ? tag_link.url : '';
     
         let htmlElementStr = '';
     
         if (text) {
-        
             // Initialize the htmlElement with just underlined text
             htmlElementStr = `<u>${text}</u>`;
         
-            // If url is defined, wrap the geo icon in an anchor tag
-            if (url) {
-                const geoAnchorHTML = `<a href="${url}" target="_blank"><img src="static_content/icons/icons8-geography-16.png"/></a>`;
-                htmlElementStr += ` ${geoAnchorHTML}`;
-            }
-        
             // If img is defined, add an anchor tag wrapping the local image.svg
             if (img) {
-                const imageAnchor = `<a href="${img}" target="_blank"><img src="static_content/icons/icons8-edit-image-16.png"/></a>`;
-                htmlElementStr += ` ${imageAnchor}`;
+                const imageAnchor = `<a href="${img}" target="_blank"><img class="image-icon" src="static_content/icons/icons8-edit-image-16-white.png"/></a>`;
+                htmlElementStr += `${imageAnchor}`;
             }
+            
+            // If url is defined, wrap the geo icon in an anchor tag
+            if (url) {
+                const geoAnchor = `<a href="${url}" target="_blank"><img class="geography-icon" src="static_content/icons/icons8-geography-16-white.png"/></a>`;
+                htmlElementStr += `${geoAnchor}`;
+            }
+    
         }
-        tagLink.html = htmlElementStr;
+        tag_link.html = htmlElementStr;
 
-        // find or create the cardDiv that matches this tagLink and use it to set the tagLink's "cardDivId" property
-        setCardDivIdOfTagLink(bizcardDiv, tagLink);
+        // find or create the cardDiv that matches this tag_link and use it to set the tag_link's "cardDivId" property
+        setCardDivIdOfTagLink(bizcardDiv, tag_link);
         
+        // create a tag_link span element with the targetCardDivId attribute and the htmlElementStr as its innerHTML
+        let htmlSpanElementStr = `<span class="tag-link" targetCardDivId="${tag_link.cardDivId}">${htmlElementStr}</span>`;
 
-        // create a tagLink span element with the targetCardDivId attribute and the htmlElementStr as its innerHTML
-        let htmlSpanElementStr = `<span class="tagLink" targetCardDivId="${tagLink.cardDivId}">${htmlElementStr}</span>`;
+        // reconstruct the original pattern
+        let originalPattern = `[${text}]`;
+        if ( tag_link.img.length > 0 )
+            originalPattern += `{${tag_link.img}}`;
+        if (tag_link.url.length > 0) 
+            originalPattern += `(${tag_link.url})`;
 
-        // Replace the original pattern with the new HTML element
-        const originalPattern = `[${text}]${tagLink.img}${tagLink.url}`;
-        updatedString = updatedString.replace(originalPattern, htmlSpanElementStr);
+         // Replace the original pattern with the new HTML element
+         updatedString = updatedString.replace(originalPattern, htmlSpanElementStr);
     });
 
     return { newTagLinks, updatedString };
@@ -486,43 +493,43 @@ function test_process_bizcard_description_item() {
 }
 
 // find or create a cardDiv and use it
-// to set the tagLink's "cardDivId" property
+// to set the tag_link's "cardDivId" property
 // otherwise create a new cardDiv
-function setCardDivIdOfTagLink(bizcardDiv, tagLink) {
-    // console.assert(bizcardDiv != null && tagLink != null);
-    var cardDiv = findCardDiv(tagLink);
+function setCardDivIdOfTagLink(bizcardDiv, tag_link) {
+    // console.assert(bizcardDiv != null && tag_link != null);
+    var cardDiv = findCardDiv(tag_link);
     if (!cardDiv) {
-        cardDiv = createCardDiv(bizcardDiv, tagLink);
+        cardDiv = createCardDiv(bizcardDiv, tag_link);
     }
-    tagLink.cardDivId = cardDiv.id;
+    tag_link.cardDivId = cardDiv.id;
 }
 
 // this is an Order(N) search that could be optimized.
-function findCardDiv(tagLink) {
+function findCardDiv(tag_link) {
     var cardDivs = document.getElementsByClassName("card-div");
     for (const cardDiv of cardDivs) {
-        if (cardDivMatchesTagLink(cardDiv, tagLink))
+        if (cardDivMatchesTagLink(cardDiv, tag_link))
             return cardDiv;
     }
     return null;
 }
 
-function cardDivMatchesTagLink(cardDiv, tagLink) {
+function cardDivMatchesTagLink(cardDiv, tag_link) {
     // Check if the required text attribute matches
-    if (tagLink.text !== cardDiv.getAttribute("tagLinkText")) {
+    if (tag_link.text !== cardDiv.getAttribute("tagLinkText")) {
         return false;
     }
 
     // Check if the optional img attribute matches or both are absent
-    if (tagLink.img !== cardDiv.getAttribute("tagLinkImg")) {
-        if (tagLink.img !== undefined && cardDiv.getAttribure("tagLinkImg") !== undefined) {
+    if (tag_link.img !== cardDiv.getAttribute("tagLinkImg")) {
+        if (tag_link.img !== undefined && cardDiv.getAttribure("tagLinkImg") !== undefined) {
             return false;
         }
     }
 
     // Check if the optional url attribute matches or both are absent
-    if (tagLink.url !== cardDiv.getAttribute("tagLinkUrl")) {
-        if (tagLink.url !== undefined && cardDiv.getAttribute("tagLinkUrl") !== undefined) {
+    if (tag_link.url !== cardDiv.getAttribute("tagLinkUrl")) {
+        if (tag_link.url !== undefined && cardDiv.getAttribute("tagLinkUrl") !== undefined) {
             return false;
         }
     }
@@ -574,12 +581,12 @@ var prev_z = null; // to track the previous z value
 // z levels, and z-varied brightness and blur.
 // return the newly created cardDiv that has 
 // been appended to its parent canvas.
-function createCardDiv(bizcardDiv, tagLink) {
-    // console.assert(bizcardDiv != null && tagLink != null);
+function createCardDiv(bizcardDiv, tag_link) {
+    // console.assert(bizcardDiv != null && tag_link != null);
     var cardDivId = getNextCardDivId();
     var cardDiv = document.createElement('div');
     cardDiv.classList.add("card-div");
-    cardDiv.tagLink = tagLink;
+    cardDiv.tag_link = tag_link;
     cardDiv.id = cardDivId;
     canvas.appendChild(cardDiv); 
 
@@ -630,11 +637,11 @@ function createCardDiv(bizcardDiv, tagLink) {
     cardDiv.style.backgroundColor = cardDiv.getAttribute("saved-background-color") || "";
     cardDiv.style.color = cardDiv.getAttribute("saved-color") || "";
 
-    // the tagLink is used to define the contents of this cardDiv
-    const tagLinkHtml = cardDiv.tagLink.innerHTML;
-    const spanId = `tagLink-${cardDivId}`;
+    // the tag_link is used to define the contents of this cardDiv
+    const tagLinkHtml = cardDiv.tag_link.innerHTML;
+    const spanId = `tag_link-${cardDivId}`;
     // define the innerHTML when cardDiv is added to #canvas
-    cardDiv.innerHTML = `<span id="${spanId}" class="tagLink" targetCardDivId="${cardDivId}">${tagLink.html}</span>`;
+    cardDiv.innerHTML = `<span id="${spanId}" class="tag-link" targetCardDivId="${cardDivId}">${tag_link.html}</span>`;
 
     // Select the newly added span element and give it the colors of its parent cardDiv
     const spanElement = document.getElementById(spanId);
@@ -650,7 +657,7 @@ function createCardDiv(bizcardDiv, tagLink) {
     var img_height = MEAN_CARD_HEIGHT;
 
     // given a tagLinkImgUrl try to get the real img_src and dimensions of the actual image
-    var result = get_real_img_src_from_img_url(tagLink.img);
+    var result = get_real_img_src_from_img_url(tag_link.img);
     if (result) {
         const { real_img_src, real_img_width, real_img_height } = result;
         img_src = real_img_src;
@@ -716,9 +723,9 @@ function createCardDiv(bizcardDiv, tagLink) {
 
     renderAllTranslateableDivsAtCanvasContainerCenter();
 
-    cardDiv.setAttribute("tagLinkText", tagLink[ "text" ]);
-    cardDiv.setAttribute("tagLinkUrl", tagLink[ "url" ]);
-    cardDiv.setAttribute("tagLinkImg", tagLink[ "img" ]);
+    cardDiv.setAttribute("tagLinkText", tag_link[ "text" ]);
+    cardDiv.setAttribute("tagLinkUrl", tag_link[ "url" ]);
+    cardDiv.setAttribute("tagLinkImg", tag_link[ "img" ]);
     return cardDiv;
 }
 
@@ -1190,9 +1197,9 @@ function setSelectedStyle(obj) {
         let cardDivId = obj.getAttribute("targetCardDivId");
         if ( cardDivId !== null ) {
             let cardDiv = document.getElementById(cardDivId);
-            console.log(`SELECTED`);
-            console.log(`cardDiv.saved-selected-background-color: ${cardDiv.getAttribute("saved-selected-background-color")}`);
-            console.log(`lineitem.saved-selected-background-color:${obj.getAttribute("saved-selected-background-color")}`);
+            // console.log(`SELECTED`);
+            // console.log(`cardDiv.saved-selected-background-color: ${cardDiv.getAttribute("saved-selected-background-color")}`);
+            // console.log(`lineitem.saved-selected-background-color:${obj.getAttribute("saved-selected-background-color")}`);
         }
     }
 
@@ -1251,9 +1258,9 @@ function restoreSavedStyle(obj) {
         let cardDivId = obj.getAttribute("targetCardDivId");
         if ( cardDivId !== null ) { 
             let cardDiv = document.getElementById(cardDivId);
-            console.log(`RESTORED`);
-            console.log(`cardDiv.saved-background-color: ${cardDiv.getAttribute("saved-background-color")}`);
-            console.log(`lineitem.saved-background-color:${obj.getAttribute("saved-background-color")}`);
+            // console.log(`RESTORED`);
+            // console.log(`cardDiv.saved-background-color: ${cardDiv.getAttribute("saved-background-color")}`);
+            // console.log(`lineitem.saved-background-color:${obj.getAttribute("saved-background-color")}`);
         }
     }
 
@@ -1656,11 +1663,12 @@ function addCardDivLineItem(targetCardDivId) {
         // console.log(`cardDivLineItem:${cardDivLineItem.id} appended cardDivLineItemContent and cardDivLineItemRightColumn`);
         // console.log(`cardDivLineItem boundingRect:${JSON.stringify(cardDivLineItem.getBoundingClientRect())}`);
         // console.log(`rightContentDiv boundingRect:${JSON.stringify(rightContentDiv.getBoundingClientRect())}`);
+        monoColor.applyMonoColorToElement(cardDivLineItemContent);
         rightContentDiv.appendChild(cardDivLineItem);
 
         // find all .tagLinks of this cardDivLineItem
         // and give them onclick listeners
-        var tagLinks = cardDivLineItem.querySelectorAll('.tagLink');
+        var tagLinks = cardDivLineItem.querySelectorAll('.tag-link');
         for (let i = 0; i < tagLinks.length; i++) {
             addTagLinkClickListener(tagLinks[ i ]);
         }
@@ -1772,16 +1780,16 @@ function removeImgTagsFromHtml(html) {
     return filtered;
 }
 
-// tagLink is an HTML string span#tagLink-card-dive-8.tagLink { title:'', translate"true, dir: '', hidden: false, 
-function addTagLinkClickListener(tagLink) {
-    // console.assert(tagLink != null);
-    tagLink.addEventListener("click", function (event) {
-        let cardDivId = tagLink.getAttribute("targetCardDivId");
-        console.log(`cardDivId:${cardDivId}`);
+// tag_link is an HTML string span#tag_link-card-dive-8.tag_link { title:'', translate"true, dir: '', hidden: false, 
+function addTagLinkClickListener(tag_link) {
+    // console.assert(tag_link != null);
+    tag_link.addEventListener("click", function (event) {
+        let cardDivId = tag_link.getAttribute("targetCardDivId");
+        // console.log(`cardDivId:${cardDivId}`);
         var cardDiv = document.getElementById(cardDivId);
         if (cardDiv) {
             var tagLinkText = cardDiv.getAttribute("tagLinkText");
-            console.log(`tagLink.text:${tagLinkText}`);
+            // console.log(`tag_link.text:${tagLinkText}`);
             // console.assert(tagLinkText != null && tagLinkUrl != null);
 
             // selectTheCardDiv and its cardDivLineItem
@@ -1790,7 +1798,7 @@ function addTagLinkClickListener(tagLink) {
             // need to scroll cardDiv into view
             scrollElementIntoView(cardDiv);
         } else {
-            // console.log(`no cardDiv with tagLink found for cardDivId:${cardDivId}`);
+            // console.log(`no cardDiv with tag_link found for cardDivId:${cardDivId}`);
         }
         event.stopPropagation();
     });
@@ -1997,7 +2005,7 @@ function restoreCanvasContainerEventListeners() {
 //---------------------------------------
 // selectAllButton - adds a cardDivLineItem for all bizcardDivs
 //
-function selectAllBizCards() {
+export function selectAllBizcards() {
     // delete all cardDivLineItems in reverse order
     clearAllDivCardLineItems();
 
@@ -2022,7 +2030,7 @@ function selectAllBizCards() {
     selectAndScrollToCardDiv(allBizcardDivs[0]);
 }
 
-selectAllBizcardsButton.addEventListener("click", selectAllBizCards);
+selectAllBizcardsButton.addEventListener("click", selectAllBizcards);
 
 // delete all cardDivLineItems in reverse order
 function clearAllDivCardLineItems() {
