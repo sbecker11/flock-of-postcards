@@ -58,7 +58,7 @@ The static 'flock-of-postcards' website has been upgraded to be a webapp that us
 - Bizcards are now animating to the top, but not staying there
 - Bizdards return to original position after losing focus
 - fixed selectNextBizcard
-- added links to three.mjs examples
+- added links to three.js examples
 - added links to Virtual Munsell Color Wheel
 - added select all skills button
 - added selectNext, selectAll, and clearAll buttons

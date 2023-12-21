@@ -2,19 +2,19 @@
 // @ts-nocheck
 'use strict';
 
-import * as utils from './modules/utils.mjs';
-import * as alerts from './modules/alerts.mjs';
-import * as timeline from './modules/timeline.mjs';
-import * as focalPoint from './modules/focal_point.mjs';
-import * as monoColor from './modules/monoColor.mjs';
+import * as utils from './modules/utils.js';
+import * as alerts from './modules/alerts.js';
+import * as timeline from './modules/timeline.js';
+import * as focalPoint from './modules/focal_point.js';
+import * as monoColor from './modules/monoColor.js';
 
 // --------------------------------------
 // Element reference globals
 
 const rightContentDiv = document.getElementById("right-content-div");
-const debugScrollingElement = null; //  = document.getElementById("debugScrollingElement");
-const debugFocalPointElement = null; //  = document.getElementById("debugFocalPointElement");
-const debugTheSelectedCardDivIdElement = null; //  = document.getElementById("debugTheSelectedCardDivIdElement");
+// const debugScrollingElement = null; //  = document.getElementById("debugScrollingElement");
+// const debugFocalPointElement = null; //  = document.getElementById("debugFocalPointElement");
+// const debugTheSelectedCardDivIdElement = null; //  = document.getElementById("debugTheSelectedCardDivIdElement");
 const canvasContainer = document.getElementById("canvas-container");
 const canvas = document.getElementById("canvas");
 const bottomGradient = document.getElementById("bottom-gradient");
@@ -346,7 +346,7 @@ function handleTagLinkClick(event) {
 // tag_link globals
 
 // the global set of tagLinks created while creating all .Bizcard-divs from
-// the list of all `job` objects defined in "static_content/jobs.mjs"
+// the list of all `job` objects defined in "static_content/jobs.js"
 var allTagLinks = [];
 
 function initAllTagLinks() {
@@ -394,18 +394,18 @@ function process_bizcard_description_HTML(bizcardDiv, description_HTML) {
     return [processed_bizcard_description_HTML, bizcardTagLinks];
 }
 
-function debugTagLinksToStr(tagLinks) {
-    var tagLinkStrs = [];
-    for( var i=0; i<tagLinks.length; i++ ) {
-        var tag_link = tagLinks[i];
-        if ( tag_link.url != "url" )
-            var tagLinkStr = tag_link.text + '<br/>' + tag_link.url;
-        else
-            var tagLinkStr = tag_link.text;
-        tagLinkStrs.push(tagLinkStr);
-    }
-    return tagLinkStrs.join("|");
-}
+// function debugTagLinksToStr(tagLinks) {
+//     var tagLinkStrs = [];
+//     for( var i=0; i<tagLinks.length; i++ ) {
+//         var tag_link = tagLinks[i];
+//         if ( tag_link.url != "url" )
+//             var tagLinkStr = tag_link.text + '<br/>' + tag_link.url;
+//         else
+//             var tagLinkStr = tag_link.text;
+//         tagLinkStrs.push(tagLinkStr);
+//     }
+//     return tagLinkStrs.join("|");
+// }
 
 function createUrlAnchorTag(url, color = 'white') {
     return `<a href="${url}" target="_blank"><img class="geography-icon" src="static_content/icons/icons8-geography-16-${color}.png"/></a>`;
@@ -929,7 +929,7 @@ function handleCanvasContainerMouseMove(event) {
     mouseX = event.clientX;
     mouseY = event.clientY;
     focalPoint.easeFocalPointTo(mouseX, mouseY);
-    debugFocalPoint();
+    // debugFocalPoint();
 }
 
 var autoScrollingInterval = null;
@@ -1022,23 +1022,23 @@ function handleFocalPointMove() {
     applyParallax();
 }
 
-function debugScrolling(event, scrollable, scrollVelocityType, scrollVelocity) {
-    if ( debugScrollingElement != null ) {
-        var scrollTop = scrollable.scrollTop;
-        var scrollHeight = scrollable.scrollHeight;
-        var windowHeight = scrollable.clientHeight;
-        var scrollBottom = scrollHeight - scrollTop - windowHeight;
+// function debugScrolling(event, scrollable, scrollVelocityType, scrollVelocity) {
+//     if ( debugScrollingElement != null ) {
+//         var scrollTop = scrollable.scrollTop;
+//         var scrollHeight = scrollable.scrollHeight;
+//         var windowHeight = scrollable.clientHeight;
+//         var scrollBottom = scrollHeight - scrollTop - windowHeight;
 
-        var html = "";
-        html += `event:${event}<br/>`;
-        html += `scrollTop:${scrollTop}<br/>`;
-        html += `scrollBottom:${scrollBottom}<br/>`;
-        html += `autoScrollEase:${autoScrollEase}<br/>`;
-        if (scrollVelocityType != null && scrollVelocity != null)
-            html += `${scrollVelocityType}:${scrollVelocity}<br/>`;
-        debugScrollingElement.innerHTML = html;
-    }
-}
+//         var html = "";
+//         html += `event:${event}<br/>`;
+//         html += `scrollTop:${scrollTop}<br/>`;
+//         html += `scrollBottom:${scrollBottom}<br/>`;
+//         html += `autoScrollEase:${autoScrollEase}<br/>`;
+//         if (scrollVelocityType != null && scrollVelocity != null)
+//             html += `${scrollVelocityType}:${scrollVelocity}<br/>`;
+//         debugScrollingElement.innerHTML = html;
+//     }
+// }
 
 // Display mouse position and delta coordinates in the right-message-div  
 
@@ -1047,13 +1047,13 @@ var isMouseOverCanvasContainer = false;
 function handleMouseEnterCanvasContainer(event) {
     isMouseOverCanvasContainer = true;
     focalPoint.easeFocalPointTo(event.clientX, event.clientY);
-    debugFocalPoint();
+    // debugFocalPoint();
 }
 
 function handleMouseLeaveCanvasContainer(event) {
     isMouseOverCanvasContainer = false;
     easeFocalPointToBullsEye();
-    debugFocalPoint();
+    // debugFocalPoint();
 }
 
 var lastScrollTop = null;
@@ -1065,7 +1065,7 @@ function handleCanvasContainerScroll(scrollEvent) {
     var deltaTime = (lastScrollTime != null) ? (thisTime - lastScrollTime) : null;
     var deltaTop = (lastScrollTop != null) ? (thisScrollTop - lastScrollTop) : null;
     var scrollVelocity = (deltaTime && deltaTop) ? (deltaTop) / (deltaTime) : "?";
-    debugScrolling("scroll", canvasContainer, "scrollVelocity", `${deltaTop}/${deltaTime}`);
+    // debugScrolling("scroll", canvasContainer, "scrollVelocity", `${deltaTop}/${deltaTime}`);
     lastScrollTime = thisTime;
     lastScrollTop = thisScrollTop;
 }
@@ -1470,7 +1470,7 @@ function selectTheCardDiv(cardDiv, selectTheCardDivLineItemFlag=false) {
         selectTheCardDivLineItem(cardDivLineItem); 
     }
 
-    debugTheSelectedCardDivId();
+    // debugTheSelectedCardDivId();
 }
 
 function getTheSelectedCardDivId() {
@@ -1493,7 +1493,7 @@ function deselectTheSelectedCardDiv(deselectTheSelectedCardDivLineItemFlag=false
         theSelectedCardDiv = null;
 
     }
-    debugTheSelectedCardDivId();
+    // debugTheSelectedCardDivId();
 }
 
 // handle mouse click event for any div element with
@@ -1538,7 +1538,7 @@ function selectTheCardDivLineItem(cardDivLineItem, selectTheCardDivFlag=false) {
         scrollElementIntoView(cardDiv);
     }
     
-    debugTheSelectedCardDivId();
+    // debugTheSelectedCardDivId();
 }
 
 function deselectTheSelectedCardDivLineItem(deselectTheSelectedCardDivFlag=false) {
@@ -1554,7 +1554,7 @@ function deselectTheSelectedCardDivLineItem(deselectTheSelectedCardDivFlag=false
         // sets the theSelectedCardDivLineItem to null
         theSelectedCardDivLineItem = null;
     }
-    debugTheSelectedCardDivId();
+    // debugTheSelectedCardDivId();
 }
 
 function addCardDivLineItemClickListener(cardDivLineItem, cardDiv) {
@@ -1870,7 +1870,7 @@ function focalPointListener(x, y) {
     focalPointX = x;
     focalPointY = y;
     handleFocalPointMove();
-    debugFocalPoint();
+    // debugFocalPoint();
 }
 
 var parallaxX;
@@ -1887,36 +1887,36 @@ function easeFocalPointToBullsEye() {
     focalPoint.easeFocalPointTo(bullsEyeX, bullsEyeY);
 }
 
-function debugFocalPoint() {
-    if ( debugFocalPointElement != null ) {
-        var html = "";
-        if (isMouseOverCanvasContainer && mouseX && mouseY)
-            html += `mouse in canvas [${mouseX},${mouseY}]<br/>`;
-        else
-            html += "mouse not in canvas<br/>";
+// function debugFocalPoint() {
+//     if ( debugFocalPointElement != null ) {
+//         var html = "";
+//         if (isMouseOverCanvasContainer && mouseX && mouseY)
+//             html += `mouse in canvas [${mouseX},${mouseY}]<br/>`;
+//         else
+//             html += "mouse not in canvas<br/>";
 
-        html += `bullsEye:[${bullsEyeX},${bullsEyeY}]<br/>`;
-        html += `focalPoint:[${focalPointX},${focalPointY}]<br/>`;
-        const { parallaxX, parallaxY } = getParallax();
-        html += `parallax:[${parallaxX},${parallaxY}]<br/>`;
+//         html += `bullsEye:[${bullsEyeX},${bullsEyeY}]<br/>`;
+//         html += `focalPoint:[${focalPointX},${focalPointY}]<br/>`;
+//         const { parallaxX, parallaxY } = getParallax();
+//         html += `parallax:[${parallaxX},${parallaxY}]<br/>`;
 
-        var time = (new Date()).getTime();
-        html += `time:${time}<br/>`;
+//         var time = (new Date()).getTime();
+//         html += `time:${time}<br/>`;
         
-        debugFocalPointElement.innerHTML = html;
-    }
-}
+//         debugFocalPointElement.innerHTML = html;
+//     }
+// }
 
-function debugTheSelectedCardDivId() {
-    if ( debugTheSelectedCardDivIdElement != null ) {
-        var html = "";
-        var theSelectedCardDivIdStr = theSelectedCardDiv == null ? 'null' : `${theSelectedCardDiv.id}`;
-        var theSelectedCardDivLineItemIdStr = theSelectedCardDivLineItem == null ? 'null' : `${theSelectedCardDivLineItem.id}`;
-        html += `theSelectedCardDivIdStr:${theSelectedCardDivIdStr}<br/>`;
-        html += `theSelectedCardDivLineItemIdStr:${theSelectedCardDivLineItemIdStr}<br/>`;
-        debugTheSelectedCardDivIdElement.innerHTML = html;
-    }
-}
+// function debugTheSelectedCardDivId() {
+//     if ( debugTheSelectedCardDivIdElement != null ) {
+//         var html = "";
+//         var theSelectedCardDivIdStr = theSelectedCardDiv == null ? 'null' : `${theSelectedCardDiv.id}`;
+//         var theSelectedCardDivLineItemIdStr = theSelectedCardDivLineItem == null ? 'null' : `${theSelectedCardDivLineItem.id}`;
+//         html += `theSelectedCardDivIdStr:${theSelectedCardDivIdStr}<br/>`;
+//         html += `theSelectedCardDivLineItemIdStr:${theSelectedCardDivLineItemIdStr}<br/>`;
+//         debugTheSelectedCardDivIdElement.innerHTML = html;
+//     }
+// }
 
 // return the min and max years over the list of jobs
 function getMinMaxTimelineYears(jobs) {
