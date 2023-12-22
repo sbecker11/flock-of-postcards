@@ -405,13 +405,13 @@ function process_bizcard_description_HTML(bizcardDiv, description_HTML) {
 // }
 
 function createUrlAnchorTag(url, color = 'white') {
-    return `<a href="${url}" target="_blank"><img class="geography-icon" src="static_content/icons/icons8-geography-16-${color}.png"/></a>`;
+    //return `<a href="${url}" target="_blank"><img class="geography-icon" src="static_content/icons/icons8-geography-16-${color}.png"/></a>`;
+    return `<img class="geography-icon" src="static_content/icons/icons8-geography-16-${color}.png" data-url='${url}'/>`;
 }
 
 function createImgAnchorTag(img, color = 'white') {
     return `<a href="${img}" target="_blank"><img class="image-icon" src="static_content/icons/icons8-edit-image-16-${color}.png"/></a>`;
 }
-
 
 // This function takes an inputString, applies the regular expression to extract the 
 // newTagLink objects with properties text, img, url, and html, and then replaces 
@@ -509,8 +509,24 @@ function setCardDivIdOfTagLink(bizcardDiv, tag_link) {
     var cardDiv = findCardDiv(tag_link);
     if (!cardDiv) {
         cardDiv = createCardDiv(bizcardDiv, tag_link);
+
+
+        // add a click listener to all geographyIcons of the cardDiv
     }
     tag_link.cardDivId = cardDiv.id;
+}
+
+function addGeometryIconClickListeners(element) {
+    let geographyIcons = element.getElementsByClassName("geography-icon");
+    for (let i = 0; i < geographyIcons.length; i++) {
+        let geographyIcon = geographyIcons[i]; // Remove the extra "i" here
+        geographyIcon.addEventListener("click", () => {
+            const url = geographyIcon.getAttribute("data-url");
+            if (url) {
+                alerts.openModalLink(url);
+            }
+        });
+    }
 }
 
 // this is an Order(N) search that could be optimized.
@@ -598,6 +614,8 @@ function createCardDiv(bizcardDiv, tag_link) {
     cardDiv.tag_link = tag_link;
     cardDiv.id = cardDivId;
     canvas.appendChild(cardDiv); 
+
+    addGeometryIconClickListeners(cardDiv);
 
     const cardDivIndex = getCardDivIndex(cardDivId) || 0;
 
@@ -1593,7 +1611,7 @@ function addCardDivLineItem(targetCardDivId) {
         var cardDivLineItem = document.createElement("li");
         // console.log(`created cardDivLineItem:${cardDivLineItem.id}`);
         cardDivLineItem.classList.add("card-div-line-item");
-        cardDivLineItem.classList.add("right-column-div-child");
+        //cardDivLineItem.classList.add("right-column-div-child");
         cardDivLineItem.id = "card-div-line-item-" + targetCardDivId;
         cardDivLineItem.setAttribute("targetCardDivId", targetCardDivId);
 
@@ -1614,7 +1632,6 @@ function addCardDivLineItem(targetCardDivId) {
         // set content
         var cardDivLineItemContent = document.createElement("div");
         cardDivLineItemContent.classList.add("card-div-line-item-content");
-        cardDivLineItemContent.classList.add("right-column-div-child");
         cardDivLineItemContent.style.backgroundColor = 'transparent';
         cardDivLineItemContent.style.color = targetCardDiv.getAttribute("saved-color") || "";
 
@@ -1677,6 +1694,9 @@ function addCardDivLineItem(targetCardDivId) {
         for (let i = 0; i < tagLinks.length; i++) {
             addTagLinkClickListener(tagLinks[ i ]);
         }
+
+        addGeometryIconClickListeners(cardDivLineItem);
+
     } else {
         // console.log(`returning preexisting cardDivLineItem for targetCardDivId:${targetCardDivId}`);
         cardDivLineItem = existingCardDivLineItem
