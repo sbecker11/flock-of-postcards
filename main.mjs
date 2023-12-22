@@ -2,11 +2,11 @@
 // @ts-nocheck
 'use strict';
 
-import * as utils from './modules/utils.js';
-import * as alerts from './modules/alerts.js';
-import * as timeline from './modules/timeline.js';
-import * as focalPoint from './modules/focal_point.js';
-import * as monoColor from './modules/monoColor.js';
+import * as utils from './modules/utils.mjs';
+import * as alerts from './modules/alerts.mjs';
+import * as timeline from './modules/timeline.mjs';
+import * as focalPoint from './modules/focal_point.mjs';
+import * as monoColor from './modules/monoColor.mjs';
 
 // --------------------------------------
 // Element reference globals
@@ -319,12 +319,6 @@ function createBizcardDivs() {
         // does not scroll self into view
 
     }
-    // find all spans with class tagLinke and add click listenter
-    var tagLinks = document.getElementsByClassName("tag-link");
-    for (var i = 0; i < tagLinks.length; i++) {
-        var tag_link = tagLinks[ i ];
-        tag_link.addEventListener("click", handleTagLinkClick);
-    }   
 }
 
 function handleTagLinkClick(event) {
@@ -337,8 +331,11 @@ function handleTagLinkClick(event) {
     // console.assert(targetCardDiv != null);
     if (targetCardDiv) {
         // console.log(`handleTagLinkClick: ${targetCardDivId}`);
-        selectCardDiv(targetCardDiv);
-        scrollCardDivIntoView(targetCardDiv);
+        selectTheCardDiv(targetCardDiv, true);
+        scrollElementIntoView(targetCardDiv);
+        if ( theSelectedCardDiv !== null && theSelectedCardDiv.id !== targetCardDiv.id ) {
+            console.log(`handleTagLinkClick: ${targetCardDivId} not selected`);
+        }
     }
 }
 
@@ -346,7 +343,7 @@ function handleTagLinkClick(event) {
 // tag_link globals
 
 // the global set of tagLinks created while creating all .Bizcard-divs from
-// the list of all `job` objects defined in "static_content/jobs.js"
+// the list of all `job` objects defined in "static_content/jobs.mjs"
 var allTagLinks = [];
 
 function initAllTagLinks() {
@@ -900,7 +897,7 @@ function applyParallaxToOneCardDivStyleProps(cardDiv, newStyleProps ) {
     try {
         cardDiv.style.translate = zTranslateStr;
     } catch (error) {
-        console.error(`applyParallax cardDiv:${cardDiv.id}`, error);
+        // console.error(`applyParallax cardDiv:${cardDiv.id}`, error);
     }
     const parallaxedStyleProps = utils.getStyleProps(cardDiv);
     return parallaxedStyleProps;
@@ -1796,12 +1793,12 @@ function addTagLinkClickListener(tag_link) {
         // console.log(`cardDivId:${cardDivId}`);
         var cardDiv = document.getElementById(cardDivId);
         if (cardDiv) {
-            var tagLinkText = cardDiv.getAttribute("tagLinkText");
+            // var tagLinkText = cardDiv.getAttribute("tagLinkText");
             // console.log(`tag_link.text:${tagLinkText}`);
             // console.assert(tagLinkText != null && tagLinkUrl != null);
 
             // selectTheCardDiv and its cardDivLineItem
-            selectTheCardDiv(cardDiv, false);
+            selectTheCardDiv(cardDiv, true);
 
             // need to scroll cardDiv into view
             scrollElementIntoView(cardDiv);
@@ -1825,7 +1822,7 @@ function renderAllTranslateableDivsAtCanvasContainerCenter() {
             div.style.translate = translateStr;
         } catch (error) {
             // console.log(`leftCenter div:${div.id}`, error);
-            console.error(`leftCenter div:${div.id}`, error);
+            // console.error(`leftCenter div:${div.id}`, error);
         }
     }
 }
@@ -1962,9 +1959,12 @@ function handleWindowLoad() {
 
     // set up animation loop
     (function drawFrame() {
-        window.requestAnimationFrame(drawFrame);
         focalPoint.drawFocalPointAnimationFrame();
+        // Request the next frame.
+        window.requestAnimationFrame(drawFrame);
     })();
+    // Start the animation loop.
+    window.requestAnimationFrame(drawFrame);
 }
 
 function handleWindowResize() {

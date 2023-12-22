@@ -1,6 +1,6 @@
 // @ts-nocheck
 
-import * as utils from './utils.js';
+import * as utils from './utils.mjs';
 
 var isMonoColor = false;
 const monoColor = "black";

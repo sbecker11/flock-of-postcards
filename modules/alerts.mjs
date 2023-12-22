@@ -1,6 +1,6 @@
 // @ts-nocheck
 
-import { selectAllBizcards } from '../main.js';
+import { selectAllBizcards } from '../main.mjs';
 
 const overlay = document.getElementById('overlay');
 const welcomeAlert = document.getElementById('welcomeAlert');

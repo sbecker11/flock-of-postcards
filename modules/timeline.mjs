@@ -1,7 +1,7 @@
 // @ts-check
 
-import * as timeline from './timeline.js';
-import * as utils from './utils.js';
+import * as timeline from './timeline.mjs';
+import * as utils from './utils.mjs';
   
 // --------------------------------------
 // TimeLine globals 

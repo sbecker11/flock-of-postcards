@@ -38,13 +38,14 @@ export function getFocalPoint() {
 // move the _focalPointElement to the given
 // canvasContainer-relative location
 export function moveFocalPointTo(x, y) {
-    var newLeft = x - Math.floor(_focalPointElement.offsetWidth / 2);
-    var newTop = y - Math.floor(_focalPointElement.offsetHeight / 2);
-    _focalPointElement.style.left = `${newLeft}px`;
-    _focalPointElement.style.top = `${newTop}px`;
+    // var newLeft = x - Math.floor(_focalPointElement.offsetWidth / 2);
+    // var newTop = y - Math.floor(_focalPointElement.offsetHeight / 2);
+    // _focalPointElement.style.left = `${newLeft}px`;
+    // _focalPointElement.style.top = `${newTop}px`;
+    
     // alternative
     // see https://stackoverflow.com/a/53892597
-    // _focalPointElement.style.transform = `translate(${x}px, ${y}px)`;
+    _focalPointElement.style.transform = `translate(${x}px, ${y}px)`;
 
     // notify the caller's listener
     _focalPointListener(x, y);
