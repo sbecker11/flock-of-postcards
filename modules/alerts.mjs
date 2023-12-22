@@ -74,23 +74,3 @@ function trapFocus(element) {
     // Set initial focus to the first focusable element
     firstFocusableElement.focus();
 }
-
-const modal_div = document.getElementById('modal_div');
-const model_close = document.getElementById('modal_close');
-const modal_content = document.getElementById('modal_content');
-
-export function openModalLink(linkToOpen) {
-    modal_content.src = linkToOpen; // Set the iframe source to the link URL
-    modal_div.style.display = 'block';
-}
-
-modal_close.addEventListener('click', function() {
-    modal_div.style.display = 'none';
-});
-
-// Close the modal if the user clicks outside the modal content
-window.addEventListener('click', function(event) {
-    if (event.target == modal_div) {
-        modal_div.style.display = 'none';
-    }
-});

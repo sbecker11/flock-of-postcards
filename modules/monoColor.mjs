@@ -29,11 +29,17 @@ export function toggleMonoColor() {
     return isMonoColor;
 }
 
+function setIconsToColor(element, iconType, color) {
+    let iconElements = element.querySelectorAll('img.' + iconType + '-icon');
+    color = color == 'rgb(255, 255, 255)' ? 'white' : 'black';
+    iconElements.forEach(function(iconElement) {
+        iconElement.src = 'static_content/icons/icons8-' + iconType + '-16-' + color + '.png';
+    });
+}
+
 export function applyMonoColorToElement(element) {
     let sideElement = element.parentElement.getElementsByClassName(target_side_class)[0];
     let tagLinkChildren = element.querySelectorAll('.tag-link');
-    let geographyImgChildren = element.querySelectorAll('li.card-div-line-item-description-list-item img.geography-icon');
-    let imageImgChildren = element.querySelectorAll('li.card-div-line-item-description-list-item img.image-icon');
     if (isMonoColor) {
         // save colors in dataset
         element.dataset.color = element.style.color;
@@ -49,36 +55,26 @@ export function applyMonoColorToElement(element) {
         tagLinkChildren.forEach(function(tagLinkElement) {
             tagLinkElement.style.color = monoColor;
             tagLinkElement.style.backgroundColor = monoBackgroundColor;
+            setIconsToColor(tagLinkElement, 'geography', monoColor);
+            setIconsToColor(tagLinkElement, 'image', monoColor);
         });
     } else {
-        let sideElement = element.parentElement.getElementsByClassName(target_side_class)[0];
-        // restore colors from dataset
-        element.style.color = element.dataset.color;
-        element.style.backgroundColor = element.dataset.backgroundColor;
-        if ( sideElement !== null ) {
-            sideElement.style.color = element.dataset.color;
-            sideElement.style.backgroundColor = element.dataset.backgroundColor;
+        if( element.dataset.color !== undefined ) {
+            // restore colors from dataset
+            element.style.color = element.dataset.color;
+            element.style.backgroundColor = element.dataset.backgroundColor;
+            if ( sideElement !== null ) {
+                sideElement.style.color = element.dataset.color;
+                sideElement.style.backgroundColor = element.dataset.backgroundColor;
+            }
+            tagLinkChildren.forEach(function(tagLinkElement) {
+                tagLinkElement.style.color = element.dataset.color;
+                tagLinkElement.style.backgroundColor = element.dataset.backgroundColor;
+                setIconsToColor(tagLinkElement, 'geography', element.dataset.color);
+                setIconsToColor(tagLinkElement, 'image', element.dataset.color);
+            });
         }
-        tagLinkChildren.forEach(function(tagLinkElement) {
-            tagLinkElement.style.color = element.dataset.color;
-            tagLinkElement.style.backgroundColor = element.dataset.backgroundColor;    
-        });
-
     }
-    utils.validateIsElement(element);
-    let elementColor = element.style.color;
-    let elementColorIsWhite = (elementColor == 'rgb(255, 255, 255)');
-    geographyImgChildren.forEach(function(geographyImgElement) {
-        geographyImgElement.src = elementColorIsWhite ? 
-            'static_content/icons/icons8-geography-16-white.png' : 
-            'static_content/icons/icons8-geography-16-black.png';
-    }); 
-    imageImgChildren.forEach(function(imageImgElement) {
-        imageImgElement.src = elementColorIsWhite ? 
-            'static_content/icons/icons8-image-16-white.png' : 
-            'static_content/icons/icons8-image-16-black.png';
-    }); 
-
 }
 
 // Assign the function to window for global access

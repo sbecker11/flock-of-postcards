@@ -509,9 +509,6 @@ function setCardDivIdOfTagLink(bizcardDiv, tag_link) {
     var cardDiv = findCardDiv(tag_link);
     if (!cardDiv) {
         cardDiv = createCardDiv(bizcardDiv, tag_link);
-
-
-        // add a click listener to all geographyIcons of the cardDiv
     }
     tag_link.cardDivId = cardDiv.id;
 }
@@ -523,7 +520,7 @@ function addGeometryIconClickListeners(element) {
         geographyIcon.addEventListener("click", () => {
             const url = geographyIcon.getAttribute("data-url");
             if (url) {
-                alerts.openModalLink(url);
+                window.open(url, "_blank");
             }
         });
     }
@@ -752,6 +749,7 @@ function createCardDiv(bizcardDiv, tag_link) {
     cardDiv.setAttribute("tagLinkText", tag_link[ "text" ]);
     cardDiv.setAttribute("tagLinkUrl", tag_link[ "url" ]);
     cardDiv.setAttribute("tagLinkImg", tag_link[ "img" ]);
+
     return cardDiv;
 }
 
@@ -1685,8 +1683,8 @@ function addCardDivLineItem(targetCardDivId) {
         // console.log(`cardDivLineItem:${cardDivLineItem.id} appended cardDivLineItemContent and cardDivLineItemRightColumn`);
         // console.log(`cardDivLineItem boundingRect:${JSON.stringify(cardDivLineItem.getBoundingClientRect())}`);
         // console.log(`rightContentDiv boundingRect:${JSON.stringify(rightContentDiv.getBoundingClientRect())}`);
-        monoColor.applyMonoColorToElement(cardDivLineItemContent);
         rightContentDiv.appendChild(cardDivLineItem);
+
 
         // find all .tagLinks of this cardDivLineItem
         // and give them onclick listeners
@@ -1694,7 +1692,6 @@ function addCardDivLineItem(targetCardDivId) {
         for (let i = 0; i < tagLinks.length; i++) {
             addTagLinkClickListener(tagLinks[ i ]);
         }
-
         addGeometryIconClickListeners(cardDivLineItem);
 
     } else {
@@ -1705,6 +1702,8 @@ function addCardDivLineItem(targetCardDivId) {
     // does not select self
     // does scroll self into view
     scrollElementIntoView(cardDivLineItem);
+    monoColor.applyMonoColorToElement(cardDivLineItem);
+
     return cardDivLineItem;
 }
 
@@ -1985,6 +1984,10 @@ function handleWindowLoad() {
     })();
     // Start the animation loop.
     window.requestAnimationFrame(drawFrame);
+}
+
+function drawFrame() {
+    focalPoint.drawFocalPointAnimationFrame();
 }
 
 function handleWindowResize() {
