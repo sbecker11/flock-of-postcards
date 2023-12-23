@@ -6,7 +6,7 @@ html, body {
   height: 100%;
   margin: 0; /* Remove default margins */
   padding: 0; /* Remove default paddings */
-  background-color: blueviolet;
+  background-color: midnightblue;
   overflow: hidden;
 }
 

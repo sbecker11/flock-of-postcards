@@ -321,23 +321,23 @@ function createBizcardDivs() {
     }
 }
 
-function handleTagLinkClick(event) {
-    // console.assert(event != null);
-    var tag_link = event.target;
-    // console.assert(tag_link != null);
-    var targetCardDivId = tag_link.getAttribute("targetCardDivId");
-    // console.assert(targetCardDivId != null);
-    var targetCardDiv = document.getElementById(targetCardDivId);
-    // console.assert(targetCardDiv != null);
-    if (targetCardDiv) {
-        // console.log(`handleTagLinkClick: ${targetCardDivId}`);
-        selectTheCardDiv(targetCardDiv, true);
-        scrollElementIntoView(targetCardDiv);
-        if ( theSelectedCardDiv !== null && theSelectedCardDiv.id !== targetCardDiv.id ) {
-            console.log(`handleTagLinkClick: ${targetCardDivId} not selected`);
-        }
-    }
-}
+// function handleTagLinkClick(event) {
+//     // console.assert(event != null);
+//     var tag_link = event.target;
+//     // console.assert(tag_link != null);
+//     var targetCardDivId = tag_link.getAttribute("targetCardDivId");
+//     // console.assert(targetCardDivId != null);
+//     var targetCardDiv = document.getElementById(targetCardDivId);
+//     // console.assert(targetCardDiv != null);
+//     if (targetCardDiv) {
+//         // console.log(`handleTagLinkClick: ${targetCardDivId}`);
+//         selectTheCardDiv(targetCardDiv, true);
+//         scrollElementIntoView(targetCardDiv);
+//         if ( theSelectedCardDiv !== null && theSelectedCardDiv.id !== targetCardDiv.id ) {
+//             console.log(`handleTagLinkClick: ${targetCardDivId} not selected`);
+//         }
+//     }
+// }
 
 // --------------------------------------
 // tag_link globals
@@ -494,14 +494,6 @@ function process_bizcard_description_item(bizcardDiv, inputString) {
     return { newTagLinks, updatedString };
 }
 
-function test_process_bizcard_description_item() {
-    // Example usage
-    const inputString = "Your string with [words]{path}(url) patterns goes here";
-    const result = processString(inputString);
-    // console.log(result.newTagLinks); // Logs the list of words-path-url tagLinks
-    // console.log(result.updatedString); // Logs the revised text with embedded HTML elements
-}
-
 // find or create a cardDiv and use it
 // to set the tag_link's "cardDivId" property
 // otherwise create a new cardDiv
@@ -521,8 +513,10 @@ function addIconClickListeners(element) {
     var tagLinkColor = '';
     if ( element.classList.contains('card-div') ) {
         tagLinkColor = element.style.color;
-    } else if (element.classList.contains('card-div-line-item')) {
+    } else if (element.classList.contains('card-div-line-item-content')) {
         tagLinkColor = element.style.color;
+    } else {
+        throw new Error(`unexpected element.classList:${element.classList} for element.id:${element.id} element.outerHTML:${element.outerHTML}```);
     }
     const elementColor = (tagLinkColor == 'rgb(255, 255, 255)') ? 'white' : 'black';
     let geometry_icons = element.querySelectorAll(`geometry-icon`);
@@ -1716,11 +1710,12 @@ function addCardDivLineItem(targetCardDivId) {
 
         // find all .tagLinks of this cardDivLineItem
         // and give them onclick listeners
-        var tagLinks = cardDivLineItem.querySelectorAll('.tag-link');
+        var tagLinks = cardDivLineItemContent.querySelectorAll('.tag-link');
         for (let i = 0; i < tagLinks.length; i++) {
-            addTagLinkClickListener(tagLinks[ i ]);
+            let tagLink = tagLinks[ i ];
+            addTagLinkClickListener(tagLink);
         }
-        addIconClickListeners(cardDivLineItem);
+        addIconClickListeners(cardDivLineItemContent);
 
     } else {
         // console.log(`returning preexisting cardDivLineItem for targetCardDivId:${targetCardDivId}`);

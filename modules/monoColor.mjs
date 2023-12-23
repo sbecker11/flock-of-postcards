@@ -44,7 +44,7 @@ export function setIconsToColor(element, color) {
         throw new Error(`color:${color} must be black or white`);
     }
     for (let iconType of ICON_TYPES) {
-        let iconElements = element.querySelector('.icon-' + iconType);
+        let iconElements = element.querySelectorAll('.icon-' + iconType);
         for (let iconElement of iconElements) {
             setIconToColor(iconElement, iconType, color);
         }
