@@ -410,7 +410,8 @@ function createUrlAnchorTag(url, color = 'white') {
 }
 
 function createImgAnchorTag(img, color = 'white') {
-    return `<a href="${img}" target="_blank"><img class="image-icon" src="static_content/icons/icons8-edit-image-16-${color}.png"/></a>`;
+    //return `<a href="${img}" target="_blank"><img class="image-icon" src="static_content/icons/icons8-edit-image-16-${color}.png"/></a>`;
+    return `<img class="image-icon" src="static_content/icons/icons8-image-16-${color}.png" data-image='${img}'/>`;
 }
 
 // This function takes an inputString, applies the regular expression to extract the 
@@ -513,16 +514,44 @@ function setCardDivIdOfTagLink(bizcardDiv, tag_link) {
     tag_link.cardDivId = cardDiv.id;
 }
 
-function addGeometryIconClickListeners(element) {
-    let geographyIcons = element.getElementsByClassName("geography-icon");
-    for (let i = 0; i < geographyIcons.length; i++) {
-        let geographyIcon = geographyIcons[i]; // Remove the extra "i" here
-        geographyIcon.addEventListener("click", () => {
-            const url = geographyIcon.getAttribute("data-url");
-            if (url) {
-                window.open(url, "_blank");
+// find all icon elements in the element 
+// and add a click listener to each icon
+// and set the icon to the color of the element
+function addIconClickListeners(element) {
+    var tagLinkColor = '';
+    if ( element.classList.contains('card-div') ) {
+        tagLinkColor = element.style.color;
+    } else if (element.classList.contains('card-div-line-item')) {
+        tagLinkColor = element.style.color;
+    }
+    const elementColor = (tagLinkColor == 'rgb(255, 255, 255)') ? 'white' : 'black';
+    let geometry_icons = element.querySelectorAll(`geometry-icon`);
+    let image_icons = element.querySelectorAll(`image-icon`);
+    if (geometry_icons.length > 0 && image_icons.length > 0) {
+        log.console(`element.id:${element.id} has both geometry and image icons`);
+    }
+    for ( let iconType of monoColor.ICON_TYPES ) {
+        var iconElements = element.querySelectorAll(`${iconType}-icon`);
+        for ( let i=0; i<iconElements.length; i++ ) {
+            var iconElement = iconElements[i];
+            monoColor.setIconToColor(iconElement, iconType, elementColor);
+            if ( !iconElement.src.endsWith(`${elementColor}.png`) ) {
+                throw new Error(`element.id:${element.id} iconElement.src:${iconElement.src} does NOT end with ${elementColor}.png`);
             }
-        });
+            iconElement.dataset.iconType = iconType;
+            //console.log(`addEventListener: element.id:${element.id} color:${color} iconElement click: iconType:${iconType} iconSrc:${iconElement.src}`);
+            iconElement.addEventListener("click", (event) => {
+                const theIconElement = event.target;
+                const theIconType = theIconElement.dataset.iconType;
+                const url = theIconElement.getAttribute(`data-${theIconType}`);
+                if (url) {
+                    console.log(`theIconElement click: ${theIconType} ${url}`);
+                    window.open(url, "_blank");
+                } else {
+                    console.log(`iconElement click: no url`);
+                }
+            });
+        }
     }
 }
 
@@ -611,8 +640,6 @@ function createCardDiv(bizcardDiv, tag_link) {
     cardDiv.tag_link = tag_link;
     cardDiv.id = cardDivId;
     canvas.appendChild(cardDiv); 
-
-    addGeometryIconClickListeners(cardDiv);
 
     const cardDivIndex = getCardDivIndex(cardDivId) || 0;
 
@@ -749,6 +776,7 @@ function createCardDiv(bizcardDiv, tag_link) {
     cardDiv.setAttribute("tagLinkText", tag_link[ "text" ]);
     cardDiv.setAttribute("tagLinkUrl", tag_link[ "url" ]);
     cardDiv.setAttribute("tagLinkImg", tag_link[ "img" ]);
+    addIconClickListeners(cardDiv);
 
     return cardDiv;
 }
@@ -1692,7 +1720,7 @@ function addCardDivLineItem(targetCardDivId) {
         for (let i = 0; i < tagLinks.length; i++) {
             addTagLinkClickListener(tagLinks[ i ]);
         }
-        addGeometryIconClickListeners(cardDivLineItem);
+        addIconClickListeners(cardDivLineItem);
 
     } else {
         // console.log(`returning preexisting cardDivLineItem for targetCardDivId:${targetCardDivId}`);

@@ -8,6 +8,8 @@ const monoBackgroundColor = "lightgrey";
 const target_class = "card-div-line-item-content";
 const target_side_class = "card-div-line-item-right-column";
 
+export const ICON_TYPES = ['geometry', 'image'];
+
 // Directly export the function
 export function toggleMonoColor() {
     let monoColorIcon = document.getElementById('monoColorIcon');
@@ -29,12 +31,24 @@ export function toggleMonoColor() {
     return isMonoColor;
 }
 
-function setIconsToColor(element, iconType, color) {
-    let iconElements = element.querySelectorAll('img.' + iconType + '-icon');
-    color = color == 'rgb(255, 255, 255)' ? 'white' : 'black';
-    iconElements.forEach(function(iconElement) {
-        iconElement.src = 'static_content/icons/icons8-' + iconType + '-16-' + color + '.png';
-    });
+// set icon to color
+export function setIconToColor(iconElement, iconType, color) {
+    if ( !color in ['black', 'white'] ) {
+        throw new Error(`color:${color} must be black or white`);
+    }
+    iconElement.src = 'static_content/icons/icons8-' + iconType + '-16-' + color + '.png';
+}
+// set all child icons to color
+export function setIconsToColor(element, color) {
+    if ( !color in ['black', 'white'] ) {
+        throw new Error(`color:${color} must be black or white`);
+    }
+    for (let iconType of ICON_TYPES) {
+        let iconElements = element.querySelector('.icon-' + iconType);
+        for (let iconElement of iconElements) {
+            setIconToColor(iconElement, iconType, color);
+        }
+    }
 }
 
 export function applyMonoColorToElement(element) {
@@ -55,8 +69,7 @@ export function applyMonoColorToElement(element) {
         tagLinkChildren.forEach(function(tagLinkElement) {
             tagLinkElement.style.color = monoColor;
             tagLinkElement.style.backgroundColor = monoBackgroundColor;
-            setIconsToColor(tagLinkElement, 'geography', monoColor);
-            setIconsToColor(tagLinkElement, 'image', monoColor);
+            setIconsToColor(tagLinkElement, monoColor);
         });
     } else {
         if( element.dataset.color !== undefined ) {
@@ -70,8 +83,7 @@ export function applyMonoColorToElement(element) {
             tagLinkChildren.forEach(function(tagLinkElement) {
                 tagLinkElement.style.color = element.dataset.color;
                 tagLinkElement.style.backgroundColor = element.dataset.backgroundColor;
-                setIconsToColor(tagLinkElement, 'geography', element.dataset.color);
-                setIconsToColor(tagLinkElement, 'image', element.dataset.color);
+                setIconsToColor(tagLinkElement, element.dataset.color);
             });
         }
     }
