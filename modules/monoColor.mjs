@@ -5,87 +5,63 @@ import * as utils from './utils.mjs';
 var isMonoColor = false;
 const monoColor = "black";
 const monoBackgroundColor = "lightgrey";
-const target_class = "card-div-line-item-content";
-const target_side_class = "card-div-line-item-right-column";
 
-export const ICON_TYPES = ['geometry', 'image'];
+export const ICON_TYPES = ['back', 'geometry', 'image'];
+export const ICON_COLORS = ['black', 'white'];
 
 // Directly export the function
 export function toggleMonoColor() {
     let monoColorIcon = document.getElementById('monoColorIcon');
-    let elements = document.getElementsByClassName(target_class);
+    let monoColorElements = document.getElementsByClassName("mono-color-sensitive");
     if (!isMonoColor) {
         isMonoColor = true;
         monoColorIcon.style.border = "2px solid white";
-        Array.from(elements).forEach(element => {
-            applyMonoColorToElement(element);
-        });
     } else {
         isMonoColor = false;
         monoColorIcon.style.border = "2px solid transparent";
-        Array.from(elements).forEach(element => {
-            applyMonoColorToElement(element);
-        });
     }
+    Array.from(monoColorElements).forEach(monoColorElement => {
+        applyMonoColorToElement(monoColorElement);
+    });
 
     return isMonoColor;
 }
 
-// set icon to color
-export function setIconToColor(iconElement, iconType, color) {
-    if ( !color in ['black', 'white'] ) {
-        throw new Error(`color:${color} must be black or white`);
+export function setIconToColor(iconElement, iconColor) {
+    let iconType = iconElement.dataset.iconType;
+    if( !iconType in ICON_TYPES ) {
+        throw new Error(`monoColorElement:${monoColorElement} has illegal data-iconType:${iconType}`);
     }
-    iconElement.src = 'static_content/icons/icons8-' + iconType + '-16-' + color + '.png';
-}
-// set all child icons to color
-export function setIconsToColor(element, color) {
-    if ( !color in ['black', 'white'] ) {
-        throw new Error(`color:${color} must be black or white`);
+    if ( !iconColor in ICON_COLORS ) {
+        throw new Error(`monoColorElement:${monoColorElement} has illegal data-iconColor:${iconColor}`);
     }
-    for (let iconType of ICON_TYPES) {
-        let iconElements = element.querySelectorAll('.icon-' + iconType);
-        for (let iconElement of iconElements) {
-            setIconToColor(iconElement, iconType, color);
-        }
-    }
+    iconElement.src = 'static_content/icons/icons8-' + iconType + '-16-' + iconColor + '.png';
 }
 
-export function applyMonoColorToElement(element) {
-    let sideElement = element.parentElement.getElementsByClassName(target_side_class)[0];
-    let tagLinkChildren = element.querySelectorAll('.tag-link');
+export function applyMonoColorToElement(monoColorElement) {
     if (isMonoColor) {
-        // save colors in dataset
-        element.dataset.color = element.style.color;
-        element.dataset.backgroundColor = element.style.backgroundColor;
-
         // set colors to mono
-        element.style.color = monoColor;
-        element.style.backgroundColor = monoBackgroundColor;
-        if ( sideElement !== null ) {
-            sideElement.style.color = monoColor;
-            sideElement.style.backgroundColor = monoBackgroundColor;
+        monoColorElement.style.color = monoColor;
+        monoColorElement.style.backgroundColor = monoBackgroundColor;
+        if ( "icon" in monoColorElement.classList ) {
+            setIconToColor(monoColorElement, monoColor);
         }
-        tagLinkChildren.forEach(function(tagLinkElement) {
-            tagLinkElement.style.color = monoColor;
-            tagLinkElement.style.backgroundColor = monoBackgroundColor;
-            setIconsToColor(tagLinkElement, monoColor);
-        });
     } else {
-        if( element.dataset.color !== undefined ) {
-            // restore colors from dataset
-            element.style.color = element.dataset.color;
-            element.style.backgroundColor = element.dataset.backgroundColor;
-            if ( sideElement !== null ) {
-                sideElement.style.color = element.dataset.color;
-                sideElement.style.backgroundColor = element.dataset.backgroundColor;
-            }
-            tagLinkChildren.forEach(function(tagLinkElement) {
-                tagLinkElement.style.color = element.dataset.color;
-                tagLinkElement.style.backgroundColor = element.dataset.backgroundColor;
-                setIconsToColor(tagLinkElement, element.dataset.color);
-            });
+        // retrieve the saved colors from the dataset
+        let savedColor = monoColorElement.dataset.savedcolor;
+        if( typeof savedColor ==='undefined' || savedColor === null || savedColor === "") {
+            throw new Error(`monoColorElement:${monoColorElement} must have a data-saved-color attribute`);
         }
+        let savedBackgroundColor = monoColorElement.dataset.savedbackgroundcolor;
+        if( typeof savedBackgroundColor ==='undefined' || savedBackgroundColor === null || savedBackgroundColor === "") {
+            throw new Error(`monoColorElement:${monoColorElement} must have a data-saved-background-color attribute`);
+        }
+        // restore the saved colors
+        monoColorElement.style.color = savedColor;
+        monoColorElement.style.backgroundColor = savedBackgroundColor;
+        if ( "icon" in monoColorElement.classList ) {
+            setIconToColor(monoColorElement, savedcolor);
+        }   
     }
 }
 

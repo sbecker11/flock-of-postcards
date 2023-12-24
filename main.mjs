@@ -289,13 +289,6 @@ function createBizcardDivs() {
         bizcardDiv.setAttribute("saved-selected-background-color", utils.adjustHexBrightness(css_hex_background_color_str, 1.7));
         bizcardDiv.setAttribute("saved-selected-color", font_color_name);
 
-        var description_raw = job[ "Description" ];
-        if (description_raw && description_raw.length > 0) {
-            // utils.validateString(description_raw);
-            const [description_HTML, bizcardTagLinks] = process_bizcard_description_HTML(bizcardDiv, description_raw);
-            bizcardDiv.setAttribute("Description", description_HTML);
-            bizcardDiv.setAttribute("TagLinks", JSON.stringify(bizcardTagLinks));
-        }
         bizcardDiv.setAttribute("saved-zIndexStr", zIndexStr);
         bizcardDiv.setAttribute("saved-filterStr", get_filterStr_from_z(z));
 
@@ -303,6 +296,14 @@ function createBizcardDivs() {
         bizcardDiv.style.filter = bizcardDiv.getAttribute("saved-filterStr") || "";
         bizcardDiv.style.backgroundColor = bizcardDiv.getAttribute("saved-background-color") || "";
         bizcardDiv.style.color = bizcardDiv.getAttribute("saved-color") || "";
+
+        var description_raw = job[ "Description" ];
+        if (description_raw && description_raw.length > 0) {
+            // utils.validateString(description_raw);
+            const [description_HTML, bizcardTagLinks] = process_bizcard_description_HTML(bizcardDiv, description_raw);
+            bizcardDiv.setAttribute("Description", description_HTML);
+            bizcardDiv.setAttribute("TagLinks", JSON.stringify(bizcardTagLinks));
+        }
 
         var html = "";
         html += `<span class="bizcard-div-role">${role}</span><br/>`;
@@ -391,27 +392,16 @@ function process_bizcard_description_HTML(bizcardDiv, description_HTML) {
     return [processed_bizcard_description_HTML, bizcardTagLinks];
 }
 
-// function debugTagLinksToStr(tagLinks) {
-//     var tagLinkStrs = [];
-//     for( var i=0; i<tagLinks.length; i++ ) {
-//         var tag_link = tagLinks[i];
-//         if ( tag_link.url != "url" )
-//             var tagLinkStr = tag_link.text + '<br/>' + tag_link.url;
-//         else
-//             var tagLinkStr = tag_link.text;
-//         tagLinkStrs.push(tagLinkStr);
-//     }
-//     return tagLinkStrs.join("|");
-// }
-
-function createUrlAnchorTag(url, color = 'white') {
-    //return `<a href="${url}" target="_blank"><img class="geography-icon" src="static_content/icons/icons8-geography-16-${color}.png"/></a>`;
-    return `<img class="geography-icon" src="static_content/icons/icons8-geography-16-${color}.png" data-url='${url}'/>`;
+function createUrlAnchorTag(url, savedColor, savedBackgroundColor) {
+    return `<img class="icon geography-icon mono-color-sensitive" src="static_content/icons/icons8-geography-16-${savedColor}.png" data-url="${url}" data-savedcolor="${savedColor}" data-savedbackgroundcolor="${savedBackgroundColor}" data-icontype="geography" />`;
 }
 
-function createImgAnchorTag(img, color = 'white') {
-    //return `<a href="${img}" target="_blank"><img class="image-icon" src="static_content/icons/icons8-edit-image-16-${color}.png"/></a>`;
-    return `<img class="image-icon" src="static_content/icons/icons8-image-16-${color}.png" data-image='${img}'/>`;
+function createImgAnchorTag(img, savedColor, savedBackgroundColor) {
+    return `<img class="icon image-icon mono-color-sensitive" src="static_content/icons/icons8-image-16-${savedColor}.png" data-image="${img}" data-savedcolor="${savedColor}" data-savedbackgroundcolor="${savedBackgroundColor}" data-icontype="image"/>`;
+}
+
+function createBackAnchorTag(bizcard_id, savedColor, savedBackgroundColor) {
+    return `<img class="icon back-icon mono-color-sensitive" src="static_content/icons/icons8-back-16-${savedColor}.png" data-bizcard-id="${bizcard_id}" data-savedcolor="${savedColor}" data-savedbackgroundcolor="${savedBackgroundColor}" data-icontype="back"/>`;
 }
 
 // This function takes an inputString, applies the regular expression to extract the 
@@ -420,6 +410,11 @@ function createImgAnchorTag(img, color = 'white') {
 // both the list of newTagLinks and the updatedString with embedded HTML elements.
 
 function process_bizcard_description_item(bizcardDiv, inputString) {
+    if ( typeof bizcardDiv.id === 'undefined' || bizcardDiv.id === null || bizcardDiv.id === '')
+        throw new Error(`bizcardDiv:${bizcardDiv} must have an id attribute`);
+    if ( typeof bizcardDiv.style.color === 'undefined' || bizcardDiv.style.color === null || bizcardDiv.style.color === '')     
+        throw new Error(`bizcardDiv:${bizcardDiv.id} must have a style.color attribute`);
+
     // remove the ignorable placeholders
     inputString = inputString.replace(/\(url\)/g, '');
     inputString = inputString.replace(/\{img\}/g, '');
@@ -438,8 +433,9 @@ function process_bizcard_description_item(bizcardDiv, inputString) {
         return {
             text: parsed[1] || '',
             img: parsed[2] || '', 
-            url: parsed[3] || ''
-            };
+            url: parsed[3] || '',
+            bizcardDivId: bizcardDiv.id
+        };
     });
 
     // create an htmlElement for each newTagLink
@@ -449,28 +445,33 @@ function process_bizcard_description_item(bizcardDiv, inputString) {
         const text = tag_link.text;
         const img = tag_link.img ? tag_link.img : '';
         const url = tag_link.url ? tag_link.url : '';
-    
+
+        var savedColor = bizcardDiv.getAttribute('saved-color') || '';
+        var savedBackgroundColor = bizcardDiv.getAttribute('saved-background-color') || '';
+
+        if (typeof savedColor === 'undefined' || savedColor === null || savedColor === '') {
+            throw new Error(`bizcardDiv:${bizcardDiv.id} must have a saved-color attribute`);
+        } 
+        savedColor = (savedColor == '#FFFFFF') ? 'white' : 'black';
+        
         let htmlElementStr = '';
     
         if (text) {
             // Initialize the htmlElement with just underlined text
             htmlElementStr = `<u>${text}</u>`;
-            var line2 = '';
+            var line2 = createBackAnchorTag(bizcardDiv.id, savedColor, savedBackgroundColor);
         
             // If img is defined, add an anchor tag wrapping the local image.png
             if (img) {
-                line2 += createImgAnchorTag(img);
+                line2 += createImgAnchorTag(img, savedColor, savedBackgroundColor);
             }
             
             // If url is defined, add an anchor tag wrapping the local geo.png
             if (url) {
-                line2 += createUrlAnchorTag(url);
+                line2 += createUrlAnchorTag(url, savedColor, savedBackgroundColor);
             }
 
-            if ( line2.length > 0 ) {
-                htmlElementStr += '<br/>' + line2;
-            }
-    
+            htmlElementStr += '<br/>' + line2;
         }
         tag_link.html = htmlElementStr;
 
@@ -506,48 +507,62 @@ function setCardDivIdOfTagLink(bizcardDiv, tag_link) {
     tag_link.cardDivId = cardDiv.id;
 }
 
-// find all icon elements in the element 
-// and add a click listener to each icon
-// and set the icon to the color of the element
-function addIconClickListeners(element) {
-    var tagLinkColor = '';
-    if ( element.classList.contains('card-div') ) {
-        tagLinkColor = element.style.color;
-    } else if (element.classList.contains('card-div-line-item-content')) {
-        tagLinkColor = element.style.color;
-    } else {
-        throw new Error(`unexpected element.classList:${element.classList} for element.id:${element.id} element.outerHTML:${element.outerHTML}```);
-    }
-    const elementColor = (tagLinkColor == 'rgb(255, 255, 255)') ? 'white' : 'black';
-    let geometry_icons = element.querySelectorAll(`geometry-icon`);
-    let image_icons = element.querySelectorAll(`image-icon`);
-    if (geometry_icons.length > 0 && image_icons.length > 0) {
-        log.console(`element.id:${element.id} has both geometry and image icons`);
-    }
-    for ( let iconType of monoColor.ICON_TYPES ) {
-        var iconElements = element.querySelectorAll(`${iconType}-icon`);
-        for ( let i=0; i<iconElements.length; i++ ) {
-            var iconElement = iconElements[i];
-            monoColor.setIconToColor(iconElement, iconType, elementColor);
-            if ( !iconElement.src.endsWith(`${elementColor}.png`) ) {
-                throw new Error(`element.id:${element.id} iconElement.src:${iconElement.src} does NOT end with ${elementColor}.png`);
-            }
-            iconElement.dataset.iconType = iconType;
-            //console.log(`addEventListener: element.id:${element.id} color:${color} iconElement click: iconType:${iconType} iconSrc:${iconElement.src}`);
-            iconElement.addEventListener("click", (event) => {
-                const theIconElement = event.target;
-                const theIconType = theIconElement.dataset.iconType;
-                const url = theIconElement.getAttribute(`data-${theIconType}`);
-                if (url) {
-                    console.log(`theIconElement click: ${theIconType} ${url}`);
-                    window.open(url, "_blank");
-                } else {
-                    console.log(`iconElement click: no url`);
+// add a click listener to the given iconelement
+function addIconClickListener(icon) {
+    icon.addEventListener("click", (event) => {
+        const iconElement = event.target;
+        if (iconElement) {
+            const iconType = iconElement.dataset.icontype;
+            switch (iconType) {
+                case 'geography': {
+                    const url = iconElement.dataset.url; // from data-url
+                    if (url) {
+                        console.log(`iconElement iconType:${iconType} click: ${url}`);
+                        window.open(url, "_blank");
+                    } else {
+                        console.error(`iconElement iconType:${iconType} click: no url`);
+                    }
+                    break;
                 }
-            });
+                case 'image': {
+                    const img = iconElement.dataset.image; // from data-image
+                    if (img) {
+                        console.log(`iconElement iconType:${iconType} click: ${img}`);
+                        window.open(img, "_blank");
+                    } else {
+                        console.error(`iconElement iconType:${iconType} click: no img`);
+                    }
+                    break;
+                }
+                case 'back': {
+                    const bizcardId = iconElement.dataset.bizcardId; // from data-bizcard-id
+                    if (bizcardId) {
+                        const bizcardDiv = document.getElementById(bizcardId);
+                        if (bizcardDiv) {
+                            console.log(`iconElement click: ${bizcardId}`);
+                            selectTheCardDiv(bizcardDiv, true);
+                            scrollElementIntoView(bizcardDiv);
+                        } else {
+                            console.error(`iconElement iconType:${iconType} click: no bizcardDiv with id:${bizcardId}`);
+                        }   
+                    }
+                    else {
+                        console.error(`iconElement iconType:${iconType} click: no bizcard_id`);
+                    }
+                    break;
+                }
+                default: {
+                    console.error(`iconElement click: illegal iconType:${iconType}`);
+                    break;
+                }
+            }
+        } else {
+            // console.log(`iconElement click: no iconElement`);
         }
-    }
+        event.stopPropagation();
+    });
 }
+
 
 // this is an Order(N) search that could be optimized.
 function findCardDiv(tag_link) {
@@ -700,33 +715,6 @@ function createCardDiv(bizcardDiv, tag_link) {
     var img_width = MEAN_CARD_WIDTH;
     var img_height = MEAN_CARD_HEIGHT;
 
-    // given a tagLinkImgUrl try to get the real img_src and dimensions of the actual image
-    var result = get_real_img_src_from_img_url(tag_link.img);
-    if (result) {
-        const { real_img_src, real_img_width, real_img_height } = result;
-        img_src = real_img_src;
-        img_width = real_img_width;
-        img_height = real_img_height;
-    }
-
-    // try to select a random image path
-    // if ( !img_src ) {
-    //   var result = select_random_img_src();
-    //   if ( result ) {
-    //     const { random_img_src, random_img_width, random_img_height} = result;
-    //     img_src = random_img_src;
-    //     img_width = random_img_width;
-    //     img_height = random_img_height;
-    //   }
-    // }
-
-    // just generate a random img_src using a random img_width and img_height
-    // if( !img_src ) {
-    //   img_width = MEAN_CARD_WIDTH + getRandomInt(-MAX_CARD_SIZE_OFFSET,MAX_CARD_SIZE_OFFSET);
-    //   img_height = MEAN_CARD_HEIGHT + getRandomInt(-MAX_CARD_SIZE_OFFSET,MAX_CARD_SIZE_OFFSET);
-    //   img_src = `https://picsum.photos/${img_width}/${img_height}`;
-    // }
-
     var width = img_width + 2 * CARD_BORDER_WIDTH;
     var height = img_height + 2 * CARD_BORDER_WIDTH
     cardDiv.style.borderWidth = `${CARD_BORDER_WIDTH}px`;
@@ -770,7 +758,6 @@ function createCardDiv(bizcardDiv, tag_link) {
     cardDiv.setAttribute("tagLinkText", tag_link[ "text" ]);
     cardDiv.setAttribute("tagLinkUrl", tag_link[ "url" ]);
     cardDiv.setAttribute("tagLinkImg", tag_link[ "img" ]);
-    addIconClickListeners(cardDiv);
 
     return cardDiv;
 }
@@ -780,80 +767,14 @@ function copyAttributes(dstDiv, srcDiv, attrs) {
     for (var i = 0; i < attrs.length; i++) {
         var attr = attrs[ i ];
         var srcVal = srcDiv.getAttribute(attr);
+        if (typeof srcVal === 'undefined' || srcVal === null || srcVal === '')
+            throw new Error(`srcDiv:${srcDiv.id} must have a ${attr} attribute`);
         // console.assert(utils.isString(srcVal), `attr:${attr} src:${srcVal}`);
         dstDiv.setAttribute(attr, srcVal);
         var dstVal = dstDiv.getAttribute(attr);
         // console.assert(dstVal == srcVal, `attr:${attr} dst:${dstVal} != src:${srcVal}`);
         // console.log(`${dstDiv.id} ${attr} = ${srcDiv.id} ${srcVal}`);
     }
-}
-
-// returns the number of attribute value differences 
-function diffAttributes(dstDiv, srcDiv, attrs) {
-    var numErrors = 0;
-    for (var i = 0; i < attrs.length; i++) {
-        var attr = attrs[ i ];
-        var dstVal = dstDiv.getAttribute(attr);
-        var srcVal = srcDiv.getAttribute(attr);
-        if (dstVal = srcVal) {
-            // console.log(`attr:${attr} dst:${dstVal} != src:${srcVal}`);
-            numErrors += 1;
-        }
-    }
-    return numErrors;
-}
-
-// these are used by select_random_img_src
-var selected_image_paths = [];
-var invalid_image_paths = [];
-
-// returns { image_src, width, height } or null
-function select_random_img_src() {
-
-    // immedately return null if image_paths are not available
-    if ((typeof image_paths === 'undefined') ||
-
-        (image_paths == null) ||
-
-        (image_paths.length == 0)) {
-        return null;
-    }
-
-    if (selected_image_paths.length + invalid_image_paths.length === image_paths.length) {
-        return null; // All image paths have been selected or marked as invalid
-    }
-    while (true) {
-        const randomIndex = Math.floor(Math.random() * image_paths.length);
-        const filePath = image_paths[ randomIndex ];
-        if (!selected_image_paths.includes(filePath) && !invalid_image_paths.includes(filePath)) {
-            const filename = filePath.split('/').pop();
-            const regex = /^(.*?)-(\d+)x(\d+)\.(\w+)$/;
-            const match = filename.match(regex);
-            if (!match) {
-                // console.log(`Invalid filename format: ${filename}`);
-                invalid_image_paths.push(filePath);
-                continue;
-            }
-            const name = match[ 1 ];
-            const random_img_width = parseInt(match[ 2 ]);
-            const random_img_height = parseInt(match[ 3 ]);
-
-            const extension = match[ 4 ];
-            selected_image_paths.push(filePath);
-            const random_img_src = filePath;
-            return { random_img_src, random_img_width, random_img_height };
-        }
-    }
-}
-
-// Given an img_url returns null if its format is invalid
-// of if an actual image file cannot be loaded using that url.
-// Otherwise returns an object with real values
-// 
-
-function get_real_img_src_from_img_url(img_url) {
-    // return { real_img_src, real_img_width, real_img_height };
-    return null;
 }
 
 /**
@@ -866,7 +787,7 @@ function get_real_img_src_from_img_url(img_url) {
  * Description. (use period)
  * @param {number}  dh           the horizontal parallax offset value
  * @param {number}  dv           the vertical parallax offet value
- * @param {number}    z            the random Z depth assigned to every cardDiv
+ * @param {number}   z           the random Z depth assigned to every cardDiv
  *                              where z ranges from 1 as max dist to viewer
  *                              to ALL_CARDS_MAX_Z being closest to viewer
  *                              with an integer value between CARD_MIN_Z and CARD_MAX_Z
@@ -1652,12 +1573,14 @@ function addCardDivLineItem(targetCardDivId) {
         // set content
         var cardDivLineItemContent = document.createElement("div");
         cardDivLineItemContent.classList.add("card-div-line-item-content");
+        cardDivLineItemContent.classList.add("mono-color-sensitive");
         cardDivLineItemContent.style.backgroundColor = 'transparent';
         cardDivLineItemContent.style.color = targetCardDiv.getAttribute("saved-color") || "";
 
         // set right column
         var cardDivLineItemRightColumn = document.createElement('div')
         cardDivLineItemRightColumn.classList.add("card-div-line-item-right-column");
+        cardDivLineItemRightColumn.classList.add("mono-color-sensitive");
         cardDivLineItemRightColumn.style.backgroundColor = 'transparent';
         cardDivLineItemRightColumn.style.color = targetCardDiv.getAttribute("saved-color") || "";
 
@@ -1715,17 +1638,42 @@ function addCardDivLineItem(targetCardDivId) {
             let tagLink = tagLinks[ i ];
             addTagLinkClickListener(tagLink);
         }
-        addIconClickListeners(cardDivLineItemContent);
 
+        // find all iconElemens of this cardDivLineItemContent
+        // if this iconElement.data.iconType is 'back' and if 
+        // this cardDivLineItem's targetCardDivId is a bizcardDivId 
+        // then remove the back iconElement
+        // otherwise add an onclick listener to the iconElement
+        // visit the iconElements in reverse order so that 
+        // the removal of the back iconElement does not affect the
+        // index of the remaining iconElements.
+        let deleteBackIcons = isBizcardDivId(targetCardDivId);
+        let iconElements = cardDivLineItemContent.getElementsByClassName("icon");
+        for (let i = iconElements.length - 1; i >= 0; i--) {
+            let iconElement = iconElements[i];
+            let iconType = iconElement.dataset.icontype;
+            if (deleteBackIcons && iconType === "back") {
+                iconElement.parentNode.removeChild(iconElement);
+            } else {
+                addIconClickListener(iconElement);
+            }
+        }
     } else {
         // console.log(`returning preexisting cardDivLineItem for targetCardDivId:${targetCardDivId}`);
         cardDivLineItem = existingCardDivLineItem
         // console.log(`returning preexisting cardDivLineItem:${cardDivLineItem.id}`);
     }
+
+    let monoColorElements = cardDivLineItem.getElementsByClassName("mono-color-sensitive");
+    for ( let monoColorElement of monoColorElements ) {
+        monoColorElement.dataset.savedcolor = targetCardDiv.getAttribute("saved-color") || "";
+        monoColorElement.dataset.savedbackgroundcolor = targetCardDiv.getAttribute("saved-background-color") || "";
+        monoColor.applyMonoColorToElement(cardDivLineItem);
+    }
+
     // does not select self
     // does scroll self into view
     scrollElementIntoView(cardDivLineItem);
-    monoColor.applyMonoColorToElement(cardDivLineItem);
 
     return cardDivLineItem;
 }
@@ -2203,6 +2151,24 @@ function getLastBizcardDivWithLineItem() {
     return null;
 }
 
+// find all iconElements and add their click listeners
+// called on DOMContentLoaded
+export function addAllIconClickListeners() {
+    let iconElements = document.getElementsByClassName("icon");
+    let N = iconElements.length;
+    console.log(`addAllIconClickListeners found ${N} iconElements`);
+    for ( let i=0; i<N; i++ ) {
+        let iconElement = iconElements[i];
+        addIconClickListener(iconElement);
+    }
+    let allCardDivElements = document.getElementsByClassName("card-div");
+    console.log(`addAllIconClickListeners found ${allCardDivElements.length} allCardDivElements`);
+    let allBizcardDivElements = document.getElementsByClassName("bizcard-div");
+    console.log(`addAllIconClickListeners found ${allBizcardDivElements.length} alBizcardDivElements`);
+    let allCardDivLineItemElements = document.getElementsByClassName("card-div-line-item");
+    console.log(`addAllIconClickListeners found ${allCardDivLineItemElements.length} allCardDivLineItemElements`); 
+}
+
 selectNextBizcardButton.addEventListener("click", function (event) {
     selectNextBizcard();
 });
@@ -2212,6 +2178,8 @@ selectFirstBizcardButton.addEventListener("click", function (event) {
 
 //---------------------------------------
 // canvas container event listeners
+
+
 
 addCanvasContainerEventListener("mousemove", handleCanvasContainerMouseMove);
 

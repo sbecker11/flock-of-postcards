@@ -1,6 +1,6 @@
 // @ts-nocheck
 
-import { selectAllBizcards } from '../main.mjs';
+import { addAllIconClickListeners, selectAllBizcards } from '../main.mjs';
 
 const overlay = document.getElementById('overlay');
 const welcomeAlert = document.getElementById('welcomeAlert');
@@ -25,6 +25,7 @@ export function closeWelcomeAlert(event) {
     welcomeAlert.setAttribute('aria-hidden', 'true');
 
     selectAllBizcards();
+    addAllIconClickListeners();
 }
 
 // Event listener for overlay click

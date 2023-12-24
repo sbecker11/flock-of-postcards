@@ -92,9 +92,23 @@
 
   <script type="module">
     import { showWelcomeAlert } from './modules/alerts.mjs';
+
     document.addEventListener('DOMContentLoaded', function() {
         showWelcomeAlert();
     });
+
+    // to prevent the audio context from being suspended
+    let audioContext;
+
+    document.addEventListener('click', function() {
+        if (!audioContext) {
+            audioContext = new AudioContext();
+            // Additional audio setup code here
+        } else if (audioContext.state === 'suspended') {
+            audioContext.resume();
+        }
+    });
+      
   </script>
 
 </body>
