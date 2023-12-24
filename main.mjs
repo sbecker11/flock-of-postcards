@@ -761,8 +761,6 @@ function createCardDiv(bizcardDiv, tag_link) {
 
     // cardDiv line items are never mono-color-sensitive
     let monocolorElements = Array.from(cardDiv.getElementsByClassName("mono-color-sensitive"));
-    console.log(`cardDiv:${cardDiv.id} num mono-color-sensitive:${monocolorElements.length}`);
-
     for (let i = 0; i < monocolorElements.length; i++) {
         let monocolorElement = monocolorElements[i];
         monocolorElement.classList.remove("mono-color-sensitive");
@@ -1639,27 +1637,19 @@ function addCardDivLineItem(targetCardDivId) {
         // console.log(`rightContentDiv boundingRect:${JSON.stringify(rightContentDiv.getBoundingClientRect())}`);
         rightContentDiv.appendChild(cardDivLineItem);
 
-        // find all .tagLinks of this cardDivLineItem
-        // and make them mono-color-sensitive
-        var tagLinks = cardDivLineItemContent.querySelectorAll('.tag-link');
-        for (let i = 0; i < tagLinks.length; i++) {
-            let tagLink = tagLinks[ i ];
-            tagLink.classList.add("mono-color-sensitive");
+        // find all tag-link elements of this cardDivLineItemContent and make
+        // them mono-color-sensitive and give them onclick listeners
+        var elements = cardDivLineItemContent.getElementsByClassName('tag-link');
+        for (let element of elements ) {
+            element.classList.add("mono-color-sensitive");
+            addTagLinkClickListener(element);
         }
 
-        // find all .tagLinks of this cardDivLineItem
-        // and give them onclick listeners
-        var tagLinks = cardDivLineItemContent.querySelectorAll('.tag-link');
-        for (let i = 0; i < tagLinks.length; i++) {
-            let tagLink = tagLinks[ i ];
-            addTagLinkClickListener(tagLink);
-        }
-
-        // find all iconElemens of this cardDivLineItemContent
-        // if this iconElement.data.iconType is 'back' and if 
-        // this cardDivLineItem's targetCardDivId is a bizcardDivId 
-        // then remove the back iconElement
-        // otherwise add an onclick listener to the iconElement
+        // find all iconElemens of this cardDivLineItemContent and make 
+        // them mono-color-sensitive and give them onclick listeners.
+        //
+        // However, delete any back-icons if the targetCardDiv is a bizcardDiv
+        //
         // visit the iconElements in reverse order so that 
         // the removal of the back iconElement does not affect the
         // index of the remaining iconElements.
@@ -1672,12 +1662,12 @@ function addCardDivLineItem(targetCardDivId) {
                 iconElement.parentNode.removeChild(iconElement);
             } else {
                 addIconClickListener(iconElement);
+                iconElement.classList.add("mono-color-sensitive");
             }
         }
     } else {
         // console.log(`returning preexisting cardDivLineItem for targetCardDivId:${targetCardDivId}`);
         cardDivLineItem = existingCardDivLineItem
-        // console.log(`returning preexisting cardDivLineItem:${cardDivLineItem.id}`);
     }
 
     let monoColorElements = cardDivLineItem.getElementsByClassName("mono-color-sensitive");
