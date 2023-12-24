@@ -759,6 +759,15 @@ function createCardDiv(bizcardDiv, tag_link) {
     cardDiv.setAttribute("tagLinkUrl", tag_link[ "url" ]);
     cardDiv.setAttribute("tagLinkImg", tag_link[ "img" ]);
 
+    // cardDiv line items are never mono-color-sensitive
+    let monocolorElements = Array.from(cardDiv.getElementsByClassName("mono-color-sensitive"));
+    console.log(`cardDiv:${cardDiv.id} num mono-color-sensitive:${monocolorElements.length}`);
+
+    for (let i = 0; i < monocolorElements.length; i++) {
+        let monocolorElement = monocolorElements[i];
+        monocolorElement.classList.remove("mono-color-sensitive");
+    }
+
     return cardDiv;
 }
 
@@ -1630,6 +1639,13 @@ function addCardDivLineItem(targetCardDivId) {
         // console.log(`rightContentDiv boundingRect:${JSON.stringify(rightContentDiv.getBoundingClientRect())}`);
         rightContentDiv.appendChild(cardDivLineItem);
 
+        // find all .tagLinks of this cardDivLineItem
+        // and make them mono-color-sensitive
+        var tagLinks = cardDivLineItemContent.querySelectorAll('.tag-link');
+        for (let i = 0; i < tagLinks.length; i++) {
+            let tagLink = tagLinks[ i ];
+            tagLink.classList.add("mono-color-sensitive");
+        }
 
         // find all .tagLinks of this cardDivLineItem
         // and give them onclick listeners
@@ -1668,7 +1684,7 @@ function addCardDivLineItem(targetCardDivId) {
     for ( let monoColorElement of monoColorElements ) {
         monoColorElement.dataset.savedcolor = targetCardDiv.getAttribute("saved-color") || "";
         monoColorElement.dataset.savedbackgroundcolor = targetCardDiv.getAttribute("saved-background-color") || "";
-        monoColor.applyMonoColorToElement(cardDivLineItem);
+        monoColor.applyMonoColorToElement(monoColorElement);
     }
 
     // does not select self
