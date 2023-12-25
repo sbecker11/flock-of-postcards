@@ -9,6 +9,19 @@ const monoBackgroundColor = "lightgrey";
 export const ICON_TYPES = ['back', 'geometry', 'image'];
 export const ICON_COLORS = ['black', 'white'];
 
+export function getIconColor(color) {
+    if (color in ICON_COLORS) {
+        return color;
+    }
+    color = color.toUpperCase();
+    let RGB = utils.get_RGB_from_ColorStr(color);
+    let iconColor = (RGB[0] + RGB[1] + RGB[2] > 382) ? 'white' : 'black';
+    if ( !iconColor in ICON_COLORS ) {
+        throw new Error(`getIconColor: illegal iconColor:${iconColor}`);
+    }
+    return iconColor;
+}
+
 // Directly export the function
 export function toggleMonoColor() {
     let monoColorIcon = document.getElementById('monoColorIcon');
@@ -36,6 +49,8 @@ export function setIconToColor(iconElement, iconColor) {
         throw new Error(`monoColorElement:${monoColorElement} has illegal data-iconColor:${iconColor}`);
     }
     iconElement.src = 'static_content/icons/icons8-' + iconType + '-16-' + iconColor + '.png';
+    let bizcardId = iconElement.dataset.bizcardId;
+    console.log(`setIconToColor: iconType:${iconType} iconColor:${iconColor} bizcardId:${bizcardId}`);
 }
 
 export function applyMonoColorToElement(monoColorElement) {
@@ -43,7 +58,7 @@ export function applyMonoColorToElement(monoColorElement) {
         // set colors to mono
         monoColorElement.style.color = monoColor;
         monoColorElement.style.backgroundColor = monoBackgroundColor;
-        if ( "icon" in monoColorElement.classList ) {
+        if ( monoColorElement.classList.contains("icon") ) {
             setIconToColor(monoColorElement, monoColor);
         }
     } else {
@@ -59,8 +74,8 @@ export function applyMonoColorToElement(monoColorElement) {
         // restore the saved colors
         monoColorElement.style.color = savedColor;
         monoColorElement.style.backgroundColor = savedBackgroundColor;
-        if ( "icon" in monoColorElement.classList ) {
-            setIconToColor(monoColorElement, savedcolor);
+        if ( monoColorElement.classList.contains("icon") ) {
+            setIconToColor(monoColorElement, savedColor);
         }   
     }
 }

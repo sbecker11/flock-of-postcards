@@ -7,14 +7,13 @@ export const isString = (value) => (typeof value === 'string' || value instanceo
 export const isNumber = (value) => typeof value === 'number' && !isNaN(value);
 export const validateKey = (obj, key) => { if (!(key in obj)) throw new Error(`Key '${key}' not found in object`); };
 export const validateString = (str) => { if (typeof str === 'undefined' || str === null || typeof str !== 'string' || str.trim().length === 0) throw new Error(`Invalid string:[${str}]`); };
-export const validateHexString = hexStr => { if (typeof hexStr !== 'string' || hexStr === null || hexStr === undefined || !hexStr.startsWith('#') || !/^[0-9a-fA-F]{6}$/.test(hexStr.slice(1)) || hexStr.length !== 7) throw new Error('Hexadecimal string is invalid.'); };
 export const validateIntArrayLength = (arr, length) => { if (typeof arr === 'undefined' || arr === null || !Array.isArray(arr) || arr.some(item => !Number.isInteger(item)) || (typeof length !== 'undefined' && arr.length !== length)) throw new Error('Invalid array of integers or length mismatch'); };
 export const validateFloat = (num) => { if (typeof num === 'undefined' || num === null || typeof num !== 'number' || !Number.isFinite(num)) throw new Error('Invalid floating-point number'); };
 export const clamp = (value, min, max) => Math.max(min, Math.min(max, value));
 export const adjustRgbBrightness = (rgb, brightness) => { validateIntArrayLength(rgb, 3); return rgb.map(channel => clamp(Math.round(channel * brightness), 0, 255)); }; // 1.0 is normal brightness
-export const adjustHexBrightness = (hexStr, brightness) => { validateHexString(hexStr); validateFloat(brightness); return get_Hex_from_RGB(adjustRgbBrightness(get_RGB_from_Hex(`${hexStr}`), brightness)); }; // 1.0 is normal brightness
+export const adjustHexBrightness = (hexStr, brightness) => { validateHexColorString(hexStr); validateFloat(brightness); return get_Hex_from_RGB(adjustRgbBrightness(get_RGB_from_Hex(`${hexStr}`), brightness)); }; // 1.0 is normal brightness
 export const get_Hex_from_RGB = RGB => { validateIntArrayLength(RGB, 3); return "#" + RGB.map(c => c.toString(16).padStart(2, "0")).join("").toUpperCase(); };
-export const get_RGB_from_Hex = hexStr => { validateHexString(hexStr); return hexStr.match(/^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i)?.slice(1).map(c => parseInt(c, 16)); };
+export const get_RGB_from_Hex = hexStr => { validateHexColorString(hexStr); return hexStr.match(/^#?([A-F\d]{2})([A-F\d]{2})([A-F\d]{2})$/i)?.slice(1).map(c => parseInt(c, 16)); };
 export const toFixedPoint = (value, precision) => +value.toFixed(precision);
 export const linearInterp = (x, x1, y1, x2, y2) => y1 + ((x - x1) / (x2 - x1)) * (y2 - y1);
 export const getRandomInt = (min, max) => Math.floor(Math.random() * (max - min + 1)) + min;
@@ -33,34 +32,86 @@ export const get_RGB_from_HSV = ([ h, s, v ]) => {
     const f = (n, k = (n + h / 60) % 6) => v - v * s * Math.max(Math.min(k, 4 - k, 1), 0);
     return [ f(5), f(3), f(1) ].map(Math.round);
 };
+
+// returns a 3-element array of integers or null
 export function get_RGB_from_RgbStr(rgbStr) {
-    validateString(rgbStr);
-    rgbStr = rgbStr.replaceAll(" ","");
-    const regex = /rgb\((\d+),(\d+),(\d+)\)/;
-    const matches = rgbStr.match(regex);
-    if (!matches)
-        throw new Error('Invalid RGB format. Expected format: rgb(r,g,b)');
-    const [ , rStr, gStr, bStr ] = matches;
-    const R = parseInt(rStr, 10);
-    const G = parseInt(gStr, 10);
-    const B = parseInt(bStr, 10);
-    return [ R, G, B ];
+    if ( isString(rgbStr) ) {
+        rgbStr = rgbStr.replaceAll(" ","");
+        const regex = /rgb\((\d+),(\d+),(\d+)\)/;
+        const matches = rgbStr.match(regex);
+        if (matches) {
+            const [ , rStr, gStr, bStr ] = matches;
+            const R = parseInt(rStr, 10);
+            const G = parseInt(gStr, 10);
+            const B = parseInt(bStr, 10);
+            return [ R, G, B ];
+        }
+    }
+    return null;
 }
+
 export function get_ColorStr_from_RGB(RGB) {
     validateIntArrayLength(RGB,3);
-    return `color(${RGB[0]},${RGB[1]},${RGB[2]})`;
+    return `color(${RGB[0]}, ${RGB[1]}, ${RGB[2]})`;
 }
+
+export function get_rgbStr_from_RGB(RGB) {
+    validateIntArrayLength(RGB,3);
+    return `rgb(${RGB[0]}, ${RGB[1]}, ${RGB[2]})`;
+}
+
+// returns a 3-element array of integers or null
 export function get_RGB_from_ColorStr(colorStr) {
-    validateString(colorStr);
-    if (colorStr.startsWith("#"))
-        return get_RGB_from_Hex(colorStr);
-    if (colorStr.startsWith('rgb'))
-        return get_RGB_from_RgbStr(colorStr);
-    return colorStr;
+    if ( isString(colorStr) ) {
+        if (colorStr.startsWith("#")) {
+            return get_RGB_from_Hex(colorStr);
+        }
+        else if (colorStr.startsWith('rgb')) {
+            return get_RGB_from_RgbStr(colorStr);
+        }
+        else if (colorStr.startsWith('color')) {
+            let hex = get_Hex_from_ColorStr(colorStr);
+            return get_RGB_from_Hex(hex);
+        }
+    }
+    return null;
 }
+
 export function get_Hex_from_ColorStr(colorStr) {
     var RGB = get_RGB_from_ColorStr(colorStr); 
     return get_Hex_from_RGB(RGB);
+}
+
+export function isHexColorString(hexColorStr) { // enforces uppercase hex string only
+    return isString(hexColorStr) && /^#[0-9A-F]{6}$/.test(hexColorStr);
+}
+export function validateHexColorString(hexColorStr) {
+    if (!isHexColorString(hexColorStr) ) {
+        throw new Error(`hexColorStr: '${hexColorStr}' is invalid.`);
+    }
+}
+export function normalizeHexColorString(hexColorStr) {
+    // Create a dummy element to leverage the browser's color parsing
+    var dummy = document.createElement("div");
+    dummy.style.color = hexColorStr;
+    document.body.appendChild(dummy);
+
+    // Get the computed style and extract the color
+    var computedColor = getComputedStyle(dummy).color;
+
+    // Remove the dummy element
+    document.body.removeChild(dummy);
+
+    // Convert to hex (if necessary) and return
+    // This part may need to be extended based on the format
+    var rgbMatch = /rgb\((\d+), (\d+), (\d+)\)/.exec(computedColor);
+    if (rgbMatch) {
+        var r = parseInt(rgbMatch[1], 10).toString(16).padStart(2, '0');
+        var g = parseInt(rgbMatch[2], 10).toString(16).padStart(2, '0');
+        var b = parseInt(rgbMatch[3], 10).toString(16).padStart(2, '0');
+        return `#${r}${g}${b}`.toUpperCase();
+    }
+    return hexColorStr; // Fallback if not RGB
 }
 
 export const calculateDistance = (x1, y1, x2, y2) => Math.sqrt(Math.pow(x2 - x1, 2) + Math.pow(y2 - y1, 2));
@@ -343,3 +394,45 @@ export function formatNumber(num, format) {
     return null;
 }
 
+export function ensureHexColorStringAttribute(obj, attr) {
+    let color = obj.getAttribute(attr);
+    if( typeof color === 'undefined' || color === null || color === "") {
+        throw new Error(`Attribute ${attr} must be defined.`);
+    }
+    var hex = null;
+    if ( isHexColorString(color) ) {
+        hex = color;
+    } else if ( isNumericArray(color) && color.length === 3 ) {
+        hex = get_Hex_from_RGB(color);
+    } else if ( color.startWith('color') ) {
+        hex = get_Hex_from_ColorStr(color);
+    }
+    if (hex !== null) {
+        obj.setAttribute(attr, hex);
+    } else {
+        throw new Error(`Attribute ${attr} is not a valid hex color string.`);
+    }
+    validateHexColorString(obj.getAttribute(attr));
+}
+
+export function ensureHexColorStringStyle(obj, styleName) {
+    let color = obj.style['styleName'];
+    if( typeof color === 'undefined' || color === null || color === "") {
+        throw new Error(`Style ${styleName} must be defined.`);
+    }
+    var hex = null;
+    if ( isHexColorString(color) ) {
+        hex = color;
+    } else if ( isNumericArray(color) && color.length === 3 ) {
+        hex = get_Hex_from_ColorStr(color);
+    } else if ( color.startWith('color') ) {
+        hex = get_Hex_from_ColorStr(color);
+    }
+    if (hex !== null) {
+        obj.style[styleName] = hex;
+    } else {
+        throw new Error(`Style ${styleName} is not a valid hex color string.`);
+    }
+    validateHexColorString(obj.style['styleName']);
+
+}

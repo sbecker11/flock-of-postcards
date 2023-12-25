@@ -215,11 +215,15 @@ function createBizcardDivs() {
         // utils.validateString(role);
         var employer = job[ "employer" ].trim();
         // utils.validateString(employer);
-        var css_hex_background_color_str = job[ "css RGB" ].trim();
-        // utils.validateHexString(css_hex_background_color_str);
+
+        // utils.validateKey(job, "css RGB");
+        var css_hex_background_color_str = job[ "css RGB" ].trim().toUpperCase();
+        utils.validateHexColorString(css_hex_background_color_str);
+
         // utils.validateKey(job, "text color");
-        var font_color_name = job[ "text color" ].trim();
-        // utils.validateString(font_color_name);
+        var text_color = job[ "text color" ].trim().toUpperCase();
+        var css_hex_color_str = utils.get_Hex_from_ColorStr(text_color);
+        utils.validateHexColorString(css_hex_color_str);
 
         // timeline is descending so jobEnd is always above jobStart
         var jobEnd = job[ "end" ].trim().replace("-01", "");
@@ -285,9 +289,12 @@ function createBizcardDivs() {
         bizcardDiv.setAttribute("originalZ", `${originalZ}`);
 
         bizcardDiv.setAttribute("saved-background-color", css_hex_background_color_str);
-        bizcardDiv.setAttribute("saved-color", font_color_name);
-        bizcardDiv.setAttribute("saved-selected-background-color", utils.adjustHexBrightness(css_hex_background_color_str, 1.7));
-        bizcardDiv.setAttribute("saved-selected-color", font_color_name);
+        bizcardDiv.setAttribute("saved-color", css_hex_color_str);
+        var adjustedHexBackgroundColor = utils.adjustHexBrightness(css_hex_background_color_str, 1.7);
+        utils.validateHexColorString(adjustedHexBackgroundColor);
+        bizcardDiv.setAttribute("saved-selected-background-color", adjustedHexBackgroundColor);
+        utils.validateHexColorString(css_hex_color_str);
+        bizcardDiv.setAttribute("saved-selected-color", css_hex_color_str);
 
         bizcardDiv.setAttribute("saved-zIndexStr", zIndexStr);
         bizcardDiv.setAttribute("saved-filterStr", get_filterStr_from_z(z));
@@ -393,15 +400,27 @@ function process_bizcard_description_HTML(bizcardDiv, description_HTML) {
 }
 
 function createUrlAnchorTag(url, savedColor, savedBackgroundColor) {
-    return `<img class="icon geography-icon mono-color-sensitive" src="static_content/icons/icons8-geography-16-${savedColor}.png" data-url="${url}" data-savedcolor="${savedColor}" data-savedbackgroundcolor="${savedBackgroundColor}" data-icontype="geography" />`;
+    let iconColor = monoColor.getIconColor(savedColor);
+    if ( !iconColor in monoColor.ICON_COLORS ) {
+        throw new Error(`createUrlAnchorTag: illegal iconColor:${iconColor}`);
+    } 
+    return `<img class="icon geography-icon mono-color-sensitive" src="static_content/icons/icons8-geography-16-${iconColor}.png" data-url="${url}" data-savedcolor="${iconColor}" data-savedbackgroundcolor="${savedBackgroundColor}" data-icontype="geography" />`;
 }
 
 function createImgAnchorTag(img, savedColor, savedBackgroundColor) {
-    return `<img class="icon image-icon mono-color-sensitive" src="static_content/icons/icons8-image-16-${savedColor}.png" data-image="${img}" data-savedcolor="${savedColor}" data-savedbackgroundcolor="${savedBackgroundColor}" data-icontype="image"/>`;
+    let iconColor = monoColor.getIconColor(savedColor);
+    if ( !iconColor in monoColor.ICON_COLORS ) {
+        throw new Error(`createImgAnchorTag: illegal iconColor:${iconColor}`);
+    } 
+    return `<img class="icon image-icon mono-color-sensitive" src="static_content/icons/icons8-image-16-${iconColor}.png" data-image="${img}" data-savedcolor="${iconColor}" data-savedbackgroundcolor="${savedBackgroundColor}" data-icontype="image"/>`;
 }
 
 function createBackAnchorTag(bizcard_id, savedColor, savedBackgroundColor) {
-    return `<img class="icon back-icon mono-color-sensitive" src="static_content/icons/icons8-back-16-${savedColor}.png" data-bizcard-id="${bizcard_id}" data-savedcolor="${savedColor}" data-savedbackgroundcolor="${savedBackgroundColor}" data-icontype="back"/>`;
+    let iconColor = monoColor.getIconColor(savedColor);
+    if ( !iconColor in monoColor.ICON_COLORS ) {
+        throw new Error(`createBackAnchorTag: illegal iconColor:${iconColor}`);
+    } 
+    return `<img class="icon back-icon mono-color-sensitive" src="static_content/icons/icons8-back-16-${iconColor}.png" data-bizcard-id="${bizcard_id}" data-savedcolor="${iconColor}" data-savedbackgroundcolor="${savedBackgroundColor}" data-icontype="back"/>`;
 }
 
 // This function takes an inputString, applies the regular expression to extract the 
@@ -452,8 +471,7 @@ function process_bizcard_description_item(bizcardDiv, inputString) {
         if (typeof savedColor === 'undefined' || savedColor === null || savedColor === '') {
             throw new Error(`bizcardDiv:${bizcardDiv.id} must have a saved-color attribute`);
         } 
-        savedColor = (savedColor == '#FFFFFF') ? 'white' : 'black';
-        
+    
         let htmlElementStr = '';
     
         if (text) {
@@ -683,7 +701,7 @@ function createCardDiv(bizcardDiv, tag_link) {
 
     // inherit colors of bizcardDiv
     cardDiv.setAttribute("bizcardDivId", bizcardDiv.id);
-    copyAttributes(cardDiv, bizcardDiv, [
+    copyHexColorAttributes(cardDiv, bizcardDiv, [
         'saved-background-color',
         'saved-color',
         'saved-selected-background-color',
@@ -769,11 +787,12 @@ function createCardDiv(bizcardDiv, tag_link) {
     return cardDiv;
 }
 
-function copyAttributes(dstDiv, srcDiv, attrs) {
+function copyHexColorAttributes(dstDiv, srcDiv, attrs) {
     // console.assert(dstDiv != null && srcDiv != null && attrs != null);
     for (var i = 0; i < attrs.length; i++) {
         var attr = attrs[ i ];
         var srcVal = srcDiv.getAttribute(attr);
+        utils.validateHexColorString(srcVal);
         if (typeof srcVal === 'undefined' || srcVal === null || srcVal === '')
             throw new Error(`srcDiv:${srcDiv.id} must have a ${attr} attribute`);
         // console.assert(utils.isString(srcVal), `attr:${attr} src:${srcVal}`);
@@ -1131,8 +1150,12 @@ function setSelectedStyle(obj) {
         obj.setAttribute("saved-selected-top", obj.getAttribute("originalTop"));
         obj.setAttribute("saved-selected-zIndex", SELECTED_CARD_DIV_ZINDEX_STR);
 
-        obj.style.color = obj.getAttribute("saved-selected-color");
-        obj.style.backgroundColor = obj.getAttribute("saved-selected-background-color");
+        // ensure that the saved-selected-color is a hex string
+        utils.ensureHexColorStringAttribute(obj, "saved-selected-color");
+        utils.ensureHexColorStringAttribute(obj, "saved-selected-background-color");
+
+        // obj.style.color = obj.getAttribute('saved-selected-color')
+        // obj.style.backgroundColor = obj.getAttribute('saved-selected-background-color')
 
         var top = parseInt(obj.getAttribute("saved-top"))
         // console.assert( top> 0, `A saved-top is ${top}`);
@@ -1171,9 +1194,6 @@ function setSelectedStyle(obj) {
         let cardDivId = obj.getAttribute("targetCardDivId");
         if ( cardDivId !== null ) {
             let cardDiv = document.getElementById(cardDivId);
-            // console.log(`SELECTED`);
-            // console.log(`cardDiv.saved-selected-background-color: ${cardDiv.getAttribute("saved-selected-background-color")}`);
-            // console.log(`lineitem.saved-selected-background-color:${obj.getAttribute("saved-selected-background-color")}`);
         }
     }
 
@@ -1201,16 +1221,6 @@ function restoreSavedStyle(obj) {
         targetStyleArray[8] = parseInt(obj.getAttribute('originalZ'))
         // console.log("restore div.id:", div.id,"targetZ should not be negative so reset to", currentProps[8]);
     }
-
-    // restore the div to it's parallax affected state
-    // var targetParallaxedStyleProps;
-    // if (notLineItem) {
-    //     var targetDivStyleProps = getStylePropsFromStyleArray(div, targetStyleArray);
-    //     targetParallaxedDivStyleProps  = applyParallaxToOneCardDivStyleProps(div, targetDivStyleProps);
-    // } else {
-    //     targetParallaxedProps = targetProps;
-    // }
-    // utils.validateIsStyleProps(targetParallaxedStyleProps);
 
     if( notLineItem && NUM_ANIMATION_FRAMES > 0) {
         var styleFrameArray = [];
@@ -1298,9 +1308,15 @@ function createStyleProps(div, styleArray) {
 function applyStyleArray(obj, styleArray) {
     // utils.validateIsElement(obj);
     // utils.validateIsStyleArray(styleArray);
-    const rgb = styleArray.slice(0,3);
-    obj.style.color = utils.get_Hex_from_RGB(rgb);
-    obj.style.backgroundColor = utils.get_Hex_from_RGB(styleArray.slice(3,6));
+    var rgbStr;
+    rgbStr = utils.get_rgbStr_from_RGB(styleArray.slice(0,3));
+    obj.style.color = rgbStr;
+    console.assert(obj.style.color === rgbStr);
+
+    rgbStr = utils.get_rgbStr_from_RGB(styleArray.slice(3,6));
+    obj.style.backgroundColor = rgbStr;
+    console.assert(obj.style.backgroundColor === rgbStr);
+
     if ( !isCardDivLineItem(obj) ) { // positionals
         obj.style.left = styleArray[6] + 'px';
         obj.style.top = styleArray[7] + 'px';
@@ -1309,44 +1325,6 @@ function applyStyleArray(obj, styleArray) {
         obj.style.filter = get_filterStr_from_z(z);
     }
 }
-
-// function getStyleArrayFromStyleProps(div, styleProps) {
-//     // utils.validateIsDivElement(div);
-//     // utils.validateIsStyleProps(styleProps);
-//     var styleArray = [];
-//     var RGB = utils.get_RGB_from_Hex(styleProps.color);
-//     styleArray.push(...RGB);
-//     var RGB = utils.get_RGB_from_Hex(styleProps.backgroundColor);
-//     styleArray.push(...RGB);
-//     if ( !isCardDivLineItem(div) ) { // positionals
-//         styleArray.push(div.offsetLeft)
-//         styleArray.push(div.offsetTop)
-//         var z = get_z_from_zIndexStr(styleProps.zIndex);
-//         styleArray.push(z);
-//     } else {
-//         styleArray = styleArray.concat([0,0,0]);
-//     }
-//     // utils.validateIsStyleArray(styleArray);
-//     return styleArray;
-// }
-
-// function getStylePropsFromStyleArray(div, styleArray) {
-//     // utils.validateIsDivElement(div);
-//     // utils.validateIsStyleArray(styleArray); 
-//     var styleProps={};
-//     styleProps.color = utils.get_Hex_from_RGB(styleArray.slice(0,3));
-//     styleProps.backgroundColor = utils.get_Hex_from_RGB(styleArray.slice(3,6));
-//     if ( !isCardDivLineItem(div) ) { // positionals
-//         styleProps.left = styleArray[6] + 'px';
-//         styleProps.top = styleArray[7] + 'px';
-//         var z = styleArray[8];
-//         styleProps.zIndex = get_zIndexStr_from_z(z);
-//         styleProps.filter = get_filterStr_from_z(z);
-//     }
-//     // utils.validateIsStyleProps(styleProps);
-//     return styleProps;
-// }
-
 
 // ------------------------------------------------------------
 // theSelectedCardDiv vars, constants and functions
@@ -1567,7 +1545,7 @@ function addCardDivLineItem(targetCardDivId) {
         addCardDivLineItemClickListener(cardDivLineItem, targetCardDiv);
 
         // inherit colors of targetCardDiv
-        copyAttributes(cardDivLineItem, targetCardDiv, [
+        copyHexColorAttributes(cardDivLineItem, targetCardDiv, [
             "saved-background-color",
             "saved-color",
             "saved-selected-background-color",
@@ -1691,11 +1669,11 @@ function getCardDivLineItem(cardDivId) {
     if (!utils.isString(cardDivId))
         return null;
     var cardDivLineItems = document.getElementsByClassName("card-div-line-item");
-    var isBizcardDivId = utils.isString(cardDivId) && cardDivId.includes("bizcard-div-");
+    var isABizcardDivId = isBizcardDivId(cardDivId);
     for (var i = 0; i < cardDivLineItems.length; i++) {
         var cardDivLineItem = cardDivLineItems[ i ];
-        var isBizCarddivLineItemId = utils.isString(cardDivLineItem.id) && cardDivLineItem.id.includes("bizcard-div-");
-        if( String(cardDivLineItem.id).includes(cardDivId) && isBizcardDivId == isBizCarddivLineItemId ) {
+        var isABizCarddivLineItemId = utils.isString(cardDivLineItem.id) && cardDivLineItem.id.includes("bizcard-div-");
+        if( String(cardDivLineItem.id).includes(cardDivId) && isABizcardDivId == isABizCarddivLineItemId ) {
             // console.log(`getCardDivId:${cardDivId} found cardDivLineItem:${cardDivLineItem.id}`);
             return cardDivLineItem;
         }
