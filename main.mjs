@@ -490,6 +490,9 @@ function process_bizcard_description_item(bizcardDiv, inputString) {
             }
 
             htmlElementStr += '<br/>' + line2;
+            if ( htmlElementStr.includes('undefined')) {
+                throw new Error(`htmlElementStr:${htmlElementStr} must not have an undefined attribute`);
+            }
         }
         tag_link.html = htmlElementStr;
 
@@ -508,6 +511,10 @@ function process_bizcard_description_item(bizcardDiv, inputString) {
 
          // Replace the original pattern with the new HTML element
          updatedString = updatedString.replace(originalPattern, htmlSpanElementStr);
+         if ( updatedString.includes('undefined') ) {
+            throw new Error(`updatedString:${updatedString} must not have an undefined attribute`);
+        }
+
     });
 
     return { newTagLinks, updatedString };
@@ -1610,9 +1617,6 @@ function addCardDivLineItem(targetCardDivId) {
 
         cardDivLineItem.appendChild(cardDivLineItemContent);
         cardDivLineItem.appendChild(cardDivLineItemRightColumn);
-        // console.log(`cardDivLineItem:${cardDivLineItem.id} appended cardDivLineItemContent and cardDivLineItemRightColumn`);
-        // console.log(`cardDivLineItem boundingRect:${JSON.stringify(cardDivLineItem.getBoundingClientRect())}`);
-        // console.log(`rightContentDiv boundingRect:${JSON.stringify(rightContentDiv.getBoundingClientRect())}`);
         rightContentDiv.appendChild(cardDivLineItem);
 
         // find all tag-link elements of this cardDivLineItemContent and make
@@ -1648,12 +1652,6 @@ function addCardDivLineItem(targetCardDivId) {
         cardDivLineItem = existingCardDivLineItem
     }
 
-    let monoColorElements = cardDivLineItem.getElementsByClassName("mono-color-sensitive");
-    for ( let monoColorElement of monoColorElements ) {
-        monoColorElement.dataset.savedcolor = targetCardDiv.getAttribute("saved-color") || "";
-        monoColorElement.dataset.savedbackgroundcolor = targetCardDiv.getAttribute("saved-background-color") || "";
-        monoColor.applyMonoColorToElement(monoColorElement);
-    }
 
     // does not select self
     // does scroll self into view

@@ -42,11 +42,11 @@ export function toggleMonoColor() {
 
 export function setIconToColor(iconElement, iconColor) {
     let iconType = iconElement.dataset.iconType;
-    if( !iconType in ICON_TYPES ) {
-        throw new Error(`monoColorElement:${monoColorElement} has illegal data-iconType:${iconType}`);
+    if( !(iconType in ICON_TYPES) ) {
+        console.trace(`iconElement:${iconElement} has illegal iconType:${iconType}`);
     }
-    if ( !iconColor in ICON_COLORS ) {
-        throw new Error(`monoColorElement:${monoColorElement} has illegal data-iconColor:${iconColor}`);
+    if ( !(iconColor in ICON_COLORS) ) {
+        console.trace(`iconElement:${iconElement} has illegal iconColor:${iconColor}`);
     }
     iconElement.src = 'static_content/icons/icons8-' + iconType + '-16-' + iconColor + '.png';
     let bizcardId = iconElement.dataset.bizcardId;
