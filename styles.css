@@ -159,7 +159,6 @@ overflow and ensures consistent sizing.
   padding: 0px;
   box-sizing: border-box;
   cursor: pointer;
-  text-overflow: ellipsis; 
 }
 
 div.card-div span.tag-link {
@@ -318,4 +317,17 @@ div.card-div span.tag-link {
   background-color: green;
   color: white;
   float: right;
+}
+
+.card-div > .tag-link {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center; /* for vertical alignment */
+  justify-content: flex-start; /* for horizontal alignment */
+}
+
+.icon {
+  width: 16px;
+  height: 16px;
+  margin: 1px; /* Adjust as needed for spacing */
 }

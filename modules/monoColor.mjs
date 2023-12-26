@@ -16,9 +16,6 @@ export function getIconColor(color) {
     color = color.toUpperCase();
     let RGB = utils.get_RGB_from_ColorStr(color);
     let iconColor = (RGB[0] + RGB[1] + RGB[2] > 382) ? 'white' : 'black';
-    if ( !iconColor in ICON_COLORS ) {
-        throw new Error(`getIconColor: illegal iconColor:${iconColor}`);
-    }
     return iconColor;
 }
 

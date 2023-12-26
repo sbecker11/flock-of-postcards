@@ -401,26 +401,20 @@ function process_bizcard_description_HTML(bizcardDiv, description_HTML) {
 
 function createUrlAnchorTag(url, savedColor, savedBackgroundColor) {
     let iconColor = monoColor.getIconColor(savedColor);
-    if ( !iconColor in monoColor.ICON_COLORS ) {
-        throw new Error(`createUrlAnchorTag: illegal iconColor:${iconColor}`);
-    } 
-    return `<img class="icon geography-icon mono-color-sensitive" src="static_content/icons/icons8-geography-16-${iconColor}.png" data-url="${url}" data-savedcolor="${iconColor}" data-savedbackgroundcolor="${savedBackgroundColor}" data-icontype="geography" />`;
+    let html = `<img class="icon geography-icon mono-color-sensitive" src="static_content/icons/icons8-geography-16-${iconColor}.png" data-url="${url}" data-savedcolor="${iconColor}" data-savedbackgroundcolor="${savedBackgroundColor}" data-icontype="geography" />`;
+    return html;
 }
 
 function createImgAnchorTag(img, savedColor, savedBackgroundColor) {
     let iconColor = monoColor.getIconColor(savedColor);
-    if ( !iconColor in monoColor.ICON_COLORS ) {
-        throw new Error(`createImgAnchorTag: illegal iconColor:${iconColor}`);
-    } 
-    return `<img class="icon image-icon mono-color-sensitive" src="static_content/icons/icons8-image-16-${iconColor}.png" data-image="${img}" data-savedcolor="${iconColor}" data-savedbackgroundcolor="${savedBackgroundColor}" data-icontype="image"/>`;
+    let html = `<img class="icon image-icon mono-color-sensitive" src="static_content/icons/icons8-image-16-${iconColor}.png" data-image="${img}" data-savedcolor="${iconColor}" data-savedbackgroundcolor="${savedBackgroundColor}" data-icontype="image"/>`;
+    return html;
 }
 
 function createBackAnchorTag(bizcard_id, savedColor, savedBackgroundColor) {
     let iconColor = monoColor.getIconColor(savedColor);
-    if ( !iconColor in monoColor.ICON_COLORS ) {
-        throw new Error(`createBackAnchorTag: illegal iconColor:${iconColor}`);
-    } 
-    return `<img class="icon back-icon mono-color-sensitive" src="static_content/icons/icons8-back-16-${iconColor}.png" data-bizcard-id="${bizcard_id}" data-savedcolor="${iconColor}" data-savedbackgroundcolor="${savedBackgroundColor}" data-icontype="back"/>`;
+    let html = `<img class="icon back-icon mono-color-sensitive" src="static_content/icons/icons8-back-16-${iconColor}.png" data-bizcard-id="${bizcard_id}" data-savedcolor="${iconColor}" data-savedbackgroundcolor="${savedBackgroundColor}" data-icontype="back"/>`;
+    return html;
 }
 
 // This function takes an inputString, applies the regular expression to extract the 
@@ -477,7 +471,7 @@ function process_bizcard_description_item(bizcardDiv, inputString) {
         if (text) {
             // Initialize the htmlElement with just underlined text
             htmlElementStr = `<u>${text}</u>`;
-            var line2 = createBackAnchorTag(bizcardDiv.id, savedColor, savedBackgroundColor);
+            var line2 = '';
         
             // If img is defined, add an anchor tag wrapping the local image.png
             if (img) {
@@ -488,6 +482,8 @@ function process_bizcard_description_item(bizcardDiv, inputString) {
             if (url) {
                 line2 += createUrlAnchorTag(url, savedColor, savedBackgroundColor);
             }
+
+            line2 += createBackAnchorTag(bizcardDiv.id, savedColor, savedBackgroundColor);
 
             htmlElementStr += '<br/>' + line2;
             if ( htmlElementStr.includes('undefined')) {
@@ -525,14 +521,14 @@ function process_bizcard_description_item(bizcardDiv, inputString) {
 // otherwise create a new cardDiv
 function setCardDivIdOfTagLink(bizcardDiv, tag_link) {
     // console.assert(bizcardDiv != null && tag_link != null);
-    var cardDiv = findCardDiv(tag_link);
+    var cardDiv = findCardDiv(bizcardDiv, tag_link);
     if (!cardDiv) {
         cardDiv = createCardDiv(bizcardDiv, tag_link);
     }
     tag_link.cardDivId = cardDiv.id;
 }
 
-// add a click listener to the given iconelement
+// add a click listener to the given icon element
 function addIconClickListener(icon) {
     icon.addEventListener("click", (event) => {
         const iconElement = event.target;
@@ -590,11 +586,34 @@ function addIconClickListener(icon) {
 
 
 // this is an Order(N) search that could be optimized.
-function findCardDiv(tag_link) {
+function findCardDiv(bizcardDiv, tag_link) {
     var cardDivs = document.getElementsByClassName("card-div");
-    for (const cardDiv of cardDivs) {
-        if (cardDivMatchesTagLink(cardDiv, tag_link))
+    for (let cardDiv of cardDivs) {
+        if (cardDivMatchesTagLink(cardDiv, tag_link)) {
+            // found a match so add a backIcon if needed
+            let backIcons = cardDiv.getElementsByClassName("back-icon");
+            var numFound = 0;
+            for ( let i = 0; i < backIcons.length; i++ ) {
+                let backIcon = backIcons[i];
+                if ( backIcon.dataset.bizcardId === bizcardDiv.id ) {
+                    numFound++;
+                }
+            }
+            // if no backIcon found for this bizcardDiv then add one
+            if ( numFound === 0 ) {
+                // default the colors from the bizcardDiv
+                var savedColor = cardDiv.getAttribute('saved-color') || '';
+                var savedBackgroundColor = cardDiv.getAttribute('saved-background-color') || '';
+                let newBackAnchorTag = createBackAnchorTag(bizcardDiv.id, savedColor, savedBackgroundColor);
+                let spanTagLink = cardDiv.querySelector('span.tag-link');
+                if ( spanTagLink ) {
+                    spanTagLink.innerHTML += newBackAnchorTag;
+                } else {
+                    throw new Error(`cardDiv:${cardDiv.id} must have a span.tag-link element`);
+                }
+            }
             return cardDiv;
+        }
     }
     return null;
 }
@@ -672,7 +691,7 @@ function createCardDiv(bizcardDiv, tag_link) {
     var cardDiv = document.createElement('div');
     cardDiv.classList.add("card-div");
     cardDiv.tag_link = tag_link;
-    cardDiv.id = cardDivId;
+    cardDiv.id = cardDivId; 
     canvas.appendChild(cardDiv); 
 
     const cardDivIndex = getCardDivIndex(cardDivId) || 0;
