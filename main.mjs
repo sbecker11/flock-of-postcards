@@ -272,7 +272,7 @@ function createBizcardDivs() {
         canvas.appendChild(bizcardDiv);
 
         bizcardDiv.setAttribute("endDate", utils.getIsoDateString(endDate));
-        bizcardDiv.setAttribute("startDate", utils.getIsoDateString(endDate));
+        bizcardDiv.setAttribute("startDate", utils.getIsoDateString(startDate));
 
         // save the original center 
         var originalCtrX = left + width / 2;
@@ -584,6 +584,15 @@ function addIconClickListener(icon) {
     });
 }
 
+function getBizcardDivDays(bizcardDiv) {
+    const endMillis = getBizcardDivEndDate(bizcardDiv).getTime();
+    const startMillis = getBizcardDivStartDate(bizcardDiv).getTime();
+    const bizcardMillis = endMillis - startMillis;
+    console.log(`bizcardDiv.id:${bizcardDiv.id} bizcardMillis:${bizcardMillis}`);
+    const bizcardDivDays = bizcardMillis / (1000 * 60 * 60 * 24);
+    console.log(`bizcardDiv.id:${bizcardDiv.id} bizcardDivDays:${bizcardDivDays}`);
+    return parseInt(bizcardDivDays);
+}
 
 // this is an Order(N) search that could be optimized.
 function findCardDiv(bizcardDiv, tag_link) {
@@ -611,6 +620,9 @@ function findCardDiv(bizcardDiv, tag_link) {
                 } else {
                     throw new Error(`cardDiv:${cardDiv.id} must have a span.tag-link element`);
                 }
+                let days = parseInt(cardDiv.dataset.bizcardDivDays);
+                days += getBizcardDivDays(bizcardDiv);
+                cardDiv.dataset.bizcardDivDays = days
             }
             return cardDiv;
         }
@@ -693,6 +705,7 @@ function createCardDiv(bizcardDiv, tag_link) {
     cardDiv.tag_link = tag_link;
     cardDiv.id = cardDivId; 
     canvas.appendChild(cardDiv); 
+    cardDiv.dataset.bizcardDivDays = getBizcardDivDays(bizcardDiv);
 
     const cardDivIndex = getCardDivIndex(cardDivId) || 0;
 
@@ -753,7 +766,7 @@ function createCardDiv(bizcardDiv, tag_link) {
     }
 
     // ==================================================================
-    // divCard img_src and dimensions
+    // cardDiv img_src and dimensions
 
     var img_src = null;
     var img_width = MEAN_CARD_WIDTH;
@@ -1634,6 +1647,10 @@ function addCardDivLineItem(targetCardDivId) {
             cardDivLineItemRightColumn.appendChild(cardDivLineItemFollowingButton);
         }
 
+        if (isCardDiv(targetCardDiv)) {
+            addCardDivMonths(targetCardDiv, cardDivLineItemContent);
+        }
+
         cardDivLineItem.appendChild(cardDivLineItemContent);
         cardDivLineItem.appendChild(cardDivLineItemRightColumn);
         rightContentDiv.appendChild(cardDivLineItem);
@@ -2090,6 +2107,14 @@ function getBizcardDivEndDate(bizcardDiv) {
     return endDate;
 }
 
+function getBizcardDivStartDate(bizcardDiv) {
+    // utils.validateIsBizcardDiv(bizcardDiv);
+    var startDateStr = bizcardDiv.getAttribute("startDate");
+    var startDate = new Date(startDateStr);
+    return startDate;
+}
+
+
 // find bizcardDivId of the last bizcardDivLineItem and
 // get the next bizcardDivId that should be selected
 // if no bizcardDivLineItems exist then use the 
@@ -2168,6 +2193,24 @@ export function addAllIconClickListeners() {
     console.log(`addAllIconClickListeners found ${allBizcardDivElements.length} alBizcardDivElements`);
     let allCardDivLineItemElements = document.getElementsByClassName("card-div-line-item");
     console.log(`addAllIconClickListeners found ${allCardDivLineItemElements.length} allCardDivLineItemElements`); 
+}
+
+export function addCardDivMonths(cardDiv, cardDivLineItemContent) {
+    const days = cardDiv.dataset.bizcardDivDays;
+    const months = Math.round(days * 12.0 / 365.25);
+    let spanElement = cardDivLineItemContent.querySelector("span.tag-link");
+    if( spanElement ) {
+        if ( months <= 12 ) {
+            const units = months == 1 ? "month" : "months"; 
+            spanElement.innerHTML += `<br/>(${months} ${units}  experience)`;
+        } else {
+            const years = Math.round(months / 12.0);
+            const units = years == 1 ? "year" : "years";
+            spanElement.innerHTML += `<br/>(${years} ${units} experience)`;
+        }
+    } else {
+        console.error(`no spanElement found for cardDiv:${cardDiv.id}`);
+    }
 }
 
 selectNextBizcardButton.addEventListener("click", function (event) {

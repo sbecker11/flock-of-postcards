@@ -21,5 +21,8 @@
   "bugs": {
     "url": "https://github.com/sbecker11/flock-of-postcards/issues"
   },
-  "homepage": "https://github.com/sbecker11/flock-of-postcards#readme"
+  "homepage": "https://github.com/sbecker11/flock-of-postcards#readme",
+  "dependencies": {
+    "dayjs": "^1.11.10"
+  }
 }
