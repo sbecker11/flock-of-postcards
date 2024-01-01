@@ -1,4 +1,6 @@
-{
+import * as utils from './utils.mjs';
+
+const CSS_COLORS = {
     "AliceBlue": "#F0F8FF",
     "AntiqueWhite": "#FAEBD7",
     "Aqua": "#00FFFF",
@@ -140,5 +142,52 @@
     "WhiteSmoke": "#F5F5F5",
     "Yellow": "#FFFF00",
     "YellowGreen": "#9ACD32"
-  }
-  
+};
+
+const LOWERCASE_CSS_COLORS = _getLowerCaseCssColors();
+
+function _getLowerCaseCssColors()  {
+    let lowerCaseColors = {};
+    for (let color in CSS_COLORS) {
+        lowerCaseColors[color.toLowerCase()] = CSS_COLORS[color];
+    }
+    return lowerCaseColors;
+}
+
+export function get_HEX_from_CssColor(cssColor, verbose=false) {
+    if ( utils.isString(cssColor) ) {
+        let color = cssColor.toLowerCase();
+        let colors = LOWERCASE_CSS_COLORS;
+        if ( color in colors ) {
+            let HEX = colors[color];
+            if ( utils.isHexColorString(HEX)) {
+                return HEX;
+            }
+            if ( verbose )
+                console.trace(`cssColor:[${cssColor}] found HEX:[${HEX}] but it's not a valid hexColorString`);
+            return null;
+        } 
+        if( verbose )
+            console.trace(`cssColor:[${cssColor}] no matching hexColorString found`);
+        return null;
+    } 
+    if( verbose )
+        console.trace(`cssColor:[${cssColor}] is not a valid string`);
+    return null;
+}
+
+export function get_CssColor_from_HEX(HEX, verbose=false) {
+    if ( utils.isHexColorString(HEX) ) {
+        for (let color in LOWERCASE_CSS_COLORS) {
+            if (LOWERCASE_CSS_COLORS[color] === HEX) {
+                return color;
+            }
+        }
+        if( verbose )
+            console.trace(`HEX:[${HEX}] no matching cssColor found`);
+        return null;
+    }
+    if( verbose )
+        console.trace(`HEX:[${HEX}] is not a valid hexColorString`);
+    return null;
+}

@@ -92,7 +92,7 @@ lerna-debug.log
 **/.DS_Store
 Thumbs.db
 **/venv
-**/images/*
+**/imgs/*
 
 # Large .mov files
 *.mov

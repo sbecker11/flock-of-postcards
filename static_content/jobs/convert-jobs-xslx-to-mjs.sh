@@ -42,6 +42,6 @@ cat jobs.json >> jobs.mjs
 truncate -s -1 jobs.mjs
 echo ";" >> jobs.mjs
 type deactivate &>/dev/null && deactivate
-rm -f jobs.csv jobs.json
+# rm -f jobs.csv jobs.json
 rm -rf venv
 echo "done"

@@ -1,7 +1,30 @@
 // @ts-check
 
+import * as css_colors from './css_colors.mjs';
+
 // --------------------------------------
 // Utility export functions
+
+const EPSILON = 1.0;
+
+export function isHexColorString(hexColorStr) { // enforces uppercase hex string only
+    return isString(hexColorStr) && /^#[0-9A-F]{6}$/.test(hexColorStr);
+}
+export function validateHexColorString(hexColorStr) {
+    if (!isHexColorString(hexColorStr) ) {
+        throw new Error(`hexColorStr: '${hexColorStr}' is invalid.`);
+    }
+}
+export function getEuclideanDistance(arr1, arr2) {
+    if (arr1.length !== arr2.length) {
+        throw new Error('Both arrays must have the same length');
+    }
+    let sum = 0;
+    for (let i = 0; i < arr1.length; i++) {
+        sum += Math.pow(arr1[i] - arr2[i], 2);
+    }
+    return Math.sqrt(sum);
+}
 
 export const isString = (value) => (typeof value === 'string' || value instanceof String);
 export const isNumber = (value) => typeof value === 'number' && !isNaN(value);
@@ -18,7 +41,10 @@ export const toFixedPoint = (value, precision) => +value.toFixed(precision);
 export const linearInterp = (x, x1, y1, x2, y2) => y1 + ((x - x1) / (x2 - x1)) * (y2 - y1);
 export const getRandomInt = (min, max) => Math.floor(Math.random() * (max - min + 1)) + min;
 export const zeroPad = (num, places) => num.toString().padStart(places, "0");
+// given RGB array [R, G, B] return HSV array [ h, s, v]
 export const get_HSV_from_RGB = ([ R, G, B ]) => {
+    const RGB = [R,G,B];
+    validateRGB(RGB);
     const min = Math.min(R, G, B);
     const max = Math.max(R, G, B);
     const delta = max - min;
@@ -26,14 +52,76 @@ export const get_HSV_from_RGB = ([ R, G, B ]) => {
     let h = max === min ? 0 : (max === R ? (G - B) / delta + (G < B ? 6 : 0) : max === G ? (B - R) / delta + 2 : (R - G) / delta + 4) * 60;
     if (isNaN(h))
         h = 0;
-    return [ h, s, max ];
-};
-export const get_RGB_from_HSV = ([ h, s, v ]) => {
-    const f = (n, k = (n + h / 60) % 6) => v - v * s * Math.max(Math.min(k, 4 - k, 1), 0);
-    return [ f(5), f(3), f(1) ].map(Math.round);
+    const v = max;
+    const HSV = [ h, s, v ].map(Math.round);
+    validateHSV(HSV);
+    return HSV;
 };
 
-// returns a 3-element array of integers or null
+// given HSV array [h,s,v] return RGB array [r,g,b]
+export const get_RGB_from_HSV = ([ h, s, v ]) => {
+    const HSV = [h,s,v];
+    validateHSV(HSV);
+    const f = (n, k = (n + h / 60) % 6) => v - v * s * Math.max(Math.min(k, 4 - k, 1), 0);
+    const RGB = [ f(5), f(3), f(1) ].map(Math.round);
+    validateRGB(RGB);
+    return RGB;
+};
+
+function test_HSV_RGB_functions() {
+    function test_get_HSV_from_RGB() {
+        const RGBIn = [64, 128, 255];
+        const HSV = get_HSV_from_RGB([RGBIn[0],RGBIn[1],RGBIn[2]]);
+        const RGBOut = get_RGB_from_HSV([HSV[0],HSV[1],HSV[2]]);
+        console.assert( getEuclideanDistance(RGBOut, RGBIn) < EPSILON);
+    }
+    function test_get_RGB_from_HSV() {
+        const HSVIn = [180, 0, 1]; // H in [0..360], S in [0..1], V in [0..1]
+        const RGB = get_RGB_from_HSV([HSVIn[0],HSVIn[1],HSVIn[2]]);
+        const HSVOut = get_HSV_from_RGB([RGB[0],RGB[1],RGB[2]]);
+        console.assert( getEuclideanDistance(HSVOut, HSVIn) < EPSILON);
+    }
+    test_get_HSV_from_RGB();
+    test_get_RGB_from_HSV();
+}
+
+export function isHSV(HSV) {
+    if( !Array.isArray(HSV) || HSV.length != 3 ) {
+        return false;
+    } else if ( HSV[0] < 0.0 || HSV[0] > 360.0 ) { 
+        return false;
+    } else if ( HSV[1] < 0.0 || HSV[1] > 1.0 ) {
+        return false;
+    } else if ( HSV[2] < 0.0 || HSV[2] > 1.0 ) {
+        return false;
+    }
+    return true;
+}
+
+export function validateHSV(HSV) {
+    if ( !isHSV(HSV) ) {
+        throw new Error(`HSV:[${HSV}] is invalid`);
+    }
+}
+
+export function isRGB(RGB) {
+    if( !Array.isArray(RGB) || RGB.length != 3 ) {
+        return false;
+    } else if ( RGB[0] < 0 || RGB[0] > 255 ) { 
+        return false;
+    } else if ( RGB[1] < 0 || RGB[1] > 255 ) {
+        return false;
+    } else if ( RGB[2] < 0 || RGB[2] > 255 ) {
+        return false;
+    }
+    return true;
+}
+
+export function validateRGB(RGB) {
+    if ( !isRGB(RGB) ) {
+        throw new Error(`RGB:[${RGB}] is invalid`);
+    }
+}
 export function get_RGB_from_RgbStr(rgbStr) {
     if ( isString(rgbStr) ) {
         rgbStr = rgbStr.replaceAll(" ","");
@@ -44,52 +132,98 @@ export function get_RGB_from_RgbStr(rgbStr) {
             const R = parseInt(rStr, 10);
             const G = parseInt(gStr, 10);
             const B = parseInt(bStr, 10);
-            return [ R, G, B ];
+            const RGB = [ R, G, B ];
+            if( isRGB(RGB) )
+                return RGB;
         }
     }
     return null;
 }
-
-export function get_ColorStr_from_RGB(RGB) {
-    validateIntArrayLength(RGB,3);
-    return `color(${RGB[0]}, ${RGB[1]}, ${RGB[2]})`;
-}
-
-export function get_rgbStr_from_RGB(RGB) {
-    validateIntArrayLength(RGB,3);
+export function get_RgbStr_from_RGB(RGB) {
     return `rgb(${RGB[0]}, ${RGB[1]}, ${RGB[2]})`;
 }
+export function test_RGB_RgbStr_functions() {
+    function test_get_RGB_from_RgbStr() {
+        const rgbStrIn = 'rgb(255, 64, 127)';
+        const RGB = get_RGB_from_RgbStr(rgbStrIn);
+        const rgbStrOut = get_RgbStr_from_RGB(RGB);
+        console.assert(rgbStrIn === rgbStrOut);
+    }
+    function test_get_RgbStr_from_RGB() {
+        const rgbIn = [255, 0, 0];
+        const rgbStr = get_RgbStr_from_RGB(rgbIn);
+        const rgbOut = get_RGB_from_RgbStr(rgbStr);
+        console.assert(arraysAreEqual(rgbOut, rgbIn));
+    }
+    test_get_RGB_from_RgbStr();
+    test_get_RgbStr_from_RGB();
+}
 
-// returns a 3-element array of integers or null
 export function get_RGB_from_ColorStr(colorStr) {
-    if ( isString(colorStr) ) {
-        if (colorStr.startsWith("#")) {
-            return get_RGB_from_Hex(colorStr);
+    if ( isString(colorStr) && colorStr.length > 6) {
+        colorStr = colorStr.replaceAll(" ","");
+        const regex = /color\((\d+),(\d+),(\d+)\)/;
+        const matches = colorStr.match(regex);
+        var RGB = [];
+        if (matches) {
+            const [ , rStr, gStr, bStr ] = matches;
+            const R = parseInt(rStr, 10);
+            const G = parseInt(gStr, 10);
+            const B = parseInt(bStr, 10);
+            RGB = [ R, G, B ];
         }
-        else if (colorStr.startsWith('rgb')) {
-            return get_RGB_from_RgbStr(colorStr);
-        }
-        else if (colorStr.startsWith('color')) {
-            let hex = get_Hex_from_ColorStr(colorStr);
-            return get_RGB_from_Hex(hex);
-        }
+        return RGB;
     }
     return null;
+}
+    
+export function get_ColorStr_from_RGB(RGB) {
+    validateRGB(RGB);
+    return `color(${RGB[0]}, ${RGB[1]}, ${RGB[2]})`;
+}
+// returns a 3-element array of integers or null
+export function get_RGB_from_AnyStr(anyStr) {
+    if ( isString(anyStr) ) {
+        let hex = css_colors.get_HEX_from_CssColor(anyStr);
+        if ( isHexColorString(hex) ) {
+            return get_RGB_from_Hex(hex);
+        } else if ( isHexColorString(anyStr) ) {
+            return get_RGB_from_Hex(anyStr);
+        } else if ( anyStr.startsWith('rgb') ) {
+            return get_RGB_from_RgbStr(anyStr);
+        } else if ( anyStr.startsWith('color') ) {
+            return get_RGB_from_ColorStr(anyStr);
+        } else {
+            console.trace(`anyStr:[${anyStr}] unable to find matching RGB converter`);
+            return null;
+        }
+    }
+    console.trace(`anyStr:[${anyStr}] is undefined, null, or blank`);
+    return null;
+}
+
+function test_RGB_ColorStr_functions() {
+    function test_get_ColorStr_from_RGB() {
+        const RGBin = [127, 64, 255];
+        const ColorStr = get_ColorStr_from_RGB(RGBin);
+        const RGBout = get_RGB_from_ColorStr(ColorStr);
+        console.assert( arraysAreEqual(RGBout, RGBin) );
+    }
+    function test_get_RGB_from_ColorStr() {
+        const ColorStrIn = "color(127, 64, 255)";
+        const RGB = get_RGB_from_ColorStr(ColorStrIn);
+        const ColorStrOut = get_ColorStr_from_RGB(RGB);
+        console.assert( ColorStrOut == ColorStrIn );
+    }
+    test_get_ColorStr_from_RGB();
+    test_get_RGB_from_ColorStr();
 }
 
 export function get_Hex_from_ColorStr(colorStr) {
-    var RGB = get_RGB_from_ColorStr(colorStr); 
+    var RGB = get_RGB_from_AnyStr(colorStr); 
     return get_Hex_from_RGB(RGB);
 }
 
-export function isHexColorString(hexColorStr) { // enforces uppercase hex string only
-    return isString(hexColorStr) && /^#[0-9A-F]{6}$/.test(hexColorStr);
-}
-export function validateHexColorString(hexColorStr) {
-    if (!isHexColorString(hexColorStr) ) {
-        throw new Error(`hexColorStr: '${hexColorStr}' is invalid.`);
-    }
-}
 export function normalizeHexColorString(hexColorStr) {
     // Create a dummy element to leverage the browser's color parsing
     var dummy = document.createElement("div");
@@ -216,8 +350,11 @@ export function validateIsPlainObject(obj) {
         throw new Error(`Error: argument is not a plain object, it is a(n) ${typeof obj} with value ${obj}`);
     }
 }
+export function isElement(obj) {
+    return (obj instanceof HTMLElement);
+}
 export function validateIsElement(obj) {
-    if (!(obj instanceof HTMLElement)) {
+    if (!isElement(obj)) {
         throw new Error(`Argument is not an HTML element. but it is a(n) ${typeof obj} with value ${obj}`);
     }
 }
@@ -256,6 +393,11 @@ export function getStyleProps(element) {
     return styleProps;
 }
 
+export function getStylePropsString(styleProps) {
+    validateIsStyleProps(styleProps);
+    return JSON.stringify(styleProps,null,2);
+}
+
 // z-index and background-color are styleProps
 export function applyStyleProps(element, styleProps) {
     validateIsStyleProps(styleProps);
@@ -278,43 +420,54 @@ export function validateIsStylePropsArray(obj) {
         validateIsStyleProps(element);
     });
 }
+export function isDivElement(obj) {
+    return (obj instanceof HTMLElement) && (obj.tagName == 'DIV');
+}
 export function validateIsDivElement(obj) {
-    if (!(obj instanceof HTMLElement) || obj.tagName !== 'DIV') {
-        throw new Error(`Argument is not an HTML div element. bit is a(n) ${typeof obj} with value ${obj}`);
+    if (!isDivElement(obj)) {
+        throw new Error(`Argument is not an HTML DIV element. bit is a(n) ${typeof obj} with value ${obj}`);
     }
+}
+export function isLineItemElement(obj) {
+    return (obj instanceof HTMLElement) && (obj.tagName == 'LI')
 }
 export function validateIsLineItemElement(obj) {
-    if (!(obj instanceof HTMLElement) || obj.tagName !== 'LI') {
-        throw new Error(`Argument is not an HTML li element, but is a(n) ${typeof obj} with value ${obj}`);
+    if (!isLineItemElement(obj)){
+        throw new Error(`Argument is not an HTML LI element, but is a(n) ${typeof obj} with value ${obj}`);
     }
 }
+export function isCardDiv(obj) {
+    return isDivElement(obj) && obj.classList.contains('card-div');
+}
+
 export function validateIsCardDiv(obj) {
-    validateIsDivElement(obj);
-    if (!obj.classList.contains('card-div')) {
+    if (!isCardDiv(obj)) {
         throw new Error(`Argument does not have "card-div" class but does have ${obj.classList}.`);
     }
 }
+export function isBizcardDiv(obj) {
+    return isDivElement(obj) && obj.classList.contains('bizcard-div')
+}
 export function validateIsBizcardDiv(obj) {
-    validateIsDivElement(obj);
-    if (!obj.classList.contains('bizcard-div')) {
+    if (!isBizcardDiv(obj)) {
         throw new Error(`Argument does not have "bizcard-div" class but does have ${obj.classList}.`);
     }
 }
+export function isCardDivOrBizcardDiv(obj) {
+    return isCardDiv(obj) || isBizcardDiv(obj);
+}
 export function validateIsCardDivOrBizcardDiv(obj) {
-    validateIsDivElement(obj);
-    if (!obj.classList.contains('card-div') && !obj.classList.contains('bizcard-div')) {
+    if (!isCardDivOrBizcardDiv(obj)) {
         throw new Error(`Argument does not have "card-div" or "bizcard-div" class but does have ${obj.classList}.`);
     }
 }
+export function isCardDivLineItem(obj) {
+    return isLineItemElement(obj) && obj.classList.contains('card-div-line-item');
+}
 export function validateIsCardDivLineItem(obj) {
-    validateIsLineItemElement(obj);
-    if (!obj.classList.contains('card-div-line-item')) {
+    if (!isCardDivLineItem(obj)) {
         throw new Error(`Argument does not have "card-div-line-item" class but does have ${obj.classList}.`);
     }
-}
-export function getStylePropsString(styleProps) {
-    validateIsStyleProps(styleProps);
-    return JSON.stringify(styleProps,null,2);
 }
 
 // --------------------------------------
@@ -395,24 +548,27 @@ export function formatNumber(num, format) {
 }
 
 export function ensureHexColorStringAttribute(obj, attr) {
-    let color = obj.getAttribute(attr);
-    if( typeof color === 'undefined' || color === null || color === "") {
-        throw new Error(`Attribute ${attr} must be defined.`);
+    let val = null;
+    let hex = null;
+    if ( isElement(obj) ) {
+        if( isString(attr) ) {
+            val = obj.getAttribute(attr);
+            if( isString(val) ) {
+                if ( isHexColorString(val) ) {
+                    return;
+                } 
+                var RGB = get_RGB_from_AnyStr(val);
+                if ( isRGB(RGB) ) {
+                    hex = get_Hex_from_RGB(RGB);
+                    if ( isHexColorString(hex) && hex != val) {
+                        obj.setAttribute(attr, hex);
+                        return;
+                    }
+                }
+            }
+        }
     }
-    var hex = null;
-    if ( isHexColorString(color) ) {
-        hex = color;
-    } else if ( isNumericArray(color) && color.length === 3 ) {
-        hex = get_Hex_from_RGB(color);
-    } else if ( color.startWith('color') ) {
-        hex = get_Hex_from_ColorStr(color);
-    }
-    if (hex !== null) {
-        obj.setAttribute(attr, hex);
-    } else {
-        throw new Error(`Attribute ${attr} is not a valid hex color string.`);
-    }
-    validateHexColorString(obj.getAttribute(attr));
+    throw new Error(`obj:[${obj}] attr:[${attr}] val:[${val}] hex:[${hex}] is not a valid hexColorString.`);
 }
 
 export function ensureHexColorStringStyle(obj, styleName) {
@@ -436,3 +592,35 @@ export function ensureHexColorStringStyle(obj, styleName) {
     validateHexColorString(obj.style['styleName']);
 
 }
+
+export function getObjectAsString(obj) {
+    let str = "";
+    for (let key in obj) {
+        let comma = (str === "") ? "" : ", ";
+        str += `${comma}${key}:${obj[key]}`;
+    }
+    return str;
+}
+
+export function getAttributesAsObject(element) {
+    let attributes = {};
+    for (let attribute of element.attributes) {
+        attributes[attribute.name] = attribute.value;
+    }
+    return attributes;
+}
+export function getAttributesAsString(element) {
+    let attributes = getAttributesAsObject(element);
+    return getObjectAsString(attributes);
+}
+
+export function getDatasetAsString(element) {
+    let dataset = element.dataset;
+    return getObjectAsString(dataset);
+}
+
+export function testColorFunctions() {
+    test_RGB_RgbStr_functions();
+    test_RGB_ColorStr_functions();
+}
+

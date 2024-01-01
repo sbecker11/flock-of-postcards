@@ -3,7 +3,6 @@
 'use strict';
 
 import * as utils from './modules/utils.mjs';
-import * as alerts from './modules/alerts.mjs';
 import * as timeline from './modules/timeline.mjs';
 import * as focalPoint from './modules/focal_point.mjs';
 import * as monoColor from './modules/monoColor.mjs';
@@ -270,8 +269,14 @@ function createBizcardDivs() {
         bizcardDiv.style.zIndex = zIndexStr;
 
         canvas.appendChild(bizcardDiv);
-
-        bizcardDiv.setAttribute("endDate", utils.getIsoDateString(endDate));
+        bizcardDiv.dataset.employer = employer;
+        bizcardDiv.dataset.cardDivIds = [];
+        try {
+            console.log(`startDate:[${endDate}]`);
+            bizcardDiv.setAttribute("endDate", utils.getIsoDateString(endDate));
+        } catch (e) {
+            console.error(e);
+        }
         bizcardDiv.setAttribute("startDate", utils.getIsoDateString(startDate));
 
         // save the original center 
@@ -322,6 +327,7 @@ function createBizcardDivs() {
         bizcardDiv.addEventListener("mouseenter", handleCardDivMouseEnter);
         bizcardDiv.addEventListener("mouseleave", handleCardDivMouseLeave);
 
+        utils.validateIsCardDivOrBizcardDiv(bizcardDiv);
         addCardDivClickListener(bizcardDiv);
         // does not select self
         // does not scroll self into view
@@ -329,23 +335,6 @@ function createBizcardDivs() {
     }
 }
 
-// function handleTagLinkClick(event) {
-//     // console.assert(event != null);
-//     var tag_link = event.target;
-//     // console.assert(tag_link != null);
-//     var targetCardDivId = tag_link.getAttribute("targetCardDivId");
-//     // console.assert(targetCardDivId != null);
-//     var targetCardDiv = document.getElementById(targetCardDivId);
-//     // console.assert(targetCardDiv != null);
-//     if (targetCardDiv) {
-//         // console.log(`handleTagLinkClick: ${targetCardDivId}`);
-//         selectTheCardDiv(targetCardDiv, true);
-//         scrollElementIntoView(targetCardDiv);
-//         if ( theSelectedCardDiv !== null && theSelectedCardDiv.id !== targetCardDiv.id ) {
-//             console.log(`handleTagLinkClick: ${targetCardDivId} not selected`);
-//         }
-//     }
-// }
 
 // --------------------------------------
 // tag_link globals
@@ -399,21 +388,25 @@ function process_bizcard_description_HTML(bizcardDiv, description_HTML) {
     return [processed_bizcard_description_HTML, bizcardTagLinks];
 }
 
-function createUrlAnchorTag(url, savedColor, savedBackgroundColor) {
+function createUrlAnchorTag(url, savedColor) {
     let iconColor = monoColor.getIconColor(savedColor);
-    let html = `<img class="icon geography-icon mono-color-sensitive" src="static_content/icons/icons8-geography-16-${iconColor}.png" data-url="${url}" data-savedcolor="${iconColor}" data-savedbackgroundcolor="${savedBackgroundColor}" data-icontype="geography" />`;
+    let iconType = "url";
+    let html = `<img class="icon ${iconType}-icon mono-color-sensitive" src="static_content/icons/icons8-${iconType}-16-${iconColor}.png" data-url="${url}" data-saved-color="${iconColor}" data-icontype="${iconType}"/>`;
     return html;
 }
 
-function createImgAnchorTag(img, savedColor, savedBackgroundColor) {
+function createImgAnchorTag(img, savedColor) {
     let iconColor = monoColor.getIconColor(savedColor);
-    let html = `<img class="icon image-icon mono-color-sensitive" src="static_content/icons/icons8-image-16-${iconColor}.png" data-image="${img}" data-savedcolor="${iconColor}" data-savedbackgroundcolor="${savedBackgroundColor}" data-icontype="image"/>`;
+    let iconType = "img";
+    let html = `<img class="icon img-icon mono-color-sensitive" src="static_content/icons/icons8-${iconType}-16-${iconColor}.png" data-img="${img}" data-saved-color="${iconColor}" data-icontype="${iconType}"/>`;
     return html;
 }
 
-function createBackAnchorTag(bizcard_id, savedColor, savedBackgroundColor) {
+function createBackAnchorTag(bizcard_id, savedColor, isMonocolorSensitive=true) {
     let iconColor = monoColor.getIconColor(savedColor);
-    let html = `<img class="icon back-icon mono-color-sensitive" src="static_content/icons/icons8-back-16-${iconColor}.png" data-bizcard-id="${bizcard_id}" data-savedcolor="${iconColor}" data-savedbackgroundcolor="${savedBackgroundColor}" data-icontype="back"/>`;
+    let iconType = "back";
+    let monoColorSensitiveClass = isMonocolorSensitive ? "mono-color-sensitive" : '';
+    let html = `<img class="icon back-icon ${monoColorSensitiveClass}" src="static_content/icons/icons8-${iconType}-16-${iconColor}.png" data-bizcard-id="${bizcard_id}" data-saved-color="${iconColor}" data-icontype="${iconType}"/>`;
     return html;
 }
 
@@ -460,7 +453,6 @@ function process_bizcard_description_item(bizcardDiv, inputString) {
         const url = tag_link.url ? tag_link.url : '';
 
         var savedColor = bizcardDiv.getAttribute('saved-color') || '';
-        var savedBackgroundColor = bizcardDiv.getAttribute('saved-background-color') || '';
 
         if (typeof savedColor === 'undefined' || savedColor === null || savedColor === '') {
             throw new Error(`bizcardDiv:${bizcardDiv.id} must have a saved-color attribute`);
@@ -473,21 +465,22 @@ function process_bizcard_description_item(bizcardDiv, inputString) {
             htmlElementStr = `<u>${text}</u>`;
             var line2 = '';
         
-            // If img is defined, add an anchor tag wrapping the local image.png
+            // If img is defined, add an anchor tag wrapping the local img.png
             if (img) {
-                line2 += createImgAnchorTag(img, savedColor, savedBackgroundColor);
+                line2 += createImgAnchorTag(img, savedColor);
             }
             
             // If url is defined, add an anchor tag wrapping the local geo.png
             if (url) {
-                line2 += createUrlAnchorTag(url, savedColor, savedBackgroundColor);
+                line2 += createUrlAnchorTag(url, savedColor);
             }
 
-            line2 += createBackAnchorTag(bizcardDiv.id, savedColor, savedBackgroundColor);
+            // always add the initial backAnchorTag
+            line2 += createBackAnchorTag(bizcardDiv.id, savedColor);
 
             htmlElementStr += '<br/>' + line2;
             if ( htmlElementStr.includes('undefined')) {
-                throw new Error(`htmlElementStr:${htmlElementStr} must not have an undefined attribute`);
+                throw new Error(`htmlElementStr:${htmlElementStr} must not have any undefined values`);
             }
         }
         tag_link.html = htmlElementStr;
@@ -496,7 +489,7 @@ function process_bizcard_description_item(bizcardDiv, inputString) {
         setCardDivIdOfTagLink(bizcardDiv, tag_link);
         
         // create a tag_link span element with the targetCardDivId attribute and the htmlElementStr as its innerHTML
-        let htmlSpanElementStr = `<span class="tag-link" targetCardDivId="${tag_link.cardDivId}">${htmlElementStr}</span>`;
+        let htmlSpanElementStr = `<span class="tag-link" data-saved-color="${savedColor}" targetCardDivId="${tag_link.cardDivId}">${htmlElementStr}</span>`;
 
         // reconstruct the original pattern
         let originalPattern = `[${text}]`;
@@ -526,16 +519,20 @@ function setCardDivIdOfTagLink(bizcardDiv, tag_link) {
         cardDiv = createCardDiv(bizcardDiv, tag_link);
     }
     tag_link.cardDivId = cardDiv.id;
+    let comma = (bizcardDiv.dataset.cardDivIds.length > 0) ? ',' : '';
+    bizcardDiv.dataset.cardDivIds += comma + cardDiv.id;
 }
 
 // add a click listener to the given icon element
 function addIconClickListener(icon) {
     icon.addEventListener("click", (event) => {
         const iconElement = event.target;
+        event.stopPropagation();
+
         if (iconElement) {
             const iconType = iconElement.dataset.icontype;
             switch (iconType) {
-                case 'geography': {
+                case 'url': {
                     const url = iconElement.dataset.url; // from data-url
                     if (url) {
                         console.log(`iconElement iconType:${iconType} click: ${url}`);
@@ -545,8 +542,8 @@ function addIconClickListener(icon) {
                     }
                     break;
                 }
-                case 'image': {
-                    const img = iconElement.dataset.image; // from data-image
+                case 'img': {
+                    const img = iconElement.dataset.img; // from data-img
                     if (img) {
                         console.log(`iconElement iconType:${iconType} click: ${img}`);
                         window.open(img, "_blank");
@@ -588,9 +585,9 @@ function getBizcardDivDays(bizcardDiv) {
     const endMillis = getBizcardDivEndDate(bizcardDiv).getTime();
     const startMillis = getBizcardDivStartDate(bizcardDiv).getTime();
     const bizcardMillis = endMillis - startMillis;
-    console.log(`bizcardDiv.id:${bizcardDiv.id} bizcardMillis:${bizcardMillis}`);
+    // console.log(`bizcardDiv.id:${bizcardDiv.id} bizcardMillis:${bizcardMillis}`);
     const bizcardDivDays = bizcardMillis / (1000 * 60 * 60 * 24);
-    console.log(`bizcardDiv.id:${bizcardDiv.id} bizcardDivDays:${bizcardDivDays}`);
+    // console.log(`bizcardDiv.id:${bizcardDiv.id} bizcardDivDays:${bizcardDivDays}`);
     return parseInt(bizcardDivDays);
 }
 
@@ -612,8 +609,7 @@ function findCardDiv(bizcardDiv, tag_link) {
             if ( numFound === 0 ) {
                 // default the colors from the bizcardDiv
                 var savedColor = cardDiv.getAttribute('saved-color') || '';
-                var savedBackgroundColor = cardDiv.getAttribute('saved-background-color') || '';
-                let newBackAnchorTag = createBackAnchorTag(bizcardDiv.id, savedColor, savedBackgroundColor);
+                let newBackAnchorTag = createBackAnchorTag(bizcardDiv.id, savedColor, false);
                 let spanTagLink = cardDiv.querySelector('span.tag-link');
                 if ( spanTagLink ) {
                     spanTagLink.innerHTML += newBackAnchorTag;
@@ -688,7 +684,7 @@ function getNextCardDivId() {
     return nextCardDivId;
 }
 
-var prev_z = null; // to track the previous z value
+var prev_z = null; // to track the previous z value 
 
 // adds a new cardDivs to #canvas
 // default center x to zero and center y to
@@ -702,6 +698,8 @@ function createCardDiv(bizcardDiv, tag_link) {
     var cardDivId = getNextCardDivId();
     var cardDiv = document.createElement('div');
     cardDiv.classList.add("card-div");
+    utils.validateIsCardDivOrBizcardDiv(cardDiv);
+
     cardDiv.tag_link = tag_link;
     cardDiv.id = cardDivId; 
     canvas.appendChild(cardDiv); 
@@ -756,9 +754,10 @@ function createCardDiv(bizcardDiv, tag_link) {
 
     // the tag_link is used to define the contents of this cardDiv
     const spanId = `tag_link-${cardDivId}`;
+    let savedColor = cardDiv.getAttribute("saved-color");
 
     // define the innerHTML when cardDiv is added to #canvas
-    cardDiv.innerHTML = `<span id="${spanId}" class="tag-link" targetCardDivId="${cardDivId}">${tag_link.html}</span>`;
+    cardDiv.innerHTML = `<span id="${spanId}" data-saved-color="${savedColor}" class="tag-link" targetCardDivId="${cardDivId}">${tag_link.html}</span>`;
 
     const spanElement = document.getElementById(spanId);
     if (spanElement) {
@@ -806,6 +805,7 @@ function createCardDiv(bizcardDiv, tag_link) {
     cardDiv.addEventListener("mouseenter", handleCardDivMouseEnter);
     cardDiv.addEventListener("mouseleave", handleCardDivMouseLeave);
 
+    utils.validateIsCardDivOrBizcardDiv(cardDiv);
     addCardDivClickListener(cardDiv);
     // does not select self
     // does not scroll self into view
@@ -816,14 +816,66 @@ function createCardDiv(bizcardDiv, tag_link) {
     cardDiv.setAttribute("tagLinkUrl", tag_link[ "url" ]);
     cardDiv.setAttribute("tagLinkImg", tag_link[ "img" ]);
 
-    // cardDiv line items are never mono-color-sensitive
+    // all elements of cardDiv are not mono-color-sensitive
     let monocolorElements = Array.from(cardDiv.getElementsByClassName("mono-color-sensitive"));
-    for (let i = 0; i < monocolorElements.length; i++) {
-        let monocolorElement = monocolorElements[i];
+    for (let monocolorElement of monocolorElements) {
         monocolorElement.classList.remove("mono-color-sensitive");
     }
 
     return cardDiv;
+}
+
+// write the exmployer of each bizcardDiv and the ext of each of its cardDivs
+export function logAllBizcardDivs() {
+    let allBizcardDivs = document.getElementsByClassName("bizcard-div");
+    var log = "";
+    console.log('---------------------------------------------------');
+    for (let bizcardDiv of allBizcardDivs) {
+        let employer = bizcardDiv.dataset.employer;
+        if (employer === undefined || employer === null) {
+            continue;
+        }
+        let cardDivIds = bizcardDiv.dataset.cardDivIds;
+        if ( cardDivIds.length > 0 ) {
+            for (let cardDivId of cardDivIds.split(',')) {
+                let cardDiv = document.getElementById(cardDivId);
+                if (cardDiv === null) {
+                    console.log(`No element with id cardDivId:${cardDivId}`);
+                    continue;
+                }
+                if ( cardDiv.dataset.bizcardDivMonths < 4) {
+                    continue;
+                }
+                let cardDivText = cardDiv.getAttribute('tagLinkText');
+                if ( cardDivText === undefined || cardDivText == null ) {
+                    continue;
+                }
+                if ( cardDivText.includes('“') ) {
+                    continue;
+                }
+                let ignores = [
+                    "Massachusetts Institute of Technology",
+                    "Trimble Mobile Solutions",
+                    "OneCall",
+                    "HomePortfolio.com",
+                    "Brigham Young University",
+                    "four patents"
+                ];
+                if ( ignores.includes(cardDivText) ) {
+                    continue;
+                }
+                if ( employer.includes(cardDivText) ) {
+                    continue;
+                }
+                if ( cardDivText.includes(employer) ) {
+                    continue;
+                }
+                log += `"${employer}", "${cardDivText}"\n`;
+            }
+        }
+    }
+    console.log(log);
+    console.log('---------------------------------------------------');
 }
 
 function copyHexColorAttributes(dstDiv, srcDiv, attrs) {
@@ -1297,8 +1349,8 @@ function createStyleArray(obj, prefix) {
     let array = [];
     var RGB;
     if (prefix) { // use div.getAttribute
-        array = array.concat(utils.get_RGB_from_ColorStr(obj.getAttribute(`${prefix}-color`)));
-        array = array.concat(utils.get_RGB_from_ColorStr(obj.getAttribute(`${prefix}-background-color`)));
+        array = array.concat(utils.get_RGB_from_AnyStr(obj.getAttribute(`${prefix}-color`)));
+        array = array.concat(utils.get_RGB_from_AnyStr(obj.getAttribute(`${prefix}-background-color`)));
         if ( !isCardDivLineItem(obj) ) { // positionals
             var left = parseInt(obj.getAttribute(`${prefix}-left`));
             array.push(left);
@@ -1309,8 +1361,8 @@ function createStyleArray(obj, prefix) {
             array = array.concat([0,0,0]);
         }
     } else { // use div or div.style
-        array = array.concat(utils.get_RGB_from_ColorStr(obj.style.color));
-        array = array.concat(utils.get_RGB_from_ColorStr(obj.style.backgroundColor));
+        array = array.concat(utils.get_RGB_from_AnyStr(obj.style.color));
+        array = array.concat(utils.get_RGB_from_AnyStr(obj.style.backgroundColor));
         if ( !isCardDivLineItem(obj) ) { // positionals
             var left = obj.offsetLeft;
             array.push(left);
@@ -1348,11 +1400,11 @@ function applyStyleArray(obj, styleArray) {
     // utils.validateIsElement(obj);
     // utils.validateIsStyleArray(styleArray);
     var rgbStr;
-    rgbStr = utils.get_rgbStr_from_RGB(styleArray.slice(0,3));
+    rgbStr = utils.get_RgbStr_from_RGB(styleArray.slice(0,3));
     obj.style.color = rgbStr;
     console.assert(obj.style.color === rgbStr);
 
-    rgbStr = utils.get_rgbStr_from_RGB(styleArray.slice(3,6));
+    rgbStr = utils.get_RgbStr_from_RGB(styleArray.slice(3,6));
     obj.style.backgroundColor = rgbStr;
     console.assert(obj.style.backgroundColor === rgbStr);
 
@@ -1421,7 +1473,10 @@ function findNearestAncestorWithClassName(element, className) {
 function selectTheCardDiv(cardDiv, selectTheCardDivLineItemFlag=false) {
     if ( cardDiv == null )
         return;
-    // utils.validateIsCardDivOrBizcardDiv(cardDiv);
+    if( !utils.isCardDivOrBizcardDiv(cardDiv) ) {
+        console.warn(`selectTheCardDiv ignoring invalid argument: ${cardDiv}`);
+        return;
+    }
     // utils.validateIsBoolean(selectTheCardDivLineItemFlag);
 
     // click on selected to deselect
@@ -1479,10 +1534,11 @@ function deselectTheSelectedCardDiv(deselectTheSelectedCardDivLineItemFlag=false
 // handle mouse click event for any div element with
 // cardClass "card-div" or "bizcard-div".
 function addCardDivClickListener(cardDiv) {
+    utils.validateIsCardDivOrBizcardDiv(cardDiv);
     cardDiv.addEventListener("click", function (event) {
-
+        let thisCardDiv = event.target;
         // select the cardDiv and its cardDivLineItem
-        selectTheCardDiv(cardDiv, true);
+        selectTheCardDiv(thisCardDiv, true);
 
         event.stopPropagation();
     })
@@ -1600,6 +1656,7 @@ function addCardDivLineItem(targetCardDivId) {
         cardDivLineItemContent.classList.add("mono-color-sensitive");
         cardDivLineItemContent.style.backgroundColor = 'transparent';
         cardDivLineItemContent.style.color = targetCardDiv.getAttribute("saved-color") || "";
+        cardDivLineItemContent.dataset.savedColor = targetCardDiv.getAttribute("saved-color") || "";
 
         // set right column
         var cardDivLineItemRightColumn = document.createElement('div')
@@ -1607,6 +1664,7 @@ function addCardDivLineItem(targetCardDivId) {
         cardDivLineItemRightColumn.classList.add("mono-color-sensitive");
         cardDivLineItemRightColumn.style.backgroundColor = 'transparent';
         cardDivLineItemRightColumn.style.color = targetCardDiv.getAttribute("saved-color") || "";
+        cardDivLineItemRightColumn.dataset.savedColor = targetCardDiv.getAttribute("saved-color") || "";
 
         // start with the innerHTML of the targetCardDiv
         var targetInnerHTML = targetCardDiv.innerHTML;
@@ -1664,7 +1722,7 @@ function addCardDivLineItem(targetCardDivId) {
         }
 
         // find all iconElemens of this cardDivLineItemContent and make 
-        // them mono-color-sensitive and give them onclick listeners.
+        // each mono-color-sensitive and give each an onclick listeners.
         //
         // However, delete any back-icons if the targetCardDiv is a bizcardDiv
         //
@@ -1675,13 +1733,19 @@ function addCardDivLineItem(targetCardDivId) {
         let iconElements = cardDivLineItemContent.getElementsByClassName("icon");
         for (let i = iconElements.length - 1; i >= 0; i--) {
             let iconElement = iconElements[i];
+            if ( !iconElement.classList.contains('mono-color-sensitive') ) {
+                iconElement.classList.add('mono-color-sensitive');
+            }
             let iconType = iconElement.dataset.icontype;
             if (deleteBackIcons && iconType === "back") {
                 iconElement.parentNode.removeChild(iconElement);
             } else {
                 addIconClickListener(iconElement);
-                iconElement.classList.add("mono-color-sensitive");
             }
+        }
+        // finish up by applying monocolor rules to the cardDivLineItem's mono-color-sensitive child elements
+        for ( let element of cardDivLineItem.getElementsByClassName("mono-color-sensitive") ) {
+            monoColor.applyMonoColorToElement(element);
         }
     } else {
         // console.log(`returning preexisting cardDivLineItem for targetCardDivId:${targetCardDivId}`);
@@ -1891,37 +1955,6 @@ function getParallax() {
 function easeFocalPointToBullsEye() {
     focalPoint.easeFocalPointTo(bullsEyeX, bullsEyeY);
 }
-
-// function debugFocalPoint() {
-//     if ( debugFocalPointElement != null ) {
-//         var html = "";
-//         if (isMouseOverCanvasContainer && mouseX && mouseY)
-//             html += `mouse in canvas [${mouseX},${mouseY}]<br/>`;
-//         else
-//             html += "mouse not in canvas<br/>";
-
-//         html += `bullsEye:[${bullsEyeX},${bullsEyeY}]<br/>`;
-//         html += `focalPoint:[${focalPointX},${focalPointY}]<br/>`;
-//         const { parallaxX, parallaxY } = getParallax();
-//         html += `parallax:[${parallaxX},${parallaxY}]<br/>`;
-
-//         var time = (new Date()).getTime();
-//         html += `time:${time}<br/>`;
-        
-//         debugFocalPointElement.innerHTML = html;
-//     }
-// }
-
-// function debugTheSelectedCardDivId() {
-//     if ( debugTheSelectedCardDivIdElement != null ) {
-//         var html = "";
-//         var theSelectedCardDivIdStr = theSelectedCardDiv == null ? 'null' : `${theSelectedCardDiv.id}`;
-//         var theSelectedCardDivLineItemIdStr = theSelectedCardDivLineItem == null ? 'null' : `${theSelectedCardDivLineItem.id}`;
-//         html += `theSelectedCardDivIdStr:${theSelectedCardDivIdStr}<br/>`;
-//         html += `theSelectedCardDivLineItemIdStr:${theSelectedCardDivLineItemIdStr}<br/>`;
-//         debugTheSelectedCardDivIdElement.innerHTML = html;
-//     }
-// }
 
 // return the min and max years over the list of jobs
 function getMinMaxTimelineYears(jobs) {
@@ -2198,6 +2231,8 @@ export function addAllIconClickListeners() {
 export function addCardDivMonths(cardDiv, cardDivLineItemContent) {
     const days = cardDiv.dataset.bizcardDivDays;
     const months = Math.round(days * 12.0 / 365.25);
+    cardDiv.dataset.bizcardDivMonths = months;
+    cardDiv.dataset.bizcardDivYears = 0;
     let spanElement = cardDivLineItemContent.querySelector("span.tag-link");
     if( spanElement ) {
         if ( months <= 12 ) {
@@ -2207,6 +2242,7 @@ export function addCardDivMonths(cardDiv, cardDivLineItemContent) {
             const years = Math.round(months / 12.0);
             const units = years == 1 ? "year" : "years";
             spanElement.innerHTML += `<br/>(${years} ${units} experience)`;
+            cardDiv.dataset.bizcardDivYears = years;
         }
     } else {
         console.error(`no spanElement found for cardDiv:${cardDiv.id}`);
@@ -2237,3 +2273,9 @@ addCanvasContainerEventListener('scroll', handleCanvasContainerScroll);
 
 addCanvasContainerEventListener('click', handleCanvasContainerMouseClick);
 
+export function onCloseWelcomeAlert() {
+    selectAllBizcards();
+    addAllIconClickListeners();
+    logAllBizcardDivs();
+    utils.testColorFunctions();
+}

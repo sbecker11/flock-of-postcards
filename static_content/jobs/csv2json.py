@@ -7,7 +7,7 @@ from datetime import datetime
 csv.field_size_limit(sys.maxsize)
 
 replacements = {
-    "CURRENT_DATE": f"{datetime.now():%Y-%m}"
+    "CURRENT_DATE": f"{datetime.now():%Y-%m-%d}"
 }
 in_str = sys.stdin.read()
 reader_list = csv.DictReader(io.StringIO(in_str))
