@@ -46,6 +46,10 @@ The static 'flock-of-postcards' website has been upgraded to be a webapp that us
 - Rotate 3D bizcard blocks during transitions
 - Toggle debug panel visiblilty with button or key
 
+### version 0.8:   January 1, 2024
+
+#### Features added:  
+
 ### version 0.7:   November 18, 2023
 
 #### Features added:  
