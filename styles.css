@@ -1,13 +1,42 @@
-html,
-body {
+/*
+Set the html and body elements to a height of 100%. This establishes a 
+reference for the #main-container to occupy the full height of the viewport.
+*/
+html, body {
   height: 100%;
-  margin: 0;
-  padding: 0;
+  margin: 0; /* Remove default margins */
+  padding: 0; /* Remove default paddings */
+  background-color: midnightblue;
   overflow: hidden;
-  background-color: blueviolet;
 }
 
-#debugScrollingElement, #debugFocalPointElement {
+/*
+Make #main-container take the full height of the viewport using 100vh 
+(viewport height). 100vh is equal to 100% of the height of the viewport, 
+regardless of the window size.
+*/
+#main-container {
+  display: flex;
+  width: 100%; /* Full width */
+  height: 100vh; /* Full viewport height */
+}
+
+/*
+Apply box-sizing: border-box; to all elements to ensure that padding and borders 
+are included in the width and height calculations. This prevents unintentional 
+overflow and ensures consistent sizing.
+*/
+*, *::before, *::after {
+  box-sizing: border-box;
+}
+
+
+#debugScrollingElement, 
+#debugFocalPointElement, 
+#debugBullsEyeElement, 
+#debugCanvasElement, 
+#debugCanvasContainerElement,
+#debugTheSelectedCardDivIdElement {
   display: block;
   font-family: Roboto, sans-serif;
   font-size: 12px;
@@ -45,8 +74,10 @@ body {
   color: gray;
 }
 
-#main-container {
-  display: flex;
+
+
+.column-50 {
+  /* overflow-x: hidden;  Hide horizontal overflow */
   height: 100%;
 }
 
@@ -91,7 +122,7 @@ body {
 
 .bizcard-div {
   position: absolute;
-  border-width: 3px;
+  border-width: 5px;
   border-style: solid;
   border-color: white;
   border-radius: 25px;
@@ -118,15 +149,24 @@ body {
     
 .card-div {
   position: absolute;
-  border-width: 5px;
+  width: 106px;
+  border-width: 3px;
   border-style: solid;
   border-color: white;
   font-family: "Roboto", sans-serif;
-  font-weight: bold;
-  font-size: 10px;
+  font-weight: normal;
+  font-size: 14px;
   padding: 0px;
   box-sizing: border-box;
   cursor: pointer;
+}
+
+div.card-div span.tag-link {
+  display: inline-block; /* or block */
+  max-width: 100%; /* Adjust as needed */
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .bizcard-div-header {
@@ -151,7 +191,7 @@ body {
 
 #right-column {
   flex: 1;
-  height: 100%;
+  overflow: hidden;
   position: relative;
   background-color: #dddddd;
   font-family: "Roboto", sans-serif;
@@ -159,7 +199,7 @@ body {
   flex-direction: column;
 }
 #right-header-div {
-  height: 140px;
+  height: 160px;
   background-color: #444444;
   color: white;
   padding: 10px;
@@ -178,40 +218,57 @@ body {
   font-size: 20px;
 }
 .footnote {
-  font-size: 10px;
+  font-size: 12px;
 }
 
 #right-content-div {
   flex: 1;
   overflow-y: auto;
+  overflow-x: hidden;
+  box-sizing: border-box; 
   background-color: #dddddd;
   color: black;
   padding: 10px;
 }
 
+.right-content-div-child {
+  max-width: 100%;
+  height: auto;
+}
+
 #right-footer-div {
-  height: 170px;
+  height: 40px;
   background-color: #999999;
   padding: 10px;
 }
 
-.tagLink {
+.tag-link {
   font-weight: 900;
   text-decoration: underline;
-  cursor: pointer;
+  cursor: crosshair;
+}
+
+.monocolor {
+  color: black !important;
+  background-color: #dddddd !important;
 }
 
 .card-div-line-item {
+  max-width: 100%;
   display:flex;
   list-style-type: none;
   justify-content: space-between;
-  margin: 1px 0px;
+  margin: 0px 0px;
   cursor: pointer;
+  border-width: 5px;
+  border-style: solid;
+  border-color: white;
 }
 
 .card-div-line-item-content {
   padding: 20px;
   flex-grow: 1;
+  overflow-x: hidden;
 }
 
 .card-div-line-item-description {
@@ -247,8 +304,9 @@ body {
 }
 
 .selected {
-  border-color: red !important;
-  border-style: dashed !important;
+  border-width: 5px !important;
+  border-style: dotted !important;
+  border-color: white !important;
 }
 
 .buttons {
@@ -259,4 +317,17 @@ body {
   background-color: green;
   color: white;
   float: right;
+}
+
+.card-div > .tag-link {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center; /* for vertical alignment */
+  justify-content: flex-start; /* for horizontal alignment */
+}
+
+.icon {
+  width: 16px;
+  height: 16px;
+  margin: 1px; /* Adjust as needed for spacing */
 }

@@ -1,7 +1,7 @@
 // @ts-check
 
-import * as timeline from './timeline.js';
-import * as utils from './utils.js';
+import * as timeline from './timeline.mjs';
+import * as utils from './utils.mjs';
   
 // --------------------------------------
 // TimeLine globals 
@@ -57,7 +57,7 @@ export function createTimeline(container, canvasContainer, minYear, maxYear, def
     initTimelineContainer(container, minYear, maxYear);
     inittimelineYearDivBottoms();
 
-    console.assert(timelineContainer != null);
+    // console.assert(timelineContainer != null);
     var alignment = timelineContainer.classList.contains("timeline-container-left") ? "left" : "right";
 
     for (var year = TIMELINE_MAX_YEAR; year >= TIMELINE_MIN_YEAR; year--) {
@@ -93,10 +93,12 @@ export function createTimeline(container, canvasContainer, minYear, maxYear, def
             var monthStr = utils.zeroPad(month, 2);
             var monthTickBottom = timeline.getTimelineYearMonthBottom(year, monthStr);
             var check = yearDivBottom - (month - 1) * YEAR_BOTTOM_TO_BOTTOM / 12;
-            if (monthTickBottom != check)
-                console.log(`WARNING: monthTickBottom:${monthTickBottom} != check:${check}`);
-            if (timeline.getTimelineYearMonthBottom(year, "01") != timelineYearDivBottoms[`${year}`])
-                console.log("WARNING: year-01 != year");
+            if (monthTickBottom != check) {
+                // console.log(`WARNING: monthTickBottom:${monthTickBottom} != check:${check}`);
+            }
+            if (timeline.getTimelineYearMonthBottom(year, "01") != timelineYearDivBottoms[`${year}`]) {
+                // console.log("WARNING: year-01 != year");
+            }
 
             monthTick.style.fontSize = `${MONTHTICK_FONTSIZE}px`;
             monthTick.style.height = `${MONTHTICK_FONTSIZE}px`;

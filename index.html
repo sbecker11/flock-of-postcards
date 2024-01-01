@@ -8,18 +8,23 @@
         initial-scale=1.0"/>
   <meta http-equiv= "X-UA-Compatible"
         content="ie=edge"/>
-  <title>flock-of-cards-v0.7</title>
-  <link rel="stylesheet" href="styles.css">
-  <link rel="stylesheet" href="modules/timeline.css">
+  <title>flock-of-cards</title>
+  <link rel="stylesheet" href="./styles.css">
+  <link rel="stylesheet" href="./modules/timeline.css">
+  <link rel="stylesheet" href="./modules/alerts.css">
 </head>
 
 <body>
-  <script type="text/javascript" src="static_content/jobs/jobs.js"></script>
-  <script type="text/javascript" src="static_content/media/image_paths.js"></script>
-  <script type="module" src="./main.js" ></script>
-
+  <script type="text/javascript" src="static_content/jobs/jobs.mjs"></script>
+  <!-- <script type="text/javascript" src="static_content/media/img_paths.mjs"></script> -->
+  <script type="module" src="./main.mjs" ></script>
+  <script type="module" src="./modules/alerts.mjs" ></script>
+  <script type="module" src="./modules/monoColor.mjs" ></script>
+  <script type="module" src="./modules/css_colors.mjs" ></script>
+  
   <div id="main-container">
-    <div id="canvas-container" class="scrollable-container">
+
+    <div id="canvas-container" class="column-50 scrollable-container">
       <div id="canvas">
         <div id="top-gradient"></div>
         <div id="bottom-gradient"></div>
@@ -28,7 +33,8 @@
       <div id="bulls-eye">+</div>
       <div id="focal-point">⦻</div>
     </div>
-    <div id="right-column">
+
+    <div id="right-column" class="column-50">
       <div id="right-header-div">
 
         <!-- your resume head goes here -->
@@ -38,7 +44,7 @@
               <td style="vertical-align:top">
                 <p><span style="font-size:30px">Shawn Becker</span></p>
                 <p><strong><span style="font-size:11pt">Data Engineer / Software Developer</span></strong></p>
-                <p>sbecker@alum.mit.edu &bull; 857-891-0896<br>LinkedIn.com/in/shawnbecker &bull; Lehi - Utah, USA</p>
+                <p>sbecker@alum.mit.edu &bull; 857-891-0896<br>https://linkedin.com/in/shawnbecker &bull; Lehi - Utah, USA <img src="static_content/icons/icons8-url-16-white.png"/><img src="static_content/icons/icons8-img-16-white.png"/></p>
               </td>
             </tr>
           </tbody>
@@ -46,26 +52,65 @@
         <!-- your resume head goes here -->
         <div class="buttons">
           <button id="clear-all-line-items" class="menu-button">Clear All</button>
-          <button id="select-all-skills" class="menu-button">Select Skills</button>
           <button id="select-all-bizcards" class="menu-button">Select All</button>
           <button id="select-next-bizcard" class="menu-button">Select Next</button>
+          <button id="select-first-bizcard" class="menu-button">Select First</button>
         </div>
 
       </div>
       <div id="right-content-div" class="scrollable-container">
+        <!-- all children must have class="right-content-div-child"-->
         <!-- <div id="skills" style="color:black;height:50px;width:100%;"></div> -->
       </div>
-      <div id="right-footer-div">
-        <p class="footnote" style="text-align:bottom;">
-          create a flock-of-postcards for yourself at
-          <a target="_blank" href="https://www.beckerstudio.com/">beckerstudio.com</a>"
-        </p>
-
+      
+      <div id="right-footer-div" style="display: flex; flex-direction: column;">
+        <div style="display: flex; justify-content: space-between; align-items: center;">
+            <p class="footnote" style="margin: 0;">
+                create a flock-of-postcards for yours own resume at
+                <a target="_blank" href="https://www.beckerstudio.com/">beckerstudio.com</a><br>
+            </p>
+            <div>
+                <img id="monoColorIcon" src="static_content/icons/greys.png" alt="MonoCoolor Icon" width="16" height="16" onclick="toggleMonoColor();" style="cursor: pointer;">
+            </div>
+        </div>
+    
+        <!--
         <div id="debugScrollingElement"></div>
-        <div id="debugFocalPointElement"></div>
-      </div>
+        <div id="debugFocalPointElement">mouse not in canvas<br>bullsEye:[303,452]<br>focalPoint:[303,452]<br>parallax:[0,0]<br>time:1702688539746<br></div>
+        <div id="debugTheSelectedCardDivIdElement">theSelectedCardDivIdStr:null<br>theSelectedCardDivLineItemIdStr:null<br></div> 
+        -->
     </div>
+        
+  </div>
 
+  <div class="overlay" id="overlay"></div>
+
+  <div id="welcomeAlert" role="dialog" aria-labelledby="welcomeAlert" aria-describedby="welcomAlert-content">
+    <div class="welcomeAlert-content">
+      <p id="welcomeAlert-close">Click here to get started </p>
+    </div>
+  </div>
+
+  <script type="module">
+    import { showWelcomeAlert } from './modules/alerts.mjs';
+
+    document.addEventListener('DOMContentLoaded', function() {
+        showWelcomeAlert();
+    });
+
+    // to prevent the audio context from being suspended
+    let audioContext;
+
+    document.addEventListener('click', function() {
+        if (!audioContext) {
+            audioContext = new AudioContext();
+            // Additional audio setup code here
+        } else if (audioContext.state === 'suspended') {
+            audioContext.resume();
+        }
+    });
+      
+  </script>
 
 </body>
 

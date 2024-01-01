@@ -37,6 +37,7 @@
   .month-tick, .month-tick-left, .month-tick-right {
     position: absolute;
     font-family: "Roboto", sans-serif;
+    font-size: 10px;
     color: #666666;
     border-bottom: 1px solid #666666;
     pointer-events: none;
