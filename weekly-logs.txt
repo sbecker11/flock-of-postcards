@@ -1,3 +1,8 @@
+
+2024-01-01:
+created tag named "release-0.8"
+created pull request to merge brach "version-0.8" into master, and completed the merge
+created branch version-0.9
 version-0.8 --------------------
 2023-12-31:
 fixed monocolor issues, renamed ICON_TYPES and icon filenames
@@ -12,7 +17,7 @@ refreshed convert-jobs-xslx-to-mjs.sh
 2023-11-26:
 Removed Select Skills button | added Select First button, resetting divStyleArray[z] to originalZ when negative, added flag to selectTheX and deselectTheX to select or deselect derivative element (divCard<->divCardLineItem (saving lots of code), only apply animations on non-lineItem elements, implementing custom scrollElementIntoView, | entire project converted to Node ES6 format using a package.json file and all .js files renamed to .mjs | created tests/test_utils and static_content/media/scale-wordpress-images.zip | added event listener to block click events while animation is in progress to ensure animation is handled without interruption. And introduced targetParallaxedDivStyleArray so div is restored to original position with parallax applied.
 2023-11-19:
-Added planned features | made selected style !important, added arrayHasNaNs checks to all divStyleArrays, simplified scrollElementIntoView, trying unsuccessfully to easeFocalPointToBullsEye when any div is selected. | Reverted attempts to call "selectAllBizCards" on window load | border widths and scrollIntoView adjustments | version in title | version-0.8 new graphics added | merge 
+Added planned features | made selected style !important, added arrayHasNaNs checks to all divStyleArrays, simplified scrollElementIntoView, trying unsuccessfully to easeFocalPointToBullsEye when any div is selected. | Reverted attempts to call "selectAllBizCards" on window load | border widths and scrollIntoView adjustments | version in title | created branch "version-0.8" new graphics added | merge 
 
 version-0.7 --------------------
 2023-11-19:
