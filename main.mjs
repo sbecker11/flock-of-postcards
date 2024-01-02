@@ -6,6 +6,7 @@ import * as utils from './modules/utils.mjs';
 import * as timeline from './modules/timeline.mjs';
 import * as focalPoint from './modules/focal_point.mjs';
 import * as monoColor from './modules/monoColor.mjs';
+import * as alerts from './modules/alerts.mjs';
 
 // --------------------------------------
 // Element reference globals
@@ -272,7 +273,7 @@ function createBizcardDivs() {
         bizcardDiv.dataset.employer = employer;
         bizcardDiv.dataset.cardDivIds = [];
         try {
-            console.log(`startDate:[${endDate}]`);
+            //console.log(`startDate:[${endDate}]`);
             bizcardDiv.setAttribute("endDate", utils.getIsoDateString(endDate));
         } catch (e) {
             console.error(e);
@@ -522,14 +523,6 @@ function setCardDivIdOfTagLink(bizcardDiv, tag_link) {
     bizcardDiv.dataset.cardDivIds += comma + cardDiv.id;
 }
 
-function confirmOpenNewBrowserWindow(url) {
-    let userPermission = confirm('Do you want to open this URL in a new window?');
-    if (userPermission) {
-        window.open(url, '_blank');
-    }
-}
-
-
 // add a click listener to the given icon element
 function addIconClickListener(icon) {
     icon.addEventListener("click", (event) => {
@@ -538,12 +531,15 @@ function addIconClickListener(icon) {
 
         if (iconElement) {
             const iconType = iconElement.dataset.icontype;
+            const tag_link = iconElement.closest('span.tag-link');
+            const tag_link_text = (tag_link && tag_link.innerText) ? tag_link.innerText : null;
             switch (iconType) {
                 case 'url': {
                     const url = iconElement.dataset.url; // from data-url
                     if (url) {
-                        console.log(`iconElement iconType:${iconType} click: ${url}`);
-                        confirmOpenNewBrowserWindow(url);
+                        let title = tag_link_text ? `the webpage for <b>${tag_link_text}</b> at ${url}` : `the webpage at ${url}`;
+                        console.log(`iconElement iconType:${iconType} click: ${url} title: [${title}]`);
+                        alerts.confirmOpenNewBrowserWindow(title, url);
                     } else {
                         console.error(`iconElement iconType:${iconType} click: no url`);
                     }
@@ -552,8 +548,9 @@ function addIconClickListener(icon) {
                 case 'img': {
                     const img = iconElement.dataset.img; // from data-img
                     if (img) {
-                        console.log(`iconElement iconType:${iconType} click: ${img}`);
-                        confirmOpenNewBrowserWindow(img);
+                        let title = tag_link_text ? `the image for <b>${tag_link_text}<b>` : `the image at ${img}`;
+                        console.log(`iconElement iconType:${iconType} click: ${img} title: [${title}]`);
+                        alerts.confirmOpenNewBrowserWindow(title, img);
                     } else {
                         console.error(`iconElement iconType:${iconType} click: no img`);
                     }

@@ -74,3 +74,40 @@ function trapFocus(element) {
     // Set initial focus to the first focusable element
     firstFocusableElement.focus();
 }
+
+let confirmModal = document.getElementById("confirm-modal");
+let confirmOpenBtn = document.getElementById("confirm-open-btn");
+let confirmCancelBtn = document.getElementById("confirm-cancel-btn");
+let confirmClose = document.getElementsByClassName("confirm-close")[0];
+let confirmModalTitle = document.getElementById("confirm-modal-title");
+let CONFIRM_PAUSE_SECONDS = 2;
+
+
+export function confirmOpenNewBrowserWindow(title, url) {
+
+    confirmModalTitle.innerHTML = `Do you want to open ${title} in a new window?`;
+    confirmModal.style.display = "block";
+
+    confirmOpenBtn.onclick = function() {
+        confirmModalTitle.innerHTML = `Opening ${title} in a new window...`;
+
+        setTimeout(function() {
+            window.open(url, '_blank');
+            confirmModal.style.display = "none";
+        }, CONFIRM_PAUSE_SECONDS * 1000); // replace N with the number of seconds you want to pause
+    }
+
+    confirmCancelBtn.onclick = function() {
+        confirmModal.style.display = "none";
+    }
+
+    confirmClose.onclick = function() {
+        confirmModal.style.display = "none";
+    }
+
+    window.onclick = function(event) {
+        if (event.target == confirmModal) {
+            confirmModal.style.display = "none";
+        }
+    }
+}
