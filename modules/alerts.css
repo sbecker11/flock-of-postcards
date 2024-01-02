@@ -58,35 +58,57 @@
 .confirm-modal {
     display: none; /* Hidden by default */
     position: fixed; /* Stay in place */
-    z-index: 1; /* Sit on top */
     left: 0;
     top: 0;
     width: 100%; /* Full width */
     height: 100%; /* Full height */
     overflow: auto; /* Enable scroll if needed */
-    background-color: rgb(0,0,0); /* Fallback color */
-    background-color: rgba(0,0,0,0.4); /* Black w/ opacity */
+    background-color: rgba(0,0,0,0.5); /* Black w/ opacity */
+    padding-top: 100px;
     z-index: 501;
   }
   
   .confirm-modal-content {
     background-color: #fefefe;
-    margin: 15% auto; /* 15% from the top and centered */
-    padding: 20px;
-    border: 1px solid #888;
-    width: 80%; /* Could be more or less, depending on screen size */
+    margin-left: 10%; /* Start from 55% of the window width */
+    padding: 20px; /* Adjust padding as needed */
+    border: 10px solid #e39494;
+    width: 80%; /* Width is 40% to leave margins on each side */
+    border-radius: 60px; /* 30px rounded corners */
+    font-size: 24px;
+    font-family: 'Arial';
+    box-sizing: border-box; /* Include padding and border in the width */
+    text-align: center; /* Center the text horizontally */
+    display: flex; /* Use flexbox for vertical alignment */
+    justify-content: center; /* Center content horizontally in flex container */
+    align-items: center; /* Center content vertically in flex container */
+    height: 100px; /* Adjust height as needed */
   }
   
   .confirm-close {
     color: #aaa;
     float: right;
-    font-size: 28px;
+    font-size: 50px;
     font-weight: bold;
+    margin-right: 8px;
   }
   
   .confirm-close:hover,
   .close:focus {
-    color: black;
     text-decoration: none;
     cursor: pointer;
+  }
+
+  div.confirm-modal-content button {
+    font-size: 30px;
+    font-weight: bold;
+    color: #aaa;
+    margin: 5px;
+    border: none;
+    cursor: pointer;
+  }
+
+  div.confirm-modal-content button:hover,
+  div.confirm-modal-content button:focus {
+    color: black;
   }

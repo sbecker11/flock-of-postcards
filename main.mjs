@@ -532,12 +532,16 @@ function addIconClickListener(icon) {
         if (iconElement) {
             const iconType = iconElement.dataset.icontype;
             const tag_link = iconElement.closest('span.tag-link');
-            const tag_link_text = (tag_link && tag_link.innerText) ? tag_link.innerText : null;
+            let tag_link_text = (tag_link && tag_link.innerText) ? tag_link.innerText : null;
+            tag_link_text = tag_link_text.replace(/\(.*?\)/, ""); // remove everything in paraens
+            tag_link_text = tag_link_text.replace(/\.$/, ""); // remove trailing period
             switch (iconType) {
                 case 'url': {
-                    const url = iconElement.dataset.url; // from data-url
+                    let url = iconElement.dataset.url; // from data-url
                     if (url) {
-                        let title = tag_link_text ? `the webpage for <b>${tag_link_text}</b> at ${url}` : `the webpage at ${url}`;
+                        url = url.endsWith('/') ? url.slice(0,-1) : url;
+                        let urlStr = (tag_link_text.length + url.length < 40) ? ` at <u>${url}</u>` : '';
+                        let title = tag_link_text ? `the webpage for <b>${tag_link_text}</b>${urlStr}` : `the webpage at ${url}`;
                         console.log(`iconElement iconType:${iconType} click: ${url} title: [${title}]`);
                         alerts.confirmOpenNewBrowserWindow(title, url);
                     } else {
@@ -546,9 +550,11 @@ function addIconClickListener(icon) {
                     break;
                 }
                 case 'img': {
-                    const img = iconElement.dataset.img; // from data-img
+                    let img = iconElement.dataset.img; // from data-img
                     if (img) {
-                        let title = tag_link_text ? `the image for <b>${tag_link_text}<b>` : `the image at ${img}`;
+                        img = img.endsWith('/') ? img.slice(0,-1) : img;
+                        img = "<u>" + img + "</u>";
+                        let title = tag_link_text ? `the image for <b>${tag_link_text}</b>` : `the image at ${img}`;
                         console.log(`iconElement iconType:${iconType} click: ${img} title: [${title}]`);
                         alerts.confirmOpenNewBrowserWindow(title, img);
                     } else {

@@ -87,9 +87,15 @@ export function confirmOpenNewBrowserWindow(title, url) {
 
     confirmModalTitle.innerHTML = `Do you want to open ${title} in a new window?`;
     confirmModal.style.display = "block";
+    confirmOpenBtn.style.display = "block";
+    confirmCancelBtn.style.display = "block";
+
 
     confirmOpenBtn.onclick = function() {
+        confirmOpenBtn.style.display = "none";
+        confirmCancelBtn.style.display = "none";
         confirmModalTitle.innerHTML = `Opening ${title} in a new window...`;
+
 
         setTimeout(function() {
             window.open(url, '_blank');
