@@ -503,7 +503,6 @@ function process_bizcard_description_item(bizcardDiv, inputString) {
          if ( updatedString.includes('undefined') ) {
             throw new Error(`updatedString:${updatedString} must not have an undefined attribute`);
         }
-
     });
 
     return { newTagLinks, updatedString };
@@ -523,6 +522,14 @@ function setCardDivIdOfTagLink(bizcardDiv, tag_link) {
     bizcardDiv.dataset.cardDivIds += comma + cardDiv.id;
 }
 
+function confirmOpenNewBrowserWindow(url) {
+    let userPermission = confirm('Do you want to open this URL in a new window?');
+    if (userPermission) {
+        window.open(url, '_blank');
+    }
+}
+
+
 // add a click listener to the given icon element
 function addIconClickListener(icon) {
     icon.addEventListener("click", (event) => {
@@ -536,7 +543,7 @@ function addIconClickListener(icon) {
                     const url = iconElement.dataset.url; // from data-url
                     if (url) {
                         console.log(`iconElement iconType:${iconType} click: ${url}`);
-                        window.open(url, "_blank");
+                        confirmOpenNewBrowserWindow(url);
                     } else {
                         console.error(`iconElement iconType:${iconType} click: no url`);
                     }
@@ -546,7 +553,7 @@ function addIconClickListener(icon) {
                     const img = iconElement.dataset.img; // from data-img
                     if (img) {
                         console.log(`iconElement iconType:${iconType} click: ${img}`);
-                        window.open(img, "_blank");
+                        confirmOpenNewBrowserWindow(img);
                     } else {
                         console.error(`iconElement iconType:${iconType} click: no img`);
                     }
@@ -805,10 +812,16 @@ function createCardDiv(bizcardDiv, tag_link) {
     cardDiv.addEventListener("mouseenter", handleCardDivMouseEnter);
     cardDiv.addEventListener("mouseleave", handleCardDivMouseLeave);
 
-    utils.validateIsCardDivOrBizcardDiv(cardDiv);
     addCardDivClickListener(cardDiv);
-    // does not select self
-    // does not scroll self into view
+
+    // add the cardDivClickListener to all cardDiv descendants 
+    // except icon elements
+    let cardDivDescendants = cardDiv.querySelectorAll('*');
+    for ( let decendent of cardDivDescendants ) {
+        if ( !decendent.classList.contains('icon') ) {
+            addCardDivClickListener(cardDiv);
+        }
+    }
 
     renderAllTranslateableDivsAtCanvasContainerCenter();
 
@@ -1531,17 +1544,26 @@ function deselectTheSelectedCardDiv(deselectTheSelectedCardDivLineItemFlag=false
     // debugTheSelectedCardDivId();
 }
 
-// handle mouse click event for any div element with
-// cardClass "card-div" or "bizcard-div".
+// add the mouse click event handler to any div element with
+// class card-div or bizcard-div or to any child
+// element that has a cardDiv or bizcard-div ancestor
 function addCardDivClickListener(cardDiv) {
-    utils.validateIsCardDivOrBizcardDiv(cardDiv);
-    cardDiv.addEventListener("click", function (event) {
-        let thisCardDiv = event.target;
-        // select the cardDiv and its cardDivLineItem
-        selectTheCardDiv(thisCardDiv, true);
+    cardDiv.addEventListener("click", cardDivClickListener);
+}
 
+// handle mouse click event for any div element with
+// cardClass "card-div" or "bizcard-div" or any child
+// element that has a cardDiv or bizcard-div ancestor.
+function cardDivClickListener(event) {
+    let element = event.target;
+    let cardDiv = element;
+    if ( !utils.isCardDivOrBizcardDiv(cardDiv) ) {
+        cardDiv = cardDiv.closest('.card-div, .bizcard-div');
+    }
+    if ( cardDiv && !element.classList.contains('icon') ) {
+        selectTheCardDiv(cardDiv, true);
         event.stopPropagation();
-    })
+    }
 }
 
 function selectTheCardDivLineItem(cardDivLineItem, selectTheCardDivFlag=false) {
