@@ -26,10 +26,10 @@
 /* Style for the alert content */
 .welcomeAlert-content {
     background-color: #fefefe;
-    margin-left: 55%; /* Start from 55% of the window width */
+    margin-left: 25%; /* Start from 55% of the window width */
     padding: 20px; /* Adjust padding as needed */
     border: 10px solid #e39494;
-    width: 40%; /* Width is 40% to leave margins on each side */
+    width: 50%; /* Width is 40% to leave margins on each side */
     border-radius: 60px; /* 30px rounded corners */
     font-size: 32px;
     font-family: 'Arial';
