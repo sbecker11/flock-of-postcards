@@ -6,6 +6,7 @@ import * as utils from './modules/utils.mjs';
 import * as timeline from './modules/timeline.mjs';
 import * as focalPoint from './modules/focal_point.mjs';
 import * as monoColor from './modules/monoColor.mjs';
+import * as alerts from './modules/alerts.mjs';
 
 // --------------------------------------
 // Element reference globals
@@ -225,24 +226,20 @@ function createBizcardDivs() {
         utils.validateHexColorString(css_hex_color_str);
 
         // timeline is descending so jobEnd is always above jobStart
-        var jobEnd = job[ "end" ].trim().replace("-01", "");
-        // utils.validateString(jobEnd);
-        var endYearStr = jobEnd.split("-")[ 0 ];
-        // utils.validateString(endYearStr);
-        var endMonthStr = jobEnd.split("-")[ 1 ];
-        // utils.validateString(endMonthStr);
+        let jobEndParts =  job[ "end" ].split("-");
+        var endYearStr = jobEndParts[0];
+        var endMonthStr = jobEndParts[1];
 
         var endDate = new Date(`${endYearStr}-${endMonthStr}-01`);
+        var jobEndStr = endDate.toISOString().slice(0,7);
         var endBottomPx = timeline.getTimelineYearMonthBottom(endYearStr, endMonthStr);
 
-        var jobStart = job[ "start" ].trim().replace("-01", "");
-        // utils.validateString(jobStart);
-        var startYearStr = jobStart.split("-")[ 0 ];
-        // utils.validateString(startYearStr);
-        var startMonthStr = jobStart.split("-")[ 1 ];
-        // utils.validateString(startMonthStr);
+        var jobStartParts = job[ "start" ].split("-");
+        var startYearStr = jobStartParts[0];
+        var startMonthStr = jobStartParts[1];
 
         var startDate = new Date(`${startYearStr}-${startMonthStr}-01`);
+        var jobStartStr = startDate.toISOString().slice(0,7);
         var startBottomPx = timeline.getTimelineYearMonthBottom(startYearStr, startMonthStr);
 
         var heightPx = Math.max(startBottomPx - endBottomPx, MIN_BIZCARD_HEIGHT);
@@ -272,7 +269,7 @@ function createBizcardDivs() {
         bizcardDiv.dataset.employer = employer;
         bizcardDiv.dataset.cardDivIds = [];
         try {
-            console.log(`startDate:[${endDate}]`);
+            //console.log(`startDate:[${endDate}]`);
             bizcardDiv.setAttribute("endDate", utils.getIsoDateString(endDate));
         } catch (e) {
             console.error(e);
@@ -321,7 +318,7 @@ function createBizcardDivs() {
         html += `<span class="bizcard-div-role">${role}</span><br/>`;
         html += `(${bizcardDiv.id})<br/>`;
         html += `<span class="bizcard-div-employer">${employer}</span><br/>`;
-        html += `<span class="bizcard-div-dates">${jobStart} - ${jobEnd}</span><br/>`;
+        html += `<span class="bizcard-div-dates">${jobStartStr} - ${jobEndStr}</span><br/>`;
         bizcardDiv.innerHTML = html;
 
         bizcardDiv.addEventListener("mouseenter", handleCardDivMouseEnter);
@@ -503,7 +500,6 @@ function process_bizcard_description_item(bizcardDiv, inputString) {
          if ( updatedString.includes('undefined') ) {
             throw new Error(`updatedString:${updatedString} must not have an undefined attribute`);
         }
-
     });
 
     return { newTagLinks, updatedString };
@@ -531,22 +527,34 @@ function addIconClickListener(icon) {
 
         if (iconElement) {
             const iconType = iconElement.dataset.icontype;
+            const tag_link = iconElement.closest('span.tag-link');
+            let tag_link_text = (tag_link && tag_link.innerText) ? tag_link.innerText : null;
+            if ( tag_link_text ) {
+                tag_link_text = tag_link_text.replace(/\(.*?\)/, ""); // remove everything in paraens
+                tag_link_text = tag_link_text.replace(/\.$/, ""); // remove trailing period
+            }
             switch (iconType) {
                 case 'url': {
-                    const url = iconElement.dataset.url; // from data-url
+                    let url = iconElement.dataset.url; // from data-url
                     if (url) {
-                        console.log(`iconElement iconType:${iconType} click: ${url}`);
-                        window.open(url, "_blank");
+                        url = url.endsWith('/') ? url.slice(0,-1) : url;
+                        let urlStr = (tag_link_text.length + url.length < 40) ? ` at <u>${url}</u>` : '';
+                        let title = tag_link_text ? `the webpage for <b>${tag_link_text}</b>${urlStr}` : `the webpage at ${url}`;
+                        console.log(`iconElement iconType:${iconType} click: ${url} title: [${title}]`);
+                        alerts.confirmOpenNewBrowserWindow(title, url);
                     } else {
                         console.error(`iconElement iconType:${iconType} click: no url`);
                     }
                     break;
                 }
                 case 'img': {
-                    const img = iconElement.dataset.img; // from data-img
+                    let img = iconElement.dataset.img; // from data-img
                     if (img) {
-                        console.log(`iconElement iconType:${iconType} click: ${img}`);
-                        window.open(img, "_blank");
+                        img = img.endsWith('/') ? img.slice(0,-1) : img;
+                        img = "<u>" + img + "</u>";
+                        let title = tag_link_text ? `the image for <b>${tag_link_text}</b>` : `the image at ${img}`;
+                        console.log(`iconElement iconType:${iconType} click: ${img} title: [${title}]`);
+                        alerts.confirmOpenNewBrowserWindow(title, img);
                     } else {
                         console.error(`iconElement iconType:${iconType} click: no img`);
                     }
@@ -579,6 +587,28 @@ function addIconClickListener(icon) {
         }
         event.stopPropagation();
     });
+
+    const linkedinIcon = document.querySelector('img.linkedin.icon');
+    linkedinIcon.addEventListener("click", (event) => {
+        const iconElement = event.target;
+        event.stopPropagation();
+        const url = "https://www.linkedin.com/in/shawnbecker";
+        const title = "Shawn's LinkedIn profile";
+        console.log(`linkedinIcon click: ${url} title: [${title}]`);
+        alerts.confirmOpenNewBrowserWindow(title, url);
+    });
+
+    const sankeyIcon = document.querySelector('img.sankey.icon');
+    sankeyIcon.addEventListener("click", (event) => {
+        const iconElement = event.target;
+        event.stopPropagation();
+        const img = "static_content/graphics/sankeymatic_20240104_204625_2400x1600.png";
+        const title = "a SankeyMatic&copy; diagram of Shawn's technical proficiencies";
+        console.log(`sankeyIcon click: ${img} title: [${title}]`);
+        alerts.confirmOpenNewBrowserWindow(title, img);
+    });
+
+
 }
 
 function getBizcardDivDays(bizcardDiv) {
@@ -805,10 +835,16 @@ function createCardDiv(bizcardDiv, tag_link) {
     cardDiv.addEventListener("mouseenter", handleCardDivMouseEnter);
     cardDiv.addEventListener("mouseleave", handleCardDivMouseLeave);
 
-    utils.validateIsCardDivOrBizcardDiv(cardDiv);
     addCardDivClickListener(cardDiv);
-    // does not select self
-    // does not scroll self into view
+
+    // add the cardDivClickListener to all cardDiv descendants 
+    // except icon elements
+    let cardDivDescendants = cardDiv.querySelectorAll('*');
+    for ( let decendent of cardDivDescendants ) {
+        if ( !decendent.classList.contains('icon') ) {
+            addCardDivClickListener(cardDiv);
+        }
+    }
 
     renderAllTranslateableDivsAtCanvasContainerCenter();
 
@@ -825,9 +861,27 @@ function createCardDiv(bizcardDiv, tag_link) {
     return cardDiv;
 }
 
+function isWordSubstringInList(word, stringList) {
+    word = word.toUpperCase().trim();
+    for (let i = 0; i < stringList.length; i++) {
+        let listStr = stringList[i].toUpperCase().trim();
+        let listParts = listStr.split(' ');
+        for ( let listPart of listParts ) {
+            if ( word.includes(listPart) || listPart.includes(word) ) {
+                return true;
+            }
+        }
+        if (listStr.includes(word) || word.includes(listStr)) {
+            return true;
+        }
+    }
+    return false;
+}
+  
 // write the exmployer of each bizcardDiv and the ext of each of its cardDivs
 export function logAllBizcardDivs() {
     let allBizcardDivs = document.getElementsByClassName("bizcard-div");
+    let showSkips = false;
     var log = "";
     console.log('---------------------------------------------------');
     for (let bizcardDiv of allBizcardDivs) {
@@ -837,20 +891,61 @@ export function logAllBizcardDivs() {
         }
         let cardDivIds = bizcardDiv.dataset.cardDivIds;
         if ( cardDivIds.length > 0 ) {
+            var cardDivTuples = [];
             for (let cardDivId of cardDivIds.split(',')) {
                 let cardDiv = document.getElementById(cardDivId);
                 if (cardDiv === null) {
                     console.log(`No element with id cardDivId:${cardDivId}`);
                     continue;
                 }
-                if ( cardDiv.dataset.bizcardDivMonths < 4) {
-                    continue;
-                }
-                let cardDivText = cardDiv.getAttribute('tagLinkText');
+                let cardDivText = cardDiv.getAttribute('tagLinkText').trim();
                 if ( cardDivText === undefined || cardDivText == null ) {
                     continue;
                 }
+                let months = Math.round(cardDiv.dataset.bizcardDivDays * 12 / 365.25);
+                let years = Math.round(months / 12);
                 if ( cardDivText.includes('“') ) {
+                    if ( showSkips ) console.log("skip", cardDivText, years);
+                    continue;
+                }
+                if ( cardDivText == "CentOS Linux" ) {
+                    cardDivText = "Linux";
+                }
+                if ( cardDivText == 'Linix' ) {
+                    cardDivText = 'Linux';
+                }
+                if ( employer == 'Greenseed Tech' ) {
+                    employer = 'Data Laboratory';
+                }
+                if ( employer == 'Warner Brothers Interactive Entertainment' ) {
+                    employer = 'Warner Bros';
+                }
+                let keep = [
+                    "Python",
+                    "Redshift",
+                    "Glue",
+                    "PostgreSQL",
+                    "Airflow",
+                    "Kinesis",
+                    "AWS",
+                    "REST",
+                    "REST API",
+                    "Docker",
+                    "Linux",
+                    "bash",
+                    "Spring",
+                    "Cimmetrix",
+                    "Akamai",
+                    "Jenkins",
+                    "Jira",
+                    "PySpark",
+                    "Oracle",
+                    "MySQL",
+                    "Vue"
+                ];
+                if ( isWordSubstringInList(cardDivText, keep) || years >= 8) {
+                } else {
+                    if ( showSkips ) console.log("skip", cardDivText, years);
                     continue;
                 }
                 let ignores = [
@@ -858,19 +953,50 @@ export function logAllBizcardDivs() {
                     "Trimble Mobile Solutions",
                     "OneCall",
                     "HomePortfolio.com",
+                    "HomePortfolio",
                     "Brigham Young University",
-                    "four patents"
+                    "four patents",
+                    "X11",
+                    "XMotif",
+                    "API Gateway",
+                    "OpenAPI",
                 ];
                 if ( ignores.includes(cardDivText) ) {
+                    if ( showSkips ) console.log("skip", cardDivText, years);
                     continue;
                 }
                 if ( employer.includes(cardDivText) ) {
+                    if ( showSkips ) console.log("skip", cardDivText, years);
                     continue;
                 }
                 if ( cardDivText.includes(employer) ) {
+                    if ( showSkips ) console.log("skip", cardDivText, years);
                     continue;
                 }
-                log += `"${employer}", "${cardDivText}"\n`;
+                cardDivTuples.push([employer,cardDivText]);
+            }
+            // Sorting function to compare the uppercase values of tuple[1]
+            const sortByUppercaseValue = (a, b) => {
+                const uppercaseA = a[1].toUpperCase();
+                const uppercaseB = b[1].toUpperCase();
+            
+                if (uppercaseA < uppercaseB) return -1;
+                if (uppercaseA > uppercaseB) return 1;
+                return 0;
+            };
+
+            // Sort the array using the sorting function
+            cardDivTuples.sort(sortByUppercaseValue);
+
+            // Filter the array to keep only the first occurrence of each uppercase value
+            const uniqueTuples = cardDivTuples.filter((tuple, index, arr) => {
+                const currentUppercaseValue = tuple[1].toUpperCase();
+                const firstIndexOfValue = arr.findIndex((t) => t[1].toUpperCase() === currentUppercaseValue);
+                return index === firstIndexOfValue;
+            });
+
+            for( let tpl of uniqueTuples ) {
+                log += `${tpl[0]} [1] ${tpl[1]}\n`;
             }
         }
     }
@@ -1531,17 +1657,26 @@ function deselectTheSelectedCardDiv(deselectTheSelectedCardDivLineItemFlag=false
     // debugTheSelectedCardDivId();
 }
 
-// handle mouse click event for any div element with
-// cardClass "card-div" or "bizcard-div".
+// add the mouse click event handler to any div element with
+// class card-div or bizcard-div or to any child
+// element that has a cardDiv or bizcard-div ancestor
 function addCardDivClickListener(cardDiv) {
-    utils.validateIsCardDivOrBizcardDiv(cardDiv);
-    cardDiv.addEventListener("click", function (event) {
-        let thisCardDiv = event.target;
-        // select the cardDiv and its cardDivLineItem
-        selectTheCardDiv(thisCardDiv, true);
+    cardDiv.addEventListener("click", cardDivClickListener);
+}
 
+// handle mouse click event for any div element with
+// cardClass "card-div" or "bizcard-div" or any child
+// element that has a cardDiv or bizcard-div ancestor.
+function cardDivClickListener(event) {
+    let element = event.target;
+    let cardDiv = element;
+    if ( !utils.isCardDivOrBizcardDiv(cardDiv) ) {
+        cardDiv = cardDiv.closest('.card-div, .bizcard-div');
+    }
+    if ( cardDiv && !element.classList.contains('icon') ) {
+        selectTheCardDiv(cardDiv, true);
         event.stopPropagation();
-    })
+    }
 }
 
 function selectTheCardDivLineItem(cardDivLineItem, selectTheCardDivFlag=false) {
@@ -1807,7 +1942,7 @@ function addCardDivLineItemFollowingButtonClickHandler(cardDivLineItemFollowingB
 }
 
 function getLatestBizcardDivId() {
-    var dateSortedIds = getdateSortedBizcardIds();
+    var dateSortedIds = getDateSortedBizcardIds();
     if (dateSortedIds != null) {
         return dateSortedIds[ 0 ].id;
     }
@@ -2108,11 +2243,10 @@ clearAllLineItemsButton.addEventListener("click", function (event) {
 
 var dateSortedBizcardIds = null;
 
-function getdateSortedBizcardIds() {
+function getDateSortedBizcardIds() {
     if (dateSortedBizcardIds == null) {
         dateSortedBizcardIds = [];
         let bizcardDivs = document.getElementsByClassName("bizcard-div");
-        let sortedBizcardDivDatedIds = [];
         for (let i = 0; i < bizcardDivs.length; i++) {
             var datedDivIdId = {
                 id: bizcardDivs[ i ].id,
@@ -2126,8 +2260,17 @@ function getdateSortedBizcardIds() {
     return dateSortedBizcardIds;
 }
 
+function getDateSortedBizcards() {
+    var dateSortedBizcards = [];
+    var dateSortedBizcardIds = getDateSortedBizcardIds();
+    for (let bizcardId of dateSortedBizcardIds ) {
+        dateSortedBizcards.push(document.getElementById(bizcardId));
+    }
+    return dateSortedBizcards;
+}
+
 function getFirstBizcardDivId() {
-    var sorted = getdateSortedBizcardIds();
+    var sorted = getDateSortedBizcardIds();
     if ( sorted )
         return sorted[0].id;
     return null;
@@ -2222,8 +2365,8 @@ export function addAllIconClickListeners() {
     }
     let allCardDivElements = document.getElementsByClassName("card-div");
     console.log(`addAllIconClickListeners found ${allCardDivElements.length} allCardDivElements`);
-    let allBizcardDivElements = document.getElementsByClassName("bizcard-div");
-    console.log(`addAllIconClickListeners found ${allBizcardDivElements.length} alBizcardDivElements`);
+    let allDateSortedBizcardDivElements = getDateSortedBizcards();
+    console.log(`addAllIconClickListeners found ${allDateSortedBizcardDivElements.length} allDateSortedBizcardDivElements`);
     let allCardDivLineItemElements = document.getElementsByClassName("card-div-line-item");
     console.log(`addAllIconClickListeners found ${allCardDivLineItemElements.length} allCardDivLineItemElements`); 
 }
@@ -2276,6 +2419,6 @@ addCanvasContainerEventListener('click', handleCanvasContainerMouseClick);
 export function onCloseWelcomeAlert() {
     selectAllBizcards();
     addAllIconClickListeners();
-    logAllBizcardDivs();
-    utils.testColorFunctions();
+    // logAllBizcardDivs();
+    // utils.testColorFunctions();
 }

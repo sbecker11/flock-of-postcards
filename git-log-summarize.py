@@ -1,6 +1,29 @@
 from datetime import datetime, timedelta
 from collections import defaultdict
 
+import os
+import asyncio
+from openai import AsyncOpenAI
+
+client = AsyncOpenAI(
+    api_key=os.environ.get("OPENAI_API_KEY"),
+)
+
+async def main() -> None:
+    chat_completion = await client.chat.completions.create(
+        messages=[
+            {
+                "role": "user",
+                "content": "Say this is a test",
+            }
+        ],
+        model="gpt-3.5-turbo",
+    )
+
+asyncio.run(main())
+
+
+
 log = """
 Mon Jan 1 13:52:15 2024 -0700 fixed monocolor issues, renamed ICON_TYPES and icon filenames
 Tue Dec 26 15:24:40 2023 -0700 added month/years of experience for cardDivLineItem with target cardDiv
