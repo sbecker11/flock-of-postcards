@@ -48,6 +48,7 @@ The static 'flock-of-postcards' website has been upgraded to be a webapp that us
 
 ### version 1.0    March 8, 2024  
 - CURRENT_DATE in job[end] replaced with first day of next month but displayed as 'working'
+- Always scroll newly selected bizcardDiv (and optionally its bizcardLineItem) into view in selectTheBizcard
 
 ### version 0.9:   January 4, 2024
 

@@ -578,7 +578,7 @@ function addIconClickListener(icon) {
                         if (bizcardDiv) {
                             console.log(`iconElement click: ${bizcardId}`);
                             selectTheCardDiv(bizcardDiv, true);
-                            scrollElementIntoView(bizcardDiv);
+                            // scrollElementIntoView(bizcardDiv);
                         } else {
                             console.error(`iconElement iconType:${iconType} click: no bizcardDiv with id:${bizcardId}`);
                         }   
@@ -1606,7 +1606,7 @@ function findNearestAncestorWithClassName(element, className) {
     return element;
 }
 
-// select the given cardDiv
+// select the given cardDiv and scroll it into view
 function selectTheCardDiv(cardDiv, selectTheCardDivLineItemFlag=false) {
     if ( cardDiv == null )
         return;
@@ -1641,6 +1641,8 @@ function selectTheCardDiv(cardDiv, selectTheCardDivLineItemFlag=false) {
         // calls selectCardDivLineItem - does scroll self into view
         selectTheCardDivLineItem(cardDivLineItem); 
     }
+
+    scrollElementIntoView(theSelectedCardDiv);
 
     // debugTheSelectedCardDivId();
 }
@@ -1690,6 +1692,7 @@ function cardDivClickListener(event) {
     }
 }
 
+// select the given cardDivLineItem after scrolling it into view 
 function selectTheCardDivLineItem(cardDivLineItem, selectTheCardDivFlag=false) {
     if ( cardDivLineItem == null )
         return;
@@ -1717,7 +1720,7 @@ function selectTheCardDivLineItem(cardDivLineItem, selectTheCardDivFlag=false) {
         var cardDiv = getCardDivOfCardDivLineItem(cardDivLineItem);
         // console.assert(cardDiv != null);
         selectTheCardDiv(cardDiv);
-        scrollElementIntoView(cardDiv);
+        // scrollElementIntoView(cardDiv);
     }
     
     // debugTheSelectedCardDivId();
@@ -2019,7 +2022,7 @@ function addTagLinkClickListener(tag_link) {
             selectTheCardDiv(cardDiv, true);
 
             // need to scroll cardDiv into view
-            scrollElementIntoView(cardDiv);
+            // scrollElementIntoView(cardDiv);
         } else {
             // console.log(`no cardDiv with tag_link found for cardDivId:${cardDivId}`);
         }
@@ -2327,7 +2330,6 @@ function selectNextBizcard() {
 
     // select the nextBizcardDiv and its cardDivItem
     selectTheCardDiv(nextBizcardDiv, true);
-
 }
 
 function selectFirstBizcard() {
