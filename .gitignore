@@ -5,7 +5,9 @@
 **/dist/*
 /tmp
 /out-tsc
-/static_files/venv/*v
+/static_content/jobs/venv/
+/static_content/media/
+
 # Runtime data
 pids
 *.pid

@@ -1,13 +1,16 @@
 # flock-of-postcards  
 # Dark, chaotic, and deep  
 
-The `flock` is a glorified resume describing my own work history and skills over my career timeline.
+This`flock-of-postcards` web app is a glorified resume describing my own work history and skills over my long career timeline.
+
+The app is rather chaotic, so I hope the following explaination helps.
 
 Large `business cards`are used to describe various jobs, each with its role, 
-employer, and time period. These cards are larger, slowing moving, and further away from your view. Each `business card` is surrounded by its flock of
-smaller `skill cards`that hovers around them.
+employer, and time period. These cards are larger, heavy, slow moving, and far away from your view. Each `business card` is surrounded by its flock of smaller `skill cards`that hovers around them.
 
-Mouse motion over the left side of the window causes your point of view to move around, using`motion parallax` and a fuzzy `depth of field`to give the flock its sense of depth. 
+Mouse motion over the left side of the window causes your point of view to move around, using`motion parallax` and a fuzzy `depth of field` which gives the flock its sense of 3-D depth. 
+
+The point of view is marked as a bulls-eye <img src="static_content/icons/bulls-eye.png"> that follow the position of the mouse. The bulls-eye has mass and inertia thus providing a slower and more fluid way to change your perspective. 
 
 Moving the mouse vertically also causes your view to slide over the `career imeline` shown on the far left edge. 
 
@@ -26,23 +29,23 @@ one or more return icons <img src="static_content/icons/icons8-back-16-black.png
 of return icons indicates the number of jobs and the amount of time used to hone that skill.
 
 
-# Run the `flock-of-postcards` career resume web app using VSCode
+# Run the interactiive `flock-of-postcards` resume app using VSCode and LiveServer
 
-## Clone this repo to your local development folder  
-`cd <your-local-dev-folder>`
-`git clone git@github.com:sbecker11/flock-of-postcards.git`
-`cd <your-local-dev-folder>/fock-of-postcards`
- 
+## Clone this repo to your local development folder   
+`cd <your-local-dev-folder>`  
+`git clone git@github.com:sbecker11/flock-of-postcards.git`  
+`cd <your-local-dev-folder>/flock-of-postcards`  
+
 ## Install VSCode + LiverServer  
 
 The `flock-of-postcards` webapp uses ES6 Modules. This requires that you have an ultra lightweight webserver running on your local machine that supports ES6. 
 
-LiveServer is an ultra light weight webserver that works with Google Chrome browser. Installation of Vscode IDE and the LiveServer extension is easy-peasy.  
+LiveServer is an ultra light weight webserver that works with Google Chrome browser and can be run from the VSCode IDE. Installation of Vscode and the LiveServer extension is easy-peasy.  
 
 - Install the  <a href="https://code.visualstudio.com">vscode IDE</a> on your local OS.    
 <a href="https://code.visualstudio.com/"><img src="static_content/icons/vscode-IDE-logo.png"/></a>
 
-- Start vscode and open the newly cloned `flock-of-postcards` folder in vscode  
+- Start vscode and open the folder of the newly cloned `flock-of-postcards` project.  
 
 - Click the "extensions" icon in the left panel of vscode to search for vscode extensions  
 <img src="static_content/icons/vscode-extensions-icon.png"/>  
@@ -52,7 +55,7 @@ LiveServer is an ultra light weight webserver that works with Google Chrome brow
 
 
 - Click the "explorer" icon at the top left of vscode to explore your local filesystem  
-<img src="https://shawn.beckerstudio.com/wp-content/uploads/2023/07/vscode-explorer-icon.png"/>  
+<img src="static_content/icons/vscode-explorer-icon.png"/>  
 
 - Click the "Go Live" button at the bottom right in vscode to start the vscode-embedded webserver  
 <img src="static_content/icons/vscode-go-live-icon.png"/> 
@@ -70,19 +73,19 @@ But wouldn't it be better to configure the app to show off your own illustrious 
  
  # How to customize the webapp to show your own illustrious career
 
-- Go to the project's local home folder
-`cd <your-local-dev-folder>/fock-of-postcards`
+- Go to the project's local home folder  
+`cd <your-local-dev-folder>/flock-of-postcards`
 
-- Go to jobs folder
+- Go to jobs folder  
 `cd static_content/jobs`
 
-- Edit the `jobs.xlsx` Microsoft Excel spreadsheet file
+- Open the `jobs.xlsx`  spreadsheet file using your own copy of Microsoft Excel (or any alternative that handles `.xlsx` files) 
 
 ### Customize the Jobs Spreadsheet  
 
 The jobs spreadsheet has one row for each job description. 
 Each job description has the following columns that you 
-need to fill out:
+need to replace with your own info:
 * role  
 * employer  
 * start      (YYYY-MM-DD)  
@@ -101,8 +104,16 @@ The `description` cell holds an arbitrary length bulleted job description. As de
 
 - Save your updated Excel file
 
-- Go back to your shell and run the python script that converts the Excel jobs spreadsheet file `jobs.xlsx` into a NodeJS module file `jobs.mjs`:
-`python xlsx2mjs.py`
+- Go back to the project's cloned home directory  
+`cd <your-local-dev-folder>/flock-of-postcards`
+
+- Create, activate, and initialize a python virtal environment  
+`python -m venv venv`  
+`source venv/bin/activate`  
+`pip install -r requirements.txt`  
+ 
+- Run the python script that converts the Excel jobs spreadsheet file `jobs.xlsx` into a NodeJS module file `jobs.mjs`  
+`python xlsx2mjs.py`  
 
 If the app is already running, it will re-load the `jobs.mjs` file. 
 
