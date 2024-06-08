@@ -230,8 +230,18 @@ function createBizcardDivs() {
         var endYearStr = jobEndParts[0];
         var endMonthStr = jobEndParts[1];
 
+        var endYearStrIsCURRENT_DATE = ( endYearStr == 'CURRENT_DATE' );
+        // handle CURRENT_DATE to be the first of the next month
+        if ( endYearStrIsCURRENT_DATE ) {
+            const now = new Date();
+            const nextMonth = new Date(now.getFullYear(), now.getMonth() + 1, 1);
+            endYearStr = `${nextMonth.getFullYear()}`;
+            endMonthStr = `${nextMonth.getMonth() + 1}`; // getMonth() returns a zero-based month, so we add 1
+        }
+
         var endDate = new Date(`${endYearStr}-${endMonthStr}-01`);
-        var jobEndStr = endDate.toISOString().slice(0,7);
+        // jobEndStr is used for display purposes only
+        const jobEndStr = endYearStrIsCURRENT_DATE ? "current" : endDate.toISOString().slice(0, 7);
         var endBottomPx = timeline.getTimelineYearMonthBottom(endYearStr, endMonthStr);
 
         var jobStartParts = job[ "start" ].split("-");
@@ -239,6 +249,7 @@ function createBizcardDivs() {
         var startMonthStr = jobStartParts[1];
 
         var startDate = new Date(`${startYearStr}-${startMonthStr}-01`);
+        // jobStartStr is used for display purposes only
         var jobStartStr = startDate.toISOString().slice(0,7);
         var startBottomPx = timeline.getTimelineYearMonthBottom(startYearStr, startMonthStr);
 
@@ -567,7 +578,7 @@ function addIconClickListener(icon) {
                         if (bizcardDiv) {
                             console.log(`iconElement click: ${bizcardId}`);
                             selectTheCardDiv(bizcardDiv, true);
-                            scrollElementIntoView(bizcardDiv);
+                            // scrollElementIntoView(bizcardDiv);
                         } else {
                             console.error(`iconElement iconType:${iconType} click: no bizcardDiv with id:${bizcardId}`);
                         }   
@@ -1595,7 +1606,7 @@ function findNearestAncestorWithClassName(element, className) {
     return element;
 }
 
-// select the given cardDiv
+// select the given cardDiv and scroll it into view
 function selectTheCardDiv(cardDiv, selectTheCardDivLineItemFlag=false) {
     if ( cardDiv == null )
         return;
@@ -1630,6 +1641,8 @@ function selectTheCardDiv(cardDiv, selectTheCardDivLineItemFlag=false) {
         // calls selectCardDivLineItem - does scroll self into view
         selectTheCardDivLineItem(cardDivLineItem); 
     }
+
+    scrollElementIntoView(theSelectedCardDiv);
 
     // debugTheSelectedCardDivId();
 }
@@ -1679,6 +1692,7 @@ function cardDivClickListener(event) {
     }
 }
 
+// select the given cardDivLineItem after scrolling it into view 
 function selectTheCardDivLineItem(cardDivLineItem, selectTheCardDivFlag=false) {
     if ( cardDivLineItem == null )
         return;
@@ -1706,7 +1720,7 @@ function selectTheCardDivLineItem(cardDivLineItem, selectTheCardDivFlag=false) {
         var cardDiv = getCardDivOfCardDivLineItem(cardDivLineItem);
         // console.assert(cardDiv != null);
         selectTheCardDiv(cardDiv);
-        scrollElementIntoView(cardDiv);
+        // scrollElementIntoView(cardDiv);
     }
     
     // debugTheSelectedCardDivId();
@@ -2008,7 +2022,7 @@ function addTagLinkClickListener(tag_link) {
             selectTheCardDiv(cardDiv, true);
 
             // need to scroll cardDiv into view
-            scrollElementIntoView(cardDiv);
+            // scrollElementIntoView(cardDiv);
         } else {
             // console.log(`no cardDiv with tag_link found for cardDivId:${cardDivId}`);
         }
@@ -2316,7 +2330,6 @@ function selectNextBizcard() {
 
     // select the nextBizcardDiv and its cardDivItem
     selectTheCardDiv(nextBizcardDiv, true);
-
 }
 
 function selectFirstBizcard() {
