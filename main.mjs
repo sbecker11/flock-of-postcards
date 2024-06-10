@@ -342,7 +342,47 @@ function createBizcardDivs() {
 
     }
 }
+// see https://www.cl.cam.ac.uk/~mgk25/ucs/quotes.html
+// \u0060	GRAVE ACCENT	 `	Sometimes used for LEFT SINGLE QUOTATION MARK
+// \u2018	LEFT SINGLE QUOTATION MARK	‘	 
+// \u2019	RIGHT SINGLE QUOTATION MARK	’
+// \u201C	LEFT DOUBLE QUOTATION MARK	“	 
+// \u201D	RIGHT DOUBLE QUOTATION MARK	”	 
+// \u0022	QUOTATION MARK	"
+// \u0027	APOSTROPHE	'
 
+
+// replace curly or smart single quotes with single straight quotes.
+function replaceCurlySingleQuotes(text) {
+  return text.replace(/[\u2018\u2019\u0060]/g, "'");
+}
+
+// Replace curly double quotes with straight double quotes.
+function replaceCurlyDoubleQuotes(text) {
+    text = text.replace(/“/g, '"');
+    text = text.replace(/”/g, '"');
+    return text;
+}
+// Replace curly double quotes and then trim double quotes
+function trimDoubleQuotes(text) {
+    return replaceCurlyDoubleQuotes(text).replaceAll("^\"|\"$", "");
+}
+
+// log the sorted set of the text ofall cardDivs
+function logAllCardDivs() {
+    let textSet = new Set();
+    let allCardDivsList = document.getElementsByClassName("card-div");
+    for (let cardDiv of allCardDivsList) {
+        let text = cardDiv.tag_link.text.trim().toUpperCase();
+        text = trimDoubleQuotes(text);
+        text = trimDoubleQuotes(text);
+        text = text.replaceAll("\"","");
+        textSet.add(text);
+    }
+    for (let cardDivText of Array.from(textSet).sort()) {
+        console.log(cardDivText);
+    }
+}
 
 // --------------------------------------
 // tag_link globals
@@ -618,8 +658,6 @@ function addIconClickListener(icon) {
         console.log(`sankeyIcon click: ${img} title: [${title}]`);
         alerts.confirmOpenNewBrowserWindow(title, img);
     });
-
-
 }
 
 function getBizcardDivDays(bizcardDiv) {
@@ -669,30 +707,20 @@ function findCardDiv(bizcardDiv, tag_link) {
 
 function cardDivMatchesTagLink(cardDiv, tag_link) {
     // Check if the required text attribute matches
-    if (tag_link.text !== cardDiv.getAttribute("tagLinkText")) {
-        return false;
-    }
-
-    // Check if the optional img attribute matches or both are absent
-    if (tag_link.img !== cardDiv.getAttribute("tagLinkImg")) {
-        if (tag_link.img !== undefined && cardDiv.getAttribure("tagLinkImg") !== undefined) {
-            return false;
-        }
-    }
-
-    // Check if the optional url attribute matches or both are absent
-    if (tag_link.url !== cardDiv.getAttribute("tagLinkUrl")) {
-        if (tag_link.url !== undefined && cardDiv.getAttribute("tagLinkUrl") !== undefined) {
-            return false;
-        }
-    }
-
-    return true;
+    let tagLinkText = String(tag_link.text).trim().toUpperCase();
+    let cardDivText = String(cardDiv.getAttribute("tagLinkText")).trim().toUpperCase();
+    let matches = tagLinkText == cardDivText;
+    // if ( tagLinkText.includes("DATA") && tagLinkText.includes("LAKE") ) {
+    //     if ( cardDivText.includes("DATA") && cardDivText.includes("LAKE") ) {
+    //         console.log("cardDivMatchesTagLink: matches:" + matches + " cardDivText:" + cardDivText + " tagLinkText:" + tagLinkText);
+    //     }
+    // }
+    return matches;
 }
 
 // takes the description_HTML stored as innerHTML
 // of a card-div (or bizcard-div) and splits it by
-// the BULLLET delimiter and returns the HTML of an 
+// the BULLET delimiter and returns the HTML of an 
 // unordered list of description items.
 function convert_description_HTML_to_line_items_HTML(description_HTML) {
     var HTML = "";
@@ -1870,7 +1898,7 @@ function addCardDivLineItem(targetCardDivId) {
             addTagLinkClickListener(element);
         }
 
-        // find all iconElemens of this cardDivLineItemContent and make 
+        // find all iconElements of this cardDivLineItemContent and make 
         // each mono-color-sensitive and give each an onclick listeners.
         //
         // However, delete any back-icons if the targetCardDiv is a bizcardDiv
@@ -2434,4 +2462,5 @@ export function onCloseWelcomeAlert() {
     addAllIconClickListeners();
     // logAllBizcardDivs();
     // utils.testColorFunctions();
+    logAllCardDivs();
 }
