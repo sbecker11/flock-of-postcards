@@ -23,6 +23,8 @@
   },
   "homepage": "https://github.com/sbecker11/flock-of-postcards#readme",
   "dependencies": {
-    "dayjs": "^1.11.10"
+    "dayjs": "^1.11.10",
+    "fs": "^0.0.1-security",
+    "xlsx": "^0.18.5"
   }
 }
