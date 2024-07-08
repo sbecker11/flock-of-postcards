@@ -11,14 +11,20 @@ import * as alerts from './modules/alerts.mjs';
 // --------------------------------------
 // Element reference globals
 
-const rightContentDiv = document.getElementById("right-content-div");
+// debug labels
 // const debugScrollingElement = null; //  = document.getElementById("debugScrollingElement");
 // const debugFocalPointElement = null; //  = document.getElementById("debugFocalPointElement");
 // const debugTheSelectedCardDivIdElement = null; //  = document.getElementById("debugTheSelectedCardDivIdElement");
+
+// left-side canvasCon
 const canvasContainer = document.getElementById("canvas-container");
 const canvas = document.getElementById("canvas");
 const bottomGradient = document.getElementById("bottom-gradient");
 const bullsEye = document.getElementById("bulls-eye");
+
+// rightContentDiv and its controls
+const rightContentDiv = document.getElementById("right-content-div");
+
 const selectFirstBizcardButton = document.getElementById("select-first-bizcard");
 const selectNextBizcardButton = document.getElementById("select-next-bizcard");
 const selectAllBizcardsButton = document.getElementById("select-all-bizcards");
@@ -342,32 +348,6 @@ function createBizcardDivs() {
 
     }
 }
-// see https://www.cl.cam.ac.uk/~mgk25/ucs/quotes.html
-// \u0060	GRAVE ACCENT	 `	Sometimes used for LEFT SINGLE QUOTATION MARK
-// \u2018	LEFT SINGLE QUOTATION MARK	‘	 
-// \u2019	RIGHT SINGLE QUOTATION MARK	’
-// \u201C	LEFT DOUBLE QUOTATION MARK	“	 
-// \u201D	RIGHT DOUBLE QUOTATION MARK	”	 
-// \u0022	QUOTATION MARK	"
-// \u0027	APOSTROPHE	'
-
-
-// replace curly or smart single quotes with single straight quotes.
-function replaceCurlySingleQuotes(text) {
-  return text.replace(/[\u2018\u2019\u0060]/g, "'");
-}
-
-// Replace curly double quotes with straight double quotes.
-function replaceCurlyDoubleQuotes(text) {
-    text = text.replace(/“/g, '"');
-    text = text.replace(/”/g, '"');
-    return text;
-}
-// Replace curly double quotes and then trim double quotes
-function trimDoubleQuotes(text) {
-    return replaceCurlyDoubleQuotes(text).replaceAll("^\"|\"$", "");
-}
-
 // log the sorted set of the text ofall cardDivs
 function logAllCardDivs() {
     let textSet = new Set();

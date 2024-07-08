@@ -29,7 +29,7 @@ one or more return icons <img src="static_content/icons/icons8-back-16-black.png
 of return icons indicates the number of jobs and the amount of time used to hone that skill.
 
 
-# Run the interactiive `flock-of-postcards` resume app using VSCode and LiveServer
+# Run the interactive `flock-of-postcards` resume app using VSCode and LiveServer
 
 ## Clone this repo to your local development folder   
 `cd <your-local-dev-folder>`  

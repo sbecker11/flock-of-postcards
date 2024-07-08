@@ -624,3 +624,28 @@ export function testColorFunctions() {
     test_RGB_ColorStr_functions();
 }
 
+// see https://www.cl.cam.ac.uk/~mgk25/ucs/quotes.html
+// \u0060	GRAVE ACCENT	 `	Sometimes used for LEFT SINGLE QUOTATION MARK
+// \u2018	LEFT SINGLE QUOTATION MARK	‘	 
+// \u2019	RIGHT SINGLE QUOTATION MARK	’
+// \u201C	LEFT DOUBLE QUOTATION MARK	“	 
+// \u201D	RIGHT DOUBLE QUOTATION MARK	”	 
+// \u0022	QUOTATION MARK	"
+// \u0027	APOSTROPHE	'
+
+// replace curly or smart single quotes with single straight quotes.
+export function replaceCurlySingleQuotes(text) {
+    return text.replace(/[\u2018\u2019\u0060]/g, "'");
+  }
+  
+  // Replace curly double quotes with straight double quotes.
+  export function replaceCurlyDoubleQuotes(text) {
+      text = text.replace(/“/g, '"');
+      text = text.replace(/”/g, '"');
+      return text;
+  }
+  // Replace curly double quotes and then trim double quotes
+  export function trimDoubleQuotes(text) {
+      return replaceCurlyDoubleQuotes(text).replaceAll("^\"|\"$", "");
+  }
+  

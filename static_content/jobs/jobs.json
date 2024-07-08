@@ -1,0 +1,103 @@
+{
+    "history": {
+        "description": "a timeline of your life history",
+        "contact-info": {
+            "name": "shawn becker",
+            "email": "sbecker@alum.mit.edu",
+            "city": "lehi",
+            "state": "utah",
+            "phone": "857-891-0896",
+            "linked_in_url": "https://linkedin.com/in/shawnbecker"
+        },
+        "job-history": [
+            {
+                "job-id": "1",
+                "job-title": "Senior Data Engineer",
+                "job-employer": "Fannie Mae / Risk Analytics",
+                "job-location": "Washington, DC",
+                "job-start": "2024-02",
+                "job-end": "null",
+                "job-bullet-items": [
+                    { "bullet-item": "Led the corporate financial reporting initiatives using [AWS Redshift] [OLAP] with [Tableau]." },
+                    { "bullet-item": "Coordinated with business stakeholders to refine requirements for financial reporting initiatives, ensuring alignment with organizational goals." },
+                    { "bullet-item": "Worked extensively with [SQL], [Amazon Glue], [S3], [Data Lake], [Lambda], [REST], [API Gateway], and [Postman[ to develop and maintain data solutions." },
+                    { "bullet-item": "Participated in [Agile] [SDLC] and [CI/CD] practices, using [Jira], [Jenkins] with [Backlog Refinement], [Sprint Planning], [Daily Scrums], and bi-weekly [Sprint Reviews], and [Spring Retrospectives], while coordinating with [Procuct Owner], and other project groups." }
+                ]
+            },
+            {
+                "job-id": "2",
+                "job-title": "Senior Data Engineer",
+                "job-employer": "The Cigna Group / Data Cybersecurity",
+                "job-location": "Washington, DC",
+                "job-start": "2023-03",
+                "job-end": "2023-12",
+                "job-bullet-items": [
+                    { "bullet-item": "Amplified corporate security by upgrading internal services to fetch credentials from [CyberArk] Identify Security and Access Management service at runtime. Avoiding the need to update credentials stored in local files reduced password rollover costs by 95%."},
+                    { "bullet-item": "Engineered [Python] [REST API] enabling credential retrieval using [mutual TLS/SSL authentication] via [AWS API Gateway]."},
+                    { "bullet-item": "Modernized apps via [Jenkins CI/CD] pipeline upgrade, integrating [SetupTools], [Artifactory/PyPI], [SonarQube], and [Xray] resulting in faster deployment times and metrics used to improve code quality."}
+                ]
+            },
+            {
+                "job-id": "3",
+                "job-title": "Senior Data Engineer / Data Scientist",
+                "job-employer": "Warner Brothers Interactive Entertainment",
+                "job-location": "Waltham, MA",
+                "job-start": "2022-10",
+                "job-end": "2023-04",
+                "job-bullet-items": [
+                    { "bullet-item": "Developed high-volume data pipeline ingress and integrations, enabling efficient [game telemetry] and [user profile data] transfer between WB-distributed games and leading marketing platforms using [Segment] CDP, [Kafka], [Redshift], [Glue], and [Airflow]."},
+                    { "bullet-item": "Utilized PySpark for ETL/ELT (“Extract, Load, Transform”) processes and Python for third-party integrations and dev-ops collaborations with Jenkins, DataDog, and ZenDesk. Leveraged Google BigQuery, SalesForce, Aurora/PostgreSQL, Amazon Glue, and Lambda."},
+                    { "bullet-item": "Conducted exploration and statistical analysis of marketing data with [Python], [Pandas], and [Seaborn] and tested structured data storage/retrieval capabilities of [GraphQL]."}
+                ]
+            },
+            {
+                "job-id": "4",
+                "job-title": "Data Scientist",
+                "job-employer": "Angel Studios",
+                "job-location": "Provo, UT",
+                "job-start": "2021-12",
+                "job-end": "2022-10",
+                "job-bullet-items": [
+                    { "bullet-item": "Used [AWS SageMaker], [Python], and Machine Learning packages, [Pytorch] and [Keras], to build and optimize a [supervised CNN] for classifying movie frames from video episodes stored in [S3]."},
+                    { "bullet-item": "Earned certifications in [Advanced Learning Algorithms[, [Advanced SQL for Data Scientists], and [Supervised Machine Learning: Regression & Classification], boosting professional skills."},
+                    { "bullet-item": "Practiced advanced data exploration and machine learning algorithms using [Python], [Pandas, [NumPy], [SciPy], [Scikit-learn], [Plotly], and [Seaborn]."},
+                    { "bullet-item": "Innovated effective [business intelligence] [strategies] using [Snowflake], [Looker], and [Tableau] for comprehensive [corporate finance reporting]."}
+                ]
+            }
+        ],
+        "education-history": [
+            {
+                "school": "Massachusetts Institute of Technology",
+                "location": "Cambridge, MA",
+                "degree": "Ph.D",
+                "year": "1997",
+                "focus": "Computer Vision",
+                "dissertation-title": "Computer Vision for Video Represenations"
+            },
+            {
+                "school": "Brigham Young University",
+                "location": "Provo, UT",
+                "degree": "M.S.",
+                "year": "1990",
+                "focus": "Computer Science",
+                "dissertation-title": "Interactive Morphometrics"
+            }
+        ],
+        "certification-history": [
+            {
+                "organization": "Stanford Online - Andrew Ng",
+                "title": "Machine Learning: Unsupervised Learning",
+                "year": "2023",
+                "certification-id": "C123D345",
+                "url": "https://www.coursera.org/account/accomplishments/certificate/C123D345"
+            },
+            {
+                "organization": "Stanford Online - Andrew Ng",
+                "title": "Machine Learning: Supervised Learning",
+                "year": "2023",
+                "certification-id": "D345E789",
+                "url": "https://www.coursera.org/account/accomplishments/certificate/D345E789"
+            }
+        ]
+    }
+}
