@@ -1,0 +1,32 @@
+import re
+
+jobs_context = '''
+Fannie Mae / Risk Works Analysis Data Lake; Washington, DC (Feb 2024 – Current) Senior Data Engineer • Developing and maintaining ETL pipelines using AWS Glue, PySpark, and Python • Designing and implementing data models for the data lake • Collaborating with cross-functional teams to gather requirements and deliver data solutions
+ABC Company; New York, NY (Jan 2022 – Jan 2024) Data Engineer • Built and maintained data pipelines using Apache Airflow and AWS services • Developed data transformation scripts using SQL and Python • Optimized query performance and implemented data partitioning strategies
+XYZ Corporation; San Francisco, CA (Jun 2020 – Dec 2021) Software Engineer • Developed and maintained web applications using React and Node.js • Collaborated with UX designers to implement responsive user interfaces • Participated in code reviews and provided constructive feedback
+'''
+
+job_header_pattern = r'(?P<employer>.*?); (?P<location>.*?)\s*\((?P<date_range>.*?)\)\s*(?P<role>.*?)\s*(?P<bullet>•)'
+
+job_headers = list(re.finditer(job_header_pattern, jobs_context))
+job_start_positions = [match.start() for match in job_headers]
+job_end_positions = job_start_positions[1:] + [len(jobs_context)]
+
+for i, match in enumerate(job_headers):
+    employer = match.group('employer')
+    location = match.group('location')
+    date_range = match.group('date_range')
+    role = match.group('role')
+    bullet = match.group('bullet')
+    
+    responsibilities_start = match.end()
+    responsibilities_end = job_end_positions[i]
+    job_responsibilities_content = jobs_context[responsibilities_start:responsibilities_end].strip()
+    
+    print(f"Employer: {employer}")
+    print(f"Location: {location}")
+    print(f"Date Range: {date_range}")
+    print(f"Role: {role}")
+    print(f"Bullet: {bullet}")
+    print(f"Responsibilities: {job_responsibilities_content}")
+    print()
