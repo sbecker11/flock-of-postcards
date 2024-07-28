@@ -5,11 +5,26 @@
     "version": "0.2.0",
     "configurations": [
         {
-            "name": "Python Debugger: pdf-resume-reader.py",
+            "name": "debug: parser4 data-engineer.pdf",
             "type": "debugpy",
             "request": "launch",
-            "program": "static_content/jobs/pdf-resume-reader.py",
-            "console": "integratedTerminal"
+            "program": "static_content/jobs/resume-parser/parser4.py",
+            "console": "integratedTerminal",
+            "args": [
+                "static_content/jobs/resume-parser/data-engineer.pdf",
+                "static_content/jobs/resume-parser/data-engineer.json"
+            ]
+        },
+        {
+            "name": "debug: parser4 proj-mngr.pdf",
+            "type": "debugpy",
+            "request": "launch",
+            "program": "static_content/jobs/resume-parser/parser4.py",
+            "console": "integratedTerminal",
+            "args": [
+                "static_content/jobs/resume-parser/proj-mngr.pdf",
+                "static_content/jobs/resume-parser/proj-mngr.json"
+            ]
         }
     ]
 }
