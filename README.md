@@ -1,46 +1,47 @@
 # flock-of-postcards  
 # Dark, chaotic, and deep  
 
-This`flock-of-postcards` web app is a glorified resume describing my own work history and skills over my long career timeline.
+This`flock-of-postcards` web app is a visualization tool use to explore a person's work history, education, and skills as 
+defined in a standard resume.
 
-The app is rather chaotic, so I hope the following explaination helps.
+The tool is meant to be rather chaotic, so I hope the following explaination helps.
 
-Large `business cards`are used to describe various jobs, each with its role, 
-employer, and time period. These cards are larger, heavy, slow moving, and far away from your view. Each `business card` is surrounded by its flock of smaller `skill cards`that hovers around them.
+# Experience your flock
 
-Mouse motion over the left side of the window causes your point of view to move around, using`motion parallax` and a fuzzy `depth of field` which gives the flock its sense of 3-D depth. 
+Large `business cards`are used to describe various jobs, each with its role, employer, and time period. These cards are large, massive, slow moving, and far away from your view. Each `business card` is surrounded by its flock of smaller `skill cards`that hovers around it.
 
-The point of view is marked as a bulls-eye <img src="static_content/icons/bulls-eye.png"> that follow the position of the mouse. The bulls-eye has mass and inertia thus providing a slower and more fluid way to change your perspective. 
+The `left panel` contains the interactive flock viewer. The right panel shows `details` of previously selected cards.
 
-Moving the mouse vertically also causes your view to slide over the `career imeline` shown on the far left edge. 
+Scroll the mouse vertically to slide over the `timeline`. Mouse motion attracts the `point-of-view`, shown as a `bulls-eye` <img src="static_content/icons/bulls-eye.png" width=11>, which has with mass and inertia. The resulting`motion parallax` and fuzzy `depth of field` give the flock its sense of 3-D depth. 
 
-Click on a `business card` or `skill card` to make it pop it into focus at the top of the flock, and to see its details in the right-hand details area. 
+Click on a `business card` or `skill card` to make it pop it into focus at the top of the flock, and to see its details pop into view in the right-hand `details` area. 
 
-Each job can have a long description, which is defined in an offline-editable Excel spreadsheet. Each description contains related skills, terms, and tools used for that job.
+# Build your flock
 
-Each skill is marked up in with \[square brackets\] in the spreadsheet description, and is displayed as a clickable link that pops up its `skill card`.
+The flock is defined in an offline-editable Excel spreadsheet. Each column contains the employer, date range, role, and a list of responsibilities of that job.
 
-Web links are marked up with \(parens\) in the spreadsheet and are displayed with clickable world wide web icons <img src="static_content/icons/icons8-url-16-white.ico">. 
+Each skill is marked up in with \[square brackets\] in the job description, and is displayed as a clickable link that pops up its `skill card`.
 
-Image links are marked up with  \{curly braces\} in the spreadheet and are displayed as clickable image icons <img src="static_content/icons/icons8-img-16-white.png'>. 
+Web links are marked up with \(parens\) and are displayed with clickable world wide web icons <img src="static_content/icons/icons8-url-16-white.ico" width=11>. 
 
-A `skill card` is created for each \[square\] bracketed phrase in the job description. A skill is typically used over many jobs, so each `skill card` has 
-one or more return icons <img src="static_content/icons/icons8-back-16-black.png"> that serve as clickable links back to jobs that used that skill. The number 
+Image links are marked up with  \{curly braces\} and are displayed as clickable image icons <img src="static_content/icons/icons8-img-16-white.png" width=11>. 
+
+A `skill card` is created for each \[square\] bracketed phrase in the job description. A skill is typically used over many jobs, so each `skill card` has one or more return icons <img src="static_content/icons/icons8-back-16-black.png"> that serve as clickable links back to jobs that used that skill. The number 
 of return icons indicates the number of jobs and the amount of time used to hone that skill.
 
+# Run your flock  
+The interactive `flock-of-postcards` resume visualization app can be run using `VSCode` with the `LiveServer` extension.
 
-# Run the interactive `flock-of-postcards` resume app using VSCode and LiveServer
-
-## Clone this repo to your local development folder   
+## First clone this repo to your local development folder   
 `cd <your-local-dev-folder>`  
 `git clone git@github.com:sbecker11/flock-of-postcards.git`  
 `cd <your-local-dev-folder>/flock-of-postcards`  
 
-## Install VSCode + LiverServer  
+## Install VSCode + LiveServer  
 
 The `flock-of-postcards` webapp uses ES6 Modules. This requires that you have an ultra lightweight webserver running on your local machine that supports ES6. 
 
-LiveServer is an ultra light weight webserver that works with Google Chrome browser and can be run from the VSCode IDE. Installation of Vscode and the LiveServer extension is easy-peasy.  
+`LiveServer` is an ultra light weight webserver that works with Google Chrome browser and can be run as a `VSCode IDE` extension.  
 
 - Install the  <a href="https://code.visualstudio.com">vscode IDE</a> on your local OS.    
 <a href="https://code.visualstudio.com/"><img src="static_content/icons/vscode-IDE-logo.png"/></a>
@@ -52,7 +53,6 @@ LiveServer is an ultra light weight webserver that works with Google Chrome brow
 
 - Search for and install vscode's <a href="https://marketplace.visualstudio.com/items?itemName=ritwickdey.LiveServer">LiveServer</a> extension  
 <a href="https://marketplace.visualstudio.com/items?itemName=ritwickdey.LiveServer"><img src="static_content/icons/vscode-liveserver-logo.png"/></a>  
-
 
 - Click the "explorer" icon at the top left of vscode to explore your local filesystem  
 <img src="static_content/icons/vscode-explorer-icon.png"/>  
@@ -66,12 +66,12 @@ LiveServer is an ultra light weight webserver that works with Google Chrome brow
     <a href="http://localhost:5500/index.html"><img src="./static_content/graphics/GoLivePort5500.png"/></a>  
     <a href="http://localhost:5501/index.html"><img src="./static_content/graphics/GoLivePort5501.png"/></a>  
 
-
-You should now be up and running with the website's default configuration which shows off MY OWN stellar technology career.
+- You should now be up and running with the website's default configuration which by default shows off MY OWN stellar 
+technology career.
 
 But wouldn't it be better to configure the app to show off your own illustrious career?
  
- # How to customize the webapp to show your own illustrious career
+# Customize the webapp to show your own illustrious career
 
 - Go to the project's local home folder  
 `cd <your-local-dev-folder>/flock-of-postcards`
@@ -79,58 +79,61 @@ But wouldn't it be better to configure the app to show off your own illustrious 
 - Go to jobs folder  
 `cd static_content/jobs`
 
-- Open the `jobs.xlsx`  spreadsheet file using your own copy of Microsoft Excel (or any alternative that handles `.xlsx` files) 
+- Backup the existing `jobs.xlsx`  spreadsheet file using:  
+`cp jobs.xlsx original-jobs.xlsx`  
+
+- Then open your `jobs.xlsx` file using your own copy of Microsoft Excel (or any alternative that handles `.xlsx` files) 
 
 ### Customize the Jobs Spreadsheet  
 
-The jobs spreadsheet has one row for each job description. 
-Each job description has the following columns that you 
-need to replace with your own info:
-* role  
-* employer  
-* start      (YYYY-MM-DD)  
-* end        (YYYY-MM-DD)  
-* z-index    (from 1 to 3)
-* css name	 (darkgreen)
-* css RGB	   (#006900)
-* css color	 (Excel color background)
-* text color (#FFFFFF) or (#000000)
-* description  
+The jobs spreadsheet has one column for each job description. 
+Each job description has the following rows where you 
+need to replace &lt;my values&gt; with your own:  
+* role:      &lt;Senior Data Engineer&gt;  
+* employer:   &lt;Fannie Mae&gt;  
+* start:      &lt;2024-02&gt;  
+* end:        &lt;2024-06&gt;  
+* z-index:    &lt;2&gt; (1,2 or 3)  
+* css name:	 &lt;darkgreen&gt; (for documentation only so can be blank)  
+* css RGB:	   &lt;#006900&gt;  
+* css color:	 (Excel cell background fill color, for documentation only so can be blank)  
+* text color: &lt;#FFFFFF&gt; (use white for dark cards, black for light cards)   
+* description:  &lt;description&gt;  
 
-The `description` cell holds an arbitrary length bulleted job description. As described above, skills, terms, and tools can be wrapped with \[square brackets\] to create a flock of `skill cards` for each `business card`.
+The `description` cell holds a bulleted sentences of the various responsibilities associated with the job. Each responsiblity may include skills, terms, or that can be wrapped with \[square brackets\] to create the flock of `skill cards` for the job's `business card`. You can also use parens or curly braces to open a web page or an image in a new brower window.  
 
 
 ### Regenerate the Jobs module  
 
-- Save your updated Excel file
+- Save your updated Excel file in the jobs folder
 
-- Go back to the project's cloned home directory  
-`cd <your-local-dev-folder>/flock-of-postcards`
+- Create, activate, and initialize a python virtal environment by running: 
+`./first-run.sh`
 
-- Create, activate, and initialize a python virtal environment  
+- This makes the following calls:  
 `python -m venv venv`  
 `source venv/bin/activate`  
 `pip install -r requirements.txt`  
  
-- Run the python script that converts the Excel jobs spreadsheet file `jobs.xlsx` into a NodeJS module file `jobs.mjs`  
+- It also runs the python script that converts the Excel jobs spreadsheet file `jobs.xlsx` into a NodeJS module file `jobs.mjs`  
 `python xlsx2mjs.py`  
 
-If the app is already running, it will re-load the `jobs.mjs` file. 
-
-# Behold your own glorious flock of postcards
+If the app is already running, it will re-load the `jobs.mjs` file and you should now be able to visualize your own resume as a glorious flock of postcards
 
 
 
 
-### Future work
 
-- Provide the option to print the resume to a PDF file
-- Need to ease focal point to bullseye when any cardDiv is selected (or clicked?)
-- Need to add stamp icons to post cards
-- Click on post card to see it's full-size iomage in right-side detail panel
-- Render bizcards as 3D blocks with rounded corners
-- Rotate 3D bizcard blocks during transitions
-- Toggle debug panel visiblilty with button or key
+## Future work ideas  
+- Parse a resume PDF file to automatically find jobs, responsibilities, skills, college degrees, certifications, licenses, patents, publications, and social websites.      
+- Add, edit, or remove jobs from the app directly.  
+- Output the edited jobs to a `.json` file.   
+- Choose a resume format and print the jobs as a new PDF file.  
+- Click and drag the `bulls-eye` to move the `point-of-view` directly.  
+- Render `bizcards` as 3D blocks.  
+- Rotate a 3D `bizcard block` as it floats to the top.   
+- Add a `debug panel` with an on/off button.  
+- Skill card return icons need review.  
 
 
 ## Development history  
