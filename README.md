@@ -62,12 +62,13 @@ The `flock-of-postcards` webapp uses ES6 Modules. This requires that you have an
 
 - Note that the "Go Live" button now shows either "Port : 5500" or "Port : 5501"
 
-- Click the button below that matches the "Go Live" button's new Port value:  
+- Click the button below that matches the "Go Live" button's new Port value to start running the app in a new window in your default browser:    
     <a href="http://localhost:5500/index.html"><img src="./static_content/graphics/GoLivePort5500.png"/></a>  
     <a href="http://localhost:5501/index.html"><img src="./static_content/graphics/GoLivePort5501.png"/></a>  
 
-- You should now be up and running with the website's default configuration which by default shows off MY OWN stellar 
-technology career.
+- Click it again to stop the app and close the browser window.  
+
+You should now be up and running with the website's default configuration which by default shows off MY OWN stellar technology career.  
 
 But wouldn't it be better to configure the app to show off your own illustrious career?
  
@@ -121,11 +122,14 @@ The `description` cell holds a bulleted sentences of the various responsibilitie
 If the app is already running, it will re-load the `jobs.mjs` file and you should now be able to visualize your own resume as a glorious flock of postcards
 
 
+## Known bugs  
+- Test all links for 404 errors and fix or remove them.
+- Report bizcards and number of return icons found for each skill card.
+- Highlight taglink in bizcard detail when return icon is clicked in bizcard.
 
-
-
-## Future work ideas  
-- Parse a resume PDF file to automatically find jobs, responsibilities, skills, college degrees, certifications, licenses, patents, publications, and social websites.      
+## Future Work Ideas  
+- Download LinkedIn private profile data and use it to define jobs, responsibilities and skills defined in the jobs.mjs file.  
+- Parse a resume PDF file to automatically find jobs, responsibilities, skills, college degrees, certifications, licenses, patents, publications, and social websites defined in the jobs.mjs file.     
 - Add, edit, or remove jobs from the app directly.  
 - Output the edited jobs to a `.json` file.   
 - Choose a resume format and print the jobs as a new PDF file.  
