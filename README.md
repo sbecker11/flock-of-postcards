@@ -133,18 +133,18 @@ in the
 
 
 ## TO DOs:
-My own work fpr this project is not finished, so here's what you'll see in the future:  
+My own work for this project is not yet finished, so here's what you'll see in the future:  
 
 ## Bug Fixes:    
-- Need to test all links for 404 errors and fix or remove them.
-- Also need to verify the correctness for the number of `biz card` return icons found for each `skill card`.
+- Test all web and image links for 404 errors and fix or remove them.
+- Verify the correctness for the number of `biz card` return icons found for each `skill card`.
 
 ## Usability Fixes:  
-- A `biz card` is displayed in both the left and right panels when a the return icon of a `skill card` is clicked. In order to better see this relationship, the `skill tag` for that `skill card` should be hightlighted in the job's `biz card` in the `detail view` when a return icon of the `skill card` is clicked.
+- A `biz card` is displayed in both the left and right panels when a return icon of a `skill card` is clicked. In order to better see this relationship, the `skill tag` for that `skill card` should be hightlighted in the job's `biz card` in the `detail view` when a return icon of the `skill card` is clicked.
 
 ## Future Work Ideas:  
-- Rather than requiring painful manual editing of the `jobs.xslx` spreadsheet, provide the option to describe the structure of jobs, responsibilities and skills in a`jobs.json` file, and use that to create the `jobs.mjs` object internally.
-- Download your LinkedIn private profile data and transform it into this `jobs.json` file.
+- Rather than requiring the painful manual editing of the `jobs.xslx` spreadsheet, provide the option to describe the structure of jobs, responsibilities and skills in a`jobs.json` file, and use that to create the `jobs.mjs` object internally.
+- Tranform LinkedIn private profile data into this `jobs.json` file.
 - Create this `jobs.json` file using Langchain and NLP with an LLM model to automatically parse out the structured data from any `jobs.pdf` resume file.   
 
 ## Nice to haves:  
