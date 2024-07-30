@@ -9,11 +9,11 @@ The tool is meant to be rather chaotic, so I hope the following explaination hel
 
 Large `business cards`are used to describe various jobs, each with its role, employer, and time period. The size of each `biz card` is defined by its start and end dates. These cards are large, massive, slow moving, and far away from your view, and each `biz card` is surrounded by its flock of smaller `skill cards`that hovers around it.
 
-The `left panel` contains the interactive `card viewer`. The right panel shows `details` of previously selected cards.
+The left panel contains the interactive `card viewer`. The right panel contains the `details viewer`, which shows details of previously selected cards.
 
 Scroll the mouse vertically in the `card viewer` to slide over the `timeline`. The cursor attracts the `point-of-view`, shown as a `bulls-eye` <img src="static_content/icons/bulls-eye.png" width=11> that has mass and inertia. The resulting`motion parallax` and fuzzy `depth of field` give the flock its sense of 3-D depth. 
 
-Click on a `biz card` or `skill card` to make it pop it into focus at the top of the flock in the `flock view`, and to see its details pop into view in the right-hand `details` area. 
+Click on a `biz card` or `skill card` to make it pop it into focus at the top of the flock in the `flock viewer`, and to see its details pop into view in the right-hand `details viewer`. 
 
 # Download and build the flock
 
@@ -136,8 +136,9 @@ in the
 My own work for this project is not yet finished, so here's what you'll see in the future:  
 
 ## Bug Fixes:    
-- Test all web and image links for 404 errors and fix or remove them.
+- Test all `web links` and `image links` in all job `responsibilities` for 404 errors and fix or remove them.
 - Verify the correctness for the number of `biz card` return icons found for each `skill card`.
+- The `bulls-eye` should never be able to enter the `details view`.
 
 ## Usability Fixes:  
 - A `biz card` is displayed in both the left and right panels when a return icon of a `skill card` is clicked. In order to better see this relationship, the `skill tag` for that `skill card` should be hightlighted in the job's `biz card` in the `detail view` when a return icon of the `skill card` is clicked.
