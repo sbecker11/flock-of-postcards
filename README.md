@@ -1,43 +1,26 @@
 # flock-of-postcards  
-# Dark, chaotic, and deep  
+# dark, chaotic, and deep  
 
-This`flock-of-postcards` web app is a visualization tool use to explore a person's work history, education, and skills as 
-defined in a standard resume.
+This`flock-of-postcards` web app is a visualization tool use to explore a person's work history, education, and skills as defined in a standard resume.
 
 The tool is meant to be rather chaotic, so I hope the following explaination helps.
 
-# Experience your flock
+# Experience the flock
 
-Large `business cards`are used to describe various jobs, each with its role, employer, and time period. These cards are large, massive, slow moving, and far away from your view. Each `business card` is surrounded by its flock of smaller `skill cards`that hovers around it.
+Large `business cards`are used to describe various jobs, each with its role, employer, and time period. The size of each `biz card` is defined by its start and end dates. These cards are large, massive, slow moving, and far away from your view, and each `biz card` is surrounded by its flock of smaller `skill cards`that hovers around it.
 
-The `left panel` contains the interactive flock viewer. The right panel shows `details` of previously selected cards.
+The `left panel` contains the interactive `card viewer`. The right panel shows `details` of previously selected cards.
 
-Scroll the mouse vertically to slide over the `timeline`. Mouse motion attracts the `point-of-view`, shown as a `bulls-eye` <img src="static_content/icons/bulls-eye.png" width=11>, which has with mass and inertia. The resulting`motion parallax` and fuzzy `depth of field` give the flock its sense of 3-D depth. 
+Scroll the mouse vertically in the `card viewer` to slide over the `timeline`. The cursor attracts the `point-of-view`, shown as a `bulls-eye` <img src="static_content/icons/bulls-eye.png" width=11> that has mass and inertia. The resulting`motion parallax` and fuzzy `depth of field` give the flock its sense of 3-D depth. 
 
-Click on a `business card` or `skill card` to make it pop it into focus at the top of the flock, and to see its details pop into view in the right-hand `details` area. 
+Click on a `biz card` or `skill card` to make it pop it into focus at the top of the flock in the `flock view`, and to see its details pop into view in the right-hand `details` area. 
 
-# Build your flock
+# Download and build the flock
 
-The flock is defined in an offline-editable Excel spreadsheet. Each column contains the employer, date range, role, and a list of responsibilities of that job.
-
-Each skill is marked up in with \[square brackets\] in the job description, and is displayed as a clickable link that pops up its `skill card`.
-
-Web links are marked up with \(parens\) and are displayed with clickable world wide web icons <img src="static_content/icons/icons8-url-16-white.ico" width=11>. 
-
-Image links are marked up with  \{curly braces\} and are displayed as clickable image icons <img src="static_content/icons/icons8-img-16-white.png" width=11>. 
-
-A `skill card` is created for each \[square\] bracketed phrase in the job description. A skill is typically used over many jobs, so each `skill card` has one or more return icons <img src="static_content/icons/icons8-back-16-black.png"> that serve as clickable links back to jobs that used that skill. The number 
-of return icons indicates the number of jobs and the amount of time used to hone that skill.
-
-# Run your flock  
-The interactive `flock-of-postcards` resume visualization app can be run using `VSCode` with the `LiveServer` extension.
-
-## First clone this repo to your local development folder   
+- Clone this repo to your local development folder:   
 `cd <your-local-dev-folder>`  
 `git clone git@github.com:sbecker11/flock-of-postcards.git`  
-`cd <your-local-dev-folder>/flock-of-postcards`  
-
-## Install VSCode + LiveServer  
+`cd ./flock-of-postcards`  
 
 The `flock-of-postcards` webapp uses ES6 Modules. This requires that you have an ultra lightweight webserver running on your local machine that supports ES6. 
 
@@ -46,106 +29,139 @@ The `flock-of-postcards` webapp uses ES6 Modules. This requires that you have an
 - Install the  <a href="https://code.visualstudio.com">vscode IDE</a> on your local OS.    
 <a href="https://code.visualstudio.com/"><img src="static_content/icons/vscode-IDE-logo.png"/></a>
 
-- Start vscode and open the folder of the newly cloned `flock-of-postcards` project.  
+- Start vscode and open a new terminal view and you should see the local root folder of the newly cloned `flock-of-postcards` project.  
+
+- You can also click the "explorer" icon at the top left of vscode to explore your local root folder:  
+<img src="static_content/icons/vscode-explorer-icon.png"/> 
 
 - Click the "extensions" icon in the left panel of vscode to search for vscode extensions  
 <img src="static_content/icons/vscode-extensions-icon.png"/>  
 
 - Search for and install vscode's <a href="https://marketplace.visualstudio.com/items?itemName=ritwickdey.LiveServer">LiveServer</a> extension  
-<a href="https://marketplace.visualstudio.com/items?itemName=ritwickdey.LiveServer"><img src="static_content/icons/vscode-liveserver-logo.png"/></a>  
+<a href="https://marketplace.visualstudio.com/items?itemName=ritwickdey.LiveServer"><img src="static_content/icons/vscode-liveserver-logo.png"/></a>   
 
-- Click the "explorer" icon at the top left of vscode to explore your local filesystem  
-<img src="static_content/icons/vscode-explorer-icon.png"/>  
+# Run the flock
 
-- Click the "Go Live" button at the bottom right in vscode to start the vscode-embedded webserver  
+- Click the "Go Live" button at the footer row of`VsCode`to start the vscode-embedded webserver  
 <img src="static_content/icons/vscode-go-live-icon.png"/> 
 
-- Note that the "Go Live" button now shows either "Port : 5500" or "Port : 5501"
+- You should see the "Go Live" button change to show the new "Port" with value as either "Port : 5500" or "Port : 5501"
 
-- Click the button below that matches the "Go Live" button's new Port value to start running the app in a new window in your default browser:    
+- Click the button in this README file that matches the "Go Live" button's new Port value. This will open a new window in your default browser that shows the app's web page:    
     <a href="http://localhost:5500/index.html"><img src="./static_content/graphics/GoLivePort5500.png"/></a>  
     <a href="http://localhost:5501/index.html"><img src="./static_content/graphics/GoLivePort5501.png"/></a>  
 
-- Click it again to stop the app and close the browser window.  
+- Test it out. Hover over the left side's `flock view` and scroll and click on cards to see what happens.  
+
+- Hover over the right side's `detail view` and scroll and click on cards and buttons to see what happens.  
+
+- To stop the app and close the new browser window, just click it the "Port Value" button in the footer of VsCode. The "Port Value" should change back the "Go Live".
 
 You should now be up and running with the website's default configuration which by default shows off MY OWN stellar technology career.  
 
 But wouldn't it be better to configure the app to show off your own illustrious career?
- 
-# Customize the webapp to show your own illustrious career
 
-- Go to the project's local home folder  
-`cd <your-local-dev-folder>/flock-of-postcards`
+# Customize your own flock
 
-- Go to jobs folder  
+The flock data is defined in an offline-editable Excel spreadsheet.
+
+- Open the terminal view from of VsCode, which should be showing the project's local root folder:  
+`flock-of-postcards`
+
+- Now cd to the `static_content/jobs` folder:  
 `cd static_content/jobs`
 
 - Backup the existing `jobs.xlsx`  spreadsheet file using:  
 `cp jobs.xlsx original-jobs.xlsx`  
 
-- Then open your `jobs.xlsx` file using your own copy of Microsoft Excel (or any alternative that handles `.xlsx` files) 
+- Now you're going to edit your own `jobs.xlsx` file with your own copy of MS Excel.  
 
-### Customize the Jobs Spreadsheet  
+- VsCode has an internal Excel Spreadsheet editor, but it doesn't always work for me. So in VsCode use the  "File Explorer" to locate the `jobs.xlsx` file under `static_content/jobs`. Right-click on the file and choose "Reveal in Finder", if you're running on a mac. When the Finder window opens with the `jobs.xlsx` file selected, right-click on it and choose "Open With > Microsoft Excel.app (default)".
 
-The jobs spreadsheet has one column for each job description. 
-Each job description has the following rows where you 
-need to replace &lt;my values&gt; with your own:  
-* role:      &lt;Senior Data Engineer&gt;  
-* employer:   &lt;Fannie Mae&gt;  
-* start:      &lt;2024-02&gt;  
-* end:        &lt;2024-06&gt;  
-* z-index:    &lt;2&gt; (1,2 or 3)  
-* css name:	 &lt;darkgreen&gt; (for documentation only so can be blank)  
-* css RGB:	   &lt;#006900&gt;  
-* css color:	 (Excel cell background fill color, for documentation only so can be blank)  
-* text color: &lt;#FFFFFF&gt; (use white for dark cards, black for light cards)   
-* description:  &lt;description&gt;  
+- Now that the Excel file is open, make sure the `jobs` page is selected, and take a moment to review your jobs spreadshee.  
 
-The `description` cell holds a bulleted sentences of the various responsibilities associated with the job. Each responsiblity may include skills, terms, or that can be wrapped with \[square brackets\] to create the flock of `skill cards` for the job's `business card`. You can also use parens or curly braces to open a web page or an image in a new brower window.  
+Each row describes a job, which has columns for
+`role`, `employer`,	`start`, `end`, `z-index`, `css name`, `css RGB`, `css color`, `text color`, and `Description`.
 
+- Go to the first job-row and start replacing the &lt;previous values&gt; with values for your most recent job:
+  * role:       &lt;Senior Data Engineer&gt;  
+  * employer:   &lt;Fannie Mae&gt;  
+  * start:      &lt;2024-02&gt;  
+  * end:        &lt;2024-06&gt;  
+  * z-index:    &lt;2&gt; (1,2 or 3)  
+  * css name:	  &lt;darkgreen&gt; (for documentation only so this can be blank)  
+  * css RGB:	  &lt;#006900&gt;  
+  * css color:	(Excel cell background fill color, for documentation only so this can be blank)  
+  * text color: &lt;#FFFFFF&gt; (use white for dark cards, black for light cards)   
+  * Description:  &lt;Description&gt;  
 
-### Regenerate the Jobs module  
+A job's `Description` cell holds a bulleted list of `responsibility` sentences. Copy an existing bullet symbol to use it as the leading delimiter of each `responsibility` sentence.) 
 
-- Save your updated Excel file in the jobs folder
+Use normal prose to describe each bulleted `responsibility` sentence for that job. The column values and the bulleted list for a selected `biz card` are shown in the `detail view`.  
 
-- Create, activate, and initialize a python virtal environment by running: 
+Each `responsibility` can be marked up with any number of `skill tags`, `web links`, and/or `image links`.  
+
+`Skill tags` are marked up with \[square brackets\] in the spreadsheet, and are displayed as clickable underlined links in the app. Clicking on a `skill tag` in the app pops up that `skill card` for that job.  More on `skill cards` to follow.  
+
+`Web links` are marked up with \(parens\) in the spreadsheet and are displayed as clickable world wide web icons <img src="static_content/icons/icons8-url-16-white.ico" width=11> in in the bulleted `responsibilities` sentences in that app. Clicking on a `web link` in the app gives the user the option to open a web page in a new browser window.  
+
+Similarly, `image links` are marked up with  \{curly braces\} in the spreadsheet and are displayed in the app as clickable image icons <img src="static_content/icons/icons8-img-16-white.png" width=11>. Clicking on an `image link` gives the user the option to open an image in a new browser window.  
+
+As mentioned previously, a `skill card` is popped into focus when a `skill tag` is clicked.  Any skill, like a programming skill, a tool, or a platform, is typically learned and used over the course of many jobs. So each `skill card` contains one or more return icons <img src="static_content/icons/icons8-back-16-black.png"> that serve as clickable links back to one of the `biz card` jobs that used that skill. The number of return icons on a `skill card` indicates the number of jobs and the amount of time used to hone that skill.  
+
+- Once you're ready to test your flock, save your updated Excel file in the jobs folder.  
+
+- Open the terminal window and run the following script:  
 `./first-run.sh`
+in the 
+`static_content/jobs` folder
 
-- This makes the following calls:  
+- This makes the following calls to create or reinitialize this folder's virtual python environment:  
 `python -m venv venv`  
 `source venv/bin/activate`  
 `pip install -r requirements.txt`  
  
-- It also runs the python script that converts the Excel jobs spreadsheet file `jobs.xlsx` into a NodeJS module file `jobs.mjs`  
+- It also runs a python script that converts the Excel jobs spreadsheet file `jobs.xlsx` into a NodeJS ES6 module file `jobs.mjs`:  
 `python xlsx2mjs.py`  
 
-If the app is already running, it will re-load the `jobs.mjs` file and you should now be able to visualize your own resume as a glorious flock of postcards
+# Enjoy your flock
+
+- If the app is already running, the updated `jobs.mjs` file should be automatically reloaded, and you should now be able to visualize your own resume as its own `flock-of-postcards`.  
+
+- Note that this  edit/build/view process will be probably iterative, so prepare yourself for this cycle.
 
 
-## Known bugs  
-- Test all links for 404 errors and fix or remove them.
-- Report bizcards and number of return icons found for each skill card.
-- Highlight taglink in bizcard detail when return icon is clicked in bizcard.
 
-## Future Work Ideas  
-- Download LinkedIn private profile data and use it to define jobs, responsibilities and skills defined in the jobs.mjs file.  
-- Parse a resume PDF file to automatically find jobs, responsibilities, skills, college degrees, certifications, licenses, patents, publications, and social websites defined in the jobs.mjs file.     
-- Add, edit, or remove jobs from the app directly.  
-- Output the edited jobs to a `.json` file.   
-- Choose a resume format and print the jobs as a new PDF file.  
+## TO DOs:
+My own work fpr this project is not finished, so here's what you'll see in the future:  
+
+## Bug Fixes:    
+- Need to test all links for 404 errors and fix or remove them.
+- Also need to verify the correctness for the number of `biz card` return icons found for each `skill card`.
+
+## Usability Fixes:  
+- A `biz card` is displayed in both the left and right panels when a the return icon of a `skill card` is clicked. In order to better see this relationship, the `skill tag` for that `skill card` should be hightlighted in the job's `biz card` in the `detail view` when a return icon of the `skill card` is clicked.
+
+## Future Work Ideas:  
+- Rather than requiring painful manual editing of the `jobs.xslx` spreadsheet, provide the option to describe the structure of jobs, responsibilities and skills in a`jobs.json` file, and use that to create the `jobs.mjs` object internally.
+- Download your LinkedIn private profile data and transform it into this `jobs.json` file.
+- Create this `jobs.json` file using Langchain and NLP with an LLM model to automatically parse out the structured data from any `jobs.pdf` resume file.   
+
+## Nice to haves:  
 - Click and drag the `bulls-eye` to move the `point-of-view` directly.  
-- Render `bizcards` as 3D blocks.  
-- Rotate a 3D `bizcard block` as it floats to the top.   
-- Add a `debug panel` with an on/off button.  
-- Skill card return icons need review.  
+- Render `bizcards` as 3D blocks that slowly rotate as they languidly float to the top of the flock.    
+- Choose a resume template and use the `jobs.json` data to create a new `jobs.pdf` file.  
+
+
 
 
 ## Development history  
 
-### version 1.1    July 8, 2024  
+### version 1.1    July 29, 2024  
 
 - Updated installation and customization instructions in README.md
-- Deployed latest to github
+
+- Created a new GitHubPage
 
 <a target="_new" href="https://sbecker11.github.io/flock-of-postcards/">https://sbecker11.github.io/flock-of-postcards</a>
 
