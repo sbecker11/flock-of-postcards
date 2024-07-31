@@ -1,30 +1,16 @@
 {
-    // Use IntelliSense to learn about possible attributes.
-    // Hover to view descriptions of existing attributes.
-    // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
     "version": "0.2.0",
     "configurations": [
         {
-            "name": "debug: parser4 data-engineer.pdf",
+            "name": "static_content/jobs/xlsx2mjs.py",
             "type": "debugpy",
             "request": "launch",
-            "program": "static_content/jobs/resume-parser/parser4.py",
+            "program": "${workspaceFolder}/static_content/jobs/xlsx2mjs.py",
             "console": "integratedTerminal",
             "args": [
-                "static_content/jobs/resume-parser/data-engineer.pdf",
-                "static_content/jobs/resume-parser/data-engineer.json"
+                "${workspaceFolder}/static_content/jobs/jobs.xlsx",
+                "${workspaceFolder}/static_content/jobs/jobs.mjs"
             ]
-        },
-        {
-            "name": "debug: parser4 proj-mngr.pdf",
-            "type": "debugpy",
-            "request": "launch",
-            "program": "static_content/jobs/resume-parser/parser4.py",
-            "console": "integratedTerminal",
-            "args": [
-                "static_content/jobs/resume-parser/proj-mngr.pdf",
-                "static_content/jobs/resume-parser/proj-mngr.json"
-            ]
-        }
+        } 
     ]
 }

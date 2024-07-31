@@ -1,11 +1,22 @@
 #!/bin/zsh
-python -m venv venv
-source venv/bin/activate
+
+# Define jobsRootDir as the directory where the script is located
+jobsRootDir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+
+# Define the absolute paths for jobs.xlsx and jobs.mjs
+xlsxPath="$jobsRootDir/jobs.xlsx"
+mjsPath="$jobsRootDir/jobs.mjs"
+
+# Create virtual environment in the jobsRootDir
+python -m venv "$jobsRootDir/venv"
+
+# Activate virtual environment
+source "$jobsRootDir/venv/bin/activate"
 
 # Install required packages
-pip install -r requirements.txt -q
+pip install -r "$jobsRootDir/requirements.txt" -q
 
 # Update obs.mjs from jobs.xlsx
-echo "obs.mjs is being updated from jobs.xlsx"
-python xlsx2mjs.py
-echo "obs.mjs has been updated from jobs.xlsx"
+echo "$mjsPath is being updated from $xlsxPath"
+python "$jobsRootDir/xlsx2mjs.py" "$xlsxPath" "$mjsPath"
+echo "$mjsPath has been updated from $xlsxPath"
