@@ -1,0 +1,166 @@
+{
+  "contactInformation": "SHAWN BECKER\nLehi, UT \u2022 (857) 891-0896 \u2022 sbecker@alum.mit.edu",
+  "positionOrProfessionalTitle": "\u2022 Senior Technical Project Manager / Data Engineer / Data Architect \u2022",
+  "professionalSummary": "With over 15 years of experience as a Technical Project Manager, Data Engineer, and Data Architect, I excel in problem-solving and leading teams to deliver innovative solutions to complex challenges across diverse industries, including entertainment, healthcare, finance, and manufacturing. My expertise includes creating scalable, secure, high-volume data pipelines leveraging cloud infrastructure and domain-specific data architecture while employing machine learning models to optimize data-driven decision-making processes. I thrive in dynamic environments, applying Agile methodologies to facilitate my team's focus on building working increments of well-architecture solutions that meet product owners' expectations. Driven by a passion for continuous learning, I relish tackling new challenges and achieving excellence in every project.",
+  "workExperience": [
+    {
+      "companyName": "Fannie Mae / Risk Works Analysis Data Lake",
+      "location": "Washington, DC",
+      "duration": {
+        "start": "Feb 2024",
+        "end": "Jul 2024"
+      },
+      "positionOrTitle": "Senior Data Engineer / Data Architect",
+      "responsibilities": [
+        "Documented processes to build, test, and deploy data pipeline components for in-house ETL framework",
+        "Extensive work with SQL, AWS Redshift, Glue, S3, IAM, Lambda, REST, Postman, SNS, and dbt",
+        "Utilized Agile practices with Jira, including backlog refinements, sprint planning, daily scrums, bi-weekly sprint reviews, and end-of-sprint retrospectives. Enabled the product owner to review each shipped product increment, allowing for potential revision or re-prioritization of backlog items"
+      ]
+    },
+    {
+      "companyName": "The Cigna Group / Data Cybersecurity",
+      "location": "Bloomfield, CT",
+      "duration": {
+        "start": "May 2023",
+        "end": "Dec 2023"
+      },
+      "positionOrTitle": "Senior Data Engineer / Data Architect",
+      "responsibilities": [
+        "Modernized applications via Jenkins CI/CD pipeline upgrade, integrating SetupTools, Artifactory/PyPI, SonarQube, and Xray",
+        "Investigated and implemented preparation of legacy ETL data pipeline components, migrating from on-prem Unity IoC apps to the AWS cloud using change data capture",
+        "Engineered a Python REST API enabling credential retrieval from CyberArk's identity management platform using mutual TLS/SSL authentication via AWS API Gateway",
+        "Initiated CyberArk service updates to extract credentials at runtime, avoiding the need to access locally encrypted files and eliminating engineering effort to satisfy cybersecurity password rollover requirements, reducing costs by 95% for each password rollover event"
+      ]
+    },
+    {
+      "companyName": "Warner Brothers Interactive Entertainment",
+      "location": "Waltham, MA",
+      "duration": {
+        "start": "Oct 2022",
+        "end": "April 2023"
+      },
+      "positionOrTitle": "Senior Data Engineer / Data Scientist",
+      "responsibilities": [
+        "Utilized PySpark for ETL/ELT processes and Python for third-party integrations and dev-ops collaborations with Jenkins, DataDog, and ZenDesk. Leveraged Google BigQuery and AWS services, including PostgreSQL, Glue, Lambda, and SalesForce",
+        "Developed high-volume pipeline ingress and integrations, enabling efficient and secure game telemetry and user PII data transfer between WB-distributed games and leading marketing platforms using Segment CDP, Kafka, Redshift, Glue, and Airflow",
+        "Conducted exploration and statistical analysis of game marketing data using Jupyter, Python, Pandas, NumPy, Sci-kit Learn, and Keras for analytical processing and Seaborn, Plotly, and Matplotlib for data visualization",
+        "Practiced Agile SDLC in Jira with spring planning, daily scrums, and bi-weekly sprint reviews"
+      ]
+    },
+    {
+      "companyName": "Angel Studios",
+      "location": "Provo, Utah",
+      "duration": {
+        "start": "Dec 2021",
+        "end": "Sep 2022"
+      },
+      "positionOrTitle": "Senior Data Scientist / Data Architect",
+      "responsibilities": [
+        "Utilized AWS SageMaker with machine learning packages Pytorch and Keras to build and tune a supervised CNN for classifying movie frames from episodes digitally stored in S3",
+        "Earned certifications in Advanced Learning Algorithms, Advanced SQL for Data Scientists, and Supervised Machine Learning: Regression & Classification, enhancing professional skills",
+        "Conducted data exploration and machine learning algorithms using Jupyter, Python, Pandas, NumPy, Sci-kit Learn, Pytorch, and Keras for processing and Seaborn, Plotly, and Matplotlib for data visualization, significantly enhancing analytical capabilities",
+        "Developed effective business intelligence strategies using Snowflake, Looker, and Tableau for comprehensive sales and finance reporting"
+      ]
+    },
+    {
+      "companyName": "Greenseed Data Laboratory",
+      "location": "Orem, Utah",
+      "duration": {
+        "start": "Nov 2020",
+        "end": "Nov 2021"
+      },
+      "positionOrTitle": "Senior Data Engineer / Data Scientist",
+      "responsibilities": [
+        "Conducted advanced statistical exploration of real-estate sales data using Python, Pandas, NumPy, SciPy, and Scikit-learn",
+        "Created insightful data visualizations with Seaborn, Plotly, and Matplotlib",
+        "Implemented a CI/CD pipeline using GitHub Actions, Coverage, SonarQube, and Xray",
+        "Designed and built a custom star-schema data warehouse on PostgreSQL, using dimensional modeling, featuring SCD type-2 tables sharing a common streaming facts table",
+        "Enhanced machine learning skills with tutorials for TensorFlow, PyTorch, and Keras using Kaggle datasets"
+      ]
+    },
+    {
+      "companyName": "NuSkin",
+      "location": "Provo, Utah",
+      "duration": {
+        "start": "Nov 2019",
+        "end": "Nov 2020"
+      },
+      "positionOrTitle": "Senior Full Stack Developer",
+      "responsibilities": [
+        "Enhanced site registration and login pages by designing workflow and wireframes",
+        "Innovated Vue Vuetify components with NodeJS SCSS for improved functionality and reuse",
+        "Documented and launched new packages for company-wide use, enhancing efficiency",
+        "Internationalized content using Adobe Experience Cloud"
+      ]
+    },
+    {
+      "companyName": "SeniorLink / Vela",
+      "location": "Boston, MA",
+      "duration": {
+        "start": "March 2017",
+        "end": "Nov 2019"
+      },
+      "positionOrTitle": "Senior Data Engineer / Data Architect",
+      "responsibilities": [
+        "Designed and deployed an AWS data pipeline for the Vela platform, which provided messaging, communication, and collaboration tools for the healthcare industry",
+        "Managed data ingress by queueing API Gateway-delivered message payloads into Amazon Kinesis Data Stream shards. Utilized SNS-triggered Python jobs running on serverless Lambdas to aggregate shard data into date-partitioned Parquet files in an S3 data lake",
+        "Performed ETL processes, extracting, transforming, and loading Parquet data from the data lake to Redshift via scheduled PySpark batch jobs on an EMR cluster orchestrated by Data Pipeline",
+        "Generated daily business intelligence reports using Tableau with Redshift OLAP",
+        "Coordinated with domestic and offshore development and quality assurance teams"
+      ]
+    },
+    {
+      "companyName": "ClipFile",
+      "location": "Newton Center, MA",
+      "duration": {
+        "start": "Feb 2011",
+        "end": "March 2017"
+      },
+      "positionOrTitle": "Technical Project Manager / Solutions Architect / Co-Founder",
+      "responsibilities": [
+        "Led a team to develop and launch a pioneering SaaS on the AWS platform that empowered individuals and content creators to search and share curated mindsets",
+        "Designed and implemented patented technology, creating a consumer-facing CMS that facilitated fuzzy matching among user-curated quotes and text fragments",
+        "Applied machine learning algorithms such as principal component analysis, eigenvector decomposition, dimensionality reduction, vectorization, cosine similarities, K-means, Bayesian clustering, and collaborative filtering to implement fuzzy word matching and word clustering",
+        "Utilized a RESTful API interface for the in-app presentation layer and as a service interface for external client apps"
+      ]
+    },
+    {
+      "companyName": "Sierra Vista Group",
+      "location": "Boston, MA",
+      "duration": {
+        "start": "Nov 2002",
+        "end": "Feb 2011"
+      },
+      "positionOrTitle": "Technical Program Manager / Solutions Architect / Co-Founder",
+      "responsibilities": [
+        "Identified profitable opportunities in product development, software engineering, and data modeling and successfully negotiated budgets and project milestones with C-level management",
+        "Recruited high-value independent consultants specializing in DevOps, full-stack development, database administration, graphic design, user experience, and quality assurance",
+        "Developed and aligned comprehensive project schedules and detailed technical specifications with specific business requirements within strict budgets",
+        "Conducted implementation evaluations to ensure flawless delivery of technical solutions",
+        "Managed IT strategies customized for clients in the entertainment, medical services, manufacturing, insurance, and cyber security industries, including AMI, Rowe Jukeboxes, Eleven Systems, Coca-Cola Corp. Europe, Medical Services Corp., and Intrusic Cyber Security"
+      ]
+    }
+  ],
+  "education": [
+    {
+      "institution": "Massachusetts Institute of Technology, Cambridge, Massachusetts",
+      "degree": "PhD, Media Arts & Sciences, Machine Vision/Video Coding"
+    },
+    {
+      "institution": "Brigham Young University, Provo, Utah",
+      "degree": "MS, Computer Science, Medical Imaging/Computer Graphics"
+    },
+    {
+      "institution": "Brigham Young University, Provo, Utah",
+      "degree": "BS, Design Engineering Technology, CAD/CAE/CAM"
+    }
+  ],
+  "skills": "AWS Architecture \u2022 Amazon S3 \u2022 DBT \u2022 Glue \u2022 Glue Catalog \u2022 Lambdas \u2022 Step Functions \u2022 Kinesis Data Streams \u2022 Kafka \u2022 SQS \u2022 SNS \u2022 SMS \u2022 EC2 \u2022 Redshift \u2022 DynamoDB \u2022 SimpleDB \u2022 ElastiCache \u2022 Aurora \u2022 Databricks Medallion Architecture \u2022 Delta Lake \u2022 Databricks Lakehouse \u2022 CloudFormation \u2022 Docker \u2022 Kubernetes \u2022 ECR \u2022 ECS \u2022 EKS \u2022 Fargate \u2022 Data Pipeline \u2022 PySpark \u2022 EMR \u2022 AWS Migration Service \u2022 SQL \u2022 Python \u2022 Java \u2022 Airflow \u2022 Git \u2022 REST API \u2022 CI/CD \u2022 Jenkins \u2022 GitHub Actions \u2022 Unit Testing \u2022 Integration Testing \u2022 SageMaker \u2022 GitHub \u2022 Bitbucket \u2022 PostgreSQL \u2022 Oracle \u2022 MS SQL Server \u2022 Machine Learning \u2022 Regression \u2022 Classification \u2022 CNN \u2022 Clustering \u2022 Dimensionality Reduction \u2022 PCA \u2022 RAG \u2022 Encoding \u2022 MSProject \u2022 Visio \u2022 Office 365 \u2022 Agile Scrum SDLC \u2022 Scheduling \u2022 Budgets \u2022 Milestones \u2022 Risk Mitigation \u2022 Stakeholder Management \u2022 Resource Allocation \u2022 Leadership \u2022 Tutoring \u2022 Team Building \u2022 Offshore Management \u2022 Cybersecurity \u2022 DataDog \u2022 CloudWatch \u2022 Confluence \u2022 Jira \u2022 Certified Scrum Master\u00a9",
+  "certifications": "https://www.linkedin.com/in/shawnbecker/details/certifications/",
+  "publications": "https://independent.academia.edu/shawnbecker",
+  "patents": "https://patents.justia.com/inventor/shawn-c-becker",
+  "websites": [
+    "https://www.linkedin.com/in/shawnbecker",
+    "http://spexture.com"
+  ]
+}

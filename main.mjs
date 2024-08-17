@@ -755,7 +755,7 @@ function createCardDiv(bizcardDiv, tag_link) {
     cardDiv.dataset.bizcardDivDays = getBizcardDivDays(bizcardDiv);
 
     const cardDivIndex = getCardDivIndex(cardDivId) || 0;
-
+canvas
     const total_vt_distance = timeline.getTimelineHeight();
     const vt_top_to_top = total_vt_distance / ESTIMATED_NUMBER_CARD_DIVS;
     const vt_top = cardDivIndex * vt_top_to_top - vt_top_to_top / 2;
