@@ -1,12 +1,16 @@
-
 // @ts-nocheck
 'use strict';
 
-import * as utils from './modules/utils.mjs';
-import * as timeline from './modules/timeline.mjs';
-import * as focalPoint from './modules/focal_point.mjs';
-import * as monoColor from './modules/monoColor.mjs';
-import * as alerts from './modules/alerts.mjs';
+import './static_content/jobs/jobs.mjs';
+import './alerts.mjs';
+import './monoColor.mjs';
+import './css_colors.mjs';
+
+import * as utils from './utils.mjs';
+import * as timeline from './timeline.mjs';
+import * as focalPoint from './focal_point.mjs';
+import * as monoColor from './monoColor.mjs';
+import * as alerts from './alerts.mjs';
 
 // --------------------------------------
 // Element reference globals
@@ -35,7 +39,6 @@ const clearAllLineItemsButton = document.getElementById("clear-all-line-items");
 
 const BULLET_DELIMITER = "\u2022";
 const BULLET_JOINER = ' ' + BULLET_DELIMITER + ' '
-
 
 // --------------------------------------
 // Animation globals

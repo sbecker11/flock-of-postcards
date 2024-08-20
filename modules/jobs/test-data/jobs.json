@@ -1,0 +1,20 @@
+[
+  {
+    "employer": "Company A",
+    "role": "Developer",
+    "cssRGB": "rgb(255, 255, 255)",
+    "textColor": "#000000",
+    "endstart": "2023-01-01",
+    "index": 1,
+    "description": "Job description A"
+  },
+  {
+    "employer": "Company B",
+    "role": "Designer",
+    "cssRGB": "rgb(0, 0, 0)",
+    "textColor": "#FFFFFF",
+    "endstart": "2023-02-01",
+    "index": 2,
+    "description": "Job description B"
+  }
+]

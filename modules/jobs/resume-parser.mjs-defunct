@@ -1,0 +1,103 @@
+import fs from 'fs/promises';
+import path from 'path';
+import { fileURLToPath } from 'url';
+import pdf from 'pdf-parse';
+import mammoth from 'mammoth';
+import { Anthropic } from '@anthropic-ai/sdk';
+import Ajv from 'ajv';
+import dotenv from 'dotenv';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
+dotenv.config({ path: path.join(__dirname, '.env') });
+
+const anthropic = new Anthropic({
+  apiKey: process.env.ANTHROPIC_API_KEY,
+});
+
+const ajv = new Ajv();
+
+async function extractTextFromPDF(pdfPath) {
+  const dataBuffer = await fs.readFile(pdfPath);
+  const data = await pdf(dataBuffer);
+  return data.text;
+}
+
+async function extractTextFromDOCX(docxPath) {
+  const result = await mammoth.extractRawText({ path: docxPath });
+  return result.value;
+}
+
+async function parseResume(inputFileName, outputFileName) {
+  console.time('Total Execution Time');
+  
+  const inputPath = path.join(__dirname, inputFileName);
+  const outputPath = path.join(__dirname, outputFileName);
+  
+  // Determine file type and extract text
+  console.time('Text Extraction');
+  let resumeText;
+  if (path.extname(inputPath).toLowerCase() === '.pdf') {
+    resumeText = await extractTextFromPDF(inputPath);
+  } else if (path.extname(inputPath).toLowerCase() === '.docx') {
+    resumeText = await extractTextFromDOCX(inputPath);
+  } else {
+    throw new Error('Unsupported file format. Only PDF and DOCX are supported.');
+  }
+  console.timeEnd('Text Extraction');
+
+  // Load JSON schema
+  const schemaPath = path.join(__dirname, 'resume-schema.json');
+  const schemaContent = await fs.readFile(schemaPath, 'utf8');
+  const schema = JSON.parse(schemaContent);
+
+  // Prepare prompt for Anthropic API
+  const promptTemplate = `Please analyze the following resume_text and
+  create a JSON object that strictly conforms to the provided schema. Note the following:
+  - 'skills', 'certifications', 'publications', and 'patents' should be single strings, not arrays.
+  - 'websites' should be an array of strings.
+  - All fields in the schema are required, even if the information is not present in the resume.
+    Use 'N/A' or an empty string for missing information.
+  - Ensure all date formats in the 'duration' objects are consistent.
+
+  Schema:
+  ${JSON.stringify(schema, null, 2)}
+
+  <resume_text begins here>
+  ${resumeText}
+  <resume_text ends here>
+
+  Please provide only the JSON object in your response, with no additional text.`;
+
+  // Call Anthropic API
+  console.time('Anthropic API Call');
+  const response = await anthropic.messages.create({
+    model: 'claude-3-sonnet-20240229',
+    max_tokens: 4000,
+    temperature: 0,
+    system: "You are an expert at parsing resumes and creating structured data from them.",
+    messages: [
+      { role: 'user', content: promptTemplate }
+    ]
+  });
+  console.timeEnd('Anthropic API Call');
+
+  // Parse and validate JSON response
+  const parsedJson = JSON.parse(response.content[0].text);
+  const validate = ajv.compile(schema);
+  const valid = validate(parsedJson);
+
+  if (!valid) {
+    console.error('Validation errors:', validate.errors);
+    throw new Error('Generated JSON does not conform to the schema');
+  }
+
+  // Write parsed resume to output file
+  await fs.writeFile(outputPath, JSON.stringify(parsedJson, null, 2));
+
+  console.timeEnd('Total Execution Time');
+  console.log(`JSON response saved to: ${outputPath}`);
+}
+
+export default parseResume;

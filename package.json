@@ -1,11 +1,20 @@
 {
   "name": "flock-of-postcards",
-  "version": "version-0.8",
+  "version": "0.8.0",
   "description": "Dark, chaotic, and deep. This app creates an animated flock of postcards from a resume. The resume is defined as a job.xlsx file where each row describes a job, with start/end dates and a descriptive paragraph that includes links to related skills. Each job is visualized as a large business card. Each skill is visualized as smaller chips. The flock is rendered in the left panel with motion parallax as the mouse is moved around. Skill chips fly above the darker business cards. The right panel shows a readable version of selected jobs and skills.",
-  "main": "main.mjs",
+  "main": "index.mjs",
   "type": "module",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "start": "node main.mjs",
+    "build": "echo 'Add your build process here'",
+    "test": "npm run test:get-json-schema && npm run test:get-job-objects",
+    "prerun": "./pre_run_checks.sh",
+    "parse:docx": "npm run prerun && node -e \"import('./modules/jobs/resume-parser.mjs').then(m => m.default('input_resumes/resume.docx', 'parsed_resumes/resume-docx.json'))\"",
+    "parse:pdf": "npm run prerun && node -e \"import('./modules/jobs/resume-parser.mjs').then(m => m.default('input_resumes/resume.pdf', 'parsed_resumes/resume-pdf.json'))\"",
+    "parse:all": "npm run prerun && npm run parse:docx && npm run parse:pdf",
+    "test:get-json-schema": "npm run prerun && vitest run ./modules/jobs/get-json-schema_test.mjs",
+    "prof:get-json-schema": "npm run prerun && node --prof ./modules/jobs/get-json-schema_test.mjs && node --prof-process ./modules/jobs/profiles/isolate-*.log > ./modules/jobs/profiles/get-json-schema_test.cpuprofile",
+    "test:get-job-objects": "npm run prerun && vitest run ./modules/jobs/get-job-objects_test.mjs"
   },
   "repository": {
     "type": "git",
@@ -23,12 +32,21 @@
   },
   "homepage": "https://github.com/sbecker11/flock-of-postcards#readme",
   "dependencies": {
+    "@anthropic-ai/sdk": "0.26.1",
     "ajv": "^8.17.1",
+    "axios": "^1.7.4",
     "cookies": "^0.9.1",
-    "dayjs": "^1.11.10",
+    "dayjs": "^1.11.12",
+    "dotenv": "^16.3.1",
     "fs": "^0.0.1-security",
     "js-yaml": "^4.1.0",
-    "json-schema-generator": "^2.0.6",
-    "jsonschema": "^1.4.1"
+    "jsonschema": "^1.4.1",
+    "mammoth": "^1.6.0",
+    "minimist": "^1.2.8",
+    "pdf-parse": "^1.1.1",
+    "yargs": "^17.7.2"
+  },
+  "devDependencies": {
+    "vitest": "^2.0.5"
   }
 }

@@ -1,5 +1,3 @@
-// @ts-nocheck
-
 import * as utils from './utils.mjs';
 
 var isMonoColor = false;
@@ -16,7 +14,7 @@ export function getIconColor(color) {
     color = color.toUpperCase();
     let RGB = utils.get_RGB_from_AnyStr(color);
     let iconColor = (RGB[0] + RGB[1] + RGB[2] > 382) ? 'white' : 'black';
-    if ( !ICON_COLORS.includes(iconColor) ) {
+    if (!ICON_COLORS.includes(iconColor)) {
         throw new Error(`getIconColor color:${color} iconColor:${iconColor} not included by ${ICON_COLORS}\n`);
     }
     return iconColor;
@@ -42,12 +40,12 @@ export function toggleMonoColor() {
 
 function getIconElementType(iconElement) {
     let iconType = iconElement.dataset.icontype || iconElement.getAttribute('icon-type');
-    if( typeof iconType ==='undefined' || iconType === null || iconType === "") {
-        if ( iconElement.classList.contains('back-icon') ) {
+    if (typeof iconType === 'undefined' || iconType === null || iconType === "") {
+        if (iconElement.classList.contains('back-icon')) {
             return 'back';
-        } else if ( iconElement.classList.contains('url-icon') ) {
+        } else if (iconElement.classList.contains('url-icon')) {
             return 'url';
-        } else if ( iconElement.classList.contains('img-icon') ) {
+        } else if (iconElement.classList.contains('img-icon')) {
             return 'img';
         } else {
             var err = `getIconElementType iconElement:${iconElement} has no icon-type dataset or attribute\n`;
@@ -56,7 +54,7 @@ function getIconElementType(iconElement) {
             throw new Error(err);
         }
     }
-    if ( ICON_TYPES.includes(iconType) ) {
+    if (ICON_TYPES.includes(iconType)) {
         return iconType;
     } else {
         var err = `getIconElementType iconElement:${iconElement} iconType:${iconType} not included in ${ICON_TYPES}`;
@@ -65,28 +63,28 @@ function getIconElementType(iconElement) {
 }
 
 export function setIconToColor(iconElement, theIconColor) {
-    let iconType = getIconElementType(iconElement); 
+    let iconType = getIconElementType(iconElement);
     let iconColor = getIconColor(theIconColor);
-    if( !ICON_TYPES.includes(iconType) ) {
+    if (!ICON_TYPES.includes(iconType)) {
         var err = `setIconToColor iconElement:${iconElement} has illegal iconType:[${iconType}] not included by ${ICON_TYPES}\n`;
         err += `setIconToColor iconElement.dataset:${utils.getDatasetAsString(iconElement)}\n`;
         err += `setIconToColor iconElement.attributes:${utils.getAttributesAsString(iconElement)}\n`;
         throw new Error(err);
     }
-    if ( !ICON_COLORS.includes(iconColor) ) {
+    if (!ICON_COLORS.includes(iconColor)) {
         var err = `setIconToColor iconElement:${iconElement} has illegal iconColor:[${iconColor}] not included by ${ICON_COLORS}\n`;
         err += `setIconToColor iconElement.dataset:${utils.getDatasetAsString(iconElement)}\n`;
         err += `setIconToColor iconElement.attributes:${utils.getAttributesAsString(iconElement)}\n`;
         throw new Error(err);
     }
     // in colorMode 
-    if ( !isMonoColor ) {
+    if (!isMonoColor) {
         let savedColor = iconElement.dataset.savedColor;
-        if (typeof savedColor === undefined || savedColor == null || savedColor == '' ) {
+        if (typeof savedColor === undefined || savedColor == null || savedColor == '') {
             var err = `setIconColor iconElement:${iconElement} savedColor is undefined`;
             throw new Error(err);
         }
-        if ( savedColor != iconColor ) {
+        if (savedColor != iconColor) {
             var err = `setIconColor iconElement:${iconElement} in colorMode given iconColor:${iconColor} when savedColor:${savedColor}`;
             throw new Error(err);
         }
@@ -100,14 +98,14 @@ export function applyMonoColorToElement(monoColorElement) {
         // set colors to mono
         monoColorElement.style.color = monoColor;
         monoColorElement.style.backgroundColor = monoBackgroundColor;
-        if ( monoColorElement.classList.contains("icon") ) {
+        if (monoColorElement.classList.contains("icon")) {
             setIconToColor(monoColorElement, monoColor);
         }
     } else {
         // in colorMode
         // retrieve the saved colors from the dataset
         let savedColor = monoColorElement.dataset.savedColor;
-        if( typeof savedColor ==='undefined' || savedColor === null || savedColor === "") {
+        if (typeof savedColor === 'undefined' || savedColor === null || savedColor === "") {
             var err = `applyMonoColorToElement monoColorElement must have a saved-color data or attribute\n`;
             err += `applyMonoColorToElement savedColor:[${savedColor}]\n`;
             err += `applyMonoColorToElement isMonoColor:${isMonoColor}\n`;
@@ -122,11 +120,31 @@ export function applyMonoColorToElement(monoColorElement) {
         // restore the saved colors
         monoColorElement.style.color = savedColor;
         monoColorElement.style.backgroundColor = 'transparent';
-        if ( monoColorElement.classList.contains("icon") ) {
+        if (monoColorElement.classList.contains("icon")) {
             setIconToColor(monoColorElement, savedColor);
-        }   
+        }
     }
 }
 
-// Assign the function to window for global access
-window.toggleMonoColor = toggleMonoColor;
+// Function to check if monoColor can be applied
+function canApplyMonoColor() {
+    if (typeof window !== 'undefined') {
+        let monoColorIcon = document.getElementById('monoColorIcon');
+        if (monoColorIcon) {
+            window.toggleMonoColor = toggleMonoColor;
+            return true;
+        }
+    }
+    return false;
+}
+
+function updateMonoColorOption() {
+    let monoColorIcon = document.getElementById('monoColorIcon');
+    if (!canApplyMonoColor()) {
+        // Remove or disable the option
+        monoColorIcon.disabled = true;
+    }
+}
+
+// Call the function to update the option
+updateMonoColorOption();
