@@ -13,8 +13,12 @@
     "parse:pdf": "npm run prerun && node -e \"import('./modules/jobs/resume-parser.mjs').then(m => m.default('input_resumes/resume.pdf', 'parsed_resumes/resume-pdf.json'))\"",
     "parse:all": "npm run prerun && npm run parse:docx && npm run parse:pdf",
     "test:get-json-schema": "npm run prerun && vitest run ./modules/jobs/get-json-schema_test.mjs",
-    "prof:get-json-schema": "npm run prerun && node --prof ./modules/jobs/get-json-schema_test.mjs && node --prof-process ./modules/jobs/profiles/isolate-*.log > ./modules/jobs/profiles/get-json-schema_test.cpuprofile",
-    "test:get-job-objects": "npm run prerun && vitest run ./modules/jobs/get-job-objects_test.mjs"
+    "test:get-job-objects": "npm run prerun && vitest run ./modules/jobs/get-job-objects_test.mjs",
+    "test:is-json-data": "npm run prerun && vitest run ./modules/jobs/is-json-data_test.mjs",
+    "test:is-json-schema": "npm run prerun && vitest run ./modules/jobs/is-json-schema_test.mjs",
+    "test:is-valid-json-data": "npm run prerun && vitest run ./modules/jobs/is-valid-json-data_test.mjs",
+    "test:is-valid-json-schema": "npm run prerun && vitest run ./modules/jobs/is-valid-json-schema_test.mjs",
+    "test:validate-schemas": "npm run prerun && vitest run ./modules/jobs/validate-schemas.mjs"
   },
   "repository": {
     "type": "git",
