@@ -8,6 +8,7 @@
     "start": "node main.mjs",
     "build": "echo 'Add your build process here'",
     "test": "npm run prerun && vitest run ./modules/jobs/get-json-schema_test.mjs && vitest run ./modules/jobs/get-job-objects_test.mjs && vitest run ./modules/jobs/is-json-data_test.mjs && vitest run ./modules/jobs/is-json-schema_test.mjs && vitest run ./modules/jobs/is-valid-json-data_test.mjs && vitest run ./modules/jobs/is-valid-json-schema_test.mjs && vitest run ./modules/jobs/validate-schemas.mjs && vitest run ./modules/jobs/get-resume-job-objects_test.mjs",
+    "eslint": "npx eslint 'modules/jobs/**/*.mjs'",
     "prerun": "./pre_run_checks.sh",
     "validate-schemas": "node ./modules/jobs/validate-schemas.mjs",
     "parse:docx": "npm run prerun && node -e \"import('./modules/jobs/resume-parser.mjs').then(m => m.default('input_resumes/resume.docx', 'parsed_resumes/resume-docx.json'))\"",
@@ -19,8 +20,7 @@
     "test:is-json-schema": "npm run prerun && vitest run ./modules/jobs/is-json-schema_test.mjs",
     "test:is-valid-json-data": "npm run prerun && vitest run ./modules/jobs/is-valid-json-data_test.mjs",
     "test:is-valid-json-schema": "npm run prerun && vitest run ./modules/jobs/is-valid-json-schema_test.mjs",
-    "test:validate-schemas": "npm run prerun && vitest run ./modules/jobs/validate-schemas.mjs",
-    "test:get-resume-job-objects": "npm run prerun && vitest run ./modules/jobs/get-resume-job-objects_test.mjs"
+    "test:get-resume-data": "npm run prerun && vitest run ./modules/jobs/get-resume-data_test.mjs"
   },
   "repository": {
     "type": "git",
@@ -44,10 +44,11 @@
     "cookies": "^0.9.1",
     "dayjs": "^1.11.12",
     "dotenv": "^16.3.1",
+    "eslint": "^9.9.0",
     "fs": "^0.0.1-security",
     "js-yaml": "^4.1.0",
     "jsonschema": "^1.4.1",
-    "mammoth": "^1.6.0",
+    "mammoth": "^1.8.0",
     "minimist": "^1.2.8",
     "pdf-parse": "^1.1.1",
     "yargs": "^17.7.2"

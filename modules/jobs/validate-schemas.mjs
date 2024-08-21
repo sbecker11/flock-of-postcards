@@ -1,11 +1,12 @@
 import { isValidJsonSchema } from './is-valid-json-schema.mjs';
 import fs from 'fs';
 
-const testSchemaPath = './modules/jobs/test-files/test-job-objects-schema.json';
+const testSchemaPath = './modules/jobs/test-files/test-resume-schema.json';
 
 try {
     const schemaContent = fs.readFileSync(testSchemaPath, 'utf-8');
-    const isValid = isValidJsonSchema(JSON.parse(schemaContent));
+    const schema = JSON.parse(schemaContent);
+    const isValid = isValidJsonSchema(schema);
     console.log(`Validation result for ${testSchemaPath}: ${isValid}`);
 
     if (isValid) {
