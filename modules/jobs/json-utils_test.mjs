@@ -49,57 +49,61 @@ describe('should extract text from document', () => {
         await expect(jsonutils.extractTextFromDocument(filePath)).rejects.toThrow(messages.ERROR_FILE_NOT_FOUND + ` : ${filePath}`);
     });
 
-    // it('should throw an error if file is found but extension is missing', async () => {
-    //     const filePath = "modules/jobs/test-files/small";
-    //     const extname = path.extname(filePath);
-    //     await expect(jsonutils.extractTextFromDocument(filePath)).rejects.toThrow(messages.ERROR_FILENAME_EXTENSION_UNDEFINED + ` : ${filePath}`);
-    // });
+    it('should throw an error if file is found but extension is missing', async () => {
+        const filePath = "modules/jobs/test-files/no-extension";
+        const extname = path.extname(filePath);
+        await expect(jsonutils.extractTextFromDocument(filePath)).rejects.toThrow(messages.ERROR_FILENAME_EXTENSION_UNDEFINED + ` : ${filePath}`);
+    });
 
-    // it('should throw an error if file is found and extension is found but is not supported', async () => {
-    //     const filePath = "modules/jobs/test-files/small.pdf";
-    //     const extname = path.extname(filePath);
-    //     await expect(jsonutils.extractTextFromDocument(filePath)).rejects.toThrow(messages.ERROR_FILENAME_EXTENSION_NOT_SUPPORTED + ` : [${extname}]`);
-    // });
+    it('should throw an error if file is found and extension is found but is not supported', async () => {
+        const filePath = "modules/jobs/test-files/small.pdf";
+        const extname = path.extname(filePath);
+        await expect(jsonutils.extractTextFromDocument(filePath)).rejects.toThrow(messages.ERROR_FILENAME_EXTENSION_NOT_SUPPORTED + ` : [${extname}]`);
+    });
 
-    // it('should throw an error if valid filePath, file is found, has supported extension but file is empty ', async () => {
-    //     const filePath = "modules/jobs/test-files/empty.docx";
-    //     await expect(jsonutils.extractTextFromDocument(filePath)).rejects.toThrow(messages.ERROR_FILE_IS_EMPTY);
-    // });
-    
-    // it('should extract text from a DOCX file that exists and has supported extension', async () => {
-    //     const filePath = "modules/jobs/test-files/small.docx";
-    //     const text = await jsonutils.extractTextFromDocument(filePath);
-    //     const inValid = jsonutils.isValidNonEmptyString(text);
-    //     expect(inValid).toBe(true);
-    // });
+    it('should throw an error if valid filePath, file is found, has supported extension but file is empty ', async () => {
+        const filePath = "modules/jobs/test-files/empty.docx";
+        await expect(jsonutils.extractTextFromDocument(filePath)).rejects.toThrow(messages.ERROR_FILE_IS_EMPTY + ` : ${filePath}`);
+    });
 
-    // it('should extract text from a DOCX file with special characters', async () => {
-    //     const filePath = "modules/jobs/test-files/special_chars.docx";
-    //     const text = await jsonutils.extractTextFromDocument(filePath);
-    //     const isValid = messages.SPECIAL_CHARACTERS_REGEXP.test(text);
-    //     expect(isValid).toBe(true);
-    // });
+    it('should extract text from a DOCX file that exists and has supported extension', async () => {
+        const filePath = "modules/jobs/test-files/small.docx";
+        const text = await jsonutils.extractTextFromDocument(filePath);
+        const isValid = jsonutils.isValidNonEmptyString(text);
+        expect(isValid).toBe(true);
+        return text;
+    });
 
-    // it('should handle a large DOCX file', async () => {
-    //     const filePath = "modules/jobs/test-files/2025-words.docx";
-    //     const text = await jsonutils.extractTextFromDocument(filePath);
-    //     const isValid = jsonutils.isValidNonEmptyString(text) && text.length >= messages.LARGE_FILE_LENGTH; // Assuming large file has more than 10,000 characters
-    //     expect(isValid).toBe(true);
-    // });
+    it('should extract text from a DOCX file with special characters', async () => {
+        const filePath = "modules/jobs/test-files/special_chars.docx";
+        const text = await jsonutils.extractTextFromDocument(filePath);
+        const isValid = jsonutils.isValidNonEmptyString(text) &&messages.SPECIAL_CHARACTERS_REGEXP.test(text);
+        if ( !isValid ) {
+            throw new Error(messages.ERROR_SPECIAL_CHARACTERS_FAILED + ` : ${filePath}`);
+        }
+        expect(isValid).toBe(true);
+    });
 
-    // it('should ignore images in a DOCX file', async () => {
-    //     const filePath = "modules/job/test-files/has-image-and-text.docx";
-    //     const text = await jsonutils.extractTextFromDocument(filePath);
-    //     const isValid = jsonutils.isValidNonEmptyString(text) && !text.includes(messages.IMAGE_CONTENT);
-    //     expect(isValid).toBe(true);
-    // });
+    it('should handle a large DOCX file', async () => {
+        const filePath = "modules/jobs/test-files/2025-words.docx";
+        const text = await jsonutils.extractTextFromDocument(filePath);
+        const isValid = jsonutils.isValidNonEmptyString(text) && text.length >= messages.LARGE_FILE_LENGTH; // Assuming large file has more than 10,000 characters
+        expect(isValid).toBe(true);
+    });
 
-    // it('should ignore table directives in a DOCX file', async () => {
-    //     const filePath = "modules/job/test-files/has-table-and-text.docx";
-    //     const text = await jsonutils.extractTextFromDocument(filePath);
-    //     const isValid = jsonutils.isValidNonEmptyString(text) && !text.includes(messages.TABLE_CONTENT);
-    //     expect(isValid).toBe(true);
-    // });
+    it('should ignore images in a DOCX file', async () => {
+        const filePath = "modules/jobs/test-files/abbr-resume-with-image.docx";
+        const text = await jsonutils.extractTextFromDocument(filePath);
+        const isValid = jsonutils.isValidNonEmptyString(text) && !text.includes(messages.IMAGE_CONTENT);
+        expect(isValid).toBe(true);
+    });
+
+    it('should ignore table directives in a DOCX file', async () => {
+        const filePath = "modules/jobs/test-files/abbr-resume-with-table.docx";
+        const text = await jsonutils.extractTextFromDocument(filePath);
+        const isValid = jsonutils.isValidNonEmptyString(text) && !text.includes(messages.TABLE_CONTENT);
+        expect(isValid).toBe(true);
+    });
 
 });
 

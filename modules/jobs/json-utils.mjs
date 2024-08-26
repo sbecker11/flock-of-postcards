@@ -150,14 +150,14 @@ export async function extractTextFromDocxDocument(filePath) {
     if (!fileIsFound) {
         throw new Error(messages.ERROR_FILE_NOT_FOUND + ` : ${filePath}`);
     }
-    const fileBuffer = await fs.readFileSync(filePath); // Correct usage of readFileSync
-    const result = await mammoth.extractRawText({ buffer: fileBuffer });
-    if( result == null ) {
-        throw new Error(messages.ERROR_NULL_EXTRACTED_RESULT);
+    const fileBuffer = readFileSync(filePath); // Correct usage of readFileSync
+    if (fileBuffer.length === 0) {
+        throw new Error(messages.ERROR_FILE_IS_EMPTY + ` : ${filePath}`);
     }
-    const text = result.value;
+    const result = await mammoth.extractRawText({ buffer: fileBuffer });
+    const text = (result != null && result.value != null) ? result.value : null;
     if ( !isValidNonEmptyString(text) ) {
-        throw new Error(messages.ERROR_INVALID_OR_EMPTY_EXTRACTED_TEXT);
+        throw new Error(messages.ERROR_FILE_IS_EMPTY + ` : ${filePath}`);
     }
     return text;
 }
@@ -178,12 +178,11 @@ export async function extractTextFromDocument(filePath) {
     if (extname != '.docx') {
         throw new Error(messages.ERROR_FILENAME_EXTENSION_NOT_SUPPORTED + ` : [${extname}]`);
     }
-    try {
-        return await extractTextFromDocxDocument(filePath);
-    } catch (err) {
-        logger.error(messages.ERROR_EXTRACTING_TEXT_FROM_DOCX_DOCUMENT + ` : ${filePath} error: ${err}`);
-        throw err;
+    const text = await extractTextFromDocxDocument(filePath);
+    if ( !isValidNonEmptyString(text) ) {
+        throw new Error(messages.ERROR_INVALID_OR_EMPTY_EXTRACTED_TEXT + ` : ${filePath}`);
     }
+    return text;
 }
 
 export async function getResumeText(resumeDocPath) {
