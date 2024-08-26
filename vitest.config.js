@@ -3,15 +3,15 @@ import { defineConfig } from 'vitest/config';
 export default defineConfig({
   test: {
     include: [
-      '**/*.{test,spec}.[tj]s?(x)',
-      '**/*_test.mjs'
+      '**/*.{test,spec}.[tj]s?(x)', // Matches .test.js, .test.ts, .spec.js, .spec.ts, etc.
+      '**/*_test.mjs' // Matches _test.mjs files
     ],
     exclude: [
-      '**/node_modules/**',
-      '**/dist/**',
-      '**/cypress/**',
-      '**/.{idea,git,cache,output,temp}/**',
-      '**/{karma,rollup,webpack,vite,vitest,jest,ava,babel,nyc,cypress,tsup,build,eslint,prettier}.config.*'
+      '**/node_modules/**', // Excludes node_modules directory
+      '**/dist/**', // Excludes dist directory
+      '**/cypress/**', // Excludes cypress directory
+      '**/.{idea,git,cache,output,temp}/**', // Excludes various hidden directories
+      '**/{karma,rollup,webpack,vite,vitest,jest,ava,babel,nyc,tsup,build,eslint,prettier}.config.*' // Excludes various config files
     ]
   }
 });

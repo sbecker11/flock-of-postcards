@@ -331,7 +331,7 @@ function createBizcardDivs() {
             // utils.validateString(description_raw);
             const [description_HTML, bizcardTagLinks] = process_bizcard_description_HTML(bizcardDiv, description_raw);
             bizcardDiv.setAttribute("Description", description_HTML);
-            bizcardDiv.setAttribute("TagLinks", JSON.stringify(bizcardTagLinks));
+            bizcardDiv.setAttribute("TagLinks", jsonToString(bizcardTagLinks));
         }
 
         var html = "";

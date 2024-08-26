@@ -5,22 +5,12 @@
   "main": "index.mjs",
   "type": "module",
   "scripts": {
-    "start": "node main.mjs",
+    "start": "node index.mjs",
     "build": "echo 'Add your build process here'",
-    "test": "npm run prerun && vitest run ./modules/jobs/get-json-schema_test.mjs && vitest run ./modules/jobs/get-job-objects_test.mjs && vitest run ./modules/jobs/is-json-data_test.mjs && vitest run ./modules/jobs/is-json-schema_test.mjs && vitest run ./modules/jobs/is-valid-json-data_test.mjs && vitest run ./modules/jobs/is-valid-json-schema_test.mjs && vitest run ./modules/jobs/validate-schemas.mjs && vitest run ./modules/jobs/get-resume-job-objects_test.mjs",
-    "eslint": "npx eslint 'modules/jobs/**/*.mjs'",
+    "test": "npm run prerun && npx vitest --run --config ./vitest.config.js",
+    "eslint": "npx eslint 'modules/jobs/*.mjs'",
     "prerun": "./pre_run_checks.sh",
-    "validate-schemas": "node ./modules/jobs/validate-schemas.mjs",
-    "parse:docx": "npm run prerun && node -e \"import('./modules/jobs/resume-parser.mjs').then(m => m.default('input_resumes/resume.docx', 'parsed_resumes/resume-docx.json'))\"",
-    "parse:pdf": "npm run prerun && node -e \"import('./modules/jobs/resume-parser.mjs').then(m => m.default('input_resumes/resume.pdf', 'parsed_resumes/resume-pdf.json'))\"",
-    "parse:all": "npm run prerun && npm run parse:docx && npm run parse:pdf",
-    "test:get-json-schema": "npm run prerun && vitest run ./modules/jobs/get-json-schema_test.mjs",
-    "test:get-job-objects": "npm run prerun && vitest run ./modules/jobs/get-job-objects_test.mjs",
-    "test:is-json-data": "npm run prerun && vitest run ./modules/jobs/is-json-data_test.mjs",
-    "test:is-json-schema": "npm run prerun && vitest run ./modules/jobs/is-json-schema_test.mjs",
-    "test:is-valid-json-data": "npm run prerun && vitest run ./modules/jobs/is-valid-json-data_test.mjs",
-    "test:is-valid-json-schema": "npm run prerun && vitest run ./modules/jobs/is-valid-json-schema_test.mjs",
-    "test:get-resume-data": "npm run prerun && vitest run ./modules/jobs/get-resume-data_test.mjs"
+    "test:sorted-js-module": "npm run prerun && vitest run modules/jobs/sorted-js-module_test.mjs"
   },
   "repository": {
     "type": "git",
@@ -40,9 +30,11 @@
   "dependencies": {
     "@anthropic-ai/sdk": "0.26.1",
     "ajv": "^8.17.1",
+    "ajv-formats": "^3.0.1",
     "axios": "^1.7.4",
     "cookies": "^0.9.1",
     "dayjs": "^1.11.12",
+    "docx": "^8.5.0",
     "dotenv": "^16.3.1",
     "eslint": "^9.9.0",
     "fs": "^0.0.1-security",
@@ -51,6 +43,7 @@
     "mammoth": "^1.8.0",
     "minimist": "^1.2.8",
     "pdf-parse": "^1.1.1",
+    "winston": "^3.14.2",
     "yargs": "^17.7.2"
   },
   "devDependencies": {
