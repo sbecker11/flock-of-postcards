@@ -10,7 +10,8 @@
     "test": "npm run prerun && npx vitest --run --config ./vitest.config.js",
     "eslint": "npx eslint 'modules/jobs/*.mjs'",
     "prerun": "./pre_run_checks.sh",
-    "test:sorted-js-module": "npm run prerun && vitest run modules/jobs/sorted-js-module_test.mjs"
+    "test:sorted-js-module": "npm run prerun && vitest run modules/jobs/sorted-js-module_test.mjs",
+    "test:schema": "echo 'Add your schema test command here'"
   },
   "repository": {
     "type": "git",

@@ -8,8 +8,16 @@ function runMain() {
         });
 }
 
+function loadResume() {
+    import('modules/jobs/json-utils.mjs')
+        .catch(err => {
+            console.error('Failed to load json-utils.mjs:', err);
+        });
+}
 (function checkDocumentAvailability(startTime) {
     if (typeof document !== 'undefined') {
+        console.log('document object found');
+        loadResume();
         runMain();
     } else if (Date.now() - startTime < MAX_WAIT_TIME) {
         setTimeout(() => checkDocumentAvailability(startTime), POLLING_INTERVAL);

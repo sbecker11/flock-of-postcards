@@ -38,13 +38,13 @@ export function isValidJsonSchema(schema) {
     if (schema.$schema == null || typeof schema.$schema != 'string' || schema.$schema.length == 0) {
         return false;
     }
-    if (schema.$schema != 'https://json-schema.org/draft/2019-09/schema' && 
-        schema.$schema != 'https://json-schema.org/draft/2020-12/schema' && 
-        schema.$schema != 'https://json-schema.org/draft-07/schema#' &&
-        schema.$schema != 'https://json-schema.org/draft-06/schema#' &&
-        schema.$schema != 'https://json-schema.org/draft-04/schema#' &&
-        schema.$schema != 'https://json-schema.org/draft-03/schema#' &&  
-        schema.$schema != 'https://json-schema.org/schema#' ) {
+    if (schema.$schema != 'http://json-schema.org/draft/2019-09/schema' && 
+        schema.$schema != 'http://json-schema.org/draft/2020-12/schema' && 
+        schema.$schema != 'http://json-schema.org/draft-07/schema#' &&
+        schema.$schema != 'http://json-schema.org/draft-06/schema#' &&
+        schema.$schema != 'http://json-schema.org/draft-04/schema#' &&
+        schema.$schema != 'http://json-schema.org/draft-03/schema#' &&  
+        schema.$schema != 'http://json-schema.org/schema#' ) {
         logger.warn(`schema.$schema is invalid: [${schema.$schema}]`);
         return false;
     }
@@ -77,16 +77,10 @@ export function isValidJsonSchema(schema) {
     return true;
 }
 
-export async function isValidPath(filePath) {
-    // check if filePath is defined and if file exists at filePath
-    if ( !isValidNonEmptyString(filePath) ) {
-        logger.error(messages.ERROR_INVALID_OR_EMPTY_FILEPATH);
-        return false;
-    }
+export async function isFileFound(filePath) {
     try {
         await fs.access(filePath);
     } catch (error) {
-        logger.error(messages.ERROR_FILE_NOT_FOUND + ` : ${filePath}`);
         return false;
     }
     return true;
@@ -149,8 +143,12 @@ export async function saveResumeDataObject(resumeJsonPath, resumeDataObject) {
 }
 
 export async function extractTextFromDocxDocument(filePath) {
-    if ( !isValidPath(filePath) ) {
-        throw new Error(messages.ERROR_INVALID_FILEPATH + ` : ${filePath}`);
+    if ( !isValidNonEmptyString(filePath) ) {
+        throw new Error(messages.ERROR_INVALID_OR_EMPTY_FILEPATH);
+    }
+    let fileIsFound = await isFileFound(filePath);
+    if (!fileIsFound) {
+        throw new Error(messages.ERROR_FILE_NOT_FOUND + ` : ${filePath}`);
     }
     const fileBuffer = await fs.readFileSync(filePath); // Correct usage of readFileSync
     const result = await mammoth.extractRawText({ buffer: fileBuffer });
@@ -165,8 +163,12 @@ export async function extractTextFromDocxDocument(filePath) {
 }
 
 export async function extractTextFromDocument(filePath) {
-    if ( !isValidPath(filePath) ) {
-        throw new Error(messages.ERROR_INVALID_FILEPATH + ` : ${filePath}`);
+    if (!isValidNonEmptyString(filePath)) {
+        throw new Error(messages.ERROR_INVALID_OR_EMPTY_FILEPATH);
+    }
+    let fileIsFound = await isFileFound(filePath);
+    if (!fileIsFound) {
+        throw new Error(messages.ERROR_FILE_NOT_FOUND + ` : ${filePath}`);
     }
     let extname = path.extname(filePath);
     if ( !isValidNonEmptyString(extname) ) {
@@ -177,7 +179,7 @@ export async function extractTextFromDocument(filePath) {
         throw new Error(messages.ERROR_FILENAME_EXTENSION_NOT_SUPPORTED + ` : [${extname}]`);
     }
     try {
-        return extractTextFromDocxDocument(filePath);
+        return await extractTextFromDocxDocument(filePath);
     } catch (err) {
         logger.error(messages.ERROR_EXTRACTING_TEXT_FROM_DOCX_DOCUMENT + ` : ${filePath} error: ${err}`);
         throw err;
@@ -214,7 +216,7 @@ export async function getResumeDataObject(resumeText, resumeSchema) {
     }
     const prompt = getResumeDataPrompt(resumeText, resumeSchemaString);
 
-    axios.post('https://api.claude.ai/v1/complete', {
+    axios.post('http://api.claude.ai/v1/complete', {
         prompt: prompt,
         max_tokens: 500
     })
@@ -230,10 +232,15 @@ export async function getResumeDataObject(resumeText, resumeSchema) {
 
 export async function getResumeSchema(schemaPath) {
     logger.info(`Getting resume schema from ${schemaPath}`);
-    if ( !isValidPath(schemaPath) ) {
-        logger.error(messages.ERROR_INVALID_FILEPATH + ` : ${schemaPath}`);
-        throw new Error(messages.ERROR_INVALID_SCHEMA_PATH + ` : ${schemaPath}`);
+    if ( !isValidNonEmptyString(schemaPath) ) {
+        logger.error(messages.ERROR_NULL_OR_UNDEFINED_OR_EMPTY_SCHEMA_PATH);
+        throw new Error(messages.ERROR_NULL_OR_UNDEFINED_OR_EMPTY_SCHEMA_PATH);
     }
+    let fileIsFound = await isFileFound(schemaPath);
+    if (!fileIsFound) {
+        logger.error(messages.ERROR_FILE_NOT_FOUND + ` : ${schemaPath}`);
+        throw new Error(messages.ERROR_FILE_NOT_FOUND + ` : ${schemaPath}`);
+    }   
     const schemaString = await fs.readFileSync (schemaPath, 'utf8');
     logger.info(`reading from schemaPath: ${schemaPath} `);
     logger.info(`Got schemaString ${schemaString}`);
@@ -254,7 +261,7 @@ export async function getResumeSchema(schemaPath) {
 }
 
 
-export async function start() {
+export async function loadResume() {
 
     logger.info('Initializing JSON utils');
     const resumeText = await getResumeText(RESUME_DOCX_PATH);
@@ -274,3 +281,6 @@ export async function start() {
     saveResumeDataObject(RESUME_DOCX_JSON_PATH, resumeDataObject);
     logger.info('Done');
 }
+
+// uncomment to start loading the resume when this file is imported
+// loadResume();

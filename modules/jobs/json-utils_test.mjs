@@ -4,7 +4,7 @@ import draft07Schema from 'ajv/lib/refs/json-schema-draft-07.json';
 
 import fs from 'fs';
 import path from 'path';
-import { describe, it, expect } from 'vitest';
+import { describe, it, expect, fail } from 'vitest';
 import logger from 'modules/jobs/logger.mjs';
 import * as jsonutils from 'modules/jobs/json-utils.mjs';
 import * as messages from 'modules/jobs/messages.mjs';
@@ -14,18 +14,6 @@ const TEST_FILES_DIR = path.join(__dirname, 'test-files');
 const TEST_RESUME_DOCX_PATH = path.join(TEST_FILES_DIR, 'test-resume.docx');
 const TEST_RESUME_PDF_PATH = path.join(TEST_FILES_DIR, 'test-resume.pdf');
 const TEST_SIMPLE_RESUME_OBJ_PATH = path.join(TEST_FILES_DIR, 'simple-resume-obj.json');
-
-// const createTempFile = (content) => {
-//     const tempFilePath = path.join(__dirname, 'temp-file.txt');
-//     fs.writeFileSync(tempFilePath, content);
-//     return tempFilePath;
-// };
-
-// const deleteTempFile = (filePath) => {
-//     if (fs.existsSync(filePath)) {
-//         fs.unlinkSync(filePath);
-//     }
-// };
 
 // describe('should get a resume data object', () => {
 
@@ -50,70 +38,70 @@ const TEST_SIMPLE_RESUME_OBJ_PATH = path.join(TEST_FILES_DIR, 'simple-resume-obj
 
 // }); 
 
-// describe('should extract text from document', () => {
-//     it('should thow an error given a null or undefined or empty filePath', async () => {
-//         let filePath = null;
-//         await expect(jsonutils.extractTextFromDocument(filePath)).rejects.toThrow(messages.ERROR_UNDEFINED_OR_EMPTY_FILEPATH);
-//     });
+describe('should extract text from document', () => {
+    it('should thow an error given a null or undefined or empty filePath', async () => {
+        let filePath = null;
+        await expect(jsonutils.extractTextFromDocument(filePath)).rejects.toThrow(messages.ERROR_UNDEFINED_OR_EMPTY_FILEPATH);
+    });
 
-//     it('should throw an error if file not found', async () => {
-//         const filePath = "modules/jobs/test-files/non-existent-file.docx";
-//         await expect(jsonutils.extractTextFromDocument(filePath)).rejects.toThrow(messages.ERROR_FILE_NOT_FOUND + ` : ${filePath}`);
-//     });
+    it('should throw an error if file not found', async () => {
+        const filePath = "modules/jobs/test-files/non-existent-file.docx";
+        await expect(jsonutils.extractTextFromDocument(filePath)).rejects.toThrow(messages.ERROR_FILE_NOT_FOUND + ` : ${filePath}`);
+    });
 
-//     it('should throw an error if file is found but extension is missing', async () => {
-//         const filePath = "modules/jobs/test-files/small";
-//         const extname = path.extname(filePath);
-//         await expect(jsonutils.extractTextFromDocument(filePath)).rejects.toThrow(messages.ERROR_FILENAME_EXTENSION_UNDEFINED + ` : ${filePath}`);
-//     });
+    // it('should throw an error if file is found but extension is missing', async () => {
+    //     const filePath = "modules/jobs/test-files/small";
+    //     const extname = path.extname(filePath);
+    //     await expect(jsonutils.extractTextFromDocument(filePath)).rejects.toThrow(messages.ERROR_FILENAME_EXTENSION_UNDEFINED + ` : ${filePath}`);
+    // });
 
-//     it('should throw an error if file is found and extension is found but is not supported', async () => {
-//         const filePath = "modules/jobs/test-files/small.pdf";
-//         const extname = path.extname(filePath);
-//         await expect(jsonutils.extractTextFromDocument(filePath)).rejects.toThrow(messages.ERROR_FILENAME_EXTENSION_NOT_SUPPORTED + ` : [${extname}]`);
-//     });
+    // it('should throw an error if file is found and extension is found but is not supported', async () => {
+    //     const filePath = "modules/jobs/test-files/small.pdf";
+    //     const extname = path.extname(filePath);
+    //     await expect(jsonutils.extractTextFromDocument(filePath)).rejects.toThrow(messages.ERROR_FILENAME_EXTENSION_NOT_SUPPORTED + ` : [${extname}]`);
+    // });
 
-//     it('should throw an error if valid filePath, file is found, has supported extension but file is empty ', async () => {
-//         const filePath = "modules/jobs/test-files/empty.docx";
-//         await expect(jsonutils.extractTextFromDocument(filePath)).rejects.toThrow(messages.ERROR_FILE_IS_EMPTY);
-//     });
+    // it('should throw an error if valid filePath, file is found, has supported extension but file is empty ', async () => {
+    //     const filePath = "modules/jobs/test-files/empty.docx";
+    //     await expect(jsonutils.extractTextFromDocument(filePath)).rejects.toThrow(messages.ERROR_FILE_IS_EMPTY);
+    // });
     
-//     it('should extract text from a DOCX file that exists and has supported extension', async () => {
-//         const filePath = "modules/jobs/test-files/small.docx";
-//         const text = await jsonutils.extractTextFromDocument(filePath);
-//         const inValid = jsonutils.isValidNonEmptyString(text);
-//         expect(inValid).toBe(true);
-//     });
+    // it('should extract text from a DOCX file that exists and has supported extension', async () => {
+    //     const filePath = "modules/jobs/test-files/small.docx";
+    //     const text = await jsonutils.extractTextFromDocument(filePath);
+    //     const inValid = jsonutils.isValidNonEmptyString(text);
+    //     expect(inValid).toBe(true);
+    // });
 
-//     it('should extract text from a DOCX file with special characters', async () => {
-//         const filePath = "modules/jobs/test-files/special_chars.docx";
-//         const text = await jsonutils.extractTextFromDocument(filePath);
-//         const isValid = messages.SPECIAL_CHARACTERS_REGEXP.test(text);
-//         expect(isValid).toBe(true);
-//     });
+    // it('should extract text from a DOCX file with special characters', async () => {
+    //     const filePath = "modules/jobs/test-files/special_chars.docx";
+    //     const text = await jsonutils.extractTextFromDocument(filePath);
+    //     const isValid = messages.SPECIAL_CHARACTERS_REGEXP.test(text);
+    //     expect(isValid).toBe(true);
+    // });
 
-//     it('should handle a large DOCX file', async () => {
-//         const filePath = "modules/jobs/test-files/2025-words.docx";
-//         const text = await jsonutils.extractTextFromDocument(filePath);
-//         const isValid = jsonutils.isValidNonEmptyString(text) && text.length >= messages.LARGE_FILE_LENGTH; // Assuming large file has more than 10,000 characters
-//         expect(isValid).toBe(true);
-//     });
+    // it('should handle a large DOCX file', async () => {
+    //     const filePath = "modules/jobs/test-files/2025-words.docx";
+    //     const text = await jsonutils.extractTextFromDocument(filePath);
+    //     const isValid = jsonutils.isValidNonEmptyString(text) && text.length >= messages.LARGE_FILE_LENGTH; // Assuming large file has more than 10,000 characters
+    //     expect(isValid).toBe(true);
+    // });
 
-//     it('should ignore images in a DOCX file', async () => {
-//         const filePath = "modules/job/test-files/has-image-and-text.docx";
-//         const text = await jsonutils.extractTextFromDocument(filePath);
-//         const isValid = jsonutils.isValidNonEmptyString(text) && !text.includes(messages.IMAGE_CONTENT);
-//         expect(isValid).toBe(true);
-//     });
+    // it('should ignore images in a DOCX file', async () => {
+    //     const filePath = "modules/job/test-files/has-image-and-text.docx";
+    //     const text = await jsonutils.extractTextFromDocument(filePath);
+    //     const isValid = jsonutils.isValidNonEmptyString(text) && !text.includes(messages.IMAGE_CONTENT);
+    //     expect(isValid).toBe(true);
+    // });
 
-//     it('should ignore table directives in a DOCX file', async () => {
-//         const filePath = "modules/job/test-files/has-table-and-text.docx";
-//         const text = await jsonutils.extractTextFromDocument(filePath);
-//         const isValid = jsonutils.isValidNonEmptyString(text) && !text.includes(messages.TABLE_CONTENT);
-//         expect(isValid).toBe(true);
-//     });
+    // it('should ignore table directives in a DOCX file', async () => {
+    //     const filePath = "modules/job/test-files/has-table-and-text.docx";
+    //     const text = await jsonutils.extractTextFromDocument(filePath);
+    //     const isValid = jsonutils.isValidNonEmptyString(text) && !text.includes(messages.TABLE_CONTENT);
+    //     expect(isValid).toBe(true);
+    // });
 
-// });
+});
 
 // describe('should get resume data object given valid resume text and resume schema', () => {
 
@@ -150,93 +138,70 @@ const TEST_SIMPLE_RESUME_OBJ_PATH = path.join(TEST_FILES_DIR, 'simple-resume-obj
 //     });
 // });
 
-const ajv = new Ajv();
-addFormats(ajv); // Add formats to Ajv instance
-
-// Ensure the draft-07 schema is added to the Ajv instance
-if (!ajv.getSchema(draft07Schema.$id)) {
-    ajv.addMetaSchema(draft07Schema);
-    logger.info('Draft-07 schema added to Ajv instance.');
-} else {
-    logger.info('Draft-07 schema already exists in Ajv instance.');
-}
-
-describe('should verify that jsonutils.RESUME_SCHEMA_PATH is a valid json schema file', () => {
+describe('should verify that jsonutils.RESUME_SCHEMA_PATH is a valid json schema and that TEST_SIMPLE_RESUME_OBJ_PATH is a valid resume data object', () => {
     it('should validate RESUME_SCHEMA_PATH is a valid path', async () => {
         let filePath = jsonutils.RESUME_SCHEMA_PATH;
-        logger.info(`RESUME_SCHEMA_PATH: ${filePath}`);
-        let isValidTrue = await jsonutils.isValidPath(filePath);
-        logger.info(`isValidTrue: ${isValidTrue}`);
-        expect (isValidTrue).toBe(true);
+        let isValidTrue = jsonutils.isValidNonEmptyString(filePath);
+        if ( !isValidTrue ) {
+            throw new Error(messages.ERROR_INVALID_SCHEMA_PATH);
+        } expect(true).toBe(true);
+    });
+
+    it('should validate RESUME_SCHEMA_PATH file exists', async () => {
+        const filePath = jsonutils.RESUME_SCHEMA_PATH;
+        const fileIsFound = await jsonutils.isFileFound(filePath);
+        if ( !fileIsFound ) {
+            throw new Error(messages.ERROR_FILE_NOT_FOUND + ` : ${filePath}`);
+        } expect(true).toBe(true);
     });
 
     it('should validate RESUME_SCHEMA_PATH is readable as a jsonSchema', () => {
-        let filePath = jsonutils.RESUME_SCHEMA_PATH;
-        logger.info(`RESUME_SCHEMA_PATH: ${filePath}`);
-        const resumeSchema = JSON.parse(fs.readFileSync(jsonutils.RESUME_SCHEMA_PATH, 'utf-8'));
-        logger.info(`resumeSchema: ${JSON.stringify(resumeSchema)}`);
+        const resumeSchema = JSON.parse(fs.readFileSync( jsonutils.RESUME_SCHEMA_PATH, 'utf-8'));
         let isValidTrue = jsonutils.isValidJsonSchema(resumeSchema);
-        logger.info("isValidJsonSchema: " + isValidTrue);
-        expect(isValidTrue).toBe(true);
-        
-        // Example simple hand-craftedresume object to validate
-        filePath = TEST_SIMPLE_RESUME_OBJ_PATH;
-        logger.info(`TEST_SIMPLE_RESUME_OBJ_PATH: ${filePath}`);
-        jsonutils.isValidPath(filePath).then(isValidTrue => {
-            logger.info(`isValidPath: ${isValidTrue}`);
-            expect(isValidTrue).toBe(true);
-            const simpleResumeObject = jsonutils.readJsonFile(filePath);
-            isValidTrue = jsonutils.isValidJsonObject(simpleResumeObject);
-            logger.info("isValidJsonObject: " + isValidTrue);
-            expect(isValidTrue).toBe(true);
-    
-            const validate = ajv.compile(resumeSchema);
-            isValidTrue = validate(simpleResumeObject);
-            logger.info("isSimpleResumeObject validated: " + isValidTrue);
-            if ( !isValidTrue) {
-                logger.error(validate.errors);
-            }
-        }).catch(error => {
-            logger.error(`Error validating path: ${error}`);
-        });
+        if ( !isValidTrue ) {
+            throw new Error(messages.ERROR_INVALID_OR_EMPTY_JSON_SCHEMA);
+        } expect(isValidTrue).toBe(true);
     });
-});
 
-// describe('schemaValidateData', () => {
-//     const resumeDataSchema = {
-//         "type": "object",
-//         "properties": {
-//             "name": {
-//                 "type": "string"
-//             },
-//             "email": {
-//                 "type": "string"
-//             },
-//             "phone": {
-//                 "type": "string"
-//             }
-//         },
-//         "required": ["name", "email"]
-//     };
+    it('should validate TEST_SIMPLE_RESUME_OBJ_PATH is a valid path', () => {
+        const filePath = TEST_SIMPLE_RESUME_OBJ_PATH;
+        const isValidTrue = jsonutils.isValidNonEmptyString(filePath);
+        if ( !isValidTrue ) {
+            throw new Error(messages.ERROR_INVALID_SIMPLE_RESUME_OBJ_PATH);
+        } expect(true).toBe(true);
+    });
 
-//     it('should validate resumeDataSchema is a valid dataSchema', () => {
-//         let isValidTrue = isValidJsonSchema(resumeDataSchema);
-//         expect(isValidTrue).toBe(true);
-//     });
+    it('should validate simpleResumeObject json file is readable', async () => {
+        const filePath = TEST_SIMPLE_RESUME_OBJ_PATH;
+        const isValidTrue = await jsonutils.isFileFound(filePath);
+        if ( !isValidTrue ) {
+            throw new Error(messages.ERROR_FILE_NOT_FOUND + ` : ${filePath}`);
+        } expect(true).toBe(true);
+    });
 
-//     const resumeDataObject = {
-//         "name": "John Doe",
-//         "email": "5vUeh@example.com",
-//         "age": 39,
-//     };
+    it('should use resumeSchema to validate simpleResumeObject', () => {
+        // load the resumeSchema
+        const resumeSchema = jsonutils.readJsonFile(jsonutils.RESUME_SCHEMA_PATH);
+        if ( !jsonutils.isValidJsonSchema(resumeSchema) ) {
+            throw new Error(messages.ERROR_INVALID_JSON_SCHEMA);
+        }
 
-//     it('should validate resumeDataObject is a valid dataObject', () => {
-//         let isValidTrue = isValidDataObject(resumeDataObject);
-//         expect(isValidTrue).toBe(true);
-//     }); 
+        // load the simpleResumeObject
+        const simpleResumeObject = jsonutils.readJsonFile(TEST_SIMPLE_RESUME_OBJ_PATH);
+        if ( !jsonutils.isValidJsonObject(simpleResumeObject) ) {
+            throw new Error(messages.ERROR_NOT_A_JSON_OBJECT);
+        }
 
-//     it('should use resumeDataSchema to validate resumeDataObject', () => {
-//         let isValidTrue = schemaValidateObject(resumeDataSchema, resumeDataObject);
-//         expect(isValidTrue).toBe(true);
-//     });  
-// });
+        //  validate the simpleResumeObject against the resumeSchema
+        const ajv = new Ajv();
+        const isValidTrue = ajv.validate(resumeSchema, simpleResumeObject);
+        if ( !isValidTrue ) {
+            throw new Error(messages.ERROR_INVALID_RESUME_DATA_OBJECT);
+            logger.info(`simpleResumeObject: ${TEST_SIMPLE_RESUME_OBJ_PATH} failed resumeSchema validation`);
+            logger.error(ajv.errorsText());
+        } 
+        logger.info(`${TEST_SIMPLE_RESUME_OBJ_PATH} is a valid resume data object.`);
+        expect(isValidTrue).toBe(true); // end the it block
+    });
+}); // end describe
+
