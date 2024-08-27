@@ -11,22 +11,22 @@ import * as messages from 'modules/jobs/messages.mjs';
 
 // Define constants for the paths to the test files
 const TEST_FILES_DIR = path.join(__dirname, 'test-files');
-const TEST_RESUME_DOCX_PATH = path.join(TEST_FILES_DIR, 'test-resume.docx');
-const TEST_RESUME_PDF_PATH = path.join(TEST_FILES_DIR, 'test-resume.pdf');
+const TEST_RESUME_DOCX_PATH = path.join(TEST_FILES_DIR, 'abbr-resume.docx');
+const TEST_RESUME_PDF_PATH = path.join(TEST_FILES_DIR, 'abbr-resume.pdf');
 const TEST_SIMPLE_RESUME_OBJ_PATH = path.join(TEST_FILES_DIR, 'simple-resume-obj.json');
 
-// describe('should get a resume data object', () => {
+describe('should get a resume data object', () => {
+    it('should throw an error given an invalid or blank resume text', async () => {
+        const resumeText = '';
+        const resumeSchema = await jsonutils.getResumeSchema(jsonutils.RESUME_SCHEMA_PATH);
+        await expect(jsonutils.getResumeDataObject(resumeText, resumeSchema)).rejects.toThrow(messages.ERROR_INVALID_OR_EMPTY_RESUME_TEXT);
+    });
 
-//     it('should throw an error given an invalid or blank resume text', async () => {
-//         const resumeText = '';
-//         const resumeSchema = await jsonutils.getResumeDataObject(resumeText, jsonutils.RESUME_SCHEMA_PATH)).rejects.toThrow(messages.ERROR_INVALID_OR_EMPTY_RESUME_TEXT);
-//     });
-
-//     it('should throw an error given an invalid or blank resumeSchema', async () => {
-//         const resumeText = await jsonutils.extractTextFromDocument(TEST_RESUME_DOCX_PATH);
-//         const resumeSchema = null;
-//         const  resumeDataObject = await jsonutils.getResumeDataObject(resumeText, resumeSchema)).rejects.toThrow(messages.ERROR_INVALID_JSON_SCHEMA);
-//     });
+    it('should throw an error given an invalid or blank resumeSchema', async () => {
+        const resumeText = await jsonutils.extractTextFromDocument(TEST_RESUME_DOCX_PATH);
+        const resumeSchema = null;
+        await expect(jsonutils.getResumeDataObject(resumeText, resumeSchema)).rejects.toThrow(messages.ERROR_INVALID_OR_EMPTY_RESUME_SCHEMA);
+    });
     
 //     it('should return a resume data object given valid resume text and resume schema', async () => {
 //         const resumeText = await jsonutils.extractTextFromDocument(TEST_RESUME_DOCX_PATH);
@@ -36,7 +36,44 @@ const TEST_SIMPLE_RESUME_OBJ_PATH = path.join(TEST_FILES_DIR, 'simple-resume-obj
 //         expect(isValid).toBe(true);
 //     });
 
-// }); 
+}); 
+
+
+// describe('should get resume data object given valid resume text and resume schema', () => {
+
+//     it('should throw an error given null resumeText', async () => {
+//         let resumeText = null;
+//         let resumeSchema = jsonutils.getResumeSchema(jsonutils.RESUME_SCHEMA_PATH));
+//         await expect(jsonutils.getResumeDataObject(resumeText, resumeSchema)).rejects.toThrow(messages.ERROR_UNDEFINED_OR_EMPTY_RESUME_TEXT);
+//     });
+
+//     it('should throw an error given incomplete resumeText', async () => {
+//         let resumeText = "incomplete resume text";
+//         let resumeSchema = jsonutils.getResumeSchema(jsonutils.RESUME_SCHEMA_PATH));
+//         await expect(jsonutils.getResumeDataObject(resumeText, resumeSchema)).rejects.toThrow(messages.ERROR_INCOMPLETE_RESUME_TEXT);
+//     });
+
+//     it('should throw an error if resumeSchema is undefined', async () => {
+//         const resumeText = await jsonutils.extractTextFromDocument(TEST_RESUME_DOCX_PATH);
+//         const resumeSchema = null;
+//         await expect(jsonutils.getResumeDataObject(resumeText, resumeSchema)).rejects.toThrow(messages.ERROR_UNDEFINED_RESUME_SCHEMA);
+//     });
+
+//     it('should throw an error if resumeSchema is invalid', async () => {
+//         const resumeText = await jsonutils.extractTextFromDocument(TEST_RESUME_DOCX_PATH);
+//         const resumeSchema = jsonutils.getResumeSchema("modules/jobs/test-files/invalid-schema.json");
+//         await expect(jsonutils.getResumeDataObject(resumeText, resumeSchema)).rejects.toThrow(messages.ERROR_INVALID_RESUME_SCHEMA);
+//     }); 
+
+//     it('should return a valid resumeDataObject if resumeText and resumeSchema are valid', async () => {
+//         const resumeText = await jsonutils.extractTextFromDocument(TEST_RESUME_DOCX_PATH);
+//         const resumeSchema = await jsonutils.getResumeSchema(jsonutils.RESUME_SCHEMA_PATH);
+//         const resumeDataObject = await jsonutils.getResumeDataObject(resumeText, resumeSchema);
+//         isValid = jsonutils.isValidResumeDataObject(resumeDataObject);
+//         expect(isValid).toBe(true);
+//     });
+// });
+
 
 describe('should extract text from document', () => {
     it('should thow an error given a null or undefined or empty filePath', async () => {
@@ -107,41 +144,6 @@ describe('should extract text from document', () => {
 
 });
 
-// describe('should get resume data object given valid resume text and resume schema', () => {
-
-//     it('should throw an error given null resumeText', async () => {
-//         let resumeText = null;
-//         let resumeSchema = jsonutils.getResumeSchema(jsonutils.RESUME_SCHEMA_PATH));
-//         await expect(jsonutils.getResumeDataObject(resumeText, resumeSchema)).rejects.toThrow(messages.ERROR_UNDEFINED_OR_EMPTY_RESUME_TEXT);
-//     });
-
-//     it('should throw an error given incomplete resumeText', async () => {
-//         let resumeText = "incomplete resume text";
-//         let resumeSchema = jsonutils.getResumeSchema(jsonutils.RESUME_SCHEMA_PATH));
-//         await expect(jsonutils.getResumeDataObject(resumeText, resumeSchema)).rejects.toThrow(messages.ERROR_INCOMPLETE_RESUME_TEXT);
-//     });
-
-//     it('should throw an error if resumeSchema is undefined', async () => {
-//         const resumeText = await jsonutils.extractTextFromDocument(TEST_RESUME_DOCX_PATH);
-//         const resumeSchema = null;
-//         await expect(jsonutils.getResumeDataObject(resumeText, resumeSchema)).rejects.toThrow(messages.ERROR_UNDEFINED_RESUME_SCHEMA);
-//     });
-
-//     it('should throw an error if resumeSchema is invalid', async () => {
-//         const resumeText = await jsonutils.extractTextFromDocument(TEST_RESUME_DOCX_PATH);
-//         const resumeSchema = jsonutils.getResumeSchema("modules/jobs/test-files/invalid-schema.json");
-//         await expect(jsonutils.getResumeDataObject(resumeText, resumeSchema)).rejects.toThrow(messages.ERROR_INVALID_RESUME_SCHEMA);
-//     }); 
-
-//     it('should return a valid resumeDataObject if resumeText and resumeSchema are valid', async () => {
-//         const resumeText = await jsonutils.extractTextFromDocument(TEST_RESUME_DOCX_PATH);
-//         const resumeSchema = await jsonutils.getResumeSchema(jsonutils.RESUME_SCHEMA_PATH);
-//         const resumeDataObject = await jsonutils.getResumeDataObject(resumeText, resumeSchema);
-//         isValid = jsonutils.isValidResumeDataObject(resumeDataObject);
-//         expect(isValid).toBe(true);
-//     });
-// });
-
 describe('should verify that jsonutils.RESUME_SCHEMA_PATH is a valid json schema and that TEST_SIMPLE_RESUME_OBJ_PATH is a valid resume data object', () => {
     it('should validate RESUME_SCHEMA_PATH is a valid path', async () => {
         let filePath = jsonutils.RESUME_SCHEMA_PATH;
@@ -188,21 +190,21 @@ describe('should verify that jsonutils.RESUME_SCHEMA_PATH is a valid json schema
         const resumeSchema = jsonutils.readJsonFile(jsonutils.RESUME_SCHEMA_PATH);
         if ( !jsonutils.isValidJsonSchema(resumeSchema) ) {
             throw new Error(messages.ERROR_INVALID_JSON_SCHEMA);
-        }
+        } logger.info(`resumeSchema: ${jsonutils.RESUME_SCHEMA_PATH} is a valid json schema.`);
 
         // load the simpleResumeObject
         const simpleResumeObject = jsonutils.readJsonFile(TEST_SIMPLE_RESUME_OBJ_PATH);
         if ( !jsonutils.isValidJsonObject(simpleResumeObject) ) {
             throw new Error(messages.ERROR_NOT_A_JSON_OBJECT);
-        }
+        } logger.info(`simpleResumeObject: ${TEST_SIMPLE_RESUME_OBJ_PATH} is a valid json object.`);
 
         //  validate the simpleResumeObject against the resumeSchema
         const ajv = new Ajv();
         const isValidTrue = ajv.validate(resumeSchema, simpleResumeObject);
         if ( !isValidTrue ) {
-            throw new Error(messages.ERROR_INVALID_RESUME_DATA_OBJECT);
-            logger.info(`simpleResumeObject: ${TEST_SIMPLE_RESUME_OBJ_PATH} failed resumeSchema validation`);
+            logger.error(`simpleResumeObject: ${TEST_SIMPLE_RESUME_OBJ_PATH} failed resumeSchema validation`);
             logger.error(ajv.errorsText());
+            throw new Error(messages.ERROR_NOT_A_RESUME_DATA_OBJECT + ` : ${TEST_SIMPLE_RESUME_OBJ_PATH}`);
         } 
         logger.info(`${TEST_SIMPLE_RESUME_OBJ_PATH} is a valid resume data object.`);
         expect(isValidTrue).toBe(true); // end the it block

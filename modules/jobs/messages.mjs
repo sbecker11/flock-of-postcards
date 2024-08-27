@@ -20,6 +20,7 @@ export const ERROR_INVALID_RESUME_DATA_OBJECT = "Error: Invalid resume data obje
 export const ERROR_INVALID_SCHEMA_PATH = "Error: Invalid schemaPath";
 export const ERROR_INVALID_SIMPLE_RESUME_OBJ_PATH = "Error: Invalid simpleResumeObjPath";
 export const ERROR_NOT_A_JSON_OBJECT = "Error: Not a JSON object";
+export const ERROR_NOT_A_RESUME_DATA_OBJECT = "Error: Not a resume data object";
 export const ERROR_NULL_EXTRACTED_RESULT = "Error: Null extractedResult";
 export const ERROR_NULL_OR_UNDEFINED_OR_EMPTY_FILEPATH = "Error: Null or undefined or empty filePath";
 export const ERROR_NULL_OR_UNDEFINED_OR_EMPTY_STRING = "Error: Null or undefined or empty string";

@@ -20,7 +20,8 @@ export function isValidNonEmptyString(input) {
 }
 
 export function isCompleteResumeText(resumeText) {
-    return resumeText.includes('Education') && resumeText.includes('Experience');
+    const resumeTextUpper = resumeText.toUpperCase();
+    return resumeTextUpper.includes('EDUCATION') && resumeTextUpper.includes('EXPERIENCE');
 }
 
 export function readJsonFile(filePath) {
@@ -128,11 +129,7 @@ export function getResumeDataPrompt(resumeText, resumeSchemaString) {
     return prompt;
 }
 
-
 export async function saveResumeDataObject(resumeJsonPath, resumeDataObject) {
-    if ( !validateResumeDataObject(resumeDataObject) ) {
-        throw new Error(messages.ERROR_INVALID_RESUME_DATA_OBJECT);
-    }
     const resumeDataObjectString = JSON.stringify(resumeDataObject);
     try {
         await fs.writeFile(resumeJsonPath, resumeDataObjectString, 'utf8');
@@ -200,8 +197,9 @@ export async function getResumeText(resumeDocPath) {
 }
 
 export async function getResumeDataObject(resumeText, resumeSchema) {
+    // returns a validated resumeDataObject or throws an error
     if ( !isValidNonEmptyString(resumeText) ) {
-        throw new Error(messages.ERROR_INVALID_OREMPTY_RESUME_TEXT);
+        throw new Error(messages.ERROR_INVALID_OR_EMPTY_RESUME_TEXT);
     }
     if ( !isCompleteResumeText(resumeText) ) {
         throw new Error(messages.ERROR_INCOMPLETE_RESUME_TEXT);
@@ -222,64 +220,107 @@ export async function getResumeDataObject(resumeText, resumeSchema) {
     .then(response => {
         const resumeDataObjectString = response.data.choices[0].text.trim();
         const resumeDataObject = JSON.parse(resumeDataObjectString);
+        if ( !isValidResumeDataObject(resumeDataObject) ) {
+            throw new Error(messages.ERROR_NOT_A_VALID_RESUME_DATA_OBJECT);
+        }
         return resumeDataObject;
     })
     .catch(error => {
-        logger.error('Error:', error);
+        throw error;
     });
-}
+}  // getResumeDataObject
 
 export async function getResumeSchema(schemaPath) {
     logger.info(`Getting resume schema from ${schemaPath}`);
     if ( !isValidNonEmptyString(schemaPath) ) {
-        logger.error(messages.ERROR_NULL_OR_UNDEFINED_OR_EMPTY_SCHEMA_PATH);
-        throw new Error(messages.ERROR_NULL_OR_UNDEFINED_OR_EMPTY_SCHEMA_PATH);
+        const errorMsg = messages.ERROR_NULL_OR_UNDEFINED_OR_EMPTY_SCHEMA_PATH;
+        logger.error(errorMsg);
+        throw new Error(errorMsg);
     }
-    let fileIsFound = await isFileFound(schemaPath);
+    const fileIsFound = await isFileFound(schemaPath);
     if (!fileIsFound) {
-        logger.error(messages.ERROR_FILE_NOT_FOUND + ` : ${schemaPath}`);
-        throw new Error(messages.ERROR_FILE_NOT_FOUND + ` : ${schemaPath}`);
+        const errorMsg = messages.ERROR_FILE_NOT_FOUND + ` : ${schemaPath}`;
+        logger.error(errorMsg);
+        throw new Error(errorMsg);
     }   
-    const schemaString = await fs.readFileSync (schemaPath, 'utf8');
+    const schemaString = await fs.readFile (schemaPath, 'utf8');
     logger.info(`reading from schemaPath: ${schemaPath} `);
-    logger.info(`Got schemaString ${schemaString}`);
     if ( !isValidNonEmptyString(schemaString) ) {
-        logger.error(messages.ERROR_INVALID_OR_EMPTY_SCHEMA_STRING);
-        throw new Error(messages.ERROR_INVALID_OR_EMPTY_SCHEMA_STRING);
+        const errorMsg = messages.ERROR_INVALID_OR_EMPTY_SCHEMA_STRING;
+        logger.error(errorMsg);
+        throw new Error(errorMsg);
     }
-    const schema = JSON.parse(schemaString);
-    if ( !isValidJsonObject(schema) ) {
-        logger.error(messages.ERROR_NOT_A_JSON_OBJECT);
-        throw new Error(messages.ERROR_NOT_A_JSON_OBJECT);
+    let schema;
+    try {
+        schema = JSON.parse(schemaString);
+    } catch (e) {
+        const errorMsg = messages.ERROR_NOT_A_JSON_OBJECT;
+        logger.error(errorMsg);
+        throw new Error(errorMsg);
     }
     if ( !isValidJsonSchema(schema) ) {
-        logger.error(messages.ERROR_INVALID_JSON_SCHEMA);
-        throw new Error(messages.ERROR_INVALID_JSON_SCHEMA);
+        const errorMsg = messages.ERROR_INVALID_JSON_SCHEMA;
+        logger.error(errorMsg);
+        throw new Error(errorMsg);
     }
     return schema;
 }
 
-
-export async function loadResume() {
-
-    logger.info('Initializing JSON utils');
-    const resumeText = await getResumeText(RESUME_DOCX_PATH);
-    const resumeSchema = await getResumeSchema(RESUME_SCHEMA_PATH);
-
-    const startTime = Date.now();
-    const resumeDataObject = getResumeDataObject(resumeText, resumeSchema);
-    const elapsedTime = Date.now() - startTime;
-    logger.info(`getResumeDataObject() took ${elapsedTime} ms`);
-
-    const ajv = new Ajv();
-    const validateResumeDataObject = ajv.compile(resumeSchema);
-    if ( !validateResumeDataObject(resumeDataObject) ) {
-        throw new Error(messages.ERROR_INVALID_RESUME_DATA_OBJECT);
+export async function isValidResumeDataObject(resumeDataObject) {
+    if ( !isValidJsonObject(resumeDataObject) ) {
+        return false;
     }
-
-    saveResumeDataObject(RESUME_DOCX_JSON_PATH, resumeDataObject);
-    logger.info('Done');
+    const resumeSchema = await getResumeSchema(RESUME_SCHEMA_PATH);
+    if ( !isValidJsonSchemaObject(resumeSchema) ) {
+        return false;
+    }
+    const ajv = new Ajv();
+    const valildator = ajv.compile(resumeSchema);
+    if ( !validator(resumeDataObject) ) {
+        logger.error(`${ajv.errors}`);
+        return false;
+    }
+    return true;
 }
 
-// uncomment to start loading the resume when this file is imported
-// loadResume();
+export async function loadAndSaveResumeDataObject() {
+// return the newly loaded and saved resumeDataObject 
+// or throw error on failuare
+    try {
+        logger.info(`Loading resumeDataObject from from ${RESUME_DOCX_PATH} started...`);
+        let startTime = Date.now();
+        const resumeText = await getResumeText(RESUME_DOCX_PATH);
+        const resumeSchema = await getResumeSchema(RESUME_SCHEMA_PATH);
+        const resumeDataObject = await getResumeDataObject(resumeText, resumeSchema);
+        let elapsedTime = Date.now() - startTime;
+        logger.info(`... loading completed in ${elapsedTime} ms`);
+
+        logger.info(`saving resumeDataObject to ${RESUME_DOCX_JSON_PATH} started...`);
+        startTime = Date.now();
+        saveResumeDataObject(RESUME_DOCX_JSON_PATH, resumeDataObject);
+        elapsedTime = Date.now() - startTime;
+        logger.info(`... saving completed in ${elapsedTime} ms`);
+        return resumeDataObject
+    } catch (error) {
+        logger.error(error);
+        throw error;
+    }
+}
+
+export async function loadResumeJobs() {
+    // this is the entry point to get the jobs from the resume
+    const resumeDataObject = await loadAndSaveResumeDataObject();
+    if ( resumeDataObject && isValidJsonObject(resumeDataObject) ) {
+        let jobs = [];
+        for ( let i = 0; i < resumeDataObject['EmploymentHistory'].length; i++ ) {
+            jobs.push(resumeDataObject['EmploymentHistory'][i]);
+        }
+        for ( let i = 0; i < resumeDataObject['Education'].length; i++ ) {
+            jobs.push(resumeDataObject['Education'][i]);
+        }
+        return jobs;
+    } else {
+        logger.error(ERROR_NOT_A_VALID_RESUME_DATA_OBJECT);
+        return null;
+    }
+}

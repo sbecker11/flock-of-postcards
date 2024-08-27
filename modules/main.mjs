@@ -1,7 +1,15 @@
 // @ts-nocheck
 'use strict';
 
-import './static_content/jobs/jobs.mjs';
+import { loadResumeJobs } from'./modules/jobs/json-utils.mjs');
+const resumeJobs = await loadResumeJobs();
+if ( !resumeJobs ) {
+    throw new Error('Failed to load resume jobs');
+} 
+// uncomment this to use the new resumeJobs
+// resetResumeJobs( resumeJobs );
+
+//import './static_content/jobs/jobs.mjs';
 import './alerts.mjs';
 import './monoColor.mjs';
 import './css_colors.mjs';
@@ -205,6 +213,22 @@ function getNextBizcardDivId() {
     return nextBizcardDivId;
 }
 
+function resetResumeJobs(resumeJobs) {
+    console.log(`resetResumeJobs with ${resumeJobs.length} resumeJobs`);
+    jobs = resumeJobs;
+    resetAll();
+}
+
+function resetAll() {
+    const cardDivs = document.getElementsByClassName("card-div");
+    console.log(`resettting ${cardDivs.length} cardDivs`);
+    for (let i = 0; i < cardDivs.length; i++) {
+        const cardDiv = cardDivs[i];
+        cardDiv.remove();
+    }
+    createBizcardDivs();
+}
+
 // Use the "jobs" array to gather data used for
 // the large "business cards" floating near 
 // the ground level describing employment history.
@@ -216,7 +240,7 @@ function createBizcardDivs() {
     
     var sortedJobs = structuredClone(jobs);
     sortedJobs.sort((a,b) => new Date(b['end']) - new Date(a['end']));
-
+    console.log(`createBizcardDivs with ${sortedJobs.length} sortedJobs`);
     for (let i = 0; i < sortedJobs.length; i++) {
 
         var job = sortedJobs[ i ];
