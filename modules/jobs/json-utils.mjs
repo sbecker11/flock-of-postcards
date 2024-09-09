@@ -342,7 +342,7 @@ export async function getResumeDataObject(resumeText, resumeSchema) {
 //             JSON.stringify(payload), {
 //             headers: {
 //                 'Content-Type': 'application/json',
-//                 'Authorization': `Bearer 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`,
+//                 'Authorization': `Bearer `+ process.env.OPENAI_API_KEY,
 //             },
 //         });
 //         if(!response) throw new Error('No response');
