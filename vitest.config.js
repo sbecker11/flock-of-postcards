@@ -2,6 +2,7 @@ import { defineConfig } from 'vitest/config';
 
 export default defineConfig({
   test: {
+    testTimeout: 70000, // 70 seconds
     include: [
       '**/*.{test,spec}.[tj]s?(x)', // Matches .test.js, .test.ts, .spec.js, .spec.ts, etc.
       '**/*_test.mjs' // Matches _test.mjs files

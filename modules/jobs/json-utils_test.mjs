@@ -28,13 +28,21 @@ describe('should get a resume data object', () => {
         await expect(jsonutils.getResumeDataObject(resumeText, resumeSchema)).rejects.toThrow(messages.ERROR_INVALID_OR_EMPTY_RESUME_SCHEMA);
     });
     
-//     it('should return a resume data object given valid resume text and resume schema', async () => {
-//         const resumeText = await jsonutils.extractTextFromDocument(TEST_RESUME_DOCX_PATH);
-//         const resumeSchema = await jsonutils.getResumeSchema(jsonutils.RESUME_SCHEMA_PATH);
-//         const resumeDataObject = jsonutils.getResumeDataObject(resumeText, resumeSchema);
-//         const isValid = jsonutils.isValidResumeDataObject(resumeDataObject);
-//         expect(isValid).toBe(true);
-//     });
+    it('should return a resume data object given valid resume text and resume schema', async () => {
+        logger.info('A');
+        const resumeText = await jsonutils.extractTextFromDocument(TEST_RESUME_DOCX_PATH);
+        logger.info('B');
+        const resumeSchema = await jsonutils.getResumeSchema(jsonutils.RESUME_SCHEMA_PATH);
+        logger.info('C');
+        const resumeDataObject = await jsonutils.getResumeDataObject(resumeText, resumeSchema);
+        logger.info('D');
+        logger.info('--------------------------------------------------------------------');
+        logger.info(`resumeDataObject: ${resumeDataObject}`);
+        logger.info('--------------------------------------------------------------------');
+
+        const isValidTrue = await jsonutils.isValidResumeDataObject(resumeDataObject);
+        expect(isValidTrue).toBe(true);
+    });
 
 }); 
 
@@ -141,7 +149,6 @@ describe('should extract text from document', () => {
         const isValid = jsonutils.isValidNonEmptyString(text) && !text.includes(messages.TABLE_CONTENT);
         expect(isValid).toBe(true);
     });
-
 });
 
 describe('should verify that jsonutils.RESUME_SCHEMA_PATH is a valid json schema and that TEST_SIMPLE_RESUME_OBJ_PATH is a valid resume data object', () => {
