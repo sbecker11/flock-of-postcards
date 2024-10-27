@@ -1,0 +1,39 @@
+{
+  "personalInfo": {
+    "name": "",
+    "email": "john.doe@example.com",
+    "phone": "+1-555-123-4567",
+    "title": ""
+  },
+  "employmentHistory": [
+    {
+      "jobHeader": {
+        "positionTitle": "",
+        "employerName": "at Tech Solutions Inc",
+        "dateRange": "Present)",
+        "typeOfWork": "Full-Time",
+        "location": "in San \nFrancisco, CA \n",
+        "responsibilities": []
+      },
+      "responsibilities": []
+    }
+  ],
+  "educationSection": {
+    "degrees": []
+  },
+  "publications": [
+    {
+      "title": null,
+      "authors": [
+        "by John Doe "
+      ],
+      "publicationDate": [
+        "(2020)"
+      ],
+      "url": null
+    }
+  ],
+  "skills": {
+    "skills": []
+  }
+}

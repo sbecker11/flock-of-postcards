@@ -1,6 +1,8 @@
 const POLLING_INTERVAL = 100; // Polling interval in milliseconds
 const MAX_WAIT_TIME = 5000; // Maximum wait time in milliseconds
 
+import { loadResumeJobs } from './jobs/json_utils.mjs'
+
 function runMain(resumeJobs) {
     import('./main.mjs')
         .then(main => 
@@ -10,9 +12,8 @@ function runMain(resumeJobs) {
         });
 }
 
-function loadResumeJobs() {
-    import getResumeJobs from 'modules/jobs/json-utils.mjs';
-    const resumeJobs = await getResumeJobs();
+async function loadJsonUtilsResumeJobs() {
+    const resumeJobs = await loadResumeJobs();
     if ( !resumeJobs ) {
         return Promise.reject('Failed to load resume jobs'); // throw new Error('Failed to load resume jobs'); => 
     }
@@ -22,11 +23,22 @@ function loadResumeJobs() {
 (function checkDocumentAvailability(startTime) {
     if (typeof document !== 'undefined') {
         console.log('document object found');
-        const resumeJobs = loadResumeJobs();
-        runMain(resumeJobs);
-    } else if (Date.now() - startTime < MAX_WAIT_TIME) {
-        setTimeout(() => checkDocumentAvailability(startTime), POLLING_INTERVAL);
+        loadJsonUtilsResumeJobs()
+            .then(resumeJobs => {
+                runMain(resumeJobs);
+            })
+            .catch(err => {
+                console.error('Error loading resume jobs:', err);
+            });
     } else {
-        console.error(`browser's document object was not found within timeout of ${MAX_WAIT_TIME / 1000} sec. Exiting application.`);
+        console.log('document object not found, so handling non-browser environment');
+        // Handle non-browser environment
+        loadJsonUtilsResumeJobs()
+            .then(resumeJobs => {
+                console.log('Resume Jobs:', resumeJobs);
+            })
+            .catch(err => {
+                console.error('Error loading resume jobs:', err);
+            });
     }
 })(Date.now());

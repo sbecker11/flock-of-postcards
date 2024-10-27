@@ -5,7 +5,8 @@ export default defineConfig({
     testTimeout: 70000, // 70 seconds
     include: [
       '**/*.{test,spec}.[tj]s?(x)', // Matches .test.js, .test.ts, .spec.js, .spec.ts, etc.
-      '**/*_test.mjs' // Matches _test.mjs files
+      '**/*_test.mjs', // Matches _test.mjs files
+      '**/test_*.mjs', // Matches test_*.mjs files
     ],
     exclude: [
       '**/node_modules/**', // Excludes node_modules directory

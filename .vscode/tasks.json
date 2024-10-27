@@ -1,0 +1,11 @@
+{
+    "version": "2.0.0",
+    "tasks": [
+        {
+            "label": "Run Pre-Run Checks and Tests",
+            "type": "shell",
+            "command": "npm run prerun && npx vitest run modules/jobs/test_json_utils.mjs",
+            "problemMatcher": []
+        }
+    ]
+}

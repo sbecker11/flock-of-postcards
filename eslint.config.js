@@ -20,6 +20,7 @@ export default new ESLint({
             sourceType: 'module',
         },
         rules: {
+            'no-undef': 'error', // Add this line to enable the no-undef rule
             // Add your custom rules here
         },
     },

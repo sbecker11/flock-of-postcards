@@ -11,7 +11,10 @@
     "eslint": "npx eslint 'modules/jobs/*.mjs'",
     "prerun": "./pre_run_checks.sh",
     "test:sorted-js-module": "npm run prerun && vitest run modules/jobs/sorted-js-module_test.mjs",
-    "test:schema": "echo 'Add your schema test command here'"
+    "test:schema": "echo 'Add your schema test command here'",
+    "run:json_utils": "node modules/jobs/json_utils.mjs",
+    "test:json_utils": "npm run prerun && npx vitest run modules/jobs/test_json_utils.mjs",
+    "run:simple": "node --trace-warnings modules/jobs/simple.mjs"
   },
   "repository": {
     "type": "git",
@@ -29,7 +32,7 @@
   },
   "homepage": "https://github.com/sbecker11/flock-of-postcards#readme",
   "dependencies": {
-    "@anthropic-ai/sdk": "^0.27.1",
+    "@anthropic-ai/sdk": "^0.27.3",
     "ajv": "^8.17.1",
     "ajv-formats": "^3.0.1",
     "cookies": "^0.9.1",
@@ -39,14 +42,19 @@
     "eslint": "^9.9.0",
     "fs": "^0.0.1-security",
     "js-yaml": "^4.1.0",
+    "jso": "^4.1.1",
+    "json": "^11.0.0",
     "jsonschema": "^1.4.1",
     "mammoth": "^1.8.0",
     "minimist": "^1.2.8",
+    "officeparser": "^5.0.0",
     "pdf-parse": "^1.1.1",
+    "punycode": "^2.3.1",
     "winston": "^3.14.2",
     "yargs": "^17.7.2"
   },
   "devDependencies": {
-    "vitest": "^2.0.5"
+    "jest": "^29.7.0",
+    "vitest": "^2.1.3"
   }
 }

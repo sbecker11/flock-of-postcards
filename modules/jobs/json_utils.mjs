@@ -1,12 +1,11 @@
 import Ajv from 'ajv';
 import dotenv from 'dotenv'; // Userland package for loading environment variables
-import { promises as fs } from 'fs';
-import { readFileSync } from 'fs';
+import { promises as fs, readFileSync } from 'fs';
 import path from 'path';
 import { Document } from 'docx';
 import mammoth from 'mammoth';
-import logger from 'modules/jobs/logger.mjs';
-import * as messages from 'modules/jobs/messages.mjs';
+import logger from './logger.mjs';
+import * as messages from './messages.mjs';
 import Anthropic from '@anthropic-ai/sdk';
 
 // Load environment variables from .env file
@@ -132,7 +131,7 @@ export function jsonToString(jsonObject) {
         throw new Error(messages.ERROR_UNDEFINED_OR_EMPTY_JSON_OBJECT);
     }
     if (typeof jsonObject != 'object' ) {
-        throw new Error(messages.ERROR_NOT_A_JSON_OBJECT);
+        throw new Error(messages.ERROR_NOT_A_JSON_OBJECT + ` : type: ${typeof jsonObject}`);
     }
     const jsonString = JSON.stringify(jsonObject, null, 2);
     return jsonString;
@@ -163,43 +162,43 @@ export function getResumeDataPrompt(resumeText, resumeSchemaString) {
     return prompt;
 }
 
-export async function saveResumeDataObject(resumeJsonPath, resumeDataObject) {
-    const resumeDataObjectString = JSON.stringify(resumeDataObject);
+export async function savedataObject(resumeJsonPath, dataObject) {
+    const dataObjectString = JSON.stringify(dataObject);
     try {
-        await fs.writeFile(resumeJsonPath, resumeDataObjectString, 'utf8');
-        logger.info(`resumeDataObject saved to ${resumeJsonPath}`);
+        await fs.writeFile(resumeJsonPath, dataObjectString, 'utf8');
+        logger.info(`dataObject saved to resumeJsonPath: ${resumeJsonPath}`);
     } catch (err) {
-        throw new Error(messages.ERROR_FAILED_TO_SAVE_RESUME_DATA_OBJECT_TO_RESUME_JSON_PATH + ` : ${resumeJsonPath} err: ${err}`);
+        throw new Error(messages.ERROR_FAILED_TO_SAVE_RESUME_DATA_OBJECT_TO_RESUME_JSON_PATH + ` resumeJsonPath: ${resumeJsonPath} err: ${err}`);
     }
 }
 
 export async function extractTextFromDocxDocument(filePath) {
     if ( !isValidNonEmptyString(filePath) ) {
-        throw new Error(messages.ERROR_INVALID_OR_EMPTY_FILEPATH);
+        throw new Error(messages.ERROR_INVALID_OR_EMPTY_FILEPATH + `: ${filePath}`);
     }
     let fileIsFound = await isFileFound(filePath);
     if (!fileIsFound) {
-        throw new Error(messages.ERROR_FILE_NOT_FOUND + ` : ${filePath}`);
+        throw new Error(messages.ERROR_FILE_NOT_FOUND + `: ${filePath}`);
     }
     const fileBuffer = readFileSync(filePath); // Correct usage of readFileSync
     if (fileBuffer.length === 0) {
-        throw new Error(messages.ERROR_FILE_IS_EMPTY + ` : ${filePath}`);
+        throw new Error(messages.ERROR_FILE_IS_EMPTY + `: ${filePath}`);
     }
     const result = await mammoth.extractRawText({ buffer: fileBuffer });
     const text = (result != null && result.value != null) ? result.value : null;
     if ( !isValidNonEmptyString(text) ) {
-        throw new Error(messages.ERROR_FILE_IS_EMPTY + ` : ${filePath}`);
+        throw new Error(messages.ERROR_FILE_IS_EMPTY + `: ${filePath}`);
     }
     return text;
 }
 
 export async function extractTextFromDocument(filePath) {
-    if (!isValidNonEmptyString(filePath)) {
-        throw new Error(messages.ERROR_INVALID_OR_EMPTY_FILEPATH);
+     if (!isValidNonEmptyString(filePath)) {
+        throw new Error(messages.ERROR_INVALID_OR_EMPTY_FILEPATH + `: ${filePath}`);
     }
     let fileIsFound = await isFileFound(filePath);
     if (!fileIsFound) {
-        throw new Error(messages.ERROR_FILE_NOT_FOUND + ` : ${filePath}`);
+        throw new Error(messages.ERROR_FILE_NOT_FOUND + `: ${filePath}`);
     }
     let extname = path.extname(filePath);
     if ( !isValidNonEmptyString(extname) ) {
@@ -224,18 +223,19 @@ export async function getResumeText(resumeDocPath) {
     if ( !isValidNonEmptyString(resumeText) ) {
         throw new Error(messages.ERROR_NULL_OR_UNDEFINED_OR_EMPTY_STRING);
     }
-    if ( !resumeText.includes('Education') ) {
+    if (!resumeText.toLowerCase().includes('education')) {
         throw new Error(messages.ERROR_INVALID_RESUME_TEXT_NO_EDUCATION);
     }
     return resumeText;
 }
 // single usage below
-function get_single_spaced(str) {
+export function get_single_spaced(str) {
     return str.replace(/\s+/g, ' ');
 }
 
-export async function getResumeDataObject(resumeText, resumeSchema) {
-    // returns a validated resumeDataObject or throws an error
+// this is the mother load!
+export async function submitPromptAndReturnDataObject(resumeText, resumeSchema) {
+    // returns a validated dataObject or throws an error
     if ( !isValidNonEmptyString(resumeText) ) {
         throw new Error(messages.ERROR_INVALID_OR_EMPTY_RESUME_TEXT);
     }
@@ -252,14 +252,26 @@ export async function getResumeDataObject(resumeText, resumeSchema) {
 
     const full_prompt = getResumeDataPrompt(resumeText, resumeSchemaString);
     const sngl_prompt = get_single_spaced(full_prompt);
+    logger.info('sngl_prompt:' + sngl_prompt);
 
+    logger.info('process.env.ANTHROPIC_API_KEY:' + process.env.ANTHROPIC_API_KEY);
     const anthropic = new Anthropic({
-        apiKey: process.env.ANTHROPIC_API_KEY, // Read API key from .env file
+        apiKey: process.env.ANTHROPIC_API_KEY // Read API key from .env file
     });
+    logger.info('Anthropic instance created');
+    logger.info('model: claude-3-5-sonnet-20241022');
+    logger.info('max_tokens_to_sample: 3000');
+    logger.info("prompt:");
+    logger.info('    Anthropic.HUMAN_PROMPT:' + Anthropic.HUMAN_PROMPT );
+    logger.info('    sngl_prompt:' + sngl_prompt);
+    logger.info('    Anthropic.AI_PROMPT:' + Anthropic.AI_PROMPT );
+    logger.info('timeout: 75000');
+
+
     // note vitest.config.js has testTimeout: 70000, // 70 seconds
     
     const startMillis = Date.now();
-    const model = "claude-3-sonnet-20240229";
+    const model = "claude-3-5-sonnet-20241022";
     const completion = await anthropic.completions
         .create({
             model: model,
@@ -273,9 +285,11 @@ export async function getResumeDataObject(resumeText, resumeSchema) {
         )
         .catch((err) => {
             if (err instanceof Anthropic.APIError) {
-                logger.error(err.status); // 400
-                logger.error(err.name); // BadRequestError
-                logger.error(err.headers); // {server: 'nginx', ...}
+                logger.error('Anthropic.APIError');
+                logger.error('err.type:   ' + typeof err); // 400
+                logger.error('err.status: ' + err.status); // 400
+                logger.error('err.name:   ' + err.name); // BadRequestError
+                logger.error('err.headers:' + err.headers); // {server: 'nginx', ...}
             } else {
                 logger,error("Unexpected error:", error);
                 throw err;
@@ -287,12 +301,12 @@ export async function getResumeDataObject(resumeText, resumeSchema) {
         logger.info(`Anthropic completion received after ${elapsedMillis} millis: \n`, 
             completion);
         logger.info('--o--o--o--o--o--o--o--o--o--o-o--o--o--o--o--o--o--o--o');
-    logger.info('getResumeDataObject returning null');
+    logger.info('submitPromptAndReturndataObject returning null');
     return null;
+}
 
-q
-export async function getResumeSchema(schemaPath) {
-    logger.info(`Getting resume schema from ${schemaPath}`);
+export async function getSchema(schemaPath) {
+    logger.info(`Getting schema from ${schemaPath}`);
     if ( !isValidNonEmptyString(schemaPath) ) {
         const errorMsg = messages.ERROR_NULL_OR_UNDEFINED_OR_EMPTY_SCHEMA_PATH;
         logger.error(errorMsg);
@@ -327,71 +341,102 @@ export async function getResumeSchema(schemaPath) {
     return schema;
 }
 
-export async function isValidResumeDataObject(resumeDataObject) {
-    if ( resumeDataObject === null || resumeDataObject === undefined ) {
-        logger.error(`resumeDataObject is null or undefined. return FALSE 0`);
+// return True if the given dataObject is valid against the given schemaObject
+export async function isDataObjectSchemaValid(dataObject, schemaObject) {
+    if ( dataObject === null || dataObject === undefined ) {
+        logger.error(`dataObject is null or undefined. return FALSE 0`);
         return false;
     }
-    if ( !isValidJsonObject(resumeDataObject) ) {
-        logger.error(`isValidResumeDataObject type: ${typeof resumeDataObject}`);
-        logger.error(`isValidResumeDataObject stringlength: ${JSON.stringify(resumeDataObject).length}`);
-        logger.error(`resumeDataObject is NOT a valid json object. return FALSE 1`);
+    if ( !isValidJsonObject(dataObject) ) {
+        logger.error(`isDataObjectSchemaValid dataObject type: ${typeof dataObject}`);
+        logger.error(`isDataObjectSchemaValid json-stringified dataObject stringlength: ${JSON.stringify(dataObject).length}`);
+        logger.error(`dataObject is NOT a valid json object. return FALSE 1`);
         return false;
     }
-    const resumeSchema = await getResumeSchema(RESUME_SCHEMA_PATH);
-    if ( !isValidJsonSchemaObject(resumeSchema) ) {
-        logger.error(`resumeSchema is NOT a valid json schema object. return FALSE 2`);
-        return false;
-    }
+    // use the schemaObject to create a validator function
     const ajv = new Ajv();
-    const valildator = ajv.compile(resumeSchema);
-    if ( !validator(resumeDataObject) ) {
+    const validator = ajv.compile(schemaObject);
+
+    // use the validator function to validate the dataObject against the schemaObject   
+    if ( !validator(dataObject) ) {
         logger.error(`${ajv.errors}`);
-        logger.error(`resumeDataObject is NOT a valid resume data object. return FALSE 3`);
+        logger.error(`dataObject is NOT schema-valid. return FALSE 3`);
         return false;
     }
-    logger.info(`resumeDataObject is a valid resume data object. return TRUE`);
+    logger.info(`dataObject is schema-valid. return TRUE`);
     return true;
 }
 
-export async function loadAndSaveResumeDataObject() {
-// return the newly loaded and saved resumeDataObject 
+export async function generateAndSavedataObject() {
+// get the newly generated dataObject and save it to 
+// RESUME_DOCX_JSON_PATH and return it 
 // or throw error on failuare
     try {
-        logger.info(`Loading resumeDataObject from from ${RESUME_DOCX_PATH} started...`);
+        logger.info(`Loading dataObject from from ${RESUME_DOCX_PATH} started...`);
         let startTime = Date.now();
         const resumeText = await getResumeText(RESUME_DOCX_PATH);
         const resumeSchema = await getResumeSchema(RESUME_SCHEMA_PATH);
-        const resumeDataObject = await getResumeDataObject(resumeText, resumeSchema);
+        const dataObject = await submitPromptAndReturnDataObject(resumeText, resumeSchema);
         let elapsedTime = Date.now() - startTime;
         logger.info(`... loading completed in ${elapsedTime} ms`);
 
-        logger.info(`saving resumeDataObject to ${RESUME_DOCX_JSON_PATH} started...`);
+        logger.info(`saving dataObject to ${RESUME_DOCX_JSON_PATH} started...`);
         startTime = Date.now();
-        saveResumeDataObject(RESUME_DOCX_JSON_PATH, resumeDataObject);
+        savedataObject(RESUME_DOCX_JSON_PATH, dataObject);
         elapsedTime = Date.now() - startTime;
         logger.info(`... saving completed in ${elapsedTime} ms`);
-        return resumeDataObject
+        return dataObject
     } catch (error) {
-        logger.error(error);
+        logger.error('Error generating and saving resume data object:', error.message);
+        const stackTrace = error.stack; // Declare stackTrace
+        logger.error('Stack trace:', stackTrace); // Log the stack trace
         throw error;
     }
 }
 
 export async function loadResumeJobs() {
     // this is the entry point to get the jobs from the resume
-    const resumeDataObject = await loadAndSaveResumeDataObject();
-    if ( resumeDataObject && isValidJsonObject(resumeDataObject) ) {
-        let jobs = [];
-        for ( let i = 0; i < resumeDataObject['EmploymentHistory'].length; i++ ) {
-            jobs.push(resumeDataObject['EmploymentHistory'][i]);
+    // it is called from 'modules/index.mjs' import loadResumeJobs;
+    // which is called 'index.html'
+    try {
+        const dataObject = await generateAndSavedataObject();
+        if ( dataObject && isValidJsonObject(dataObject) ) {
+            let jobs = [];
+            for ( let i = 0; i < dataObject['EmploymentHistory'].length; i++ ) {
+                jobs.push(dataObject['EmploymentHistory'][i]);
+            }
+            for ( let i = 0; i < dataObject['Education'].length; i++ ) {
+                jobs.push(dataObject['Education'][i]);
+            }
+            return jobs;
+        } else {
+            logger.error(messages.ERROR_NOT_A_VALID_RESUME_DATA_OBJECT);
+            throw new Error(messages.ERROR_NOT_A_VALID_RESUME_DATA_OBJECT);
         }
-        for ( let i = 0; i < resumeDataObject['Education'].length; i++ ) {
-            jobs.push(resumeDataObject['Education'][i]);
-        }
-        return jobs;
-    } else {
-        logger.error(ERROR_NOT_A_VALID_RESUME_DATA_OBJECT);
-        return null;
+    } catch (error) {
+        const stackTrace = error.stack;
+        logger.error('Error loading resume jobs:', error.message);
+        logger.error('Stack trace:', stackTrace);
+        throw error;
     }
+}
+
+
+// Entry point for stand-alone mode
+async function main() {
+    try {
+        const resumeJobs = await loadResumeJobs();
+        if (!resumeJobs) {
+            throw new Error('Failed to load resume jobs');
+        }
+        console.log('Resume Jobs:', resumeJobs);
+    } catch (error) {
+        console.error('Error:', error.message);
+        console.error(error.stack); // Log the full stack trace
+    }
+}
+
+// Check if the script is being run directly
+if (import.meta.url === `file://${process.argv[1]}`) {
+    main();
 }

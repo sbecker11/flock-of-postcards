@@ -11,6 +11,52 @@
                 "${workspaceFolder}/static_content/jobs/jobs.xlsx",
                 "${workspaceFolder}/static_content/jobs/jobs.mjs"
             ]
-        } 
+        },
+        {
+            "name": "Debug anthropic-message-invoker.mjs",
+            "type": "node",
+            "request": "launch",
+            "program": "${workspaceFolder}/modules/jobs/anthropic-message-invoker.mjs",
+            "console": "integratedTerminal",
+            "runtimeArgs": [
+                "--experimental-modules"
+            ],
+            "sourceMaps": true,
+            "skipFiles": [
+                "<node_internals>/**"
+            ]
+        },
+        {
+            "name": "Debug test_json_utils.mjs (inspect)",
+            "type": "node",
+            "request": "launch",
+            "program": "${workspaceFolder}/modules/jobs/test_json_utils.mjs",
+            "args": [
+                "run",
+                "--inspect",
+                "${workspaceFolder}/modules/jobs/test_json_utils.mjs"
+            ],
+            "console": "integratedTerminal",
+            "internalConsoleOptions": "neverOpen",
+            "sourceMaps": true,
+            "skipFiles": [
+                "<node_internals>/**"
+            ]
+        },
+        {
+            "name": "Debug test_json_utils.mjs (vitest)",
+            "type": "node",
+            "request": "launch",
+            "skipFiles": [
+                "<node_internals>/**",
+                "${workspaceFolder}/node_modules/vitest/**"
+            ],
+            "program": "${workspaceFolder}/node_modules/vitest/vitest.mjs",
+            "args": ["run", "${workspaceFolder}/modules/jobs/test_json_utils.mjs"],
+            "console": "integratedTerminal",
+            "internalConsoleOptions": "neverOpen",
+            "runtimeArgs": ["--inspect"]
+          }
+              
     ]
 }

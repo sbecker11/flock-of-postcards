@@ -1,7 +1,7 @@
 // @ts-nocheck
 'use strict';
 
-import { loadResumeJobs } from'./modules/jobs/json-utils.mjs');
+import { loadResumeJobs } from'./jobs/json_utils.mjs';
 const resumeJobs = await loadResumeJobs();
 if ( !resumeJobs ) {
     throw new Error('Failed to load resume jobs');
