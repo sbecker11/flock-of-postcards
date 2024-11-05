@@ -1,14 +1,10 @@
-import Ajv from 'ajv';
-// import addFormats from 'ajv-formats';
-// import draft07Schema from 'ajv/lib/refs/json-schema-draft-07.json';
-
 import fs from 'fs';
 import path from 'path';
 import { describe, it, expect } from 'vitest';
 import logger from './logger.mjs';
 import * as jsonutils from './json_utils.mjs';
 import * as messages from './messages.mjs';
-// import JsonSchema from './json_schema.mjs';
+import { JsonSchema } from './json_schema.mjs';
 
 // Define constants for the paths to the test files
 const TEST_FILES_DIR = path.join(__dirname, 'test-files');
@@ -134,20 +130,20 @@ describe('should validate RESUME_JSON_SCHEMA_PATH is a valid path that can be us
         expect(isValidTrue).toBe(true);
     });
 
-    // it('should validate that a JsonSchema object can be created and self validated', () => {
-    //     const jsonSchemaPath = jsonutils.RESUME_JSON_SCHEMA_PATH;
-    //     const legitimateDataObjectPath = jsonutils.LEGITIMATE_JSON_RESUME_PATH;
-    //     let isValid = true;
-    //     try {
-    //         const jsonSchema = new JsonSchema(jsonSchemaPath, legitimateDataObjectPath);
-    //     } catch (error) {
-    //         isValid = false;
-    //     }
-    //     if ( !isValidTrue ) {
-    //         throw new Error(messages.ERROR_INVALID_RESUME_JSON_SCHEMA);
-    //     } 
-    //     expect(isValidTrue).toBe(true);
-    // });
+    it('should validate that a JsonSchema object can be created and self validated', () => {
+        const jsonSchemaPath = jsonutils.RESUME_JSON_SCHEMA_PATH;
+        const legitimateDataObjectPath = jsonutils.LEGITIMATE_JSON_RESUME_PATH;
+        let isValidTrue = true;
+        try {
+            const jsonSchema = new JsonSchema(jsonSchemaPath, legitimateDataObjectPath);
+        } catch (error) {
+            isValidTrue = false;
+        }
+        if ( !isValidTrue ) {
+            throw new Error(messages.ERROR_INVALID_RESUME_JSON_SCHEMA);
+        } 
+        expect(isValidTrue).toBe(true);
+    });
 
 
 

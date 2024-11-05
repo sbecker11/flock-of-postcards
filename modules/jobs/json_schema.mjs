@@ -1,12 +1,13 @@
 import logger from './logger.mjs';
-import readJsonFile from 'json_utils.mjs';
+import { readJsonFile } from './json_utils.mjs';
+import Ajv from 'ajv';
 
-const requiredJsonSchemaElementTypes = {
+export const requiredJsonSchemaElementTypes = {
     "$schema": "string",
     "type": "string",
 };
 
-const optionalJsonSchemaElementTypes = {
+export const optionalJsonSchemaElementTypes = {
     "additionalItems": "boolean",
     "additionalProperties": "boolean",
     "const": "any",
@@ -43,20 +44,20 @@ const optionalJsonSchemaElementTypes = {
     "contains": "object"
 };
 
-class JsonSchema {
+export class JsonSchema {
     constructor(
         json_schema_path,// the path to the json schema file
         legitimiate_data_object_path // path to a legititimate data object used to test the schema
     ) {
-        this.json_schema = readJsonFile(json_schema_path);
-        if (!this.json_schema) {
+        this.jsonSchema = readJsonFile(json_schema_path);
+        if (!this.jsonSchema) {
             logger.warn(`Error: Invalid or empty json schema: ${json_schema_path}`);
             throw new Error(`Error: Invalid or empty json schema: ${json_schema_path}`);
         }
-        this.legitimiate_data_object = readJsonFile(legitimiate_data_object_path);
-        if (!this.legitimiate_data_object) {
-            logger.warn(`Error: Invalid or empty legitimiate_data_object: ${legitimiate_data_object_path}`);
-            throw new Error(`Error: Invalid or empty legitimiate_data_object: ${legitimiate_data_object_path}`);
+        this.legitimateDataObject = readJsonFile(legitimiate_data_object_path);
+        if (!this.legitimateDataObject) {
+            logger.warn(`Error: Invalid or empty legitimateDataObject: ${legitimiate_data_object_path}`);
+            throw new Error(`Error: Invalid or empty legitimateDataObject: ${legitimiate_data_object_path}`);
         }
 
         this.ajv = new Ajv({
@@ -72,7 +73,7 @@ class JsonSchema {
 
         this.checkStructurealValidity(this.jsonSchema);
 
-        this.validateJsonSchemaAgainstLegitimateDataObject(this.legitimiate_data_object)
+        this.validateJsonSchemaAgainstLegitimateDataObject(this.legitimateDataObject)
     }
 
     compileSchema(schemaObject) {
