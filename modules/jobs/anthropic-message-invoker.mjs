@@ -2,7 +2,7 @@ import Anthropic from "@anthropic-ai/sdk";
 // see https://docs.anthropic.com/en/prompt-library/data-organizer
 import dotenv from 'dotenv'; // Userland package for loading environment variables
 
-import { extractTextFromDocument, getResumeSchema, isDataObjectSchemaValid, isValidJsonSchema } from "./json_utils.mjs"
+import { getResumeSchema } from "./json_utils.mjs"
 import { getResumeString } from './json_utils.mjs';
 import { fileURLToPath } from 'url';
 import process from 'process';
@@ -39,16 +39,16 @@ if (!resumeJsonSchema) {
     process.exit(1);
 } else {
     // use Adv to verify that this is a valid json-schema
-    const isValid = await isValidJsonSchema(resumeJsonSchema);
+    const isValid = await isStructurallyValidResumeJsonSchema(resumeJsonSchema);
     if (!isValid) {
-        console.error(`Error: resumeJsonSchema is not a valid JSON schema.`);
+        console.error(`Error: resumeJsonSchema is not valid.`);
         process.exit(1);
     }
 }
-console.log(`Loaded resume schema from jsonSchemaPath: ${jsonSchemaPath}`);
+console.log(`Loaded resume json schema from jsonSchemaPath: ${jsonSchemaPath}`);
 console.log(`resumeJsonSchema: ${resumeJsonSchema}`);
 
-const task = "Your task is to take the provided semi-structured 'resume-text', and use the provided 'resume-schema' to produce a well-structured JSON-formatted version of the resume. Ensure that the extracted resume JSON data is accurately represented, properly formatted within the JSON structure, and that it can be validated by the given resume-schema. The resulting JSON text should provide a clear, structured overview of the information presented in the original resume-text";
+const task = "Your task is to take the provided semi-structured 'resume-text', and use the provided 'resume-json-schema' to produce a well-structured JSON-formatted version of the resume. Ensure that the extracted resume JSON data is accurately represented, properly formatted within the JSON structure, and that it can be validated by the given resume-json-schema. The resulting JSON text should provide a clear, structured overview of the information presented in the original resume-text";
 
 // see https://github.com/anthropics/courses/blob/master/tool_use/03_structured_outputs.ipynb
 tools = [

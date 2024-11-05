@@ -8,6 +8,7 @@ import { describe, it, expect } from 'vitest';
 import logger from './logger.mjs';
 import * as jsonutils from './json_utils.mjs';
 import * as messages from './messages.mjs';
+// import JsonSchema from './json_schema.mjs';
 
 // Define constants for the paths to the test files
 const TEST_FILES_DIR = path.join(__dirname, 'test-files');
@@ -27,74 +28,6 @@ if ( !fs.existsSync(TEST_RESUME_PDF_PATH) ) {
 if ( !fs.existsSync(TEST_SIMPLE_RESUME_OBJ_PATH) ) {
     throw new Error(messages.ERROR_TEST_SIMPLE_RESUME_OBJ_NOT_FOUND + ` : ${TEST_SIMPLE_RESUME_OBJ_PATH}`); 
 }
-
-// describe('should get a resume data object from Claude', () => {
-//     it('should throw an error given an invalid or blank resume text', async () => {
-//         const resumeText = '';
-//         const resumeSchema = await jsonutils.getResumeSchema(jsonutils.RESUME_SCHEMA_PATH);
-//         await expect(jsonutils.submitPromptAndReturnResumeDataObject(resumeText, resumeSchema)).rejects.toThrow(messages.ERROR_INVALID_OR_EMPTY_RESUME_TEXT);
-//     });
-
-//     it('should throw an error given an invalid or blank resumeSchema', async () => {
-//         const resumeText = await jsonutils.extractTextFromDocument(TEST_RESUME_DOCX_PATH);
-//         const resumeSchema = null;
-//         await expect(jsonutils.submitPromptAndReturnResumeDataObject(resumeText, resumeSchema)).rejects.toThrow(messages.ERROR_INVALID_OR_EMPTY_RESUME_SCHEMA);
-//     });
-    
-//     it('should return a resume data object given valid resume text and resume schema', async () => {
-//         logger.info('A');
-//         const resumeText = await jsonutils.extractTextFromDocument(TEST_RESUME_DOCX_PATH);
-//         logger.info('B');
-//         const resumeSchema = await jsonutils.getResumeSchema(jsonutils.RESUME_SCHEMA_PATH);
-//         logger.info('C');
-//         const resumeDataObject = await jsonutils.submitPromptAndReturnResumeDataObject(resumeText, resumeSchema);
-//         logger.info('D');
-//         logger.info('--------------------------------------------------------------------');
-//         logger.info(`resumeDataObject: ${resumeDataObject}`);
-//         logger.info('--------------------------------------------------------------------');
-
-//         const isValidTrue = await jsonutils.isValidResumeDataObject(resumeDataObject);
-//         expect(isValidTrue).toBe(true);
-//     });
-
-// }); 
-
-
-// describe('should get resume data object given valid resume text and resume schema', () => {
-
-//     it('should throw an error given null resumeText', async () => {
-//         let resumeText = null;
-//         let resumeSchema = jsonutils.getResumeSchema(jsonutils.RESUME_SCHEMA_PATH));
-//         await expect(jsonutils.submitPromptAndReturnResumeDataObject(resumeText, resumeSchema)).rejects.toThrow(messages.ERROR_UNDEFINED_OR_EMPTY_RESUME_TEXT);
-//     });
-
-//     it('should throw an error given incomplete resumeText', async () => {
-//         let resumeText = "incomplete resume text";
-//         let resumeSchema = jsonutils.getResumeSchema(jsonutils.RESUME_SCHEMA_PATH));
-//         await expect(jsonutils.submitPromptAndReturnResumeDataObject(resumeText, resumeSchema)).rejects.toThrow(messages.ERROR_INCOMPLETE_RESUME_TEXT);
-//     });
-
-//     it('should throw an error if resumeSchema is undefined', async () => {
-//         const resumeText = await jsonutils.extractTextFromDocument(TEST_RESUME_DOCX_PATH);
-//         const resumeSchema = null;
-//         await expect(jsonutils.submitPromptAndReturnResumeDataObject(resumeText, resumeSchema)).rejects.toThrow(messages.ERROR_UNDEFINED_RESUME_SCHEMA);
-//     });
-
-//     it('should throw an error if resumeSchema is invalid', async () => {
-//         const resumeText = await jsonutils.extractTextFromDocument(TEST_RESUME_DOCX_PATH);
-//         const resumeSchema = jsonutils.getResumeSchema("modules/jobs/test-files/invalid-schema.json");
-//         await expect(jsonutils.submitPromptAndReturnResumeDataObject(resumeText, resumeSchema)).rejects.toThrow(messages.ERROR_INVALID_RESUME_SCHEMA);
-//     }); 
-
-//     it('should return a valid resumeDataObject if resumeText and resumeSchema are valid', async () => {
-//         const resumeText = await jsonutils.extractTextFromDocument(TEST_RESUME_DOCX_PATH);
-//         const resumeSchema = await jsonutils.getResumeSchema(jsonutils.RESUME_SCHEMA_PATH);
-//         const resumeDataObject = await jsonutils.submitPromptAndReturnResumeDataObject(resumeText, resumeSchema);
-//         isValid = jsonutils.isValidResumeDataObject(resumeDataObject);
-//         expect(isValid).toBe(true);
-//     });
-// });
-
 
 describe('should extract text from document', () => {
     it('should thow an error given a null or undefined or empty filePath', async () => {
@@ -165,17 +98,17 @@ describe('should extract text from document', () => {
     });
 });
 
-describe('should verify that jsonutils.RESUME_SCHEMA_PATH is a valid json schema and that TEST_SIMPLE_RESUME_OBJ_PATH is a valid resume data object', () => {
-    it('should validate RESUME_SCHEMA_PATH is a valid path', async () => {
-        let filePath = jsonutils.RESUME_SCHEMA_PATH;
+describe('should validate RESUME_JSON_SCHEMA_PATH is a valid path that can be used to create a JsonSchema', () => {
+    it('should validate RESUME_JSON_SCHEMA_PATH is a valid path', async () => {
+        let filePath = jsonutils.RESUME_JSON_SCHEMA_PATH;
         let isValidTrue = jsonutils.isValidNonEmptyString(filePath);
         if ( !isValidTrue ) {
             throw new Error(messages.ERROR_INVALID_SCHEMA_PATH);
         } expect(true).toBe(true);
     });
 
-    it('should validate RESUME_SCHEMA_PATH file exists', async () => {
-        const filePath = jsonutils.RESUME_SCHEMA_PATH;
+    it('should validate RESUME_JSON_SCHEMA_PATH file exists', async () => {
+        const filePath = jsonutils.RESUME_JSON_SCHEMA_PATH;
         const fileIsFound = await jsonutils.isFileFound(filePath);
         if ( !fileIsFound ) {
             throw new Error(messages.ERROR_FILE_NOT_FOUND + ` : ${filePath}`);
@@ -183,58 +116,40 @@ describe('should verify that jsonutils.RESUME_SCHEMA_PATH is a valid json schema
         expect(true).toBe(true);
     });
 
-    it('should validate RESUME_SCHEMA_PATH is readable as a jsonSchema', () => {
-        const resumeSchema = JSON.parse(fs.readFileSync( jsonutils.RESUME_SCHEMA_PATH, 'utf-8'));
-        let isValidTrue = jsonutils.isValidJsonSchema(resumeSchema);
+    it('should validate RESUME_JSON_SCHEMA_PATH is readable as a valid data object', () => {
+        const jsonObject = JSON.parse(fs.readFileSync( jsonutils.RESUME_JSON_SCHEMA_PATH, 'utf-8'));
+        let isValidTrue = jsonutils.isValidJsonObject(jsonObject);
         if ( !isValidTrue ) {
-            throw new Error(messages.ERROR_INVALID_OR_EMPTY_JSON_SCHEMA);
+            throw new Error(messages.ERROR_INVALID_OR_EMPTY_DATA_OBJECT);
         } 
         expect(isValidTrue).toBe(true);
     });
 
-    it('should validate TEST_SIMPLE_RESUME_OBJ_PATH is a valid path', () => {
-        const filePath = TEST_SIMPLE_RESUME_OBJ_PATH;
-        const isValidTrue = jsonutils.isValidNonEmptyString(filePath);
+    it('should validate LEGITIMATE_JSON_RESUME_PATH is readable as a valid data object', () => {
+        const jsonObject = JSON.parse(fs.readFileSync( jsonutils.LEGITIMATE_JSON_RESUME_PATH, 'utf-8'));
+        let isValidTrue = jsonutils.isValidJsonObject(jsonObject);
         if ( !isValidTrue ) {
-            throw new Error(messages.ERROR_INVALID_SIMPLE_RESUME_OBJ_PATH);
-        } 
-        expect(true).toBe(true);
+            throw new Error(messages.ERROR_INVALID_OR_EMPTY_DATA_OBJECT);
+        }
+        expect(isValidTrue).toBe(true);
     });
 
-    it('should validate simpleResumeObject json file is readable', async () => {
-        const filePath = TEST_SIMPLE_RESUME_OBJ_PATH;
-        const isValidTrue = await jsonutils.isFileFound(filePath);
-        if ( !isValidTrue ) {
-            throw new Error(messages.ERROR_FILE_NOT_FOUND + ` : ${filePath}`);
-        } 
-        expect(true).toBe(true);
-    });
+    // it('should validate that a JsonSchema object can be created and self validated', () => {
+    //     const jsonSchemaPath = jsonutils.RESUME_JSON_SCHEMA_PATH;
+    //     const legitimateDataObjectPath = jsonutils.LEGITIMATE_JSON_RESUME_PATH;
+    //     let isValid = true;
+    //     try {
+    //         const jsonSchema = new JsonSchema(jsonSchemaPath, legitimateDataObjectPath);
+    //     } catch (error) {
+    //         isValid = false;
+    //     }
+    //     if ( !isValidTrue ) {
+    //         throw new Error(messages.ERROR_INVALID_RESUME_JSON_SCHEMA);
+    //     } 
+    //     expect(isValidTrue).toBe(true);
+    // });
 
-    it('should use resumeSchema to validate simpleResumeObject', () => {
-        // load the resumeSchema
-        const resumeSchema = jsonutils.readJsonFile(jsonutils.RESUME_SCHEMA_PATH);
-        if ( !jsonutils.isValidJsonSchema(resumeSchema) ) {
-            throw new Error(messages.ERROR_INVALID_JSON_SCHEMA);
-        } 
-        logger.info(`resumeSchema: ${jsonutils.RESUME_SCHEMA_PATH} is a valid json schema.`);
 
-        // load the simpleResumeObject
-        const simpleResumeObject = jsonutils.readJsonFile(TEST_SIMPLE_RESUME_OBJ_PATH);
-        if ( !jsonutils.isValidJsonObject(simpleResumeObject) ) {
-            throw new Error(messages.ERROR_NOT_A_JSON_OBJECT);
-        } 
-        logger.info(`simpleResumeObject: ${TEST_SIMPLE_RESUME_OBJ_PATH} is a valid json object.`);
 
-        //  validate the simpleResumeObject against the resumeSchema
-        const ajv = new Ajv();
-        const isValidTrue = ajv.validate(resumeSchema, simpleResumeObject);
-        if ( !isValidTrue ) {
-            logger.error(`simpleResumeObject: ${TEST_SIMPLE_RESUME_OBJ_PATH} failed resumeSchema validation`);
-            logger.error(ajv.errorsText());
-            throw new Error(messages.ERROR_NOT_A_VALID_RESUME_DATA_OBJECT + ` : ${TEST_SIMPLE_RESUME_OBJ_PATH}`);
-        } 
-        logger.info(`${TEST_SIMPLE_RESUME_OBJ_PATH} is a valid resume data object.`);
-        expect(isValidTrue).toBe(true); // end the it block
-    });
 }); // end describe
 

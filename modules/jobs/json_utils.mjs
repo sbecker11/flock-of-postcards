@@ -12,7 +12,8 @@ import Anthropic from '@anthropic-ai/sdk';
 dotenv.config();
 
 // Constants
-export const RESUME_SCHEMA_PATH = 'modules/jobs/resume-inputs/resume-schema.json';
+export const RESUME_JSON_SCHEMA_PATH = 'modules/jobs/resume-inputs/resume-schema.json';
+export const LEGITIMATE_JSON_RESUME_PATH = 'modules/jobs/resume-inputs/legitimate-resume.json';
 export const RESUME_DOCX_PATH = 'modules/jobs/resume-inputs/resume.docx';
 export const RESUME_DOCX_JSON_PATH = 'modules/jobs/resume-outputs/resume.docx.json';
 
@@ -60,54 +61,6 @@ export function isValidJsonObject(jsonObject) {
      }
 }
 
-export function isValidJsonSchema(schema) {
-    if (schema == null || typeof schema != 'object')  {
-        logger.warn(`schema is null or not object`);
-        return false;
-    }
-    if (schema.$schema == null || typeof schema.$schema != 'string' || schema.$schema.length == 0) {
-        logger.warn(`schema.$schema is null or not a string or empty string`);
-        return false;
-    }
-    if (schema.$schema != 'http://json-schema.org/draft/2019-09/schema' && 
-        schema.$schema != 'http://json-schema.org/draft/2020-12/schema' && 
-        schema.$schema != 'http://json-schema.org/draft-07/schema#' &&
-        schema.$schema != 'http://json-schema.org/draft-06/schema#' &&
-        schema.$schema != 'http://json-schema.org/draft-04/schema#' &&
-        schema.$schema != 'http://json-schema.org/draft-03/schema#' &&  
-        schema.$schema != 'http://json-schema.org/schema#' ) {
-        logger.warn(`${schema.$schema} doesn't match valid values`);
-        return false;
-    }
-    if ( schema.type != 'object' && 
-        schema.type != 'array' && 
-        schema.type != 'string' && 
-        schema.type != 'number' && 
-        schema.type != 'boolean' && 
-        schema.type != 'null' &&
-        schema.type != 'integer' ) {
-        logger.warn(`schema.type doesn't match valid values: ${schema.type}`);
-        return false;
-    }
-    if (schema.properties == null || typeof schema.properties != 'object' || Object.keys(schema.properties).length == 0) {  
-        logger.warn(`schema.properties is null or invalid: ${schema.properties}`);
-        return false;
-    }
-    if (schema.required == null || typeof schema.required != 'object' || Object.keys(schema.required).length == 0) {
-        logger.warn(`schema.required is null or invalid: ${schema.required}`);
-        return false;
-    }
-    // if (schema.items == null || typeof schema.items != 'object' || Object.keys(schema.items).length == 0) {
-    //     logger.warn(`schema.items is invalid: ${schema.items}`);
-    //     return false;
-    // }
-    // if (schema.additionalProperties == null || typeof schema.additionalProperties != 'boolean') {
-    //     logger.warn(`schema.additionalProperties is invalid: ${schema.additionalProperties}`);
-    //     return false;
-    // }
-    logger.info(`schema is valid with string length: ${JSON.stringify(schema).length}`);
-    return true;
-}
 
 export async function isFileFound(filePath) {
     try {
@@ -131,7 +84,7 @@ export function jsonToString(jsonObject) {
         throw new Error(messages.ERROR_UNDEFINED_OR_EMPTY_JSON_OBJECT);
     }
     if (typeof jsonObject != 'object' ) {
-        throw new Error(messages.ERROR_NOT_A_JSON_OBJECT + ` : type: ${typeof jsonObject}`);
+        throw new Error(messages.ERROR_INVALID_OR_EMPTY_DATA_OBJECT + ` : type: ${typeof jsonObject}`);
     }
     const jsonString = JSON.stringify(jsonObject, null, 2);
     return jsonString;
@@ -228,13 +181,14 @@ export async function getResumeText(resumeDocPath) {
     }
     return resumeText;
 }
+
 // single usage below
 export function get_single_spaced(str) {
     return str.replace(/\s+/g, ' ');
 }
 
 // this is the mother load!
-export async function submitPromptAndReturnDataObject(resumeText, resumeSchema) {
+export async function submitPromptAndReturnDataObject(resumeText, resumeJsonSchema) {
     // returns a validated dataObject or throws an error
     if ( !isValidNonEmptyString(resumeText) ) {
         throw new Error(messages.ERROR_INVALID_OR_EMPTY_RESUME_TEXT);
@@ -242,10 +196,10 @@ export async function submitPromptAndReturnDataObject(resumeText, resumeSchema) 
     if ( !isCompleteResumeText(resumeText) ) {
         throw new Error(messages.ERROR_INCOMPLETE_RESUME_TEXT);
     }
-    if ( !isValidJsonSchema(resumeSchema) ) {
+    if ( !isStructurallyValidResumeJsonSchema(resumeJsonSchema) ) {
         throw new Error(messages.ERROR_INVALID_OR_EMPTY_RESUME_SCHEMA);
     }
-    const resumeSchemaString = JSON.stringify(resumeSchema);
+    const resumeSchemaString = JSON.stringify(resumeJsonSchema);
     if ( !isValidNonEmptyString(resumeSchemaString) ) {
         throw new Error(messages.ERROR_INVALID_OR_EMPTY_RESUME_SCHEMA_STRING);
     }
@@ -329,42 +283,16 @@ export async function getSchema(schemaPath) {
     try {
         schema = JSON.parse(schemaString);
     } catch (e) {
-        const errorMsg = messages.ERROR_NOT_A_JSON_OBJECT;
+        const errorMsg = messages.ERROR_INVALID_OR_EMPTY_DATA_OBJECT;
         logger.error(errorMsg);
         throw new Error(errorMsg);
     }
-    if ( !isValidJsonSchema(schema) ) {
-        const errorMsg = messages.ERROR_INVALID_JSON_SCHEMA;
+    if ( !isStructurallyValidResumeJsonSchema(schema) ) {
+        const errorMsg = messages.ERROR_STRUCTURALLY_INVALID_RESUME_JSON_SCHEMA;
         logger.error(errorMsg);
         throw new Error(errorMsg);
     }
     return schema;
-}
-
-// return True if the given dataObject is valid against the given schemaObject
-export async function isDataObjectSchemaValid(dataObject, schemaObject) {
-    if ( dataObject === null || dataObject === undefined ) {
-        logger.error(`dataObject is null or undefined. return FALSE 0`);
-        return false;
-    }
-    if ( !isValidJsonObject(dataObject) ) {
-        logger.error(`isDataObjectSchemaValid dataObject type: ${typeof dataObject}`);
-        logger.error(`isDataObjectSchemaValid json-stringified dataObject stringlength: ${JSON.stringify(dataObject).length}`);
-        logger.error(`dataObject is NOT a valid json object. return FALSE 1`);
-        return false;
-    }
-    // use the schemaObject to create a validator function
-    const ajv = new Ajv();
-    const validator = ajv.compile(schemaObject);
-
-    // use the validator function to validate the dataObject against the schemaObject   
-    if ( !validator(dataObject) ) {
-        logger.error(`${ajv.errors}`);
-        logger.error(`dataObject is NOT schema-valid. return FALSE 3`);
-        return false;
-    }
-    logger.info(`dataObject is schema-valid. return TRUE`);
-    return true;
 }
 
 export async function generateAndSavedataObject() {
@@ -375,8 +303,8 @@ export async function generateAndSavedataObject() {
         logger.info(`Loading dataObject from from ${RESUME_DOCX_PATH} started...`);
         let startTime = Date.now();
         const resumeText = await getResumeText(RESUME_DOCX_PATH);
-        const resumeSchema = await getResumeSchema(RESUME_SCHEMA_PATH);
-        const dataObject = await submitPromptAndReturnDataObject(resumeText, resumeSchema);
+        const resumeJsonSchema = await getResumeSchema(RESUME_JSON_SCHEMA_PATH);
+        const dataObject = await submitPromptAndReturnDataObject(resumeText, resumeJsonSchema);
         let elapsedTime = Date.now() - startTime;
         logger.info(`... loading completed in ${elapsedTime} ms`);
 
@@ -410,8 +338,8 @@ export async function loadResumeJobs() {
             }
             return jobs;
         } else {
-            logger.error(messages.ERROR_NOT_A_VALID_RESUME_DATA_OBJECT);
-            throw new Error(messages.ERROR_NOT_A_VALID_RESUME_DATA_OBJECT);
+            logger.error(messages.ERROR_INVALID_OR_EMPTY_DATA_OBJECT);
+            throw new Error(messages.ERROR_INVALID_OR_EMPTY_DATA_OBJECT);
         }
     } catch (error) {
         const stackTrace = error.stack;
@@ -420,7 +348,6 @@ export async function loadResumeJobs() {
         throw error;
     }
 }
-
 
 // Entry point for stand-alone mode
 async function main() {

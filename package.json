@@ -14,7 +14,8 @@
     "test:schema": "echo 'Add your schema test command here'",
     "run:json_utils": "node modules/jobs/json_utils.mjs",
     "test:json_utils": "npm run prerun && npx vitest run modules/jobs/test_json_utils.mjs",
-    "run:simple": "node --trace-warnings modules/jobs/simple.mjs"
+    "run:anthropic_basic": "node --trace-warnings modules/jobs/anthropic_basic.mjs",
+    "run:resume_parser": "node --trace-warnings modules/jobs/resume_parser.mjs"
   },
   "repository": {
     "type": "git",

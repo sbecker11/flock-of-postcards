@@ -1,0 +1,53 @@
+{
+    "contactInformation": "Joe Doe - 1234 Main St, San Francisco, CA 94123 - 415-555-1234 -",
+    "positionOrProfessionalTitle": "Engineer",
+    "professionalSummary": "I know how to spell enginer",
+    "workExperience": [
+        {
+            "companyName": "Apple",
+            "location": "Cupertino, CA",
+            "duration": {
+                "start": "2017-01-01",
+                "end": "2020-01-01"
+            },
+            "positionOrTitle": "Software Engineer",
+            "responsibilities": [
+                "I wrote code",
+                "I tested code",
+                "I deployed code"
+            ]
+        },
+        {
+            "companyName": "Google",
+            "location": "Mountain View, CA",
+            "duration": {
+                "start": "2015-01-01",
+                "end": "2017-01-01"
+            },
+            "positionOrTitle": "Software Engineer",
+            "responsibilities": [
+                "I wrote code",
+                "I tested code",
+                "I deployed code"
+            ]
+        }
+    ],
+     "education": [
+        {
+            "institution": "University of California, Berkeley",
+            "degree": "B.S. in Electrical Engineering"
+        },
+        {
+            "institution": "University of California, Berkeley",
+            "degree": "M.S. in Electrical Engineering"
+        }
+    ],
+    "skills": "skill1 * skill2 * skill3",
+    "certifications": "certification1 * certification2 * certification3",
+    "publications": "publication1 * publication2 * publication3",
+    "patents": "patent1 * patent2 * patent3",
+    "websites": [
+        "https://www.google.com",
+        "https://www.facebook.com"
+    ]
+}

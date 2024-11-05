@@ -93,7 +93,7 @@
             }
         }
     },
-    "requiredProperties": [
+    "required": [
         "certifications",
         "contactInformation",
         "education",
