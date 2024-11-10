@@ -72,8 +72,7 @@ export class JsonSchema {
         this.validatorFunction = this.compileSchema(this.jsonSchema);
 
         this.checkStructurealValidity(this.jsonSchema);
-
-        this.validateJsonSchemaAgainstLegitimateDataObject(this.legitimateDataObject)
+(this.legitimateDataObject)
     }
 
     compileSchema(schemaObject) {

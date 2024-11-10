@@ -27,6 +27,20 @@
             ]
         },
         {
+            "name": "Debug anthropic_basic.mjs",
+            "type": "node",
+            "request": "launch",
+            "program": "${workspaceFolder}/modules/jobs/anthropic_basic.mjs",
+            "console": "integratedTerminal",
+            "runtimeArgs": [
+                "--experimental-modules"
+            ],
+            "sourceMaps": true,
+            "skipFiles": [
+                "<node_internals>/**"
+            ]
+        },
+        {
             "name": "Debug test_json_utils.mjs (inspect)",
             "type": "node",
             "request": "launch",

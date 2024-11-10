@@ -3,6 +3,8 @@
 
 This`flock-of-postcards` web app is a visualization tool use to explore a person's work history, education, and skills as defined in a standard resume.
 
+[![flock-of-postcards](./static_content/graphics/version-0.6.gif)](https://sbecker11.github.io/flock-of-postcards){:target="_blank"}
+
 The tool is meant to be rather chaotic, so I hope the following explaination helps.
 
 # Experience the flock
