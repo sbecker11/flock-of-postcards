@@ -1,12 +1,24 @@
-
 // @ts-nocheck
 'use strict';
 
-import * as utils from './modules/utils.mjs';
-import * as timeline from './modules/timeline.mjs';
-import * as focalPoint from './modules/focal_point.mjs';
-import * as monoColor from './modules/monoColor.mjs';
-import * as alerts from './modules/alerts.mjs';
+import { loadResumeJobs } from'./jobs/json_utils.mjs';
+const resumeJobs = await loadResumeJobs();
+if ( !resumeJobs ) {
+    throw new Error('Failed to load resume jobs');
+} 
+// uncomment this to use the new resumeJobs
+// resetResumeJobs( resumeJobs );
+
+//import './static_content/jobs/jobs.mjs';
+import './alerts.mjs';
+import './monoColor.mjs';
+import './css_colors.mjs';
+
+import * as utils from './utils.mjs';
+import * as timeline from './timeline.mjs';
+import * as focalPoint from './focal_point.mjs';
+import * as monoColor from './monoColor.mjs';
+import * as alerts from './alerts.mjs';
 
 // --------------------------------------
 // Element reference globals
@@ -35,7 +47,6 @@ const clearAllLineItemsButton = document.getElementById("clear-all-line-items");
 
 const BULLET_DELIMITER = "\u2022";
 const BULLET_JOINER = ' ' + BULLET_DELIMITER + ' '
-
 
 // --------------------------------------
 // Animation globals
@@ -202,6 +213,22 @@ function getNextBizcardDivId() {
     return nextBizcardDivId;
 }
 
+function resetResumeJobs(resumeJobs) {
+    console.log(`resetResumeJobs with ${resumeJobs.length} resumeJobs`);
+    jobs = resumeJobs;
+    resetAll();
+}
+
+function resetAll() {
+    const cardDivs = document.getElementsByClassName("card-div");
+    console.log(`resettting ${cardDivs.length} cardDivs`);
+    for (let i = 0; i < cardDivs.length; i++) {
+        const cardDiv = cardDivs[i];
+        cardDiv.remove();
+    }
+    createBizcardDivs();
+}
+
 // Use the "jobs" array to gather data used for
 // the large "business cards" floating near 
 // the ground level describing employment history.
@@ -213,7 +240,7 @@ function createBizcardDivs() {
     
     var sortedJobs = structuredClone(jobs);
     sortedJobs.sort((a,b) => new Date(b['end']) - new Date(a['end']));
-
+    console.log(`createBizcardDivs with ${sortedJobs.length} sortedJobs`);
     for (let i = 0; i < sortedJobs.length; i++) {
 
         var job = sortedJobs[ i ];
@@ -328,7 +355,7 @@ function createBizcardDivs() {
             // utils.validateString(description_raw);
             const [description_HTML, bizcardTagLinks] = process_bizcard_description_HTML(bizcardDiv, description_raw);
             bizcardDiv.setAttribute("Description", description_HTML);
-            bizcardDiv.setAttribute("TagLinks", JSON.stringify(bizcardTagLinks));
+            bizcardDiv.setAttribute("TagLinks", jsonToString(bizcardTagLinks));
         }
 
         var html = "";
@@ -755,7 +782,7 @@ function createCardDiv(bizcardDiv, tag_link) {
     cardDiv.dataset.bizcardDivDays = getBizcardDivDays(bizcardDiv);
 
     const cardDivIndex = getCardDivIndex(cardDivId) || 0;
-
+canvas
     const total_vt_distance = timeline.getTimelineHeight();
     const vt_top_to_top = total_vt_distance / ESTIMATED_NUMBER_CARD_DIVS;
     const vt_top = cardDivIndex * vt_top_to_top - vt_top_to_top / 2;

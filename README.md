@@ -3,7 +3,10 @@
 
 This`flock-of-postcards` web app is a visualization tool use to explore a person's work history, education, and skills as defined in a standard resume.
 
+[![flock-of-postcards](./static_content/graphics/version-0.6.gif)](https://sbecker11.github.io/flock-of-postcards){:target="_blank"}
+
 The tool is meant to be rather chaotic, so I hope the following explaination helps.
+
 
 # Experience the flock
 
@@ -266,8 +269,6 @@ My own work for this project is not yet finished, so here's what you'll see in t
 
 
 ### version 0.1 - May 23, 2023
-
-<img src="https://shawn.beckerstudio.com/wp-content/uploads/2023/05/flock-of-postcards.png" width="25%" height="25%"/>
 
 - randomized div sizes, locations, and z-index
 - z-index affects opacity and brightness

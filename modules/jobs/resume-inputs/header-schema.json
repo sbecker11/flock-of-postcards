@@ -1,0 +1,36 @@
+{
+    "$schema": "http://json-schema.org/draft-07/schema#",
+    "title": "resume-header",
+    "type": "object",
+    "properties": {
+        "header": {
+            "type": "object",
+            "pattern": "/^(\\w+(?:\\s\\w+)*,\\s[A-Z]{2})(?:\\s*.•\\s*(?:\\(\\d{3}\\)\\s*\\d{3}-\\d{4}|\\d{3}-\\d{3}-\\d{4}))(?:\\s*•\\s*[\\w.-]+@[\\w.-]+\\.\\w+)?$/",
+            "properties": {
+                "fullName": {
+                    "type": "string",
+                    "pattern": "^[A-Z][a-zA-Z]+(?:[-' ][A-Z][a-zA-Z]+)*$",
+                    "description": "Full name, with first letters capitalized"
+                },
+                "contactInfo": {
+                    "type": "string",
+                    "pattern": "^(\\w+(?:\\s\\w+)*,\\s[A-Z]{2})(?:\\s*\\•\\s*(?:\\(\\d{3}\\)\\s*\\d{3}-\\d{4}|\\d{3}-\\d{3}-\\d{4}))(?:\\s*\\•\\s*[\\w.-]+@[\\w.-]+\\.\\w+)?$",
+                    "description": "City, State code, followed optionally by phone number and email, separated by '•'"
+                },
+                "searchTitle": {
+                    "type": "string",
+                    "pattern": "^[A-Za-z\\s/]+$",
+                    "description": "The employment or search title, separated by spaces or slashes"
+                },
+                "intro": {
+                    "type": "string",
+                    "minLength": 200,
+                    "description": "An introductory paragraph refining the search title, at least 200 characters"
+                }
+            },
+            "required": ["fullName", "contactInfo", "searchTitle", "intro"]
+        }
+    },
+    "required": ["header"],
+    "additionalProperties": false
+}

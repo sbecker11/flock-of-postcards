@@ -1,0 +1,48 @@
+{
+    "contactInformation": "My contact information",
+    "positionOrProfessionalTitle": "My professional title",
+    "professionalSummary": "My professional summary",
+    "workExperience": [
+        {
+            "companyName": "Company Name #1",
+            "location": "Location 1",
+            "duration": {
+                "start": "2018-01-01",
+                "end": "2019-01-01"
+            },
+            "positionOrTitle": "Position or Title",
+            "responsibilities": [
+                "Responsibility 1",
+                "Responsibility 2"
+            ]
+        },
+        {
+            "companyName": "Company Name #2",
+            "location": "Location 2",
+            "duration": {
+                "start": "2017-01-01",
+                "end": "2018-01-01"
+            },
+            "positionOrTitle": "Position or Title",
+            "responsibilities": [
+                "Responsibility 1",
+                "Responsibility 2"
+            ]
+        }
+    ],
+    "education": [
+        {
+            "institution": "Institution Name #1",
+            "degree": "Degree Name #1"
+        },
+        {
+            "institution": "Institution Name #2",
+            "degree": "Degree Name #2"
+        }
+    ],
+    "skills": "Skill 1, Skill 2",
+    "certifications": "Certification 1, Certification 2",
+    "publications": "Publication 1, Publication 2", 
+    "patents": "Patent 1, Patent 2",
+    "websites": ["Website 1", "Website 2" ]
+}

@@ -1,0 +1,26 @@
+client = anthropic.Anthropic(
+    api_key=${ANTHROPIC_API_KEY}
+)
+message = client.messages.create(
+    model="claude-3-5-sonnet-20241022",
+    max_tokens=1000,
+    temperature=0,
+    system="Your task is to take the provided semi-structured text of a resume, 'resume-text', and use the provided 'json-resume-schema' text to produce a well-structured JSON-formatted version of the resume. Ensure that the extracted resume JSON data is accurately represented, properly formatted within the JSON structure and that it can be validated by the given json-resume-schema. The resulting JSON text should provide a clear, structured overview of the information presented in the original resume-text.",
+    messages=[
+        {
+            "role": "user",
+            "content": [
+                {
+                    "type": "text",
+                    "resume-text": "${RESUME_TEXT}"
+                },
+                {
+                    "type": "json-schema",
+                    "json-resume-schema": "${JSON_RESUME_SCHEMA}"
+                }
+
+            ]
+        }
+    ]
+)
+

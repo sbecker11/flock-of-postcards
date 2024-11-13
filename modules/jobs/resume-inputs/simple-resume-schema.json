@@ -1,0 +1,85 @@
+{
+    "$schema": "http://json-schema.org/draft-07/schema#",
+    "title": "Resume",
+    "type": "object",
+    "properties": {
+      "personalInfo": {
+        "type": "object",
+        "properties": {
+          "name": { "type": "string", "pattern": "^[A-Z][a-z]+(?:[-' ][A-Z][a-z]+)*\\s[A-Z][a-z]+(?:[-' ][A-Z][a-z]+)*$" },
+          "email": { "type": "string", "pattern": "^[\\w.-]+@[\\w.-]+\\.\\w+$" },
+          "phone": { "type": "string", "pattern": "^(\\+\\d{1,3}[-.]?)?\\(?\\d{3}\\)?[-.]?\\d{3}[-.]?\\d{4}$" },
+          "title": { "type": "string", "pattern": "^[A-Z][a-z]+(?:\\s(?:[A-Z]?[a-z]+|[A-Z]{2,})|[-][A-Za-z]+)*$" }
+        },
+        "required": ["name", "email", "phone", "title"]
+      },
+      "employmentHistory": {
+        "type": "array",
+        "items": {
+          "type": "object",
+          "properties": {
+            "jobHeader": {
+              "type": "object",
+              "properties": {
+                "positionTitle": { "type": "string", "pattern": "^[A-Z][a-zA-Z\\s-]+"},
+                "employerName": { "type": "string", "pattern": "at\\s[A-Z][a-zA-Z\\s&-]+"},
+                "dateRange": { "type": "string", "pattern": "\\w{3,10}\\s\\d{4}\\s*[-]\\s*\\w{3,10}\\s\\d{4}|Present" },
+                "typeOfWork": { "type": "string", "enum": ["Full-Time", "Part-Time", "Contract", "Internship"] },
+                "location": { "type": "string", "pattern": "in\\s[A-Za-z\\s,]+" }
+              },
+              "required": ["positionTitle", "employerName", "dateRange", "typeOfWork", "location"]
+            },
+            "responsibilities": {
+              "type": "array",
+              "items": { "type": "string" }
+            }
+          },
+          "required": ["jobHeader", "responsibilities"]
+        }
+      },
+      "educationSection": {
+        "type": "object",
+        "properties": {
+          "degrees": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "university": { "type": "string", "pattern": "^[A-Z][a-zA-Z\\s-]+"},
+                "location": { "type": "string", "pattern": "^[A-Za-z\\s,]+$"},
+                "degree": { "type": "string", "pattern": "^[A-Z][a-zA-Z\\s-]+"},
+                "major": { "type": "string", "pattern": "^[A-Z][a-zA-Z\\s-]+"},
+                "dateRange": { "type": "string", "pattern": "^\\(\\d{4}\\s*-\\s*\\d{4}\\)|Present$" }
+              },
+              "required": ["university",  "degree", "major"]
+            }
+          }
+        },
+        "required": ["degrees"]
+      },
+      "publications": {
+        "type": "array",
+        "items": {
+          "type": "object",
+          "properties": {
+            "title": { "type": "string", "pattern": "^[A-Z][a-zA-Z\\s-]+" },
+            "authors": { "type": "string", "pattern": "by\\s[A-Z][a-zA-Z\\s-]+" },
+            "publicationDate": { "type": "string", "pattern": "\\(\\d{4}\\)" },
+            "url": { "type": "string", "pattern": "^(https?|ftp)://[\\w.-]+(?:\\.[\\w\\.-]+)+[/#?]?.*$" }
+          },
+          "required": ["title", "authors", "publicationDate", "url"]
+        }
+      },
+      "skills": {
+        "type": "array",
+        "items": {
+            "type": "string",
+            "pattern": "^(?:[*•●-])\\s.+?[.!?]$"
+          },
+          "minItems": 1,
+          "uniqueItems": true
+        }
+    },
+    "required": ["personalInfo", "employmentHistory", "educationSection"]
+  }
+  

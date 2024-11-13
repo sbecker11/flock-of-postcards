@@ -1,5 +1,14 @@
 {
     "liveServer.settings.port": 5501,
     "CodeGPT.Autocomplete.enabled": false,
-    "CodeGPT.apiKey": "CodeGPT Plus Beta"
+    "CodeGPT.apiKey": "OpenAI",
+    "editor.bracketPairColorization.enabled": true,
+    "workbench.colorCustomizations": {
+        "editorBracketHighlight.foreground1": "#FF0000", // Red
+        "editorBracketHighlight.foreground2": "#00FF00", // Green
+        "editorBracketHighlight.foreground3": "#878587", // Blue
+        "editorBracketHighlight.foreground4": "#FFFF00", // Yellow
+        "editorBracketHighlight.foreground5": "#FF00FF", // Magenta
+        "editorBracketHighlight.foreground6": "#00FFFF"  // Cyan
+    }
 }

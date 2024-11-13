@@ -1,11 +1,20 @@
 {
   "name": "flock-of-postcards",
-  "version": "version-0.8",
+  "version": "0.8.0",
   "description": "Dark, chaotic, and deep. This app creates an animated flock of postcards from a resume. The resume is defined as a job.xlsx file where each row describes a job, with start/end dates and a descriptive paragraph that includes links to related skills. Each job is visualized as a large business card. Each skill is visualized as smaller chips. The flock is rendered in the left panel with motion parallax as the mouse is moved around. Skill chips fly above the darker business cards. The right panel shows a readable version of selected jobs and skills.",
-  "main": "main.mjs",
+  "main": "index.mjs",
   "type": "module",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "start": "node modules/index.mjs",
+    "build": "echo 'Add your build process here'",
+    "test": "npm run prerun && npm run eslint && npx vitest --run --config ./vitest.config.js",
+    "eslint": "npx eslint 'modules/jobs/*.mjs'",
+    "prerun": "./pre_run_checks.sh",
+    "test:sorted-js-module": "npm run prerun && vitest run modules/jobs/sorted-js-module_test.mjs",
+    "run:json_utils": "node modules/jobs/json_utils.mjs",
+    "test:json_utils": "npm run prerun && npx vitest run modules/jobs/test_json_utils.mjs",
+    "run:anthropic_basic": "node --trace-warnings modules/jobs/anthropic_basic.mjs",
+    "run:resume_parser": "node --trace-warnings modules/jobs/resume_parser.mjs"
   },
   "repository": {
     "type": "git",
@@ -23,8 +32,28 @@
   },
   "homepage": "https://github.com/sbecker11/flock-of-postcards#readme",
   "dependencies": {
-    "dayjs": "^1.11.10",
+    "@anthropic-ai/sdk": "^0.32.1",
+    "ajv": "^8.12.0",
+    "cookies": "^0.9.1",
+    "dayjs": "^1.11.12",
+    "docx": "^8.5.0",
+    "dotenv": "^16.4.5",
+    "eslint": "^9.9.0",
     "fs": "^0.0.1-security",
-    "xlsx": "^0.18.5"
+    "js-yaml": "^4.1.0",
+    "jso": "^4.1.1",
+    "json": "^11.0.0",
+    "jsonschema": "^1.4.1",
+    "mammoth": "^1.8.0",
+    "minimist": "^1.2.8",
+    "officeparser": "^5.0.0",
+    "pdf-parse": "^1.1.1",
+    "punycode": "^2.3.1",
+    "winston": "^3.14.2",
+    "yargs": "^17.7.2"
+  },
+  "devDependencies": {
+    "jest": "^29.7.0",
+    "vitest": "^2.1.3"
   }
 }

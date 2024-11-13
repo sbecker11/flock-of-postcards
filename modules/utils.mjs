@@ -395,7 +395,7 @@ export function getStyleProps(element) {
 
 export function getStylePropsString(styleProps) {
     validateIsStyleProps(styleProps);
-    return JSON.stringify(styleProps,null,2);
+    return jsonToString(styleProps,null,2);
 }
 
 // z-index and background-color are styleProps
