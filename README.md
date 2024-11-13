@@ -7,6 +7,7 @@ This`flock-of-postcards` web app is a visualization tool use to explore a person
 
 The tool is meant to be rather chaotic, so I hope the following explaination helps.
 
+
 # Experience the flock
 
 Large `business cards`are used to describe various jobs, each with its role, employer, and time period. The size of each `biz card` is defined by its start and end dates. These cards are large, massive, slow moving, and far away from your view, and each `biz card` is surrounded by its flock of smaller `skill cards`that hovers around it.
