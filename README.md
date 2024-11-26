@@ -1,7 +1,9 @@
 # flock-of-postcards  
 # Dark, chaotic, and deep  
 
-The `flock` is a glorified resume describing my own work history and skills over my career timeline.
+The `flock of postcards` app is a resume viewer describing anyone's work history and skills over their career timeline.
+
+![the flock](static_content/graphics/version-0.6-50.gif)
 
 Large `business cards`are used to describe various jobs, each with its role, 
 employer, and time period. These cards are larger, slowing moving, and further away from your view. Each `business card` is surrounded by its flock of
