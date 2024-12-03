@@ -21,19 +21,21 @@ Each skill is marked up in with \[square brackets\] in the spreadsheet descripti
 
 Web links are marked up with \(parens\) in the spreadsheet and are displayed with clickable world wide web icons <img src="static_content/icons/icons8-url-16-white.ico">. 
 
-Image links are marked up with  \{curly braces\} in the spreadheet and are displayed as clickable image icons <img src="static_content/icons/icons8-img-16-white.png'>. 
+Image links are marked up with  \{curly braces\} in the spreadheet and are displayed as clickable image icons <img src='static_content/icons/icons8-img-16-white.png'>. 
 
 A `skill card` is created for each \[square\] bracketed phrase in the job description. A skill is typically used over many jobs, so each `skill card` has 
-one or more return icons <img src="static_content/icons/icons8-back-16-black.png"> that serve as clickable links back to jobs that used that skill. The number 
+one or more return icons <img src='static_content/icons/icons8-back-16-white.png'> that serve as clickable links back to jobs that used that skill. The number 
 of return icons indicates the number of jobs and the amount of time used to hone that skill.
 
 
 # Run the `flock-of-postcards` career resume web app using VSCode
 
 ## Clone this repo to your local development folder  
-`cd <your-local-dev-folder>`
-`git clone git@github.com:sbecker11/flock-of-postcards.git`
-`cd <your-local-dev-folder>/fock-of-postcards`
+```
+cd <your-local-dev-folder>
+git clone git@github.com:sbecker11/flock-of-postcards.git
+cd <your-local-dev-folder>/fock-of-postcards
+```
  
 ## Install VSCode + LiverServer  
 
@@ -42,7 +44,7 @@ The `flock-of-postcards` webapp uses ES6 Modules. This requires that you have an
 LiveServer is an ultra light weight webserver that works with Google Chrome browser. Installation of Vscode IDE and the LiveServer extension is easy-peasy.  
 
 - Install the  <a href="https://code.visualstudio.com">vscode IDE</a> on your local OS.    
-<a href="https://code.visualstudio.com/"><img src="static_content/icons/vscode-IDE-logo.png"/></a>
+<a href="https://code.visualstudio.com/"><img src='static_content/icons/vscode-IDE-logo.png'/></a>
 
 - Start vscode and open the newly cloned `flock-of-postcards` folder in vscode  
 
@@ -54,7 +56,7 @@ LiveServer is an ultra light weight webserver that works with Google Chrome brow
 
 
 - Click the "explorer" icon at the top left of vscode to explore your local filesystem  
-<img src="https://shawn.beckerstudio.com/wp-content/uploads/2023/07/vscode-explorer-icon.png"/>  
+<img src="static_content/icons/vscode-explorer-icon.png"/>  
 
 - Click the "Go Live" button at the bottom right in vscode to start the vscode-embedded webserver  
 <img src="static_content/icons/vscode-go-live-icon.png"/> 
@@ -73,10 +75,12 @@ But wouldn't it be better to configure the app to show off your own illustrious 
  # How to customize the webapp to show your own illustrious career
 
 - Go to the project's local home folder
-`cd <your-local-dev-folder>/fock-of-postcards`
+`cd <your-local-dev-folder>/flock-of-postcards`
 
 - Go to jobs folder
 `cd static_content/jobs`
+- Backup the original `jobs.xlsx` file for reference
+`cp jobs.xlsx jobs.xlsx.bak`
 
 - Edit the `jobs.xlsx` Microsoft Excel spreadsheet file
 
@@ -88,7 +92,7 @@ need to fill out:
 * role  
 * employer  
 * start      (YYYY-MM-DD)  
-* end        (YYYY-MM-DD)  
+* end        (YYYY-MM-DD) or CURRENT_DATE - if still working
 * z-index    (from 1 to 3)
 * css name	 (darkgreen)
 * css RGB	   (#006900)
@@ -103,8 +107,11 @@ The `description` cell holds an arbitrary length bulleted job description. As de
 
 - Save your updated Excel file
 
-- Go back to your shell and run the python script that converts the Excel jobs spreadsheet file `jobs.xlsx` into a NodeJS module file `jobs.mjs`:
-`python xlsx2mjs.py`
+- Go back to your shell, set up the python evironment, and run the python script that converts the Excel jobs spreadsheet file `jobs.xlsx` into a NodeJS module file `jobs.mjs`.
+```
+pip install -r requirements.txt
+python xlsx2mjs.py
+```
 
 If the app is already running, it will re-load the `jobs.mjs` file. 
 
@@ -234,7 +241,7 @@ If the app is already running, it will re-load the `jobs.mjs` file.
 
 ### version 0.1 - May 23, 2023
 
-<img src="https://shawn.beckerstudio.com/wp-content/uploads/2023/05/flock-of-postcards.png" width="25%" height="25%"/>
+<img src="static_content/graphics/version-0.6.gif" width="25%" height="25%"/>
 
 - randomized div sizes, locations, and z-index
 - z-index affects opacity and brightness
