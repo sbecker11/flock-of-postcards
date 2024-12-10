@@ -6,6 +6,8 @@ var _focalPointNowSubpixelPrecision;
 var _focalPointAim;
 var _focalPointListener;
 var _isAnimating;
+var _isDraggable = false;
+var _isDragging = false;
 
 // -----------------------------------------------------
 // save the caller's canvasContainer and focalPointElement.
@@ -14,12 +16,24 @@ var _isAnimating;
 //
 export function createFocalPoint(
     focalPointElement,
-    focalPointListener
+    focalPointListener,
+    isDraggable=false
 ) {
     _focalPointElement = focalPointElement;
     _focalPointNowSubpixelPrecision = getFocalPoint();
     _focalPointListener = focalPointListener;
     _isAnimating = false;
+    if ( isDraggable ) {
+        _isDraggable = true;
+        _isDragging = false;
+
+        const newFocalPointElement = document.createElement('div');
+        newFocalPointElement.classList.add('focal-point');
+        newFocalPointElement.classList.add('draggable');
+        focalPointElement.parentNode.replaceChild(newFocalPointElement, focalPointElement);
+        _focalPointElement = newFocalPointElement
+        _focalPointElement.addEventListener('mousedown', onMouseDown);
+    }
 }
 
 // get the canvasContainer-relative
@@ -46,6 +60,7 @@ export function moveFocalPointTo(x, y) {
     // alternative
     // see https://stackoverflow.com/a/53892597
     _focalPointElement.style.transform = `translate(${x}px, ${y}px)`;
+    console.log("focal_point x:", x, "y:", y);
 
     // notify the caller's listener
     _focalPointListener(x, y);
@@ -60,6 +75,8 @@ export function easeFocalPointTo(x, y, callback) {
 
 export function drawFocalPointAnimationFrame() {
     if (!_isAnimating) return;
+
+    if (_isDraggable && _isDragging ) return;
 
     const focalPointNow = getFocalPoint();
 
@@ -96,4 +113,39 @@ function computeAStepCloserToAimSubpixelPrecision(nowPoint, aimPoint, easing, ep
         x: nowPoint.x + vx,
         y: nowPoint.y + vy,
     };
+}
+
+function onMouseDown(event) {
+    if ( !_isDraggable ) return;
+
+    _isDragging = true;
+    _isAnimating = false;
+
+    document.body.style.pointerEvents = 'none'; // Disable pointer events on other elements
+    document.body.style.userSelect = 'none'; // Disable text selection
+
+    document.addEventListener('mousemove', onMouseDrag);
+    document.addEventListener('mouseup', onMouseUp, { once: true });
+}
+
+function onMouseDrag(event) {
+    if ( !_isDraggable ) return;
+
+    if (_isDragging) {
+        moveFocalPointTo(event.pageX, event.pageY);
+    }
+}
+
+function onMouseUp(event) {
+    if ( !_isDraggable ) return;
+
+    _isDragging = false;
+    document.body.style.pointerEvents = 'auto'; // Re-enable pointer events on other elements
+    document.body.style.userSelect = 'auto'; // Re-enable text selection
+   
+    moveFocalPointTo(event.pageX, event.pageY);
+
+    document.removeEventListener('mousemove', onMouseDrag);
+
+    easeFocalPointTo(event.pageX, event.pageY);
 }

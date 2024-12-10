@@ -2132,7 +2132,8 @@ function getMinMaxTimelineYears(jobs) {
 
 function handleWindowLoad() {
     const focal_point = document.getElementById("focal-point");
-    focalPoint.createFocalPoint(focal_point, focalPointListener);
+    const isDraggable = true;
+    focalPoint.createFocalPoint(focal_point, focalPointListener, isDraggable);
 
     const timelineContainer = document.getElementById("timeline-container");
 
