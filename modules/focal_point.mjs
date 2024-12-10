@@ -6,6 +6,9 @@ var _focalPointNowSubpixelPrecision;
 var _focalPointAim;
 var _focalPointListener;
 var _isAnimating;
+var _isDraggable = false;
+var _isDragging = false;
+
 
 // -----------------------------------------------------
 // save the caller's canvasContainer and focalPointElement.
@@ -17,14 +20,21 @@ export function createFocalPoint(
     focalPointListener
 ) {
     _focalPointElement = focalPointElement;
-    _focalPointNowSubpixelPrecision = getFocalPoint();
+    _focalPointNowSubpixelPrecision = getFocalPointCenter();
     _focalPointListener = focalPointListener;
     _isAnimating = false;
+    _isDraggable = false;
+    _isDragging = false;
+
+    // Add drag event listeners for dragging
+    if ( _isDraggable ) {
+        _focalPointElement.addEventListener('mousedown', onMouseDown);
+    }
 }
 
 // get the canvasContainer-relative
 // location of the _focalPointElement center
-export function getFocalPoint() {
+export function getFocalPointCenter() {
     return {
         x:
             _focalPointElement.offsetLeft
@@ -59,9 +69,12 @@ export function easeFocalPointTo(x, y, callback) {
 }
 
 export function drawFocalPointAnimationFrame() {
-    if (!_isAnimating) return;
 
-    const focalPointNow = getFocalPoint();
+    if (!_isAnimating ) return;
+    if ( _isDraggable && _isDragging ) return;
+    
+    const startTime = performance.now();
+    const focalPointNow = getFocalPointCenter();
 
     // exit early if we're at the destination already
     if (focalPointNow.x === _focalPointAim.x && focalPointNow.y === _focalPointAim.y) {
@@ -76,10 +89,12 @@ export function drawFocalPointAnimationFrame() {
         EPSILON
     );
 
-    moveFocalPointTo(
-        Math.round(_focalPointNowSubpixelPrecision.x),
-        Math.round(_focalPointNowSubpixelPrecision.y)
-    );
+    const endTime = performance.now();
+    const duration = endTime - startTime;
+
+    if (duration > 16) { // 16ms for 60fps
+        console.warn(`[Violation] 'drawFocalPointAnimationFrame' handler took ${duration.toFixed(2)}ms`);
+    }
 }
 
 function computeAStepCloserToAimSubpixelPrecision(nowPoint, aimPoint, easing, epsilon) {
@@ -96,4 +111,39 @@ function computeAStepCloserToAimSubpixelPrecision(nowPoint, aimPoint, easing, ep
         x: nowPoint.x + vx,
         y: nowPoint.y + vy,
     };
+}
+
+function onMouseDown(event) {
+    if ( !_isDraggable ) return;
+
+    _isDragging = true;
+    _isAnimating = false;
+
+    document.body.style.pointerEvents = 'none'; // Disable pointer events on other elements
+    document.body.style.userSelect = 'none'; // Disable text selection
+
+    document.addEventListener('mousemove', onMouseDrag);
+    document.addEventListener('mouseup', onMouseUp, { once: true });
+}
+
+function onMouseDrag(event) {
+    if ( !_isDraggable ) return;
+
+    if (_isDragging) {
+        moveFocalPointTo(event.pageX, event.pageY);
+    }
+}
+
+function onMouseUp(event) {
+    if ( !_isDraggable ) return;
+
+    _isDragging = false;
+    document.body.style.pointerEvents = 'auto'; // Re-enable pointer events on other elements
+    document.body.style.userSelect = 'auto'; // Re-enable text selection
+   
+    moveFocalPointTo(event.pageX, event.pageY);
+
+    document.removeEventListener('mousemove', onMouseDrag);
+
+    easeFocalPointTo(event.pageX, event.pageY);
 }

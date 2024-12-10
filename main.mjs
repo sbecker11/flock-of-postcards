@@ -2131,6 +2131,8 @@ function getMinMaxTimelineYears(jobs) {
 }
 
 function handleWindowLoad() {
+    // use getElementByIdfor undraggable
+    // use getElementByClassfor draggable
     const focal_point = document.getElementById("focal-point");
     focalPoint.createFocalPoint(focal_point, focalPointListener);
 
@@ -2432,6 +2434,27 @@ addCanvasContainerEventListener('click', handleCanvasContainerMouseClick);
 export function onCloseWelcomeAlert() {
     selectAllBizcards();
     addAllIconClickListeners();
+
+    countFocalLengthElements();
+    countDuplicateCardDivs();
     // logAllBizcardDivs();
     // utils.testColorFunctions();
+}
+
+function countDuplicateCardDivs() {
+    const cardDivs = document.querySelectorAll('div.card-div');
+    const cardDivIds = Array.from(cardDivs).map(div => div.id);
+    const duplicates = cardDivIds.filter((id, index) => cardDivIds.indexOf(id) !== index);
+
+    if (duplicates.length > 0) {
+      console.log('Duplicate .card-div elements found with IDs:', duplicates);
+    } else {
+      console.log('No duplicate .card-div elements found.');
+    }
+}
+
+function countFocalLengthElements() {
+    const focalLengthElements = document.querySelectorAll('.focal-length');
+    const count = focalLengthElements.length;
+    console.log(`Number of .focal-length elements: ${count}`);
 }

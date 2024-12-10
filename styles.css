@@ -58,6 +58,7 @@ overflow and ensures consistent sizing.
   color: gray;
 }
 
+/* by id for undraggable */
 #focal-point {
   position: absolute;
   width: 25px;
@@ -72,6 +73,34 @@ overflow and ensures consistent sizing.
   font-size: 31px;
   font-weight: 700;
   color: gray;
+}
+
+/* by class for graggable */
+.focal-point .draggable {
+  position: absolute;
+  padding: 0px;
+  gap: 0px;
+  top: -7px;
+  left: 0px;
+  width: 29px;
+  height: 29px;
+  border-radius: 50%;
+  border: 2px solid gray;
+  z-index: 999;
+  color: gray;
+  font-size: 21px;
+  /* display: flex; or inline-flex */
+  /* align-items: center; */
+  /* justify-content: center; */
+  pointer-events: auto;
+  cursor: grab; /* Change cursor to indicate draggable element */
+  background-color: transparent; /* Add a background color for visibility */
+
+  /*
+  font-size: 31px; 
+  font-weight: 700; 
+  color: gray; 
+  */
 }
 
 
