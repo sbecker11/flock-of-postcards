@@ -27,12 +27,10 @@ export function createFocalPoint(
         _isDraggable = true;
         _isDragging = false;
 
-        const newFocalPointElement = document.createElement('div');
-        newFocalPointElement.classList.add('focal-point');
-        newFocalPointElement.classList.add('draggable');
-        focalPointElement.parentNode.replaceChild(newFocalPointElement, focalPointElement);
-        _focalPointElement = newFocalPointElement
+        _focalPointElement.classList.add('draggable-focal-point');
         _focalPointElement.addEventListener('mousedown', onMouseDown);
+    } else {
+        _focalPointElement.classList.add('non-draggable-focal-point');
     }
 }
 
@@ -60,9 +58,9 @@ export function moveFocalPointTo(x, y) {
     // alternative
     // see https://stackoverflow.com/a/53892597
     _focalPointElement.style.transform = `translate(${x}px, ${y}px)`;
-    console.log("focal_point x:", x, "y:", y);
 
     // notify the caller's listener
+    console.log("move x:",x,"y:",y);
     _focalPointListener(x, y);
 }
 
@@ -118,6 +116,8 @@ function computeAStepCloserToAimSubpixelPrecision(nowPoint, aimPoint, easing, ep
 function onMouseDown(event) {
     if ( !_isDraggable ) return;
 
+    console.log("down x:", event.pageX, "y:", event.pageY);
+
     _isDragging = true;
     _isAnimating = false;
 
@@ -132,12 +132,15 @@ function onMouseDrag(event) {
     if ( !_isDraggable ) return;
 
     if (_isDragging) {
+        console.log("drag x:", event.pageX, "y:", event.pageY);
         moveFocalPointTo(event.pageX, event.pageY);
     }
 }
 
 function onMouseUp(event) {
     if ( !_isDraggable ) return;
+
+    console.log("up x:", event.pageX, "y:", event.pageY);
 
     _isDragging = false;
     document.body.style.pointerEvents = 'auto'; // Re-enable pointer events on other elements
@@ -147,5 +150,6 @@ function onMouseUp(event) {
 
     document.removeEventListener('mousemove', onMouseDrag);
 
+    console.log("ease x:", event.pageX, "y:", event.pageY);
     easeFocalPointTo(event.pageX, event.pageY);
 }

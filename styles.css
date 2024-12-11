@@ -71,30 +71,16 @@ overflow and ensures consistent sizing.
   font-weight: 700;
   color: gray;
   background-color: transparent; /* Add a background color for visibility */
-  pointer-events: none;
   display: flex; /* or inline-flex */
   align-items: center; 
   justify-content: center;
 }
 
-/* by class for graggable */
-.focal-point .draggable {
-  top: -18px;
-  left: -9px;
-  position: absolute;
-  width: 25px;
-  height: 25px;
-  border-radius: 50%;
-  border: 2px solid gray;
-  z-index: 99;
-  font-size: 31px;
-  font-weight: 700;
-  color: gray;
-  background-color: transparent; /* Add a background color for visibility */
-  /* pointer-events: none; */
-  /* display: flex; or inline-flex */
-  /* align-items: center; */
-  /* justify-content: center; */
+.non-draggable-focal-point {
+  pointer-events: none;
+}
+
+.draggable-focal-point {
   pointer-events: auto;
   cursor: grab; 
 }
