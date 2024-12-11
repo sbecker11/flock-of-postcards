@@ -31,7 +31,10 @@
         <div id="timeline-container" class="timeline-container-left"></div>
       </div>
       <div id="bulls-eye">+</div>
-      <div id="focal-point">⦻</div>
+      <!-- by id for undraggable -->
+      <div id="focal-point">&nbsp;⦻&nbsp;</div>
+      <!-- by class for draggable -->
+      <!-- <div id="focal-point" class="focal-point">&nbsp;⦻&nbsp;</div> -->
     </div>
 
     <div id="right-column" class="column-50">
@@ -67,7 +70,7 @@
         <div style="display: flex; justify-content: space-between; align-items: center;">
             <p class="footnote" style="margin: 0;">
                 create a flock-of-postcards for yours own resume at
-                <a target="_blank" href="https://www.beckerstudio.com/">beckerstudio.com</a><br>
+                <a target="_blank" href="https://www.github.com/sbecker11/flock-of-postcards/">github:flock-of-postcards</a><br>
             </p>
             <div>
                 <img id="monoColorIcon" src="static_content/icons/greys.png" alt="MonoCoolor Icon" width="16" height="16" onclick="toggleMonoColor();" style="cursor: pointer;">

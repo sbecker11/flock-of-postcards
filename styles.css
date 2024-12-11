@@ -58,6 +58,7 @@ overflow and ensures consistent sizing.
   color: gray;
 }
 
+/* by id for undraggable */
 #focal-point {
   top: -18px;
   left: -9px;

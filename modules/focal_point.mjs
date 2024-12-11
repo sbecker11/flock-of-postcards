@@ -20,9 +20,10 @@ export function createFocalPoint(
     isDraggable=false
 ) {
     _focalPointElement = focalPointElement;
-    _focalPointNowSubpixelPrecision = getFocalPoint();
+    _focalPointNowSubpixelPrecision = getFocalPointCenter();
     _focalPointListener = focalPointListener;
     _isAnimating = false;
+
     if ( isDraggable ) {
         _isDraggable = true;
         _isDragging = false;
@@ -36,7 +37,7 @@ export function createFocalPoint(
 
 // get the canvasContainer-relative
 // location of the _focalPointElement center
-export function getFocalPoint() {
+export function getFocalPointCenter() {
     return {
         x:
             _focalPointElement.offsetLeft
@@ -72,11 +73,11 @@ export function easeFocalPointTo(x, y, callback) {
 }
 
 export function drawFocalPointAnimationFrame() {
-    if (!_isAnimating) return;
 
-    if (_isDraggable && _isDragging ) return;
-
-    const focalPointNow = getFocalPoint();
+    if (!_isAnimating ) return;
+    if ( _isDraggable && _isDragging ) return;
+    
+    const focalPointNow = getFocalPointCenter();
 
     // exit early if we're at the destination already
     if (focalPointNow.x === _focalPointAim.x && focalPointNow.y === _focalPointAim.y) {
@@ -89,11 +90,6 @@ export function drawFocalPointAnimationFrame() {
         _focalPointAim,
         EASING,
         EPSILON
-    );
-
-    moveFocalPointTo(
-        Math.round(_focalPointNowSubpixelPrecision.x),
-        Math.round(_focalPointNowSubpixelPrecision.y)
     );
 }
 
@@ -132,7 +128,9 @@ function onMouseDrag(event) {
     if ( !_isDraggable ) return;
 
     if (_isDragging) {
+
         console.log("drag x:", event.pageX, "y:", event.pageY);
+
         moveFocalPointTo(event.pageX, event.pageY);
     }
 }
@@ -149,6 +147,7 @@ function onMouseUp(event) {
     moveFocalPointTo(event.pageX, event.pageY);
 
     document.removeEventListener('mousemove', onMouseDrag);
+
 
     console.log("ease x:", event.pageX, "y:", event.pageY);
     easeFocalPointTo(event.pageX, event.pageY);
