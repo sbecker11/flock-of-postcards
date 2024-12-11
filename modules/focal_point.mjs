@@ -9,9 +9,12 @@ var _isAnimating;
 var _isDraggable = false;
 var _isDragging = false;
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 
 >>>>>>> 5e16eb7567c822e72a0995478f126031603d296b
+=======
+>>>>>>> 959434c92124212e62909cecad67970fa9619217
 
 // -----------------------------------------------------
 // save the caller's canvasContainer and focalPointElement.
@@ -78,16 +81,21 @@ export function easeFocalPointTo(x, y, callback) {
 export function drawFocalPointAnimationFrame() {
 
 <<<<<<< HEAD
+<<<<<<< HEAD
     if (_isDraggable && _isDragging ) return;
 
     const focalPointNow = getFocalPoint();
 =======
+=======
+>>>>>>> 959434c92124212e62909cecad67970fa9619217
     if (!_isAnimating ) return;
     if ( _isDraggable && _isDragging ) return;
     
-    const startTime = performance.now();
     const focalPointNow = getFocalPointCenter();
+<<<<<<< HEAD
 >>>>>>> 5e16eb7567c822e72a0995478f126031603d296b
+=======
+>>>>>>> 959434c92124212e62909cecad67970fa9619217
 
     // exit early if we're at the destination already
     if (focalPointNow.x === _focalPointAim.x && focalPointNow.y === _focalPointAim.y) {
@@ -101,13 +109,6 @@ export function drawFocalPointAnimationFrame() {
         EASING,
         EPSILON
     );
-
-    const endTime = performance.now();
-    const duration = endTime - startTime;
-
-    if (duration > 16) { // 16ms for 60fps
-        console.warn(`[Violation] 'drawFocalPointAnimationFrame' handler took ${duration.toFixed(2)}ms`);
-    }
 }
 
 function computeAStepCloserToAimSubpixelPrecision(nowPoint, aimPoint, easing, epsilon) {
@@ -130,10 +131,15 @@ function onMouseDown(event) {
     if ( !_isDraggable ) return;
 
 <<<<<<< HEAD
+<<<<<<< HEAD
     console.log("down x:", event.pageX, "y:", event.pageY);
 
 =======
 >>>>>>> 5e16eb7567c822e72a0995478f126031603d296b
+=======
+    console.log("down x:", event.pageX, "y:", event.pageY);
+
+>>>>>>> 959434c92124212e62909cecad67970fa9619217
     _isDragging = true;
     _isAnimating = false;
 
@@ -149,9 +155,15 @@ function onMouseDrag(event) {
 
     if (_isDragging) {
 <<<<<<< HEAD
+<<<<<<< HEAD
         console.log("drag x:", event.pageX, "y:", event.pageY);
 =======
 >>>>>>> 5e16eb7567c822e72a0995478f126031603d296b
+=======
+
+        console.log("drag x:", event.pageX, "y:", event.pageY);
+
+>>>>>>> 959434c92124212e62909cecad67970fa9619217
         moveFocalPointTo(event.pageX, event.pageY);
     }
 }
@@ -160,10 +172,15 @@ function onMouseUp(event) {
     if ( !_isDraggable ) return;
 
 <<<<<<< HEAD
+<<<<<<< HEAD
     console.log("up x:", event.pageX, "y:", event.pageY);
 
 =======
 >>>>>>> 5e16eb7567c822e72a0995478f126031603d296b
+=======
+    console.log("up x:", event.pageX, "y:", event.pageY);
+
+>>>>>>> 959434c92124212e62909cecad67970fa9619217
     _isDragging = false;
     document.body.style.pointerEvents = 'auto'; // Re-enable pointer events on other elements
     document.body.style.userSelect = 'auto'; // Re-enable text selection
@@ -173,6 +190,7 @@ function onMouseUp(event) {
     document.removeEventListener('mousemove', onMouseDrag);
 
 <<<<<<< HEAD
+<<<<<<< HEAD
     console.log("ease x:", event.pageX, "y:", event.pageY);
     easeFocalPointTo(event.pageX, event.pageY);
 }
@@ -180,3 +198,9 @@ function onMouseUp(event) {
     easeFocalPointTo(event.pageX, event.pageY);
 }
 >>>>>>> 5e16eb7567c822e72a0995478f126031603d296b
+=======
+
+    console.log("ease x:", event.pageX, "y:", event.pageY);
+    easeFocalPointTo(event.pageX, event.pageY);
+}
+>>>>>>> 959434c92124212e62909cecad67970fa9619217
