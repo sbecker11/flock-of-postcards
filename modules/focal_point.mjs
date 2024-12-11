@@ -8,6 +8,10 @@ var _focalPointListener;
 var _isAnimating;
 var _isDraggable = false;
 var _isDragging = false;
+<<<<<<< HEAD
+=======
+
+>>>>>>> 5e16eb7567c822e72a0995478f126031603d296b
 
 // -----------------------------------------------------
 // save the caller's canvasContainer and focalPointElement.
@@ -20,7 +24,7 @@ export function createFocalPoint(
     isDraggable=false
 ) {
     _focalPointElement = focalPointElement;
-    _focalPointNowSubpixelPrecision = getFocalPoint();
+    _focalPointNowSubpixelPrecision = getFocalPointCenter();
     _focalPointListener = focalPointListener;
     _isAnimating = false;
     if ( isDraggable ) {
@@ -36,7 +40,7 @@ export function createFocalPoint(
 
 // get the canvasContainer-relative
 // location of the _focalPointElement center
-export function getFocalPoint() {
+export function getFocalPointCenter() {
     return {
         x:
             _focalPointElement.offsetLeft
@@ -72,11 +76,18 @@ export function easeFocalPointTo(x, y, callback) {
 }
 
 export function drawFocalPointAnimationFrame() {
-    if (!_isAnimating) return;
 
+<<<<<<< HEAD
     if (_isDraggable && _isDragging ) return;
 
     const focalPointNow = getFocalPoint();
+=======
+    if (!_isAnimating ) return;
+    if ( _isDraggable && _isDragging ) return;
+    
+    const startTime = performance.now();
+    const focalPointNow = getFocalPointCenter();
+>>>>>>> 5e16eb7567c822e72a0995478f126031603d296b
 
     // exit early if we're at the destination already
     if (focalPointNow.x === _focalPointAim.x && focalPointNow.y === _focalPointAim.y) {
@@ -91,10 +102,12 @@ export function drawFocalPointAnimationFrame() {
         EPSILON
     );
 
-    moveFocalPointTo(
-        Math.round(_focalPointNowSubpixelPrecision.x),
-        Math.round(_focalPointNowSubpixelPrecision.y)
-    );
+    const endTime = performance.now();
+    const duration = endTime - startTime;
+
+    if (duration > 16) { // 16ms for 60fps
+        console.warn(`[Violation] 'drawFocalPointAnimationFrame' handler took ${duration.toFixed(2)}ms`);
+    }
 }
 
 function computeAStepCloserToAimSubpixelPrecision(nowPoint, aimPoint, easing, epsilon) {
@@ -116,8 +129,11 @@ function computeAStepCloserToAimSubpixelPrecision(nowPoint, aimPoint, easing, ep
 function onMouseDown(event) {
     if ( !_isDraggable ) return;
 
+<<<<<<< HEAD
     console.log("down x:", event.pageX, "y:", event.pageY);
 
+=======
+>>>>>>> 5e16eb7567c822e72a0995478f126031603d296b
     _isDragging = true;
     _isAnimating = false;
 
@@ -132,7 +148,10 @@ function onMouseDrag(event) {
     if ( !_isDraggable ) return;
 
     if (_isDragging) {
+<<<<<<< HEAD
         console.log("drag x:", event.pageX, "y:", event.pageY);
+=======
+>>>>>>> 5e16eb7567c822e72a0995478f126031603d296b
         moveFocalPointTo(event.pageX, event.pageY);
     }
 }
@@ -140,8 +159,11 @@ function onMouseDrag(event) {
 function onMouseUp(event) {
     if ( !_isDraggable ) return;
 
+<<<<<<< HEAD
     console.log("up x:", event.pageX, "y:", event.pageY);
 
+=======
+>>>>>>> 5e16eb7567c822e72a0995478f126031603d296b
     _isDragging = false;
     document.body.style.pointerEvents = 'auto'; // Re-enable pointer events on other elements
     document.body.style.userSelect = 'auto'; // Re-enable text selection
@@ -150,6 +172,11 @@ function onMouseUp(event) {
 
     document.removeEventListener('mousemove', onMouseDrag);
 
+<<<<<<< HEAD
     console.log("ease x:", event.pageX, "y:", event.pageY);
     easeFocalPointTo(event.pageX, event.pageY);
 }
+=======
+    easeFocalPointTo(event.pageX, event.pageY);
+}
+>>>>>>> 5e16eb7567c822e72a0995478f126031603d296b
