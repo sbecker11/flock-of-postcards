@@ -60,7 +60,7 @@ export function moveFocalPointTo(x, y) {
     _focalPointElement.style.transform = `translate(${x}px, ${y}px)`;
 
     // notify the caller's listener
-    console.log("move x:",x,"y:",y);
+    // console.log("move x:",x,"y:",y);
     _focalPointListener(x, y);
 }
 
@@ -116,7 +116,7 @@ function computeAStepCloserToAimSubpixelPrecision(nowPoint, aimPoint, easing, ep
 function onMouseDown(event) {
     if ( !_isDraggable ) return;
 
-    console.log("down x:", event.pageX, "y:", event.pageY);
+    // console.log("down x:", event.pageX, "y:", event.pageY);
 
     _isDragging = true;
     _isAnimating = false;
@@ -132,7 +132,7 @@ function onMouseDrag(event) {
     if ( !_isDraggable ) return;
 
     if (_isDragging) {
-        console.log("drag x:", event.pageX, "y:", event.pageY);
+        // console.log("drag x:", event.pageX, "y:", event.pageY);
         moveFocalPointTo(event.pageX, event.pageY);
     }
 }
@@ -140,7 +140,7 @@ function onMouseDrag(event) {
 function onMouseUp(event) {
     if ( !_isDraggable ) return;
 
-    console.log("up x:", event.pageX, "y:", event.pageY);
+    // console.log("up x:", event.pageX, "y:", event.pageY);
 
     _isDragging = false;
     document.body.style.pointerEvents = 'auto'; // Re-enable pointer events on other elements
@@ -150,6 +150,6 @@ function onMouseUp(event) {
 
     document.removeEventListener('mousemove', onMouseDrag);
 
-    console.log("ease x:", event.pageX, "y:", event.pageY);
+    // console.log("ease x:", event.pageX, "y:", event.pageY);
     easeFocalPointTo(event.pageX, event.pageY);
 }
