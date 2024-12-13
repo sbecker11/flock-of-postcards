@@ -101,6 +101,18 @@ const MIN_BRIGHTNESS_PERCENT = 75;
 const BLUR_Z_SCALE_FACTOR = 4;
 
 //--------------------------------------
+// Default mouse behavior: prevent selections while mouse is fown
+document.addEventListener('mousedown', function() {
+    document.body.classList.add('no-select');
+    document.getElementById("canvas-container").classList.add('no-select');
+});
+
+document.addEventListener('mouseup', function() {
+    document.body.classList.remove('no-select');
+    document.getElementById("canvas-container").classList.remove('no-select');
+});
+
+//--------------------------------------
 // Z functions
 
 function get_zIndexStr_from_z(z) {
@@ -287,7 +299,7 @@ function createBizcardDivs() {
         }
         bizcardDiv.setAttribute("startDate", utils.getIsoDateString(startDate));
 
-        // save the original center 
+        // save the bizcardDiv's original center 
         var originalCtrX = left + width / 2;
         var originalCtrY = top + height / 2;
         var originalZ = z;
@@ -814,9 +826,9 @@ function createCardDiv(bizcardDiv, tag_link) {
 
     var width = img_width + 2 * CARD_BORDER_WIDTH;
     var height = img_height + 2 * CARD_BORDER_WIDTH
-    cardDiv.style.borderWidth = `${CARD_BORDER_WIDTH}px`;
-    cardDiv.style.borderStyle = "solid";
-    cardDiv.style.borderColor = "white";
+    // cardDiv.style.borderWidth = `${CARD_BORDER_WIDTH}px`;
+    // cardDiv.style.borderStyle = "solid";
+    // cardDiv.style.borderColor = "white";
     cardDiv.style.width = `${width}px`;
     cardDiv.style.height = `${height}px`;
 
@@ -1123,13 +1135,21 @@ function applyParallaxToOneCardDiv(cardDiv) {
     applyParallaxToOneCardDivStyleProps(cardDiv,cardDivStyleProps);
 }
 
-// applies z-depth scaled parallax to all translateableDiv
+/**
+ * applyz-depth scaled parallax to all translateableDiv 
+ * currently visible in the canvasContainer viewport
+ */
 function applyParallax() {
-    var allDivs = getAllTranslateableCardDivs();
+    // let numVisible = 0;
+    var allDivs = getAllTranslateableCardDivs();    
     for (var i = 0; i < allDivs.length; i++) {
-        var cardDiv = allDivs[ i ];
-        applyParallaxToOneCardDiv(cardDiv)
-    }
+        var cardDiv = allDivs[i];
+        if ( isCardDivWithinViewport(cardDiv) ) {
+            applyParallaxToOneCardDiv(cardDiv); // Apply parallax to the cloned cardDiv
+            // numVisible += 1;
+        }
+    } 
+    // console.log("numVisible:", numVisible, "numDivs:", allDivs.length);
 }
 
 let mouseX;
@@ -2030,20 +2050,29 @@ function addTagLinkClickListener(tag_link) {
     });
 }
 
+/**
+ * applies current depth-based translation to all divs 
+ * that are visible in the current viewport
+ */
 function renderAllTranslateableDivsAtCanvasContainerCenter() {
+
+    updateViewport();
+
     const canvasContainerX = utils.half(canvasContainer.offsetWidth);
     const canvasContainerY = utils.half(canvasContainer.offsetHeight);
     const translateableDivs = getAllTranslateableCardDivs();
     for (const div of translateableDivs) {
-        const divWidth = div.offsetWidth;
-        const trans_dx = canvasContainerX - utils.half(divWidth);
-        const trans_dy = 0;
-        const translateStr = `${trans_dx}px ${trans_dy}px`;
-        try {
-            div.style.translate = translateStr;
-        } catch (error) {
-            // console.log(`leftCenter div:${div.id}`, error);
-            // console.error(`leftCenter div:${div.id}`, error);
+        if ( isCardDivWithinViewport(div) ) {
+            const divWidth = div.offsetWidth;
+            const trans_dx = canvasContainerX - utils.half(divWidth);
+            const trans_dy = 0;
+            const translateStr = `${trans_dx}px ${trans_dy}px`;
+            try {
+                div.style.translate = translateStr;
+            } catch (error) {
+                // console.log(`leftCenter div:${div.id}`, error);
+                // console.error(`leftCenter div:${div.id}`, error);
+            }
         }
     }
 }
@@ -2133,7 +2162,7 @@ function getMinMaxTimelineYears(jobs) {
 function handleWindowLoad() {
     const focal_point = document.getElementById("focal-point");
     const isDraggable = true;
-    focalPoint.createFocalPoint(focal_point, focalPointListener, isDraggable);
+    focalPoint.createFocalPoint(bullsEye, focal_point, focalPointListener, isDraggable);
 
     const timelineContainer = document.getElementById("timeline-container");
 
@@ -2148,11 +2177,24 @@ function handleWindowLoad() {
     centerBullsEye();
     easeFocalPointToBullsEye();
 
+    let lastFrameTime = 0;
+    const maxFramesPerSecond = 10;
+    const frameIntervalMillis = 1000 / maxFramesPerSecond;
+
     // set up animation loop
     (function drawFrame() {
-        focalPoint.drawFocalPointAnimationFrame();
+        const now = performance.now();
+        const deltaTime = now - lastFrameTime;
+        if (deltaTime >= frameIntervalMillis) {
+            lastFrameTime = now;
+
+            // console.time('drawFocalPointAnimationFrame');
+            focalPoint.drawFocalPointAnimationFrame();
+            // console.timeEnd('drawFocalPointAnimationFrame');
+        }
         // Request the next frame.
         window.requestAnimationFrame(drawFrame);
+
     })();
     // Start the animation loop.
     window.requestAnimationFrame(drawFrame);
@@ -2162,10 +2204,60 @@ function drawFrame() {
     focalPoint.drawFocalPointAnimationFrame();
 }
 
+const viewport = {};
+const VIEWPORT_PADDING = 1000;
+
+/**
+ * updates the canvas-constainer-relative 
+ * geometry of the viewPort, which is used
+ * to clip out cardDivs that are not visible.
+ */
+function updateViewport() {
+    const canvasContainer = document.getElementById("canvas-container");
+    const canvasContainerRect = canvasContainer.getBoundingClientRect();
+    const canvasContainerWidth = canvasContainerRect.right - canvasContainerRect.left;
+    const canvasContainerHeight = canvasContainerRect.bottom - canvasContainerRect.top;
+    viewport.padding = VIEWPORT_PADDING;
+    viewport.top = canvasContainerRect.top - viewport.padding;
+    viewport.left = canvasContainerRect.left - viewport.padding;
+    viewport.right = canvasContainerRect.right + viewport.padding;
+    viewport.bottom = canvasContainerRect.bottom + viewport.padding;
+    viewport.centerX = canvasContainerRect.left + canvasContainerWidth / 2;
+    viewport.centerY = canvasContainerRect.top + canvasContainerHeight / 2;
+}
+
+/**
+ * @returns the canvas-container relative position of the viewpoint center
+ */
+function getViewpointCenter() {
+    return {
+        x: viewport.centerX,
+        y: viewport.centerY
+    }
+}
+
+/**
+ * Checks if any part of the given cardDiv is visible within the 
+ * viewport, which is derived from the canvasContainer element.
+ * @param {HTMLElement} cardDiv - The cardDiv element to check.
+ * @returns {boolean} - True if the cardDiv is within the viewport, false otherwise.
+ */
+function isRectWithinViewport(rect) {
+    const intersects = !(rect.right < viewport.left || 
+                         rect.left > viewport.right || 
+                         rect.bottom < viewport.top || 
+                         rect.top > viewport.bottom);
+    return intersects;
+}
+function isCardDivWithinViewport(cardDiv) {
+    return isRectWithinViewport(cardDiv.getBoundingClientRect());
+}
+
 function handleWindowResize() {
     // resize the canvas-container and the canvas since they don't do it themselves?
-    var windowWidth = window.innerWidth;
-    var canvasContainerWidth = windowWidth / 2;
+    var canvasContainerWidth = window.innerWidth/2;
+    var canvasContainerHeight = window.innerHeight;
+    console.log("windowResize width:", canvasContainerWidth, "height:", canvasContainerHeight);
     canvasContainer.style.width = canvasContainerWidth + "px";
     canvas.style.width = canvasContainerWidth + "px";
     renderAllTranslateableDivsAtCanvasContainerCenter();

@@ -10,6 +10,13 @@ html, body {
   overflow: hidden;
 }
 
+.no-select {
+  user-select: none; /* Standard syntax */
+  -webkit-user-select: none; /* Safari */
+  -moz-user-select: none; /* Firefox */
+  -ms-user-select: none; /* Internet Explorer/Edge */
+}
+
 /*
 Make #main-container take the full height of the viewport using 100vh 
 (viewport height). 100vh is equal to 100% of the height of the viewport, 

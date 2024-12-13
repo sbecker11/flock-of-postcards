@@ -1,6 +1,7 @@
 const EASING = 0.05;
 const EPSILON = EASING / 2.0;
 
+var _bullsEyeElement;
 var _focalPointElement;
 var _focalPointNowSubpixelPrecision;
 var _focalPointAim;
@@ -15,10 +16,12 @@ var _isDragging = false;
 // which will be called while the focalPoint is moving.
 //
 export function createFocalPoint(
+    bullsEyeElement,
     focalPointElement,
     focalPointListener,
     isDraggable=false
 ) {
+    _bullsEyeElement = bullsEyeElement;
     _focalPointElement = focalPointElement;
     _focalPointNowSubpixelPrecision = getFocalPoint();
     _focalPointListener = focalPointListener;
