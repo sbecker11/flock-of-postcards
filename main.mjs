@@ -2135,7 +2135,8 @@ function getParallax() {
 
 // smoothly move the focalPoint to the bullsEye
 function easeFocalPointToBullsEye() {
-    focalPoint.easeFocalPointTo(bullsEyeX-3, bullsEyeY+5);
+    const dd = 12.5; // half of 25 from focalPoint.style.width from styles.css
+    focalPoint.easeFocalPointTo(bullsEyeX-dd, bullsEyeY-dd);
 }
 
 // return the min and max years over the list of jobs

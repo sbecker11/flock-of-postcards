@@ -72,8 +72,6 @@ overflow and ensures consistent sizing.
 }
 
 #focal-point {
-  top: -18px;
-  left: -9px;
   position: absolute;
   width: 25px;
   height: 25px;
