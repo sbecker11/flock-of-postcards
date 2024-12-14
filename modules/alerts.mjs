@@ -1,14 +1,14 @@
 // @ts-nocheck
 
-import { onCloseWelcomeAlert } from '../main.mjs';
-
 const overlay = document.getElementById('overlay');
 const welcomeAlert = document.getElementById('welcomeAlert');
+let onCloseWelcomeHandler = null;
 const closeBtn = document.getElementById('welcomeAlert-close'); // Ensure this ID exists
 closeBtn.addEventListener('click', closeWelcomeAlert);
 
 // Function to show the welcome alert
-export function showWelcomeAlert() {
+export function showWelcomeAlert(onCloseHandler=null) {
+    onCloseWelcomeHandler = onCloseHandler;
     welcomeAlert.style.display = 'block';
     overlay.style.display = 'block';
     welcomeAlert.setAttribute('aria-hidden', 'false');
@@ -24,7 +24,9 @@ export function closeWelcomeAlert(event) {
     overlay.style.display = 'none';
     welcomeAlert.setAttribute('aria-hidden', 'true');
 
-    onCloseWelcomeAlert();
+    if ( onCloseWelcomeHandler ) {
+        onCloseWelcomeHandler();
+    }
 }
 
 // Event listener for overlay click
@@ -82,7 +84,6 @@ let confirmClose = document.getElementsByClassName("confirm-close")[0];
 let confirmModalTitle = document.getElementById("confirm-modal-title");
 let CONFIRM_PAUSE_SECONDS = 2;
 
-
 export function confirmOpenNewBrowserWindow(title, url) {
 
     confirmModalTitle.innerHTML = `Do you want to open ${title} in a new window?`;
@@ -90,12 +91,10 @@ export function confirmOpenNewBrowserWindow(title, url) {
     confirmOpenBtn.style.display = "block";
     confirmCancelBtn.style.display = "block";
 
-
     confirmOpenBtn.onclick = function() {
         confirmOpenBtn.style.display = "none";
         confirmCancelBtn.style.display = "none";
         confirmModalTitle.innerHTML = `Opening ${title} in a new window...`;
-
 
         setTimeout(function() {
             window.open(url, '_blank');

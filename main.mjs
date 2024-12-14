@@ -353,6 +353,10 @@ function createBizcardDivs() {
         // does not scroll self into view
 
     }
+
+    // Dispatch a custom event after appending all bizcards
+    const event = new Event('bizcardsAppended');
+    document.dispatchEvent(event);
 }
 
 
@@ -2305,6 +2309,10 @@ export function selectAllBizcards() {
     clearAllDivCardLineItems();
 
     var allBizcardDivs = document.getElementsByClassName("bizcard-div");
+    if ( allBizcardDivs.length == 0 ) {
+        console.error("selectAllBizcards() found zero bizCardDivs.");
+        return;
+    }
     for (let i = 0; i < allBizcardDivs.length; i++) {
         var bizcardDiv = allBizcardDivs[ i ];
 
@@ -2331,7 +2339,11 @@ function clearAllDivCardLineItems() {
 // and scroll each into view
 function selectAndScrollToCardDiv(cardDiv) {
     // utils.validateIsCardDivOrBizcardDiv(cardDiv);
-    var cardDivLineItem = getCardDivLineItem(cardDiv.id)
+    if ( !cardDiv ) {
+        console.log("Ignoring undefined cardDiv");
+        return;
+    }
+    var cardDivLineItem = getCardDivLineItem(cardDiv.id);
 
     // avoid in case another select would ignore the select
     selectTheCardDiv(cardDiv, true);
@@ -2522,9 +2534,12 @@ addCanvasContainerEventListener('scroll', handleCanvasContainerScroll);
 
 addCanvasContainerEventListener('click', handleCanvasContainerMouseClick);
 
-export function onCloseWelcomeAlert() {
+/**
+ * called when bizcards have been appended...
+ */
+document.addEventListener('bizcardsAppended', function() {
     selectAllBizcards();
     addAllIconClickListeners();
     // logAllBizcardDivs();
     // utils.testColorFunctions();
-}
+});
