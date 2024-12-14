@@ -1,7 +1,6 @@
-const EASING = 0.05;
-const EPSILON = EASING / 2.0;
+const EASE_FACTOR = 0.15;
+const EPSILON = EASE_FACTOR / 2.0;
 
-var _bullsEyeElement;
 var _focalPointElement;
 var _focalPointNowSubpixelPrecision;
 var _focalPointAim;
@@ -16,12 +15,10 @@ var _isDragging = false;
 // which will be called while the focalPoint is moving.
 //
 export function createFocalPoint(
-    bullsEyeElement,
     focalPointElement,
     focalPointListener,
     isDraggable=false
 ) {
-    _bullsEyeElement = bullsEyeElement;
     _focalPointElement = focalPointElement;
     _focalPointNowSubpixelPrecision = getFocalPoint();
     _focalPointListener = focalPointListener;
@@ -67,7 +64,7 @@ export function moveFocalPointTo(x, y) {
     _focalPointListener(x, y);
 }
 
-// ease the _focalPointElement to the given
+// ease_factor the _focalPointElement to the given
 // canvasContainer-relative location
 export function easeFocalPointTo(x, y, callback) {
     _isAnimating = true;
@@ -90,7 +87,7 @@ export function drawFocalPointAnimationFrame() {
     _focalPointNowSubpixelPrecision = computeAStepCloserToAimSubpixelPrecision(
         _focalPointNowSubpixelPrecision,
         _focalPointAim,
-        EASING,
+        EASE_FACTOR,
         EPSILON
     );
 
@@ -100,10 +97,10 @@ export function drawFocalPointAnimationFrame() {
     );
 }
 
-function computeAStepCloserToAimSubpixelPrecision(nowPoint, aimPoint, easing, epsilon) {
+function computeAStepCloserToAimSubpixelPrecision(nowPoint, aimPoint, ease_factor, epsilon) {
     // compute velocities
-    let vx = (aimPoint.x - nowPoint.x) * easing;
-    let vy = (aimPoint.y - nowPoint.y) * easing;
+    let vx = (aimPoint.x - nowPoint.x) * ease_factor;
+    let vy = (aimPoint.y - nowPoint.y) * ease_factor;
 
     // for very small values of vx and vy, move there directly
     if (Math.abs(vx) < epsilon && Math.abs(vy) < epsilon) {
@@ -153,6 +150,6 @@ function onMouseUp(event) {
 
     document.removeEventListener('mousemove', onMouseDrag);
 
-    // console.log("ease x:", event.pageX, "y:", event.pageY);
+    // console.log("ease_factor x:", event.pageX, "y:", event.pageY);
     easeFocalPointTo(event.pageX, event.pageY);
 }

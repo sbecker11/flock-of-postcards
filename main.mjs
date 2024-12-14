@@ -2135,7 +2135,7 @@ function getParallax() {
 
 // smoothly move the focalPoint to the bullsEye
 function easeFocalPointToBullsEye() {
-    focalPoint.easeFocalPointTo(bullsEyeX, bullsEyeY);
+    focalPoint.easeFocalPointTo(bullsEyeX-3, bullsEyeY+5);
 }
 
 // return the min and max years over the list of jobs
@@ -2166,7 +2166,7 @@ function getMinMaxTimelineYears(jobs) {
 function handleWindowLoad() {
     const focal_point = document.getElementById("focal-point");
     const isDraggable = true;
-    focalPoint.createFocalPoint(bullsEye, focal_point, focalPointListener, isDraggable);
+    focalPoint.createFocalPoint(focal_point, focalPointListener, isDraggable);
 
     const timelineContainer = document.getElementById("timeline-container");
 

@@ -2,11 +2,17 @@
 Set the html and body elements to a height of 100%. This establishes a 
 reference for the #main-container to occupy the full height of the viewport.
 */
+
+:root {
+  --background-light: midnightblue; /* Define a CSS variable for the primary color */
+  --background-dark: #000066; /* Define a CSS variable for the secondary color */
+}
+
 html, body {
   height: 100%;
   margin: 0; /* Remove default margins */
   padding: 0; /* Remove default paddings */
-  background-color: midnightblue;
+  background-color: var(--background-dark);
   overflow: hidden;
 }
 
@@ -104,7 +110,7 @@ overflow and ensures consistent sizing.
   overscroll-behavior: contain;
   -ms-overflow-style: none; /* Hide scrollbar for IE and Edge */
   scrollbar-width: none; /* Hide scrollbar for Firefox */
-  background-color: black;
+  overflow-x: hidden; /* prevent horizontal scrolling */
 }
 
 #canvas-container::-webkit-scrollbar {
@@ -122,7 +128,7 @@ overflow and ensures consistent sizing.
   width: 100%;
   height: 1000px;
   bottom: 0px;
-  background: linear-gradient(to top, midnightblue, black);
+  background: linear-gradient(to top, var(--background-light), var(--background-dark));
   pointer-events: none;
 }
 
@@ -131,7 +137,7 @@ overflow and ensures consistent sizing.
   width: 100%;
   height: 1000px;
   top: 0px;
-  background: linear-gradient(to bottom, midnightblue, black);
+  background: linear-gradient(to bottom, var(--background-light), var(--background-dark));
   pointer-events: none;
 }
 
