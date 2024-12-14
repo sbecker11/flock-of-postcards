@@ -2135,7 +2135,10 @@ function getParallax() {
 
 // smoothly move the focalPoint to the bullsEye
 function easeFocalPointToBullsEye() {
-    const dd = 12.5; // half of 25 from focalPoint.style.width from styles.css
+    // focalPoint is actually focalPointElement.left/top, 
+    // so true focalPoint center is at left,top + halfWidth,
+    // which is 25 from styles.css.
+    const dd = 12.5; 
     focalPoint.easeFocalPointTo(bullsEyeX-dd, bullsEyeY-dd);
 }
 
