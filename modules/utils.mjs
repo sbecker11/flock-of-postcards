@@ -625,15 +625,11 @@ export function testColorFunctions() {
 }
 
 // compute the best text color for a given background color
+export function computeLuminance(backgroundHexColor) {
+    const [r,g,b] = get_RGB_from_AnyStr(backgroundHexColor);
+    return 0.299 * r + 0.587 * g + 0.114 * b;
+}
 export function computeTextColor(backgroundHexColor) {
-    // Convert hex to RGB
-    const r = parseInt(backgroundHexColor.slice(1, 3), 16);
-    const g = parseInt(backgroundHexColor.slice(3, 5), 16);
-    const b = parseInt(backgroundHexColor.slice(5, 7), 16);
-
-    // Calculate the luminance
-    const luminance = 0.299 * r + 0.587 * g + 0.114 * b;
-
-    // Return black for light backgrounds and white for dark backgrounds
-    return luminance > 127.0 ? '#000000' : '#FFFFFF';
+    const luminance = computeLuminance(backgroundHexColor);
+    return luminance > 75.0 ? '#000000' : '#FFFFFF';
 }
