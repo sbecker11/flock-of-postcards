@@ -219,11 +219,13 @@ div.card-div span.tag-link {
   flex-direction: column;
 }
 #right-header-div {
-  height: 160px;
   background-color: #444444;
   color: white;
   padding: 10px;
   align-content: left;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
 }
 
 .intro, .user, .footnote{
@@ -242,7 +244,7 @@ div.card-div span.tag-link {
 }
 
 #right-content-div {
-  flex: 1;
+  flex-grow: 1;
   overflow-y: auto;
   overflow-x: hidden;
   box-sizing: border-box; 
@@ -257,7 +259,8 @@ div.card-div span.tag-link {
 }
 
 #right-footer-div {
-  height: 40px;
+  display: flex;
+  flex-direction: column;
   background-color: #999999;
   padding: 10px;
 }

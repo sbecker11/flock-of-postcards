@@ -234,7 +234,6 @@ function createBizcardDivs() {
 
         // utils.validateKey(job, "text color");
         var css_hex_color_str = utils.computeTextColor(css_hex_background_color_str);
-        console.log(`background-color:${css_hex_background_color_str} text-color:${css_hex_color_str}`)
         utils.validateHexColorString(css_hex_color_str);
 
         // timeline is descending so jobEnd is always above jobStart
@@ -714,7 +713,6 @@ function convert_description_HTML_to_line_items_HTML(description_HTML, cardDivLi
     var HTML = "";
     HTML += '<p class="card-div-line-item-description">';
     var items = description_HTML.split(BULLET_DELIMITER);
-    items.push(`background-color:${cardDivLineItem.style.backgroundColor}  color:${cardDivLineItem.style.color} text:${utils.computeTextColor(cardDivLineItem.style.backgroundColor)}`);
     if (items.length > 0) {
         HTML += '<ul class="card-div-line-item-description-list">';
         for (var i = 0; i < items.length; i++) {
