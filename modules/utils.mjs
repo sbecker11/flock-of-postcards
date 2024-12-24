@@ -624,3 +624,12 @@ export function testColorFunctions() {
     test_RGB_ColorStr_functions();
 }
 
+// compute the best text color for a given background color
+export function computeLuminance(backgroundHexColor) {
+    const [r,g,b] = get_RGB_from_AnyStr(backgroundHexColor);
+    return 0.299 * r + 0.587 * g + 0.114 * b;
+}
+export function computeTextColor(backgroundHexColor) {
+    const luminance = computeLuminance(backgroundHexColor);
+    return luminance > 75.0 ? '#000000' : '#FFFFFF';
+}

@@ -233,8 +233,7 @@ function createBizcardDivs() {
         utils.validateHexColorString(css_hex_background_color_str);
 
         // utils.validateKey(job, "text color");
-        var text_color = job[ "text color" ].trim().toUpperCase();
-        var css_hex_color_str = utils.get_Hex_from_ColorStr(text_color);
+        var css_hex_color_str = utils.computeTextColor(css_hex_background_color_str);
         utils.validateHexColorString(css_hex_color_str);
 
         // timeline is descending so jobEnd is always above jobStart
@@ -710,7 +709,7 @@ function cardDivMatchesTagLink(cardDiv, tag_link) {
 // of a card-div (or bizcard-div) and splits it by
 // the BULLLET delimiter and returns the HTML of an 
 // unordered list of description items.
-function convert_description_HTML_to_line_items_HTML(description_HTML) {
+function convert_description_HTML_to_line_items_HTML(description_HTML, cardDivLineItem) {
     var HTML = "";
     HTML += '<p class="card-div-line-item-description">';
     var items = description_HTML.split(BULLET_DELIMITER);
@@ -1853,7 +1852,7 @@ function addCardDivLineItem(targetCardDivId) {
             // split the description by BULLET_DELIMITER and return html 
             // of the styled form <p><ul>(<li>text</li>)+</ul></p>
             // where text contains spans that have targetCardDivIds
-            var line_items_HTML = convert_description_HTML_to_line_items_HTML(description);
+            var line_items_HTML = convert_description_HTML_to_line_items_HTML(description, cardDivLineItem);
             if (line_items_HTML && line_items_HTML.length > 0) {
                 // remove all line breaks <br/> from line_items_HTML
                 line_items_HTML = line_items_HTML.replace(/<br\/>/g, "");
