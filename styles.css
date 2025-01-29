@@ -1,5 +1,5 @@
 /*
-Set the html and body elements to a height of 100%. This establishes a 
+Set the html and body elements to a height of 100%. This establishes a
 reference for the #main-container to occupy the full height of the viewport.
 */
 
@@ -24,8 +24,8 @@ html, body {
 }
 
 /*
-Make #main-container take the full height of the viewport using 100vh 
-(viewport height). 100vh is equal to 100% of the height of the viewport, 
+Make #main-container take the full height of the viewport using 100vh
+(viewport height). 100vh is equal to 100% of the height of the viewport,
 regardless of the window size.
 */
 #main-container {
@@ -35,8 +35,8 @@ regardless of the window size.
 }
 
 /*
-Apply box-sizing: border-box; to all elements to ensure that padding and borders 
-are included in the width and height calculations. This prevents unintentional 
+Apply box-sizing: border-box; to all elements to ensure that padding and borders
+are included in the width and height calculations. This prevents unintentional
 overflow and ensures consistent sizing.
 */
 *, *::before, *::after {
@@ -44,10 +44,10 @@ overflow and ensures consistent sizing.
 }
 
 
-#debugScrollingElement, 
-#debugFocalPointElement, 
-#debugBullsEyeElement, 
-#debugCanvasElement, 
+#debugScrollingElement,
+#debugFocalPointElement,
+#debugBullsEyeElement,
+#debugCanvasElement,
 #debugCanvasContainerElement,
 #debugTheSelectedCardDivIdElement {
   display: block;
@@ -64,7 +64,7 @@ overflow and ensures consistent sizing.
   z-index: 98;
   pointer-events: none;
   display: flex; /* or inline-flex */
-  align-items: center; 
+  align-items: center;
   justify-content: center;
   font-size: 31px;
   font-weight: 700;
@@ -83,7 +83,7 @@ overflow and ensures consistent sizing.
   color: gray;
   background-color: transparent; /* Add a background color for visibility */
   display: flex; /* or inline-flex */
-  align-items: center; 
+  align-items: center;
   justify-content: center;
 }
 
@@ -93,7 +93,7 @@ overflow and ensures consistent sizing.
 
 .draggable-focal-point {
   pointer-events: auto;
-  cursor: grab; 
+  cursor: grab;
 }
 
 .column-50 {
@@ -104,7 +104,7 @@ overflow and ensures consistent sizing.
 #canvas-container {
   flex: 1;
   height: 100%;
-  overflow-y: scroll; 
+  overflow-y: scroll;
   overscroll-behavior: contain;
   -ms-overflow-style: none; /* Hide scrollbar for IE and Edge */
   scrollbar-width: none; /* Hide scrollbar for Firefox */
@@ -166,7 +166,7 @@ overflow and ensures consistent sizing.
 .bizcard-div-dates {
   font-size: 16px;
 }
-    
+
 .card-div {
   position: absolute;
   width: 106px;
@@ -247,7 +247,7 @@ div.card-div span.tag-link {
   flex-grow: 1;
   overflow-y: auto;
   overflow-x: hidden;
-  box-sizing: border-box; 
+  box-sizing: border-box;
   background-color: #dddddd;
   color: black;
   padding: 10px;
@@ -327,7 +327,7 @@ div.card-div span.tag-link {
 }
 
 .selected {
-  border-width: 5px !important;
+  border-width: 2px !important;
   border-style: dotted !important;
   border-color: white !important;
 }
