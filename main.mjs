@@ -165,7 +165,7 @@ function getBizcardDivIndex(cardDivId) {
     // console.assert(utils.isString(cardDivId));
     if (cardDivId.startsWith("bizcard-div-")) {
         var index = parseInt(cardDivId.replace("bizcard-div-", ""));
-        return isNaN(index) ? null : index;
+        return Number.isNaN(index) ? null : index;
     }
     return null;
 }
@@ -175,7 +175,7 @@ function getCardDivIndex(cardDivId) {
     // console.assert(utils.isString(cardDivId));
     if (cardDivId.startsWith("card-div-")) {
         var index = parseInt(cardDivId.replace("card-div-", ""));
-        return isNaN(index) ? null : index;
+        return Number.isNaN(index) ? null : index;
     }
     return null;
 }
@@ -208,10 +208,10 @@ function createBizcardDivs() {
     var sortedJobs = structuredClone(jobs);
     sortedJobs.sort((a,b) => new Date(b['end']) - new Date(a['end']));
 
-    for (let i = 0; i < sortedJobs.length; i++) {
-
-        var job = sortedJobs[ i ];
+    for ( const job of sortedJobs ) {
+        // utils.validateKey(job, "role");
         var role = job[ "role" ];
+
         // utils.validateString(role);
         var employer = job[ "employer" ].trim();
         // utils.validateString(employer);
@@ -1340,6 +1340,10 @@ document.addEventListener('click', function(event) {
 
     div.animate(styleFrameArray, { duration: ANIMATION_DURATION_MILLIS, iterations: 1 })
         .finished.then(() => {
+            endAnimation(div, styleFrameArray[lastFrame]);
+        })
+        .catch((error) => {
+            console.error("Animation error:", error);
             endAnimation(div, styleFrameArray[lastFrame]);
         });
 

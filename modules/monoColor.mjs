@@ -10,7 +10,7 @@ export const ICON_TYPES = ['back', 'url', 'img'];
 export const ICON_COLORS = ['black', 'white'];
 
 export function getIconColor(color) {
-    if ((typeof color === undefined) || (color == null) || (color == "")) {
+    if ((typeof color === "undefined") || (color == null) || (color == "")) {
         throw new Error(`getIconColor color:${color} is undefined`);
     }
     color = color.toUpperCase();
@@ -82,7 +82,7 @@ export function setIconToColor(iconElement, theIconColor) {
     // in colorMode 
     if ( !isMonoColor ) {
         let savedColor = iconElement.dataset.savedColor;
-        if (typeof savedColor === undefined || savedColor == null || savedColor == '' ) {
+        if (typeof savedColor === "undefined" || savedColor == null || savedColor == '' ) {
             var err = `setIconColor iconElement:${iconElement} savedColor is undefined`;
             throw new Error(err);
         }
