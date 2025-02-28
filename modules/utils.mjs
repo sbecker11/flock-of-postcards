@@ -8,7 +8,7 @@ import * as css_colors from './css_colors.mjs';
 const EPSILON = 1.0;
 
 export function isHexColorString(hexColorStr) { // enforces uppercase hex string only
-    return isString(hexColorStr) && /^#[0-9A-F]{6}$/.test(hexColorStr);
+    return isString(hexColorStr) && /^#[0-9A-F]{6}$/.test(String(hexColorStr));
 }
 export function validateHexColorString(hexColorStr) {
     if (!isHexColorString(hexColorStr) ) {
@@ -27,7 +27,7 @@ export function getEuclideanDistance(arr1, arr2) {
 }
 
 export const isString = (value) => (typeof value === 'string' || value instanceof String);
-export const isNumber = (value) => typeof value === 'number' && !isNaN(value);
+export const isNumber = (value) => typeof value === 'number' && !Number.isNaN(value);
 export const validateKey = (obj, key) => { if (!(key in obj)) throw new Error(`Key '${key}' not found in object`); };
 export const validateString = (str) => { if (typeof str === 'undefined' || str === null || typeof str !== 'string' || str.trim().length === 0) throw new Error(`Invalid string:[${str}]`); };
 export const validateIntArrayLength = (arr, length) => { if (typeof arr === 'undefined' || arr === null || !Array.isArray(arr) || arr.some(item => !Number.isInteger(item)) || (typeof length !== 'undefined' && arr.length !== length)) throw new Error('Invalid array of integers or length mismatch'); };
@@ -50,7 +50,7 @@ export const get_HSV_from_RGB = ([ R, G, B ]) => {
     const delta = max - min;
     const s = max !== 0 ? delta / max : 0;
     let h = max === min ? 0 : (max === R ? (G - B) / delta + (G < B ? 6 : 0) : max === G ? (B - R) / delta + 2 : (R - G) / delta + 4) * 60;
-    if (isNaN(h))
+    if (Number.isNaN(h))
         h = 0;
     const v = max;
     const HSV = [ h, s, v ].map(Math.round);
@@ -86,13 +86,7 @@ function test_HSV_RGB_functions() {
 }
 
 export function isHSV(HSV) {
-    if( !Array.isArray(HSV) || HSV.length != 3 ) {
-        return false;
-    } else if ( HSV[0] < 0.0 || HSV[0] > 360.0 ) { 
-        return false;
-    } else if ( HSV[1] < 0.0 || HSV[1] > 1.0 ) {
-        return false;
-    } else if ( HSV[2] < 0.0 || HSV[2] > 1.0 ) {
+    if( !Array.isArray(HSV) || HSV.length != 3 || HSV[0] < 0.0 || HSV[0] > 360.0 || HSV[1] < 0.0 || HSV[1] > 1.0 || HSV[2] < 0.0 || HSV[2] > 1.0 ) {
         return false;
     }
     return true;
@@ -107,11 +101,8 @@ export function validateHSV(HSV) {
 export function isRGB(RGB) {
     if( !Array.isArray(RGB) || RGB.length != 3 ) {
         return false;
-    } else if ( RGB[0] < 0 || RGB[0] > 255 ) { 
-        return false;
-    } else if ( RGB[1] < 0 || RGB[1] > 255 ) {
-        return false;
-    } else if ( RGB[2] < 0 || RGB[2] > 255 ) {
+    }
+    if (!Array.isArray(RGB) || RGB.length != 3 || RGB[0] < 0 || RGB[0] > 255 || RGB[1] < 0 || RGB[1] > 255 || RGB[2] < 0 || RGB[2] > 255) {
         return false;
     }
     return true;
@@ -270,7 +261,7 @@ export const linearInterpArray = (t, array1, array2) => {
     return interpolatedArray;
 };
 
-export const isNumeric = (obj) => !isNaN(parseFloat(obj)) && isFinite(obj);
+export const isNumeric = (obj) => !Number.isNaN(parseFloat(obj)) && isFinite(obj);
 
 export const validateIsNumeric = (obj) => {
     if (!isNumeric(obj)) {
@@ -302,7 +293,7 @@ export function validateIsStyleArray(arr) {
         throw new Error("ValueError: StyleArray must not contain NaNs");
     }
 }
-export const arrayHasNaNs = array => array.some(element => isNaN(element));
+export const arrayHasNaNs = array => array.some(element => Number.isNaN(element));
 
 export const arraysAreEqual = (arr1, arr2) => arr1.length === arr2.length && arr1.every((element, index) => element === arr2[index]);
 
@@ -478,7 +469,7 @@ export function validateIsCardDivLineItem(obj) {
 export function getOffset(el) {
     var _x = 0;
     var _y = 0;
-    while (el && !isNaN(el.offsetLeft) && !isNaN(el.offsetTop)) {
+    while (el && !Number.isNaN(el.offsetLeft) && !Number.isNaN(el.offsetTop)) {
         _x += el.offsetLeft - el.scrollLeft;
         _y += el.offsetTop - el.scrollTop;
         el = el.offsetParent;
@@ -551,7 +542,7 @@ export function ensureHexColorStringAttribute(obj, attr) {
     let val = null;
     let hex = null;
     if ( isElement(obj) ) {
-        if( isString(attr) ) {
+        if( typeof attr === 'string' ) {
             val = obj.getAttribute(attr);
             if( isString(val) ) {
                 if ( isHexColorString(val) ) {
@@ -579,9 +570,7 @@ export function ensureHexColorStringStyle(obj, styleName) {
     var hex = null;
     if ( isHexColorString(color) ) {
         hex = color;
-    } else if ( isNumericArray(color) && color.length === 3 ) {
-        hex = get_Hex_from_ColorStr(color);
-    } else if ( color.startWith('color') ) {
+    } else if ((isNumericArray(color) && color.length === 3) || color.startsWith('color')) {
         hex = get_Hex_from_ColorStr(color);
     }
     if (hex !== null) {

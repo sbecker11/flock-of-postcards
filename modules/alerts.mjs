@@ -1,47 +1,5 @@
 // @ts-nocheck
 
-const overlay = document.getElementById('overlay');
-const welcomeAlert = document.getElementById('welcomeAlert');
-let onCloseWelcomeHandler = null;
-const closeBtn = document.getElementById('welcomeAlert-close'); // Ensure this ID exists
-closeBtn.addEventListener('click', closeWelcomeAlert);
-
-// Function to show the welcome alert
-export function showWelcomeAlert(onCloseHandler=null) {
-    onCloseWelcomeHandler = onCloseHandler;
-    welcomeAlert.style.display = 'block';
-    overlay.style.display = 'block';
-    welcomeAlert.setAttribute('aria-hidden', 'false');
-    trapFocus(welcomeAlert);
-}
-
-// Function to close the welcome alert
-export function closeWelcomeAlert(event) {
-    if (event) {
-        event.stopPropagation();
-    }
-    welcomeAlert.style.display = 'none';
-    overlay.style.display = 'none';
-    welcomeAlert.setAttribute('aria-hidden', 'true');
-
-    if ( onCloseWelcomeHandler ) {
-        onCloseWelcomeHandler();
-    }
-}
-
-// Event listener for overlay click
-overlay.addEventListener('click', closeWelcomeAlert);
-
-// Event listener for close button
-closeBtn.addEventListener('click', closeWelcomeAlert);
-
-// Event listener for Escape key
-document.addEventListener('keydown', function(event) {
-  if (event.key === 'Escape') {
-    closeWelcomeAlert();
-  }
-});
-
 // Function to trap focus within the modal
 function trapFocus(element) {
     const focusableElements = element.querySelectorAll('button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])');
