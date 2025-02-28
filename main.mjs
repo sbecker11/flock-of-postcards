@@ -2337,7 +2337,7 @@ function selectNextBizcard() {
     selectTheCardDiv(nextBizcardDiv, true);
 }
 
-function selectFirstBizcard() {
+export function selectFirstBizcard() {
     var firstDivId = getFirstBizcardDivId();
     var firstDiv = document.getElementById(firstDivId);
     // utils.validateIsBizcardDiv(firstDiv);
@@ -2434,9 +2434,3 @@ addCanvasContainerEventListener('scroll', handleCanvasContainerScroll);
 
 addCanvasContainerEventListener('click', handleCanvasContainerMouseClick);
 
-export function onCloseWelcomeAlert() {
-    selectAllBizcards();
-    addAllIconClickListeners();
-    // logAllBizcardDivs();
-    // utils.testColorFunctions();
-}

@@ -67,7 +67,7 @@
         <div style="display: flex; justify-content: space-between; align-items: center;">
             <p class="footnote" style="margin: 0;">
                 create a flock-of-postcards for yours own resume at
-                <a target="_blank" href="https://www.beckerstudio.com/">beckerstudio.com</a><br>
+                <a target="_blank" href="https://github.com/sbecker11/flock-of-postcards/">flock-of-postcards</a><br>
             </p>
             <div>
                 <img id="monoColorIcon" src="static_content/icons/greys.png" alt="MonoCoolor Icon" width="16" height="16" onclick="toggleMonoColor();" style="cursor: pointer;">
@@ -83,35 +83,6 @@
         
   </div>
 
-  <div class="overlay" id="overlay"></div>
-
-  <div id="welcomeAlert" role="dialog" aria-labelledby="welcomeAlert" aria-describedby="welcomAlert-content">
-    <div class="welcomeAlert-content">
-      <p id="welcomeAlert-close">Click here to get started </p>
-    </div>
-  </div>
-
-  <script type="module">
-    import { showWelcomeAlert } from './modules/alerts.mjs';
-
-    document.addEventListener('DOMContentLoaded', function() {
-        showWelcomeAlert();
-    });
-
-    // to prevent the audio context from being suspended
-    let audioContext;
-
-    document.addEventListener('click', function() {
-        if (!audioContext) {
-            audioContext = new AudioContext();
-            // Additional audio setup code here
-        } else if (audioContext.state === 'suspended') {
-            audioContext.resume();
-        }
-    });
-      
-  </script>
-
   <div id="confirm-modal" class="confirm-modal">
     <div class="confirm-modal-content">
       <span class="confirm-close">&times;</span>
@@ -120,6 +91,20 @@
       <button id="confirm-cancel-btn">No</button>
     </div>
   </div>
+
+  <script>
+    window.addEventListener('load', (event) => {
+      import('./main.mjs').then(module => {
+        if (typeof module.selectFirstBizcard === 'function') {
+          module.selectFirstBizcard();
+        } else {
+          console.error('selectFirstBizcard is not defined in main.mjs');
+        }
+      }).catch(error => {
+        console.error('Error loading main.mjs:', error);
+      });
+    });
+  </script>
 
 </body>
 

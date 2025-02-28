@@ -52,7 +52,7 @@ LiveServer is an ultra light weight webserver that works with Google Chrome brow
 
 
 - Click the "explorer" icon at the top left of vscode to explore your local filesystem  
-<img src="https://shawn.beckerstudio.com/wp-content/uploads/2023/07/vscode-explorer-icon.png"/>  
+<img src="static_content/icons/vscode-explorer-icon.png"/>  
 
 - Click the "Go Live" button at the bottom right in vscode to start the vscode-embedded webserver  
 <img src="static_content/icons/vscode-go-live-icon.png"/> 
@@ -231,8 +231,6 @@ If the app is already running, it will re-load the `jobs.mjs` file.
 
 
 ### version 0.1 - May 23, 2023
-
-<img src="https://shawn.beckerstudio.com/wp-content/uploads/2023/05/flock-of-postcards.png" width="25%" height="25%"/>
 
 - randomized div sizes, locations, and z-index
 - z-index affects opacity and brightness
