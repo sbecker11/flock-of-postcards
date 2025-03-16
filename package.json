@@ -24,6 +24,9 @@
   "homepage": "https://github.com/sbecker11/flock-of-postcards#readme",
   "dependencies": {
     "dayjs": "^1.11.10",
+    "exceljs": "^4.4.0",
+    "log4js": "^6.9.1",
+    "node-fetch": "^3.3.2",
     "openai": "^4.86.1"
   }
 }
