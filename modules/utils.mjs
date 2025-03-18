@@ -41,9 +41,45 @@ export const toFixedPoint = (value, precision) => +value.toFixed(precision);
 export const linearInterp = (x, x1, y1, x2, y2) => y1 + ((x - x1) / (x2 - x1)) * (y2 - y1);
 export const getRandomInt = (min, max) => Math.floor(Math.random() * (max - min + 1)) + min;
 export const zeroPad = (num, places) => num.toString().padStart(places, "0");
+
+export function get_HSV_from_RGB([r, g, b]) {
+    r /= 255;
+    g /= 255;
+    b /= 255;
+  
+    const max = Math.max(r, g, b);
+    const min = Math.min(r, g, b);
+    const delta = max - min;
+  
+    let h, s, v = max;
+  
+    if (delta === 0) {
+      h = s = 0; // achromatic
+    } else {
+      s = delta / max;
+  
+      if (max === r) {
+        h = (g - b) / delta + (g < b ? 6 : 0);
+      } else if (max === g) {
+        h = (b - r) / delta + 2;
+      } else {
+        h = (r - g) / delta + 4;
+      }
+  
+      h /= 6;
+    }
+    h = Math.round(h * 360);
+    s = Math.round(s * 100);
+    v = Math.round(v * 100);
+  
+    return [ h, s, v ];
+}
+
+
 // given RGB array [R, G, B] return HSV array [ h, s, v]
-export const get_HSV_from_RGB = ([ R, G, B ]) => {
+export const get_HSV_from_RGB_old = ([ R, G, B ]) => {
     const RGB = [R,G,B];
+    console.log("RGB:", RGB);``
     validateRGB(RGB);
     const min = Math.min(R, G, B);
     const max = Math.max(R, G, B);
@@ -86,9 +122,14 @@ function test_HSV_RGB_functions() {
 }
 
 export function isHSV(HSV) {
-    if( !Array.isArray(HSV) || HSV.length != 3 || HSV[0] < 0.0 || HSV[0] > 360.0 || HSV[1] < 0.0 || HSV[1] > 1.0 || HSV[2] < 0.0 || HSV[2] > 1.0 ) {
-        return false;
-    }
+    if (!Array.isArray(HSV)) return false;
+    if (HSV.length != 3) return false;
+    if (HSV[0] < 0.0) return false;
+    if (HSV[0] > 360.0) return false;
+    if (HSV[1] < 0.0) return false;
+    if (HSV[1] > 1.0) return false;
+    if (HSV[2] < 0.0) return false;
+    if (HSV[2] > 1.0) return false;
     return true;
 }
 
@@ -237,6 +278,15 @@ export function normalizeHexColorString(hexColorStr) {
         return `#${r}${g}${b}`.toUpperCase();
     }
     return hexColorStr; // Fallback if not RGB
+}
+
+export function getHighContrastCssHexColorStr(cssBackgroundHexColorStr) {
+    validateHexColorString(cssBackgroundHexColorStr);
+    let cssBackgroundRGB = get_RGB_from_Hex(cssBackgroundHexColorStr);
+    let cssBackgroundHSV = get_HSV_from_RGB(cssBackgroundRGB);
+    let cssBackgroundLuminance = cssBackgroundHSV[2];
+    let cssForegroundHexColorStr = (cssBackgroundLuminance > 0.5) ? "#000000" : "#FFFFFF";
+    return cssForegroundHexColorStr;
 }
 
 export const calculateDistance = (x1, y1, x2, y2) => Math.sqrt(Math.pow(x2 - x1, 2) + Math.pow(y2 - y1, 2));

@@ -1,6 +1,6 @@
 {
   "name": "flock-of-postcards",
-  "version": "version-0.8",
+  "version": "0.8.0",
   "description": "Dark, chaotic, and deep. This app creates an animated flock of postcards from a resume. The resume is defined as a job.xlsx file where each row describes a job, with start/end dates and a descriptive paragraph that includes links to related skills. Each job is visualized as a large business card. Each skill is visualized as smaller chips. The flock is rendered in the left panel with motion parallax as the mouse is moved around. Skill chips fly above the darker business cards. The right panel shows a readable version of selected jobs and skills.",
   "main": "main.mjs",
   "type": "module",
@@ -24,7 +24,7 @@
   "homepage": "https://github.com/sbecker11/flock-of-postcards#readme",
   "dependencies": {
     "dayjs": "^1.11.10",
-    "exceljs": "^4.4.0",
+    "sheetjs": "latest",
     "log4js": "^6.9.1",
     "node-fetch": "^3.3.2",
     "openai": "^4.86.1"

@@ -21,6 +21,7 @@
   <script type="module" src="./modules/alerts.mjs" ></script>
   <script type="module" src="./modules/monoColor.mjs" ></script>
   <script type="module" src="./modules/css_colors.mjs" ></script>
+  <script type="module" src="./modules/color_palettes.mjs" ></script>
   
   <div id="main-container">
 
@@ -66,11 +67,12 @@
       <div id="right-footer-div" style="display: flex; flex-direction: column;">
         <div style="display: flex; justify-content: space-between; align-items: center;">
             <p class="footnote" style="margin: 0;">
-                create a flock-of-postcards for yours own resume at
+                create a flock-of-postcards for your own resume at
                 <a target="_blank" href="https://github.com/sbecker11/flock-of-postcards/">flock-of-postcards</a><br>
             </p>
             <div>
                 <img id="monoColorIcon" src="static_content/icons/greys.png" alt="MonoCoolor Icon" width="16" height="16" onclick="toggleMonoColor();" style="cursor: pointer;">
+                <select id="color-palette-selector"></select>
             </div>
         </div>
     
