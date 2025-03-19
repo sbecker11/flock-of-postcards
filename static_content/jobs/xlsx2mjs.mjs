@@ -199,8 +199,15 @@ async function processDescription(text, counters) {
   while ((match = imagePattern.exec(text)) !== null) {
     const label = `[${match[1]}]`;
     const imageUrl = match[2];
-    const imageResult = await testUrl(imageUrl);
-    const imgClass = imageResult ? (imageResult.valid ? 'img-ref' : 'img-ref-error') : 'img-ref-not-found';
+    let imageResult = null;
+    imageResult = await testUrl(imageUrl);
+    // deepcode ignore AttrAccessOnNull: <please specify a reason of ignoring this>
+    if ( !imageResult ) {
+      imageResult = { valid: false };
+      counters.invalid_all_changes_cnt++;
+      continue;
+    }
+    const imgClass = imageResult && imageResult.valid !== undefined ? (imageResult.valid ? 'img-ref' : 'img-ref-error') : 'img-ref-not-found';
     const refHtml = `<div class="${imgClass}">${label}<img src="${imageUrl}"/></div>`;
     references.push(refHtml);
     newText = newText.replace(match[0], label);
@@ -229,7 +236,7 @@ async function processDescription(text, counters) {
       counters.invalid_all_changes_cnt++;
       validatedWebUrl = '';
     }
-    const imgClass = imageResult && imageResult.valid ? 'img-ref' : (imageResult ? 'img-ref-error' : 'img-ref-not-found');
+    const imgClass = imageResult?.valid ? 'img-ref' : (imageResult ? 'img-ref-error' : 'img-ref-not-found');
     const anchorClass = validatedWebUrl ? 'anchor-ref' : 'anchor-ref-not-found';
     const refHtml = `<div class="${imgClass} ${anchorClass}">${label}<a href="${validatedWebUrl}"><img src="${imageUrl}"/></a></div>`;
     references.push(refHtml);

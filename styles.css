@@ -271,11 +271,6 @@ div.card-div span.tag-link {
   cursor: crosshair;
 }
 
-.monocolor {
-  color: black !important;
-  background-color: #dddddd !important;
-}
-
 .card-div-line-item {
   max-width: 100%;
   display:flex;
