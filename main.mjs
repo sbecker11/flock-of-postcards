@@ -6,7 +6,7 @@ import * as utils from './modules/utils.mjs';
 import * as timeline from './modules/timeline.mjs';
 import * as focalPoint from './modules/focal_point.mjs';
 import * as alerts from './modules/alerts.mjs';
-import { divColorsUtility } from './modules/color_palettes.mjs';
+import { PaletteSelector } from './modules/color_palettes.mjs';
 
 // --------------------------------------
 // Element reference globals
@@ -23,6 +23,8 @@ const selectFirstBizcardButton = document.getElementById("select-first-bizcard")
 const selectNextBizcardButton = document.getElementById("select-next-bizcard");
 const selectAllBizcardsButton = document.getElementById("select-all-bizcards");
 const clearAllLineItemsButton = document.getElementById("clear-all-line-items");
+
+const paletteSelector = new PaletteSelector();
 
 // --------------------------------------
 // Miscellaneous globals
