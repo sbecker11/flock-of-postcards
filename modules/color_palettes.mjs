@@ -49,10 +49,18 @@ export class PaletteSelector {
   // which can be accessed using the static getInstance() method.
   // private contructor
   constructor() {
+    console.log("_color_palettes:", _color_palettes);
+    console.log("_color_palettes.length:", Object.keys(_color_palettes).length);
     this.color_palettes = _color_palettes;
-    this.current_index = 0;
-    this.current_color_palette = this.color_palettes[this.current_index];
-    this.current_num_colors = this.current_color_palette.length;
+    console.log("this.color_palettes:", this.color_palettes);
+    console.log("this.color_palettes.length:", Object.keys(this.color_palettes).length);
+    this.current_value = Object.keys(this.color_palettes)[0];
+    this.current_color_palette = this.color_palettes[this.current_value];
+    console.log("this.current_color_palette:", this.current_color_palette);
+    console.log("this.current_color_palette.length:", Object.keys(this.current_color_palette).length);
+
+    this.current_num_colors = Object.keys(this.current_color_palette).length;
+    console.log("this.current_color_num_colors:", this.current_num_colors);
 
     // Ensure the DOM element for the palette selector exists
     this.paletteSelector = document.getElementById('color-palette-selector');
@@ -67,36 +75,38 @@ export class PaletteSelector {
     this.paletteSelector.innerHTML = '';
 
     // Populate the palette selector with options for each color palette
-    Object.keys(color_palettes).forEach((palette_name, index) => {
+    for ( let palette_name of Object.keys(this.color_palettes) ) {
       let option = document.createElement('option');
-      option.value = String(index);
-      option.selected = index === currently_selected_palette_index;
+      option.value = palette_name;
+      option.selected = (palette_name === this.current_value) ? true : false;
       option.textContent = palette_name;
       this.paletteSelector.appendChild(option);
-    });
+    }
 
     // Verify the correct number of options were added
-    if (this.paletteSelector.childElementCount !== Object.keys(color_palettes).length) {
+    if (this.paletteSelector.childElementCount !== Object.keys(this.color_palettes).length) {
       throw new Error("wrong number of palette choices in paletteSelector");
     }
 
     // Add an event listener to handle palette changes
     this.paletteSelector.addEventListener('change', (event) => {
-      console.log("paletteSelector change event:", event);
-      this.selectPalette(event_target.index);
+      const selectedValue = event.target.value; // Get the value of the selected option
+      console.log("selectedValue:", selectedValue);
+      this.selectPalette(selectedValue);
     });
   }
 
-  selectPalette(selected_index) {
-    if ( selected_index < 0 || selected_index >= this.color_palettes.length ) {
-      throw new Error("selected_index out of range");
+  selectPalette(selected_value) {
+    console.log("selectPallete selected_value:", selected_value);
+    if ( selected_value === null || !Object.keys(this.color_palettes).includes(selected_value) ) {
+      throw new Error("selected_value matches no color_palette");
     }
-    this.current_index = selected_index;
-    for( let option of this.paletteSelector.childElements() ) {
-      option.selected = (option.index === selected_index) ? true : false;
+    this.current_value = selected_value;
+    for( let option of this.paletteSelector.children ) {
+      option.selected = (option.value === selected_value) ? true : false;
     }
-    this.current_color_palette = this.color_palettes[this.current_index];
-    this.current_num_colors = this.current_color_palette.length;
+    this.current_color_palette = this.color_palettes[this.current_value];
+    this.current_num_colors = Object.keys(this.current_color_palette).length;
 
     this.applySelectedPaletteToElements();
   }
@@ -105,15 +115,17 @@ export class PaletteSelector {
     return data_color_index.replace(/\D/g, '');
   }
 
+  // convert index to color_name
   applySelectedPaletteToElements() {
     // create a map of color_index -> hex_color_strings
     let bg_hex_colors = new Array(this.current_num_colors);
     let fg_hex_colors = new Array(this.current_num_colors);
-    for ( let color_index = 0; color_index<this.current_num_colors; color_index++ ) {
-      const bg_hex_color_string = this.current_color_palette[color_index];
-      const fg_hex_color_string = utils.getHighContrastCssHexColorStr(bgHstring);
-      bg_hex_colors[color_index] = bg_hex_color_string;
-      fg_hex_colors[color_index] = fg_hex_color_string;
+
+    for ( let index=0; index<this.current_num_colors; index++) {
+      const bg_hex_color_string = this.current_color_palette[index];
+      const fg_hex_color_string = utils.getHighContrastCssHexColorStr(bg_hex_color_string);
+      bg_hex_colors[index] = bg_hex_color_string;
+      fg_hex_colors[index] = fg_hex_color_string;
     }
 
     // get a list of all elements that have a "data-color-index" attribute

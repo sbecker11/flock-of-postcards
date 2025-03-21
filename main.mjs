@@ -2070,7 +2070,6 @@ function handleWindowLoad() {
     timeline.createTimeline(timelineContainer, canvasContainer, MIN_TIMELINE_YEAR, MAX_TIMELINE_YEAR, DEFAULT_TIMELINE_YEAR);
 
     createBizcardDivs();
-    divColorsUtility.applyDivColors();
     renderAllTranslateableDivsAtCanvasContainerCenter();
     positionGradients();
     centerBullsEye();
