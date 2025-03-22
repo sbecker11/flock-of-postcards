@@ -26,14 +26,26 @@ export function getEuclideanDistance(arr1, arr2) {
     return Math.sqrt(sum);
 }
 
+export function clampDegrees(value) {
+    // guaranteed to return a value between 0 and 360.0 degrees
+    while ( value < 0.0 ) {
+        value += 360.0;
+    }
+    while ( value > 360.0 ) {
+        value -= 360.0;
+    }
+    return clampInt(value, 0, 360);
+}
+
+
 export const isString = (value) => (typeof value === 'string' || value instanceof String);
 export const isNumber = (value) => typeof value === 'number' && !Number.isNaN(value);
 export const validateKey = (obj, key) => { if (!(key in obj)) throw new Error(`Key '${key}' not found in object`); };
 export const validateString = (str) => { if (typeof str === 'undefined' || str === null || typeof str !== 'string' || str.trim().length === 0) throw new Error(`Invalid string:[${str}]`); };
 export const validateIntArrayLength = (arr, length) => { if (typeof arr === 'undefined' || arr === null || !Array.isArray(arr) || arr.some(item => !Number.isInteger(item)) || (typeof length !== 'undefined' && arr.length !== length)) throw new Error('Invalid array of integers or length mismatch'); };
 export const validateFloat = (num) => { if (typeof num === 'undefined' || num === null || typeof num !== 'number' || !Number.isFinite(num)) throw new Error('Invalid floating-point number'); };
-export const clamp = (value, min, max) => Math.max(min, Math.min(max, value));
-export const adjustRgbBrightness = (rgb, brightness) => { validateIntArrayLength(rgb, 3); return rgb.map(channel => clamp(Math.round(channel * brightness), 0, 255)); }; // 1.0 is normal brightness
+export const clampInt = (value, min, max) => Math.round(Math.max(min, Math.min(max, value)));
+export const adjustRgbBrightness = (rgb, brightness) => { validateIntArrayLength(rgb, 3); return rgb.map(channel => clampInt(Math.round(channel * brightness), 0, 255)); }; // 1.0 is normal brightness
 export const adjustHexBrightness = (hexStr, brightness) => { validateHexColorString(hexStr); validateFloat(brightness); return get_Hex_from_RGB(adjustRgbBrightness(get_RGB_from_Hex(`${hexStr}`), brightness)); }; // 1.0 is normal brightness
 export const get_Hex_from_RGB = RGB => { validateIntArrayLength(RGB, 3); return "#" + RGB.map(c => c.toString(16).padStart(2, "0")).join("").toUpperCase(); };
 export const get_RGB_from_Hex = hexStr => { validateHexColorString(hexStr); return hexStr.match(/^#?([A-F\d]{2})([A-F\d]{2})([A-F\d]{2})$/i)?.slice(1).map(c => parseInt(c, 16)); };
@@ -42,10 +54,45 @@ export const linearInterp = (x, x1, y1, x2, y2) => y1 + ((x - x1) / (x2 - x1)) *
 export const getRandomInt = (min, max) => Math.floor(Math.random() * (max - min + 1)) + min;
 export const zeroPad = (num, places) => num.toString().padStart(places, "0");
 
-export function get_HSV_from_RGB([r, g, b]) {
-    r /= 255;
-    g /= 255;
-    b /= 255;
+export function isHSV(HSV) {
+    if (!Array.isArray(HSV)) return false;
+    if (HSV.length != 3) return false;
+    if (HSV[0] < 0.0) return false;
+    if (HSV[0] > 360.0) return false;
+    if (HSV[1] < 0.0) return false;
+    if (HSV[1] > 100.0) return false;
+    if (HSV[2] < 0.0) return false;
+    if (HSV[2] > 100.0) return false;
+    return true;
+}
+
+
+export function validateHSV(HSV) {
+    if ( !isHSV(HSV) ) {
+        throw new Error(`HSV:[${HSV}] is invalid`);
+    }
+}
+
+export function isRGB(RGB) {
+    if (!Array.isArray(RGB) || RGB.length != 3 || RGB[0] < 0 || RGB[0] > 255 || RGB[1] < 0 || RGB[1] > 255 || RGB[2] < 0 || RGB[2] > 255) {
+        return false;
+    }
+    return true;
+}
+
+export function validateRGB(RGB) {
+    if ( !isRGB(RGB) ) {
+        throw new Error(`RGB:[${RGB}] is invalid`);
+    }
+}
+
+// given RGB (255,255,255) return HSV (360,100,100) 
+export function get_HSV_from_RGB([R, G, B]) {
+    const RGB = [R,G,B];
+    validateRGB(RGB);
+    const r = R/255.0;
+    const g = G/255.0;
+    const b = B/255.0;
   
     const max = Math.max(r, g, b);
     const min = Math.min(r, g, b);
@@ -68,92 +115,51 @@ export function get_HSV_from_RGB([r, g, b]) {
   
       h /= 6;
     }
-    h = Math.round(h * 360);
-    s = Math.round(s * 100);
-    v = Math.round(v * 100);
-  
-    return [ h, s, v ];
+    const H = clampDegrees(h * 360);
+    const S = clampInt(s * 100.0, 0, 100);
+    const V = clampInt(v * 100.0, 0, 100);
+    const HSV = [H,S,V];
+    validateHSV(HSV);
+
+    return HSV;
 }
 
-
-// given RGB array [R, G, B] return HSV array [ h, s, v]
-export const get_HSV_from_RGB_old = ([ R, G, B ]) => {
-    const RGB = [R,G,B];
-    console.log("RGB:", RGB);``
-    validateRGB(RGB);
-    const min = Math.min(R, G, B);
-    const max = Math.max(R, G, B);
-    const delta = max - min;
-    const s = max !== 0 ? delta / max : 0;
-    let h = max === min ? 0 : (max === R ? (G - B) / delta + (G < B ? 6 : 0) : max === G ? (B - R) / delta + 2 : (R - G) / delta + 4) * 60;
-    if (Number.isNaN(h))
-        h = 0;
-    const v = max;
-    const HSV = [ h, s, v ].map(Math.round);
+// given HSV array [h,s,v (360,100,100) return RGB array [r,g,b] [255,255,255]
+export const get_RGB_from_HSV = (HSV) => {
     validateHSV(HSV);
-    return HSV;
-};
-
-// given HSV array [h,s,v] return RGB array [r,g,b]
-export const get_RGB_from_HSV = ([ h, s, v ]) => {
-    const HSV = [h,s,v];
-    validateHSV(HSV);
-    const f = (n, k = (n + h / 60) % 6) => v - v * s * Math.max(Math.min(k, 4 - k, 1), 0);
-    const RGB = [ f(5), f(3), f(1) ].map(Math.round);
+    const h = HSV[0];
+    const s = HSV[1] / 100.0;
+    const v = HSV[2] / 100.0;
+    function f(n) {
+        const k = (n + h / 60) % 6;
+        const factor = Math.max(Math.min(k, 4 - k, 1), 0);
+        return v - v * s * factor;
+    }
+    const RGB = [ 255.0 * f(5), 255.0 * f(3),255.0 *  f(1) ].map(Math.round);
     validateRGB(RGB);
     return RGB;
-};
+}
 
-function test_HSV_RGB_functions() {
+export function test_HSV_RGB_functions() {
     function test_get_HSV_from_RGB() {
         const RGBIn = [64, 128, 255];
         const HSV = get_HSV_from_RGB([RGBIn[0],RGBIn[1],RGBIn[2]]);
         const RGBOut = get_RGB_from_HSV([HSV[0],HSV[1],HSV[2]]);
-        console.assert( getEuclideanDistance(RGBOut, RGBIn) < EPSILON);
+        const rgbDist = getEuclideanDistance(RGBOut, RGBIn);
+        console.log(`rgbDist:${rgbDist}`);
+        console.assert( rgbDist < EPSILON, `ERROR: rgbDist:${rgbDist} exceeds ESPSILON:${EPSILON}`);
     }
     function test_get_RGB_from_HSV() {
-        const HSVIn = [180, 0, 1]; // H in [0..360], S in [0..1], V in [0..1]
+        const HSVIn = [180, 75, 100]; // H in [0..360], S in [0..100], V in [0..100]
         const RGB = get_RGB_from_HSV([HSVIn[0],HSVIn[1],HSVIn[2]]);
         const HSVOut = get_HSV_from_RGB([RGB[0],RGB[1],RGB[2]]);
-        console.assert( getEuclideanDistance(HSVOut, HSVIn) < EPSILON);
+        const hsvDist = getEuclideanDistance(HSVOut, HSVIn);
+        console.assert( hsvDist < EPSILON, `ERROR: hsvDist:${hsvDist} exceeds ESPSILON:${EPSILON}`);
     }
     test_get_HSV_from_RGB();
     test_get_RGB_from_HSV();
 }
 
-export function isHSV(HSV) {
-    if (!Array.isArray(HSV)) return false;
-    if (HSV.length != 3) return false;
-    if (HSV[0] < 0.0) return false;
-    if (HSV[0] > 360.0) return false;
-    if (HSV[1] < 0.0) return false;
-    if (HSV[1] > 1.0) return false;
-    if (HSV[2] < 0.0) return false;
-    if (HSV[2] > 1.0) return false;
-    return true;
-}
-
-export function validateHSV(HSV) {
-    if ( !isHSV(HSV) ) {
-        throw new Error(`HSV:[${HSV}] is invalid`);
-    }
-}
-
-export function isRGB(RGB) {
-    if( !Array.isArray(RGB) || RGB.length != 3 ) {
-        return false;
-    }
-    if (!Array.isArray(RGB) || RGB.length != 3 || RGB[0] < 0 || RGB[0] > 255 || RGB[1] < 0 || RGB[1] > 255 || RGB[2] < 0 || RGB[2] > 255) {
-        return false;
-    }
-    return true;
-}
-
-export function validateRGB(RGB) {
-    if ( !isRGB(RGB) ) {
-        throw new Error(`RGB:[${RGB}] is invalid`);
-    }
-}
 export function get_RGB_from_RgbStr(rgbStr) {
     if ( isString(rgbStr) ) {
         rgbStr = rgbStr.replaceAll(" ","");
@@ -234,7 +240,7 @@ export function get_RGB_from_AnyStr(anyStr) {
     return null;
 }
 
-function test_RGB_ColorStr_functions() {
+export function test_RGB_ColorStr_functions() {
     function test_get_ColorStr_from_RGB() {
         const RGBin = [127, 64, 255];
         const ColorStr = get_ColorStr_from_RGB(RGBin);
@@ -280,14 +286,61 @@ export function normalizeHexColorString(hexColorStr) {
     return hexColorStr; // Fallback if not RGB
 }
 
-export function getHighContrastCssHexColorStr(cssBackgroundHexColorStr) {
-    validateHexColorString(cssBackgroundHexColorStr);
-    let cssBackgroundRGB = get_RGB_from_Hex(cssBackgroundHexColorStr);
-    let cssBackgroundHSV = get_HSV_from_RGB(cssBackgroundRGB);
-    let cssBackgroundLuminance = cssBackgroundHSV[2];
-    let cssForegroundHexColorStr = (cssBackgroundLuminance > 0.5) ? "#000000" : "#FFFFFF";
-    return cssForegroundHexColorStr;
+export function clampHSV(colorHSV) {
+    return [clampDegrees(colorHSV[0]), clampInt(colorHSV[1],0,100), clampInt(colorHSV[2],0,100)];
 }
+
+
+// return black if luminence/value > 0.5 otherwise return white
+export function getHighContrastCssHexColorStr(bgHex) {
+    validateHexColorString(bgHex);
+    let bgRGB = get_RGB_from_Hex(bgHex);
+    console.log(`DEBUG bgHex:${bgHex} bgRGB:${bgRGB}`);
+    validateRGB(bgRGB);
+    let bgHSV = get_HSV_from_RGB(bgRGB);
+    validateHSV(bgHSV);
+    let clampedHSV = clampHSV(bgHSV)
+    validateHSV(clampedHSV);
+    console.log(`DEBUG bgHSV:${bgHSV} clampedHSV:${clampedHSV}`);
+
+    let value = clampedHSV[2];
+    let fgHex = "#000000";
+    if (value < 50) {
+        fgHex = "#FFFFFF";
+    }
+    validateHexColorString(fgHex);
+    console.log(`DEBUG: value:${value} HIGH CONTRAST fgHex:${fgHex}`);
+    return fgHex;
+}
+
+// This function tests the high/low contrast color generated 
+// by comparing a low/high luminance colos
+export function test_getHighContractCssHexColorStr() {
+    let lo_RGB = [26, 13, 46];
+    validateRGB(lo_RGB)
+    let lo_Hex = get_Hex_from_RGB( lo_RGB );
+    let hi_Hex = getHighContrastCssHexColorStr(lo_Hex);
+    let hi_RGB = get_RGB_from_Hex(hi_Hex);
+    console.log(`lo_RGB:${lo_RGB} lo_Hex:${lo_Hex} -> hi_Hex:${hi_Hex} hi_RGB:${hi_RGB}`);
+    if ( hi_RGB[0] !== 0xff || hi_RGB[1] !== 0xff || hi_RGB[2] !== 0xff ) {
+        console.error("FAILURE expected white, not hi_RGB:", hi_RGB);
+    } else {
+        console.log("SUCCESS!")
+    }
+
+    hi_RGB = [222, 100, 150];
+    validateRGB(lo_RGB)
+    hi_Hex = get_Hex_from_RGB( hi_RGB );
+    lo_Hex = getHighContrastCssHexColorStr(hi_Hex);
+    lo_RGB = get_RGB_from_Hex(lo_Hex);
+    console.log(`hi_Hex:${hi_Hex} hi_RGB:${hi_RGB} -> lo_RGB:${lo_RGB} lo_Hex:${lo_Hex} `);
+    if ( lo_RGB[0] !== 0 || lo_RGB[1] !== 0 || lo_RGB[2] !== 0 ) {
+        console.error("FAILURE expected black, not lo_RGB:", lo_RGB);
+    } else {
+        console.log("SUCCESS!")
+    }
+}
+
 
 export const calculateDistance = (x1, y1, x2, y2) => Math.sqrt(Math.pow(x2 - x1, 2) + Math.pow(y2 - y1, 2));
 export const isBetween = (value, min, max) => value >= min && value <= max;
@@ -568,9 +621,9 @@ export function formatNumber(num, format) {
     let formattedDecimal = decimalPart.toFixed(decimalDigits).substring(2);
   
     return `${formattedWhole}.${formattedDecimal}`;
-  }
+}
 
-  export function findScrollableAncestor(element) {
+export function findScrollableAncestor(element) {
     while (element && element.parentNode) {
         element = element.parentNode;
         if (element === document.body) {
@@ -671,4 +724,14 @@ export function computeLuminance(backgroundHexColor) {
 export function computeTextColor(backgroundHexColor) {
     const luminance = computeLuminance(backgroundHexColor);
     return luminance > 75.0 ? '#000000' : '#FFFFFF';
+}
+
+export function testColorUtils() {
+    console.log("-------------------------------------");
+    test_HSV_RGB_functions();
+    test_RGB_RgbStr_functions();
+    test_RGB_ColorStr_functions();
+    test_getHighContractCssHexColorStr();
+    testColorFunctions();
+    console.log("-------------------------------------");
 }

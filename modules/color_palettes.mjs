@@ -26,10 +26,10 @@ const _color_palettes = {
     "#FFD700", "#FFEA80"
   ],
   "White Monotone": [
-    "#eeeeee"
+    "#EEEEEE"
   ],  
   "Light Grey Monotone": [
-    "#bbbbbb"
+    "#BBBBBB"
   ],
   "Medium Grey Monotone": [
     "#888888"
@@ -42,13 +42,23 @@ const _color_palettes = {
   ]
 };
 
-export class PaletteSelector {
+export function initPaletteSelector() {
+  // any other attempts to create a new instance will fail 
+  const paletteSelector = new PaletteSelector();
 
-  // constructor to enforce the singleton pattern.
-  // This ensures that only one instance of the PaletteSelector class is created,
-  // which can be accessed using the static getInstance() method.
-  // private contructor
+  const firstPalette = Object.keys(paletteSelector.color_palettes)[0];
+  console.log("PaletteSelector setting initial palette", firstPalette)
+  paletteSelector.selectPalette(firstPalette);
+}
+
+export class PaletteSelector {
+  #instance = null;
+
   constructor() {
+    if ( this.#instance ) {
+      console.error("Only one PaletteSelector allowed");
+    }
+    this.#instance = this;
     console.log("_color_palettes:", _color_palettes);
     console.log("_color_palettes.length:", Object.keys(_color_palettes).length);
     this.color_palettes = _color_palettes;
@@ -67,6 +77,7 @@ export class PaletteSelector {
     if (!this.paletteSelector) {
       throw new Error("color-palette-selector not found");
     }
+  
     if (this.paletteSelector.childElementCount > 0) {
       throw new Error("paletteSelector has already been initialized");
     }
@@ -94,7 +105,7 @@ export class PaletteSelector {
       console.log("selectedValue:", selectedValue);
       this.selectPalette(selectedValue);
     });
-  }
+  } // constructor
 
   selectPalette(selected_value) {
     console.log("selectPallete selected_value:", selected_value);
@@ -142,4 +153,6 @@ export class PaletteSelector {
       element.style.color = fgHexColor;
     }
   }
+  
 }
+

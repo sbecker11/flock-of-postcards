@@ -6,7 +6,10 @@ import * as utils from './modules/utils.mjs';
 import * as timeline from './modules/timeline.mjs';
 import * as focalPoint from './modules/focal_point.mjs';
 import * as alerts from './modules/alerts.mjs';
-import { PaletteSelector } from './modules/color_palettes.mjs';
+import { initPaletteSelector } from './modules/color_palettes.mjs';
+
+
+utils.testColorUtils();
 
 // --------------------------------------
 // Element reference globals
@@ -23,8 +26,6 @@ const selectFirstBizcardButton = document.getElementById("select-first-bizcard")
 const selectNextBizcardButton = document.getElementById("select-next-bizcard");
 const selectAllBizcardsButton = document.getElementById("select-all-bizcards");
 const clearAllLineItemsButton = document.getElementById("clear-all-line-items");
-
-const paletteSelector = new PaletteSelector();
 
 // --------------------------------------
 // Miscellaneous globals
@@ -112,6 +113,11 @@ document.addEventListener('mousedown', function() {
 document.addEventListener('mouseup', function() {
     document.body.classList.remove('no-select');
     document.getElementById("canvas-container").classList.remove('no-select');
+});
+
+document.addEventListener("DOMContentLoaded", () => {
+    addAllIconClickListeners();
+    initPaletteSelector();
 });
 
 //--------------------------------------
@@ -1167,12 +1173,12 @@ function handleFocalPointMove() {
                     var currentScrollTop = canvasContainer.scrollTop;
                     var newScrollTop = currentScrollTop + autoScrollVelocity;
 
-                    // clamp newScrollTop to the boundaries
+                    // clampInt newScrollTop to the boundaries
                     var minScrollTop = 0;
 
                     var maxScrollTop = canvasContainer.scrollHeight - canvasContainer.clientHeight;
 
-                    newScrollTop = utils.clamp(newScrollTop, minScrollTop, maxScrollTop);
+                    newScrollTop = utils.clampInt(newScrollTop, minScrollTop, maxScrollTop);
 
                     // if there is room to scroll 
 
@@ -2284,7 +2290,7 @@ function getDateSortedBizcards() {
 
 function getFirstBizcardDivId() {
     var sorted = getDateSortedBizcardIds();
-    if ( sorted )
+    if ( sorted !== undefined && sorted !== null & sorted.length > 0 )
         return sorted[0].id;
     return null;
 }
@@ -2335,11 +2341,14 @@ export function selectFirstBizcard() {
     console.log("selectFirstBizcard");
     var firstBizcardDivId = getFirstBizcardDivId();
     console.log(`firstBizcardDivId:${firstBizcardDivId}`);
-    var firstDiv = document.getElementById(firstBizcardDivId);
-    // utils.validateIsBizcardDiv(firstDiv);
-    console.log(`firstDiv.id:${firstDiv.id}`);
-    // select the cardDiv and its cardDivLineItem
-    selectTheCardDiv(firstDiv, true);
+
+    if ( firstBizcardDivId !== null ) {
+        var firstDiv = document.getElementById(firstBizcardDivId);
+        console.log(`firstDiv.id:${firstDiv.id}`);
+        selectTheCardDiv(firstDiv, true);
+    } else {
+        console.log("selectFirstBizcard none found");
+    }
 }
 
 // return the list of all bizcardDivLineItems or null
@@ -2415,8 +2424,6 @@ selectFirstBizcardButton.addEventListener("click", function (event) {
 
 //---------------------------------------
 // canvas container event listeners
-
-
 
 addCanvasContainerEventListener("mousemove", handleCanvasContainerMouseMove);
 

@@ -120,7 +120,7 @@ export function canvasContainerScrollToYear(canvasContainer, year) {
     // @ts-ignore
     var newScrollTop = (TIMELINE_MAX_YEAR - year) * leftColumScrollPixelsPerYear;
     // @ts-ignore
-    newScrollTop = utils.clamp(newScrollTop, 0, canvasContainer.scrollHeight);
+    newScrollTop = utils.clampInt(newScrollTop, 0, canvasContainer.scrollHeight);
 
     // @ts-ignore
     canvasContainer.scrollTop = newScrollTop;
