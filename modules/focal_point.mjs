@@ -17,11 +17,15 @@ var _isDragging = false;
 export function createFocalPoint(
     focalPointElement,
     focalPointListener,
-    isDraggable=false
-) {
+    isDraggable=false) {
     _focalPointElement = focalPointElement;
     _focalPointNowSubpixelPrecision = getFocalPoint();
     _focalPointListener = focalPointListener;
+    initFocalPoint(isDraggable);
+}
+
+// called when the window is resized
+export function initFocalPoint(isDraggable) {
     _isAnimating = false;
     if ( isDraggable ) {
         _isDraggable = true;

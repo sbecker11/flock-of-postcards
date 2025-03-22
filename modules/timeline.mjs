@@ -39,8 +39,14 @@ const MONTHTICK_FONTSIZE = 9;
 // used to get canvas-relative top position for anything 
 // take care to always append "px" for pixels
 export function getTimelineYearMonthBottom(yearStr, monthStr) {
-    var month = parseInt(monthStr, 10);
-    return timelineYearDivBottoms[yearStr] - (month - 1) * YEAR_BOTTOM_TO_BOTTOM / 12;
+    const yearBottomPx = timelineYearDivBottoms[yearStr];
+    if ( yearBottomPx === undefined ) {
+        throw new Error('yearBottomPx is undefined');
+    }
+    const month = parseInt(monthStr, 10);
+    const monthBackupPx = (month - 1) * YEAR_BOTTOM_TO_BOTTOM / 12;
+    const yearMonthBottomPx = yearBottomPx - monthBackupPx;
+    return yearMonthBottomPx;
 }
 
 // the total height of the timeline in pixels
@@ -51,6 +57,7 @@ export function getTimelineHeight() {
 
 // append year-divs and year-dashes into timeline-container
 export function createTimeline(container, canvasContainer, minYear, maxYear, defaultYear) {
+ 
     if ( container == null )
         container = document.getElementById("timeline-container");
     

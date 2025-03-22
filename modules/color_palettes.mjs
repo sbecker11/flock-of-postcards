@@ -42,13 +42,11 @@ const _color_palettes = {
   ]
 };
 
-export function initPaletteSelector() {
+export function createPaletteSelector() {
   // any other attempts to create a new instance will fail 
   const paletteSelector = new PaletteSelector();
-
-  const firstPalette = Object.keys(paletteSelector.color_palettes)[0];
-  console.log("PaletteSelector setting initial palette", firstPalette)
-  paletteSelector.selectPalette(firstPalette);
+  paletteSelector.selectPalette(paletteSelector.getFirstPalette());
+  return paletteSelector;
 }
 
 export class PaletteSelector {
@@ -119,39 +117,67 @@ export class PaletteSelector {
     this.current_color_palette = this.color_palettes[this.current_value];
     this.current_num_colors = Object.keys(this.current_color_palette).length;
 
-    this.applySelectedPaletteToElements();
+    this.initializePaletteDivColors();
+    this.applyPaletteToElements();
   }
 
   extractDigitsString(data_color_index) {
     return data_color_index.replace(/\D/g, '');
   }
 
-  // convert index to color_name
-  applySelectedPaletteToElements() {
-    // create a map of color_index -> hex_color_strings
-    let bg_hex_colors = new Array(this.current_num_colors);
-    let fg_hex_colors = new Array(this.current_num_colors);
+  getFirstPalette() {
+    return Object.keys(this.color_palettes)[0];
+  }
 
+  // this function is called whenever a palette is selected
+  initializePaletteDivColors() {
+    // create a map of color_index -> hex_color_strings
+    this.bg_hex_colors = new Array(this.current_num_colors);
+    this.fg_hex_colors = new Array(this.current_num_colors);
     for ( let index=0; index<this.current_num_colors; index++) {
       const bg_hex_color_string = this.current_color_palette[index];
       const fg_hex_color_string = utils.getHighContrastCssHexColorStr(bg_hex_color_string);
-      bg_hex_colors[index] = bg_hex_color_string;
-      fg_hex_colors[index] = fg_hex_color_string;
+      this.bg_hex_colors[index] = bg_hex_color_string;
+      this.fg_hex_colors[index] = fg_hex_color_string;
     }
+  }
 
-    // get a list of all elements that have a "data-color-index" attribute
-    const elements = document.querySelectorAll("[data-color-index]");
+  // this function is called to set the bg and fg colors of the given element
+  _applysCurrentPaletteToElement(element) {
+    const data_color_index = element.getAttribute("data-color-index");
+    if ( ! utils.isNonEmptyString(data_color_index) ) {
+      throw new Error("element lacks 'data-color-index' attribute")
+    }
+    const number_string = this.extractDigitsString(data_color_index);
+    const data_color_int = parseInt(number_string, 10);
+    const color_index = data_color_int % this.current_num_colors;
+    const bgHexColor = this.bg_hex_colors[color_index];
+    const fgHexColor = this.fg_hex_colors[color_index];
+    element.style.backgroundColor = bgHexColor;
+    element.style.color = fgHexColor;
+  }
 
+  // called whenever a new palette is selected
+  applyPaletteToElements( elements=null ) {
+    const propStyleCounter = new utils.PropStyleCounter();
+    // defaults to all elements with a "data-color-index" attribute
+    if ( elements === null ) {
+      elements = document.querySelectorAll("[data-color-index]");
+    }
+    console.log(`applyingPalleteTo elements.length:${elements.length}`)
     for (const element of elements) {
-      const data_color_index = element.getAttribute("data-color-index");
-      const number_string = this.extractDigitsString(data_color_index);
-      const data_color_int = parseInt(number_string, 10);
-      const color_index = data_color_int % this.current_num_colors;
-      const bgHexColor = bg_hex_colors[color_index];
-      const fgHexColor = fg_hex_colors[color_index];
-      element.style.backgroundColor = bgHexColor;
-      element.style.color = fgHexColor;
+      if ( element ) {
+        propStyleCounter.addProp(element.id);
+        const data_color_index = element.getAttribute("data-color-index");
+        if ( utils.isNonEmptyString(data_color_index) ) {
+          this._applysCurrentPaletteToElement(element);
+        }
+      }
     }
+    console.log("PropStyleCounter -----------------:")
+    propStyleCounter.reportPropStyles();
+    console.log("----------------------------------:")
+
   }
   
 }

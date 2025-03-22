@@ -8,7 +8,7 @@ import * as css_colors from './css_colors.mjs';
 const EPSILON = 1.0;
 
 export function isHexColorString(hexColorStr) { // enforces uppercase hex string only
-    return isString(hexColorStr) && /^#[0-9A-F]{6}$/.test(String(hexColorStr));
+    return (isNonEmptyString(hexColorStr) && /^#[0-9A-F]{6}$/.test(String(hexColorStr)));
 }
 export function validateHexColorString(hexColorStr) {
     if (!isHexColorString(hexColorStr) ) {
@@ -39,6 +39,7 @@ export function clampDegrees(value) {
 
 
 export const isString = (value) => (typeof value === 'string' || value instanceof String);
+export const isNonEmptyString = (value) => (isString(value) && (value.length > 0));
 export const isNumber = (value) => typeof value === 'number' && !Number.isNaN(value);
 export const validateKey = (obj, key) => { if (!(key in obj)) throw new Error(`Key '${key}' not found in object`); };
 export const validateString = (str) => { if (typeof str === 'undefined' || str === null || typeof str !== 'string' || str.trim().length === 0) throw new Error(`Invalid string:[${str}]`); };
@@ -294,22 +295,15 @@ export function clampHSV(colorHSV) {
 // return black if luminence/value > 0.5 otherwise return white
 export function getHighContrastCssHexColorStr(bgHex) {
     validateHexColorString(bgHex);
-    let bgRGB = get_RGB_from_Hex(bgHex);
-    console.log(`DEBUG bgHex:${bgHex} bgRGB:${bgRGB}`);
+    const bgRGB = get_RGB_from_Hex(bgHex);
     validateRGB(bgRGB);
-    let bgHSV = get_HSV_from_RGB(bgRGB);
+    const bgHSV = get_HSV_from_RGB(bgRGB);
     validateHSV(bgHSV);
-    let clampedHSV = clampHSV(bgHSV)
+    const clampedHSV = clampHSV(bgHSV);
     validateHSV(clampedHSV);
-    console.log(`DEBUG bgHSV:${bgHSV} clampedHSV:${clampedHSV}`);
-
-    let value = clampedHSV[2];
-    let fgHex = "#000000";
-    if (value < 50) {
-        fgHex = "#FFFFFF";
-    }
+    const value = clampedHSV[2];
+    const fgHex = value < 50 ? "#FFFFFF" : "#000000";
     validateHexColorString(fgHex);
-    console.log(`DEBUG: value:${value} HIGH CONTRAST fgHex:${fgHex}`);
     return fgHex;
 }
 
@@ -324,9 +318,7 @@ export function test_getHighContractCssHexColorStr() {
     console.log(`lo_RGB:${lo_RGB} lo_Hex:${lo_Hex} -> hi_Hex:${hi_Hex} hi_RGB:${hi_RGB}`);
     if ( hi_RGB[0] !== 0xff || hi_RGB[1] !== 0xff || hi_RGB[2] !== 0xff ) {
         console.error("FAILURE expected white, not hi_RGB:", hi_RGB);
-    } else {
-        console.log("SUCCESS!")
-    }
+    } 
 
     hi_RGB = [222, 100, 150];
     validateRGB(lo_RGB)
@@ -336,9 +328,7 @@ export function test_getHighContractCssHexColorStr() {
     console.log(`hi_Hex:${hi_Hex} hi_RGB:${hi_RGB} -> lo_RGB:${lo_RGB} lo_Hex:${lo_Hex} `);
     if ( lo_RGB[0] !== 0 || lo_RGB[1] !== 0 || lo_RGB[2] !== 0 ) {
         console.error("FAILURE expected black, not lo_RGB:", lo_RGB);
-    } else {
-        console.log("SUCCESS!")
-    }
+    } 
 }
 
 
@@ -665,9 +655,10 @@ export function ensureHexColorStringAttribute(obj, attr) {
     throw new Error(`obj:[${obj}] attr:[${attr}] val:[${val}] hex:[${hex}] is not a valid hexColorString.`);
 }
 
+
 export function ensureHexColorStringStyle(obj, styleName) {
     let color = obj.style['styleName'];
-    if( typeof color === 'undefined' || color === null || color === "") {
+    if( !isNonEmptyString(color) ) {
         throw new Error(`Style ${styleName} must be defined.`);
     }
     var hex = null;
@@ -734,4 +725,86 @@ export function testColorUtils() {
     test_getHighContractCssHexColorStr();
     testColorFunctions();
     console.log("-------------------------------------");
+}
+
+  // counts all styles of prop strings
+export class PropStyleCounter {
+  constructor() {
+    this.prop_styles = {};
+  }
+
+  prop_style( prop )  {
+    if ( isNonEmptyString(prop) ) {
+        // remove all numbers from prop
+        return prop.replace(/\d/g, '');
+    }
+    return 'none';
+  }
+
+  addProp( prop ) {
+    const prop_style = this.prop_style(prop);
+    if (!this.prop_styles[prop_style]) {
+        this.prop_styles[prop_style] = 1;
+    } else {
+        this.prop_styles[prop_style] += 1;
+    }
+  }
+
+  reportPropStyles() {
+    for (const prop_style in this.prop_styles) {
+      console.log(`${prop_style}: ${this.prop_styles[prop_style]}`);
+    }
+  }
+}
+
+// CPU Usage: O(n)
+// Memory Usage: O(depth)
+// Stack Overflow Risk: higher for deeply nested depth
+// Overhead: higher due to recursive call stack management
+// Ease of implementation: simpler and more intuitive
+
+export function findAllChildrenRecursively(parent, allChildren = null) {
+    if (!allChildren) {
+        allChildren = [];
+    }
+    if (!allChildren.includes(parent)) {
+        allChildren.push(parent);
+    }
+    if (parent.children.length > 0) {
+        for (let child of parent.children) {
+            findAllChildrenRecursively(child, allChildren);
+        }
+    }
+    return allChildren;
+}
+
+// CPU Usage: O(n)
+// Memory Usage: O(breadth)
+// Stack Overflow Risk: None
+// Overhead: Lower due to no stakc mangements
+// Ease of implementation: medium
+export function findAllChildrenIteratively(parent) {
+    // Validate that the input is a valid DOM element
+    if (!(parent instanceof HTMLElement)) {
+        throw new Error("Invalid parent element");
+    }
+
+    // Initialize the stack with the parent element
+    const stack = [parent];
+    const allChildren = [];
+
+    // Process elements in the stack
+    while (stack.length > 0) {
+        const current = stack.pop();
+
+        // Add the current element to the result if not already included
+        if (!allChildren.includes(current)) {
+            allChildren.push(current);
+
+            // Add all children of the current element to the stack
+            stack.push(...current.children);
+        }
+    }
+
+    return allChildren;
 }

@@ -6,7 +6,7 @@ import * as utils from './modules/utils.mjs';
 import * as timeline from './modules/timeline.mjs';
 import * as focalPoint from './modules/focal_point.mjs';
 import * as alerts from './modules/alerts.mjs';
-import { initPaletteSelector } from './modules/color_palettes.mjs';
+import { createPaletteSelector } from './modules/color_palettes.mjs';
 
 
 utils.testColorUtils();
@@ -21,11 +21,13 @@ const rightContentDiv = document.getElementById("right-content-div");
 const canvasContainer = document.getElementById("canvas-container");
 const canvas = document.getElementById("canvas");
 const bottomGradient = document.getElementById("bottom-gradient");
+const focalPointElement = document.getElementById("focal-point");
 const bullsEye = document.getElementById("bulls-eye");
 const selectFirstBizcardButton = document.getElementById("select-first-bizcard");
 const selectNextBizcardButton = document.getElementById("select-next-bizcard");
 const selectAllBizcardsButton = document.getElementById("select-all-bizcards");
 const clearAllLineItemsButton = document.getElementById("clear-all-line-items");
+let paletteSelector = null;
 
 // --------------------------------------
 // Miscellaneous globals
@@ -115,10 +117,6 @@ document.addEventListener('mouseup', function() {
     document.getElementById("canvas-container").classList.remove('no-select');
 });
 
-document.addEventListener("DOMContentLoaded", () => {
-    addAllIconClickListeners();
-    initPaletteSelector();
-});
 
 //--------------------------------------
 // Z functions
@@ -263,7 +261,6 @@ function createBizcardDivs() {
         // jobEndStr is used for display purposes only
         const jobEndStr = endYearStrIsCURRENT_DATE ? "current" : endDate.toISOString().slice(0, 7);
         var endBottomPx = timeline.getTimelineYearMonthBottom(endYearStr, endMonthStr);
-
         var jobStartParts = job[ "start" ].split("-");
         var startYearStr = jobStartParts[0];
         var startMonthStr = jobStartParts[1];
@@ -350,12 +347,8 @@ function createBizcardDivs() {
         addCardDivClickListener(bizcardDiv);
         // does not select self
         // does not scroll self into view
-
     }
-
-    // Dispatch a custom event after appending all bizcards
-    const event = new Event('bizcardsAppended');
-    document.dispatchEvent(event);
+    paletteSelector.applyPaletteToElements();
 }
 
 
@@ -1717,13 +1710,11 @@ function addCardDivLineItem(targetCardDivId) {
     // check to see if the cardDiv exists
     var targetCardDiv = document.getElementById(targetCardDivId);
     if (targetCardDiv == null) {
-        // console.log(`no cardDiv found for targetCardDivId:${targetCardDivId}`);
-        return;
+        throw new Error(`no cardDiv found for targetCardDivId:${targetCardDivId}`);
     }
     let bizcardDivId = getBizcardDivIdFromAnyDiv(targetCardDiv);
-
     if ( bizcardDivId == null ) {
-        console.error(`no bizcardDivId found for targetCardDivId:${targetCardDivId}`);
+        throw new Error(`no bizcardDivId found for targetCardDivId:${targetCardDivId}`);
     }
     // console.log(`addCardDivLineItem targetCardDivId:${targetCardDivId}`);
     // only add a card-div-line-item for this targetCardDivId if
@@ -1738,6 +1729,8 @@ function addCardDivLineItem(targetCardDivId) {
         //cardDivLineItem.classList.add("right-column-div-child");
         cardDivLineItem.id = "card-div-line-item-" + targetCardDivId;
         cardDivLineItem.setAttribute("targetCardDivId", targetCardDivId);
+        console.log('cardDivLineItem bizcardDivId:', bizcardDivId);
+        cardDivLineItem.setAttribute("data-color-index", bizcardDivId);
 
         // add click listener
         addCardDivLineItemClickListener(cardDivLineItem, targetCardDiv);
@@ -1827,6 +1820,9 @@ function addCardDivLineItem(targetCardDivId) {
     // does not select self
     // does scroll self into view
     scrollElementIntoView(cardDivLineItem);
+
+    const allElements = utils.findAllChildrenRecursively(cardDivLineItem);
+    paletteSelector.applyPaletteToElements(allElements);
 
     return cardDivLineItem;
 }
@@ -2063,19 +2059,28 @@ function getMinMaxTimelineYears(jobs) {
     return [minYear, maxYear];
 }
 
-function handleWindowLoad() {
-    const focal_point = document.getElementById("focal-point");
-    const isDraggable = true;
-    focalPoint.createFocalPoint(focal_point, focalPointListener, isDraggable);
-
+function createAllElements() {
     const timelineContainer = document.getElementById("timeline-container");
-
     const [MIN_TIMELINE_YEAR, MAX_TIMELINE_YEAR] = getMinMaxTimelineYears(jobs);
     const DEFAULT_TIMELINE_YEAR = MAX_TIMELINE_YEAR;
-
     timeline.createTimeline(timelineContainer, canvasContainer, MIN_TIMELINE_YEAR, MAX_TIMELINE_YEAR, DEFAULT_TIMELINE_YEAR);
-
+    const isDraggable = true;
+    focalPoint.createFocalPoint(focalPointElement, focalPointListener, isDraggable);
+    paletteSelector = createPaletteSelector(); // defines default palette
     createBizcardDivs();
+    addAllIconClickListeners();
+    positionGradients();
+}
+
+// createAllElements after DOM is ready
+document.addEventListener("DOMContentLoaded", () => {
+    createAllElements();
+});
+
+function handleWindowLoad() {
+    const isDraggable = true;
+    focalPoint.initFocalPoint(isDraggable);
+
     renderAllTranslateableDivsAtCanvasContainerCenter();
     positionGradients();
     centerBullsEye();

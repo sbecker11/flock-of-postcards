@@ -119,6 +119,7 @@ overflow and ensures consistent sizing.
   position: relative;
   height: fit-content;
   scroll-behavior: smooth;
+  background-color: transparent !important;
 }
 
 #bottom-gradient {
