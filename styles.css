@@ -119,25 +119,28 @@ overflow and ensures consistent sizing.
   position: relative;
   height: fit-content;
   scroll-behavior: smooth;
-  background-color: transparent !important;
+  background-color: var(--background-dark));
+  z-index: 0;
 }
 
-#bottom-gradient {
+#canvas-bottom-gradient {
   position: absolute;
   width: 100%;
   height: 1000px;
   bottom: 0px;
   background: linear-gradient(to top, var(--background-light), var(--background-dark));
   pointer-events: none;
+  z-index: 1;
 }
 
-#top-gradient {
+#canvas-top-gradient {
   position: absolute;
   width: 100%;
   height: 1000px;
   top: 0px;
   background: linear-gradient(to bottom, var(--background-light), var(--background-dark));
   pointer-events: none;
+  z-index: 1;
 }
 
 

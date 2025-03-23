@@ -808,3 +808,26 @@ export function findAllChildrenIteratively(parent) {
 
     return allChildren;
 }
+
+export function swapClasses(element, addClass, removeClass) {
+    if ( ! element.classList.contains(addClass))
+        element.classList.add(addClass);
+    if ( element.classList.contains(removeClass)) 
+        element.classList.remove(removeClass);
+}
+
+export function updateEventListener(element, eventType, newListener, options = null) {
+    // Remove the existing event listener if it exists
+    if (newListener === null) {
+        element.removeEventListener(eventType, element[`__${eventType}Listener`]);
+        delete element[`__${eventType}Listener`]; // Clean up the reference
+    } else {
+        // Replace the existing listener with the new one
+        if (element[`__${eventType}Listener`]) {
+            element.removeEventListener(eventType, element[`__${eventType}Listener`]);
+        }
+        // Add the new listener with the optional options object
+        element.addEventListener(eventType, newListener, options);
+        element[`__${eventType}Listener`] = newListener; // Store the reference
+    }
+}
