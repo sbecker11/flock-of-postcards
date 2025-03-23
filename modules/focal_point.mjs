@@ -72,9 +72,9 @@ export function getFocalPoint() {
 export function getBullseye() {
     return {
         x:
-            _canvasContainer.offsetLeft + Math.floor(_canvasContainer.offsetWidth / 2 - 12),
+            _canvasContainer.offsetLeft + Math.floor(_canvasContainer.offsetWidth / 2 ),
         y: 
-            _canvasContainer.offsetTop + Math.floor(_canvasContainer.offsetHeight / 2 - 12)
+            _canvasContainer.offsetTop + Math.floor(_canvasContainer.offsetHeight / 2 )
     };
 }
 
@@ -86,6 +86,9 @@ export function moveFocalPointTo(x, y) {
     // see https://stackoverflow.com/a/53892597
     _focalPointElement.style.left = `${x}px`;
     _focalPointElement.style.top = `${y}px`;
+
+    console.log("moveMouseTo:",x,y);
+    console.log("bullseye:",getBullseye());
     
     // _focalPointElement.style.transform = `translate(${x}px, ${y}px)`;
 
@@ -138,17 +141,20 @@ export function wakeUpFocalPoint() {
 }
 
 export function drawFocalPointAnimationFrame() {
-    if (!_isAnimating) return;
+    // if (!_isAnimating) return;
 
     const focalPointNow = getFocalPoint();
 
     // exit early if we're at the destination already
-    if (focalPointNow.x === _focalPointAim.x && focalPointNow.y === _focalPointAim.y) {
+    if ((focalPointNow.x == _focalPointAim.x) && (focalPointNow.y == _focalPointAim.y)) {
+        console.log("arrived")
+
         _isAnimating = false;
 
         // focalPoint has arrived at focalPointAim
         if (_isHeadingToSleep) {
             focalPointArrivedAtBullseyeToSleep();
+        } else {
         }
 
         return;
@@ -202,13 +208,15 @@ function onMouseDown(event) {
 function onMouseDrag(event) {
 
     if ( !_isDraggable ) {
-        console.log("mouse drag")
+        console.log("mouse drag ignored")
         return;
     }
 
     if (_isDragging) {
-        console.log("mouse drag x:", event.pageX, "y:", event.pageY);
-        moveFocalPointTo(event.pageX, event.pageY);
+        const x = event.x;
+        const y = event.y;
+        console.log("mouse drag:", x, y);
+        moveFocalPointTo( x, y);
     }
 }
 
