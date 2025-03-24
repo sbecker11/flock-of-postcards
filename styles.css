@@ -87,6 +87,10 @@ overflow and ensures consistent sizing.
   justify-content: center;
 }
 
+#focal-point .awake {
+  color: white;
+}
+
 .non-draggable-focal-point {
   pointer-events: none;
 }

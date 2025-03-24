@@ -116,7 +116,7 @@ If the app is already running, it will re-load the `jobs.mjs` file.
 ### Future work
 
 - Provide the option to print the resume to a PDF file
-- Need to ease focal point to bullseye when any cardDiv is selected (or clicked?)
+- Need to ease focal point to BullsEye when any cardDiv is selected (or clicked?)
 - Need to add stamp icons to post cards
 - Click on post card to see it's full-size iomage in right-side detail panel
 - Render bizcards as 3D blocks with rounded corners
@@ -192,8 +192,8 @@ If the app is already running, it will re-load the `jobs.mjs` file.
 - Once selected, a postcard or business card is temporarily moved above the flock where is not subject to motion parallax.
 - Click on a postcard to select and scroll its resume line item into view.
 - Click on a resume line item to select and scroll its postcard into view.
-- The canvas viewport shows "bullseye" with a plus sign at canvas center, where parallax effect is zero.
-- FocalPoint defaults back to the viewport center bullseye when it leaves the canvas.
+- The canvas viewport shows "BullsEye" with a plus sign at canvas center, where parallax effect is zero.
+- FocalPoint defaults back to the viewport center BullsEye when it leaves the canvas.
 - The focalPoint starts tracking the mouse as soon as it re-enters the canvas area.
 - Canvas auto-scrolling starts when the focalPoint is in top or bottom quqrter of the canvas.
 - Autoscrolling stops when the focalPoint moves to viewport center and when the mouse leaves the canvas.

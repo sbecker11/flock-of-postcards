@@ -1095,16 +1095,8 @@ function applyParallax() {
     // console.log("numVisible:", numVisible, "numDivs:", allDivs.length);
 }
 
-let mouseX;
-let mouseY;
-
 function handleCanvasContainerMouseMove(event) {
-    if ( focalPoint._isAwake ) {
-        mouseX = event.clientX;
-        mouseY = event.clientY;
-        focalPoint.easeFocalPointToMouse(mouseX, mouseY);
-        // debugFocalPoint();
-    }
+    focalPoint.handleCanvasContainerMouseMove(event);
 }
 
 var autoScrollingInterval = null;
@@ -1217,20 +1209,12 @@ function handleFocalPointMove() {
 
 // Display mouse position and delta coordinates in the right-message-div  
 
-var isMouseOverCanvasContainer = false;
-
 function handleMouseEnterCanvasContainer(event) {
-    if ( focalPoint._isAwake ) {
-        isMouseOverCanvasContainer = true;
-        focalPoint.easeFocalPointToMouse(event.clientX, event.clientY);
-        // debugFocalPoint();
-    }
+    focalPoint.handleMouseEnterCanvasContainer(event);
 }
 
 function handleMouseLeaveCanvasContainer(event) {
-    isMouseOverCanvasContainer = false;
-    easeFocalPointToBullsEyeToSleep();
-    // debugFocalPoint();
+    focalPoint.handleMouseLeaveCanvasContainer(event);
 }
 
 var lastScrollTop = null;
@@ -1248,12 +1232,11 @@ function handleCanvasContainerScroll(scrollEvent) {
 } 
 
 function handleCanvasContainerWheel(wheelEvent) {
-    if ( focalPoint.isAwake ) {
-        const clientX = wheelEvent.clientX;
-        const clientY = wheelEvent.clientY;
-        console.log(`mouseMoveOnContainerWHeel ${clientX} ${clientY}`)
-        focalPoint.easeFocalPointToMouse(clientX, clientY);
-    }
+    const position = {
+        x: wheelEvent.clientX,
+        y: wheelEvent.clientY
+    };
+    focalPoint.setAimPoint(position);
 }
 
 // handle mouse enter event for any div element with
@@ -2017,7 +2000,8 @@ function centerBullsEye() {
 var focalPointX;
 var focalPointY;
 
-function focalPointListener(x, y) {
+// this is called while focalPoint is in motion
+function focalPointPositionListener(x, y) {
     focalPointX = x;
     focalPointY = y;
     handleFocalPointMove();
@@ -2031,11 +2015,6 @@ function getParallax() {
     parallaxX = bullsEyeX - focalPointX;
     parallaxY = bullsEyeY - focalPointY;
     return { parallaxX, parallaxY };
-}
-
-// smoothly move the focalPoint to the bullsEye
-function easeFocalPointToBullsEyeToSleep() {
-    focalPoint.easeFocalPointToBullseyeToSleep();
 }
 
 // return the min and max years over the list of jobs
@@ -2068,8 +2047,7 @@ function createAllElements() {
     const [MIN_TIMELINE_YEAR, MAX_TIMELINE_YEAR] = getMinMaxTimelineYears(jobs);
     const DEFAULT_TIMELINE_YEAR = MAX_TIMELINE_YEAR;
     timeline.createTimeline(timelineContainer, canvasContainer, MIN_TIMELINE_YEAR, MAX_TIMELINE_YEAR, DEFAULT_TIMELINE_YEAR);
-    focalPoint.createFocalPoint(focalPointElement, focalPointListener);
-    focalPoint.initFocalPoint();
+    focalPoint.createFocalPoint(focalPointElement, focalPointPositionListener); // starts easing to mouse
     paletteSelector = createPaletteSelector(); // defines default palette
     createBizcardDivs();
     addAllIconClickListeners();
@@ -2082,12 +2060,11 @@ document.addEventListener("DOMContentLoaded", () => {
 });
 
 function handleWindowLoad() {
-    focalPoint.initFocalPoint();
+    focalPoint.handleOnWindowLoad();
 
     renderAllTranslateableDivsAtCanvasContainerCenter();
     positionGradients();
     centerBullsEye();
-    easeFocalPointToBullsEyeToSleep();
 
     let lastFrameTime = 0;
     const maxFramesPerSecond = 10;
@@ -2175,7 +2152,7 @@ function handleWindowResize() {
     renderAllTranslateableDivsAtCanvasContainerCenter();
     positionGradients();
     centerBullsEye();
-    focalPointIsHeaderToBullseyeToSleep();
+    focalPointIsHeaderToBullsEyeToSleep();
 }
 
 // Attach event listeners

@@ -809,13 +809,25 @@ export function findAllChildrenIteratively(parent) {
     return allChildren;
 }
 
-export function swapClasses(element, addClass, removeClass) {
-    if ( ! element.classList.contains(addClass))
+// returns true if addClass was added, otherwise false
+export function addClass(element, addClass) {
+    if ( ! element.classList.contains(addClass)) {
         element.classList.add(addClass);
-    if ( element.classList.contains(removeClass)) 
-        element.classList.remove(removeClass);
+        return true;
+    }
+    return false;
 }
 
+// returns true if removeClass was removed, otherwise false
+export function removeClass(element, removeClass) {
+    if ( element.classList.contains(removeClass)) {
+        element.classList.remove(removeClass);
+        return true;
+    }
+    return false;
+}
+
+// used to add or remove eventListener types from element
 export function updateEventListener(element, eventType, newListener, options = null) {
     // Remove the existing event listener if it exists
     if (newListener === null) {

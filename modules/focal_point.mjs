@@ -3,17 +3,93 @@ const EPSILON = EASE_FACTOR / 2.0;
 
 import * as utils from './utils.mjs';
 
+const nullPosition = { x:null, y:null };
+
+function positionIsNull(position) {
+    if (!position || typeof position !== 'object') {
+        return true; // Null, undefined, or not an object
+    }
+    if (!('x' in position) || !('y' in position)) {
+        return true; // Missing x or y keys
+    }
+    if (position.x == null || position.y == null) {
+        return true; // x or y is null
+    }
+    return false; // Valid position
+}
+
 var _canvasContainer;
 var _focalPointElement;
 var _focalPointNowSubpixelPrecision;
-var _focalPointAim;
-var _focalPointListener;
-var _isAnimating;
-export var _isAwake;
-var _isHeadingToSleep = false;
-var _isSleeping;
-export var _isDraggable;
-var _isDragging = false;
+var _aimPoint;
+var _focalPointPositionListener;
+var _isEasingToAimPoint = false;
+export var _isAwake = true;
+var _isEasingToBullsEye = false;
+var _isEasingToMouse = true;
+export var _isDraggable = true;
+var _isBeingDraggedByMouse = false;
+
+
+let _focalPointRadius = 0;
+let _bullsEyeRadius = 0;
+let _bullsEyeCenter = { x: 0, y: 0 };
+
+// on windwo load
+export function handleOnWindowLoad() {
+    console.log("focalPoint handlingOnWindowLoad");
+
+    // Compute focalPoint radius
+    _focalPointRadius = _focalPointElement.getBoundingClientRect().width / 2;
+
+    // Compute bullsEye radius
+    _bullsEyeRadius = (30 - 2 * 2) / 2; // Assuming bullsEye width/height is 30px with 2px border
+
+    // Compute initial bullsEye center
+    updateBullsEyeCenter();
+}
+
+// on window resize
+function updateBullsEyeCenter() {
+    const canvasRect = _canvasContainer.getBoundingClientRect();
+    _bullsEyeCenter = {
+        x: canvasRect.left + canvasRect.width / 2,
+        y: canvasRect.top + canvasRect.height / 2,
+    };
+}
+
+export function getBullsEye() {
+    return _bullsEyeCenter; // Use the precomputed bullsEye center
+}
+
+// Add a listener for window resize to update bullsEye center
+window.addEventListener('resize', updateBullsEyeCenter);
+
+export function getFocalPoint() {
+    const focalPointRect = _focalPointElement.getBoundingClientRect();
+    return {
+        x: focalPointRect.left + _focalPointRadius,
+        y: focalPointRect.top + _focalPointRadius,
+    };
+}
+
+function getEventPosition(event) {
+    return {
+        x: event.pageX,
+        y: event.pageY,
+    };
+}
+
+export function moveFocalPointTo(x, y) {
+    const left = x - _focalPointRadius;
+    const top = y - _focalPointRadius;
+
+    _focalPointElement.style.left = `${left}px`;
+    _focalPointElement.style.top = `${top}px`;
+
+    // Notify the caller's listener
+    _focalPointPositionListener(x, y);
+}
 
 // -----------------------------------------------------
 // save the caller's _canvasContainer and _focalPointElement.
@@ -22,147 +98,159 @@ var _isDragging = false;
 //
 export function createFocalPoint(
     focalPointElement,
-    focalPointListener) {
+    focalPointPositionListener) {
     _focalPointElement = focalPointElement;
+    _focalPointRadius = focalPointElement.getBoundingClientRect().width / 2.0;
     _focalPointNowSubpixelPrecision = getFocalPoint();
-    _isSleeping = false;
-    _isDraggable = true;
     _isAwake = true;
-    _isHeadingToSleep = false;
-    _focalPointListener = focalPointListener;
+    _isEasingToBullsEye = false;
+    _isEasingToMouse = true;
+    _focalPointPositionListener = focalPointPositionListener; // used by main to rerender on moving focalPoint
     _canvasContainer = document.getElementById("canvas-container");
 
-    // add a dblClick listenter to the bullseye
-    utils.updateEventListener(_canvasContainer, 'dblclick', onCanvasContainerDoubleClick);
+    startEasingToMouse()
 
-    initFocalPoint();
+    // add a dblClick listenter to the BullsEye
+    utils.updateEventListener(_canvasContainer, 'dblclick', onCanvasContainerDoubleClick);
 }
 
-// called when the window is resized
-export function initFocalPoint(isDraggable=true) {
-    _isAnimating = false;
-    if ( isDraggable ) {
-        _isDraggable = true;
-        _isDragging = false;
-        _isAwake = true;
-        _isSleeping = false;
-        _isHeadingToSleep = false;
 
-        utils.swapClasses(_focalPointElement, 'draggable-focal-point','non-draggable-focal-point');
-        utils.updateEventListener(_focalPointElement, 'mousedown', onMouseDown);
+export function handleMouseEnterCanvasContainer(event) {
+    const eventPosition = getEventPosition(event);
+    if ( _isAwake ) {
+        startEasingToMouse( eventPosition )
     } else {
-        utils.swapClasses(_focalPointElement, 'non-draggable-focal-point','draggable-focal-point');
-        utils.updateEventListener( _focalPointElement, 'mousedown'); 
+        awakeAndStartEasingToMouse( eventPosition );
     }
 }
 
-// get the _canvasContainer-relative
-// location of the _focalPointElement center
-export function getFocalPoint() {
-    return {
-        x:
-            _focalPointElement.offsetLeft
-            + Math.floor(_focalPointElement.offsetWidth / 2),
-        y:
-            _focalPointElement.offsetTop
-            + Math.floor(_focalPointElement.offsetHeight / 2)
-    };
+export function handleCanvasContainerMouseMove(event) {
+    setAimPoint(getEventPosition(event));
 }
 
-export function getBullseye() {
-    return {
-        x:
-            _canvasContainer.offsetLeft + Math.floor(_canvasContainer.offsetWidth / 2 ),
-        y: 
-            _canvasContainer.offsetTop + Math.floor(_canvasContainer.offsetHeight / 2 )
-    };
+export function handleMouseLeaveCanvasContainer(event) {
+    _isBeingDraggedByMouse = false;
+    startEasingToBullsEye();
 }
 
 
-// move the _focalPointElement to the given
-// _canvasContainer-relative location
-export function moveFocalPointTo(x, y) {
-    // alternative
-    // see https://stackoverflow.com/a/53892597
-    _focalPointElement.style.left = `${x}px`;
-    _focalPointElement.style.top = `${y}px`;
-
-    console.log("moveMouseTo:",x,y);
-    console.log("bullseye:",getBullseye());
-    
-    // _focalPointElement.style.transform = `translate(${x}px, ${y}px)`;
-
-    // notify the caller's listener
-    // console.log("move x:",x,"y:",y);
-    _focalPointListener(x, y);
-}
-
-// ease_factor the _focalPointElement to the given
-// _canvasContainer-relative location if the 
-export function easeFocalPointToMouse(x, y, callback) {
-    _isAnimating = true;
-    _focalPointAim = { x, y };
-}
-
-// ease_factor the _focalPointElement to the given
-// _canvasContainer-relative location if the 
-export function easeFocalPointToBullseyeToSleep() {
-    _isAnimating = true;
-    const bullseye = getBullseye();
-    _focalPointAim = { x: bullseye.x, y: bullseye.y };
-    _isHeadingToSleep = true;
-    _isAwake = false;
-    _isSleeping = false;
-}
-
-export function focalPointArrivedAtBullseyeToSleep() {
-    console.log('Focal point reached the bullseye and is now asleep.');
-    _isAnimating = false;
-    _isHeadingToSleep = false;
-    _isSleeping = true;
-    _isAwake = false;
-
-    // Change the focal point's color to grey
-    _focalPointElement.style.color = 'grey';
-}
-
-export function wakeUpFocalPoint() {
+// unless being dragged by mouse
+export function startEasingToMouse( position) {
+    if ( _isBeingDraggedByMouse )
+        return;
+    setAimPoint( position );
+    _isEasingToAimPoint = true;
+    _isEasingToMouse = true;
+    utils.addClass(_focalPointElement, "awake");
+    _isEasingToBullsEye = false;
     _isAwake = true;
-    _isHeadingToSleep = false;
-    _isSleeping = false;
-    _isAnimating = true;
-    _isDraggable = true;
+    
+    // add mousedown listener to start dragging
+    utils.updateEventListener(_focalPointElement, 'mousedown', onMouseDown_startDraggingFocalPoint);
+}
+
+
+// unless being dragged by mouse
+export function startEasingToBullsEye() {
+    if ( _isBeingDraggedByMouse ) 
+        return;
+    setAimPoint( getBullsEye() );
+    _isEasingToAimPoint = true;
+    _isEasingToBullsEye = true;
+    _isEasingToMouse = false;
+    _isAwake = true;
+}
+
+
+export function setAimPoint(position) {
+    _aimPoint = position;
+}
+
+export function clearAimPoint() {
+    _aimPoint = nullPosition;
+}
+
+export function aimPointIsNull() {
+    return positionIsNull(_aimPoint);
+}
+
+export function getAimPoint() {
+    return _aimPoint;
+}
+
+export function handleArrivedAtBullsEye() {
+    console.log('Focal point reached the BullsEye and is going asleep.');
+    _isEasingToAimPoint = false;
+    _isEasingToBullsEye = false;
+    _isEasingToMouse = false;
+    _isAwake = false;
+
+    // Remove the awake class to chang focal point's back to grey
+    utils.removeClass(_focalPointElement, "awake");
+}
+
+export function awakeAndStartEasingToMouse( wakeUpPosition ) {
+    console.log("Waking up at ", wakeUpPosition);
 
     // Change the focal point's color to white
-    _focalPointElement.style.color = 'white';
-
-    // Re-enable dragging
-    initFocalPoint(true);
+    utils.addClass(_focalPointElement, "awake");
+    _isAwake = true;
+    startEasingToMouse( wakeUpPosition );
+}
+function max(a,b) {
+    if ( a > b )
+        return a;
+    return b;
+}
+function abs(a) {
+    if ( a < 0 )
+        return -a;
+    return a;
+}
+export function getPositionsDist( pos1, pos2 ) {
+    if ( pos1 == null || pos2 == null )
+        return INFINITY;
+    if ( positionIsNull(pos1) || positionIsNull(pos2) )
+        return INFINITY;
+    return max(abs(pos1.x - pos2.x),  abs(pos1.y - pos2.y));
 }
 
+export function positionsMatch( pos1, pos2, maxDist=2 ) {
+    return getPositionsDist(pos1,pos2) <= maxDist;
+}
+
+// unless being dragged by mouse
 export function drawFocalPointAnimationFrame() {
-    // if (!_isAnimating) return;
 
-    const focalPointNow = getFocalPoint();
-
-    // exit early if we're at the destination already
-    if ((focalPointNow.x == _focalPointAim.x) && (focalPointNow.y == _focalPointAim.y)) {
-        console.log("arrived")
-
-        _isAnimating = false;
-
-        // focalPoint has arrived at focalPointAim
-        if (_isHeadingToSleep) {
-            focalPointArrivedAtBullseyeToSleep();
-        } else {
-        }
-
+    if ( _isBeingDraggedByMouse ) {
         return;
     }
+    if ( aimPointIsNull() ) {
+        return;
+    }
+    // console.log("focalPoint:", getFocalPoint() )
+    // console.log("aimdPoint:", getAimPoint() )
+    // console.log("bullsEye:", getBullsEye() )
+    const dist = getPositionsDist( getFocalPoint(), getAimPoint() );
+    if ( dist <= 2  ) {
+        if ( _isEasingToBullsEye ) {
+            _isEasingToBullsEye = false;
+            _isEasingToAimPoint = false;
+            handleArrivedAtBullsEye();
+        }
+        return;
+    }
+    if ( _isEasingToBullsEye )
+        console.log("focalPoint animating to aimPoint as bullsEye with dist:", dist);
+    else if ( _isEasingToMouse )
+        console.log("focalPoint animating to aimPoint as mouse with dist:", dist);
+    else if ( _isEasingToAimPoint )
+        console.log("focalPoint animating to some aimPoint with dist:", dist);
+
 
     _focalPointNowSubpixelPrecision = computeAStepCloserToAimSubpixelPrecision(
         _focalPointNowSubpixelPrecision,
-        _focalPointAim,
+        getAimPoint(),
         EASE_FACTOR,
         EPSILON
     );
@@ -189,55 +277,52 @@ function computeAStepCloserToAimSubpixelPrecision(nowPoint, aimPoint, ease_facto
     };
 }
 
-function onMouseDown(event) {
-    if ( !_isDraggable ) return;
+// if isDraggable and click doen on focalPoint then start dragging it
+function onMouseDown_startDraggingFocalPoint(event) {
 
-    _isDragging = true;
-    _isAnimating = false;
+    _isBeingDraggedByMouse = true;
+    _isEasingToAimPoint = false;
+    _isEasingToBullsEye = false;
+    _isEasingToMouse = false;
 
     document.body.style.pointerEvents = 'none'; // Disable pointer events on other elements
     document.body.style.userSelect = 'none'; // Disable text selection
 
-    // console.log("down x:", event.pageX, "y:", event.pageY);
-    moveFocalPointTo(event.pageX, event.pageY);
+    const eventPosition = getEventPosition(event);
+    moveFocalPointTo( eventPosition );
+    clearAimPoint();
 
-    utils.updateEventListener(document,'mousemove', onMouseDrag);
-    utils.updateEventListener(document,'mouseup', onMouseUp, { once: true });
+    // add mousemove and mouseup listeners
+    utils.updateEventListener(document,'mousemove', onMouseDrag_keepDraggingFocalPoint);
+    utils.updateEventListener(document,'mouseup', onMouseUp_stopDraggingFocalPoint, { once: true });
 }
 
-function onMouseDrag(event) {
+function onMouseDrag_keepDraggingFocalPoint(event) {
 
-    if ( !_isDraggable ) {
-        console.log("mouse drag ignored")
-        return;
-    }
-
-    if (_isDragging) {
-        const x = event.x;
-        const y = event.y;
-        console.log("mouse drag:", x, y);
-        moveFocalPointTo( x, y);
+    if (_isBeingDraggedByMouse) {
+        const eventPosition = getEventPosition(event);
+        moveFocalPointTo(eventPosition);
+        clearAimPoint();
+        console.log("focalPoint drag:", eventPosition);
+        console.log("focalPoint  Aim:", eventPosition);
     }
 }
 
-function onMouseUp(event) {
-    if ( !_isDraggable ) return;
-
-    _isDragging = false;
+function onMouseUp_stopDraggingFocalPoint(event) {
+    
     document.body.style.pointerEvents = 'auto'; // Re-enable pointer events on other elements
     document.body.style.userSelect = 'auto'; // Re-enable text selection
    
-    // console.log("up x:", event.pageX, "y:", event.pageY);
-    moveFocalPointTo(event.pageX, event.pageY);
-
-    utils.updateEventListener(document, 'mousemove' );
+    startEasingToMouse( getEventPosition(event) );
 }
 
 function onCanvasContainerDoubleClick(event) {
     console.log("got onCanvasContainerDoubleClick !!")
     if ( _isAwake ) {
-        easeFocalPointToBullseyeToSleep();
-    } else if ( !_isAwake ) {
-        wakeUpFocalPoint();
+        console.log("not sleeping so start easing to bulls eye and take a nap");
+        startEasingToBullsEye();
+    } else {
+        console.log("is not awake so awake and start easing to mouse");
+        awakeAndStartEasingToMouse( getEventPosition(event) );
     }
 }
