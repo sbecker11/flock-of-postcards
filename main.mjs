@@ -20,7 +20,8 @@ const rightContentDiv = document.getElementById("right-content-div");
 // const debugTheSelectedCardDivIdElement = null; //  = document.getElementById("debugTheSelectedCardDivIdElement");
 const canvasContainer = document.getElementById("canvas-container");
 const canvas = document.getElementById("canvas");
-const bottomGradient = document.getElementById("bottom-gradient");
+const canvasBtmGradient = document.getElementById("canvas-btm-gradient");
+const canvasTopGradient = document.getElementById("canvas-top-gradient");
 const focalPointElement = document.getElementById("focal-point");
 const bullsEye = document.getElementById("bulls-eye");
 const selectFirstBizcardButton = document.getElementById("select-first-bizcard");
@@ -1963,9 +1964,9 @@ function renderAllTranslateableDivsAtCanvasContainerCenter() {
 }
 
 function positionGradients() {
-    // const canvasHeight = canvas.scrollHeight;
-    // const bottomGradientHeight = bottomGradient.offsetHeight;
-    // bottomGradient.style.top = `${canvasHeight - bottomGradientHeight}px`;
+    const canvasHeight = canvas.scrollHeight;
+    const btmGrdHeight = canvasBtmGradient.offsetHeight;
+    canvasBtmGradient.style.top = `${canvasHeight - btmGrdHeight}px`;
 }
 
 function rightContentScrollToBottom() {

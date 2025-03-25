@@ -119,6 +119,7 @@ export class PaletteSelector {
 
     this.initializePaletteDivColors();
     this.applyPaletteToElements();
+    this.applyPaletteToDocument();
   }
 
   extractDigitsString(data_color_index) {
@@ -140,6 +141,8 @@ export class PaletteSelector {
       this.bg_hex_colors[index] = bg_hex_color_string;
       this.fg_hex_colors[index] = fg_hex_color_string;
     }
+    this.darker_bg_hex_color = this.findDarkestBgHexColor();
+    this.darkest_bg_hex_color = '#000000';
   }
 
   // this function is called to set the bg and fg colors of the given element
@@ -179,6 +182,27 @@ export class PaletteSelector {
     console.log("----------------------------------:")
 
   }
+
+  findDarkestBgHexColor() {
+    let darkest_value = 100;
+    let darkest_bgHexColor = null;
+    for (const bgHexColor of this.current_color_palette) {
+      const RGB = utils.get_RGB_from_Hex(bgHexColor);
+      const value = utils.get_HSV_from_RGB(RGB)[2];
+      if (value < darkest_value) {
+        darkest_bgHexColor = bgHexColor;
+        darkest_value = value;
+      }
+    }
+    return darkest_bgHexColor;
+  }
   
+  applyPaletteToDocument() {
+    const root = document.documentElement;
+    root.style.setProperty('--background-light', this.findDarkestBgHexColor());
+    root.style.setProperty('--background-dark', this.darkest_bg_hex_color);
+    console.log(`root.style.[--background-light]: ${root.style.getPropertyValue('--background-light')}`);
+    console.log(`root.style.[--background-dark]: ${root.style.getPropertyValue('--background-dark')}`);
+  }
 }
 

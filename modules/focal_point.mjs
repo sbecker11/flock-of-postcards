@@ -323,23 +323,21 @@ export function getPositionsDist( pos1, pos2 ) {
 // unless being dragged by mouse
 export function drawFocalPointAnimationFrame() {
 
-    if ( getIsBeingDraggedByMouse() ) {
-        console.log("drawFocalPointAnimationFrame ignored when isBeingDraggedByMouse");
+    if ( getIsBeingDraggedByMouse() ) {        _lastStatus = _currentStatus;
+        _currentStatus = "drawIgnored";
+        if ( _currentStatus != _lastStatus )
+            console.log("drawFocalPointAnimationFrame ignored when isBeingDraggedByMouse");
         return;
     }
     const dist = getPositionsDist( getFocalPoint(), getAimPoint() );
 
     if ( _isEasingToBullsEye ) {
-        _lastStatus = _currentStatus;
-        _currentStatus = "isEasingToBullsEye";
         if ( dist <= 2  ) {
             handleArrivedAtBullsEye(getFocalPoint());
             return;
         } 
     }
     else if ( _isEasingToMouse ) {
-        _lastStatus = _currentStatus;
-        _currentStatus = "isEasingToMouse";
         if ( dist <= 2 ) {
             handleArrivedAtMouse(getFocalPoint());
             return;
@@ -406,7 +404,8 @@ function onMouseDown_startDraggingFocalPoint(event) {
     }
     lastClickTime = currentTime;
 
-    utils.updateEventListener(document, 'mousemove', onMouseDrag_keepDraggingFocalPoint);
+    // { passive: true } allows wheel scrolling while dragging
+    utils.updateEventListener(document, 'mousemove', onMouseDrag_keepDraggingFocalPoint, { passive: true });
 
     event.stopPropagation(); // prevent the mouse event from propagating to other listeners
     event.preventDefault(); // prevent default browser behavior
@@ -428,6 +427,8 @@ function onMouseDrag_keepDraggingFocalPoint(event) {
 
     if ( getIsBeingDraggedByMouse() ) {
         moveFocalPointTo(eventPosition);
+
+        // Avoid calling preventDefault() to allow wheel scrolling
 
         // _lastStatus = _currentStatus;
         // _currentStatus = "keepDragging";
@@ -456,7 +457,10 @@ function onCanvasContainerDoubleClick(event) {
     const eventPosition = getEventPosition(event);
 
     if ( getIsBeingDraggedByMouse() ) {
-        console.log("doubleClick ignored while isBeingDraggedByMouse")
+        _lastStatus = _currentStatus;
+        _currentStatus = "drawIgnored";
+        if ( _currentStatus != _lastStatus )
+            console.log("doubleClick ignored while isBeingDraggedByMouse")
         return;
     }
     _lastStatus = _currentStatus;

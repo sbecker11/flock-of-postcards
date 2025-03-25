@@ -763,11 +763,13 @@ export class PropStyleCounter {
 // Overhead: higher due to recursive call stack management
 // Ease of implementation: simpler and more intuitive
 
-export function findAllChildrenRecursively(parent, allChildren = null) {
+export function findAllChildrenRecursively(parent, allChildren = []) {
+    /** @type {HTMLElement[]} */
+    allChildren = allChildren || [];
     if (!allChildren) {
         allChildren = [];
     }
-    if (!allChildren.includes(parent)) {
+    if (allChildren && !allChildren.includes(parent)) {
         allChildren.push(parent);
     }
     if (parent.children.length > 0) {
@@ -802,7 +804,9 @@ export function findAllChildrenIteratively(parent) {
             allChildren.push(current);
 
             // Add all children of the current element to the stack
-            stack.push(...current.children);
+            if (current && current.children) {
+                stack.push(...Array.from(current.children).filter(child => child instanceof HTMLElement));
+            }
         }
     }
 

@@ -9,7 +9,7 @@ reference for the #main-container to occupy the full height of the viewport.
 }
 
 html, body {
-  height: 100%;
+  height: auto; /* to fit size of its content */
   margin: 0; /* Remove default margins */
   padding: 0; /* Remove default paddings */
   background-color: var(--background-dark);
@@ -31,7 +31,7 @@ regardless of the window size.
 #main-container {
   display: flex;
   width: 100%; /* Full width */
-  height: 100vh; /* Full viewport height */
+  height: auto; /* resize to fit content */
 }
 
 /*
@@ -107,7 +107,7 @@ overflow and ensures consistent sizing.
 
 #canvas-container {
   flex: 1;
-  height: 100%;
+  height: auto; /* to fit size of its content */
   overflow-y: scroll; 
   overscroll-behavior: contain;
   -ms-overflow-style: none; /* Hide scrollbar for IE and Edge */
@@ -127,12 +127,12 @@ overflow and ensures consistent sizing.
   z-index: 0;
 }
 
-#canvas-bottom-gradient {
+#canvas-btm-gradient {
   position: absolute;
   width: 100%;
   height: 1000px;
   bottom: 0px;
-  background: linear-gradient(to top, var(--background-light), var(--background-dark));
+  background: linear-gradient(to top, var(--background-light), black); 
   pointer-events: none;
   z-index: 1;
 }
@@ -142,9 +142,9 @@ overflow and ensures consistent sizing.
   width: 100%;
   height: 1000px;
   top: 0px;
-  background: linear-gradient(to bottom, var(--background-light), var(--background-dark));
+  background: linear-gradient(to bottom, var(--background-light) black); 
   pointer-events: none;
-  z-index: 1;
+  z-index: 2;
 }
 
 
