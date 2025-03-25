@@ -1095,10 +1095,6 @@ function applyParallax() {
     // console.log("numVisible:", numVisible, "numDivs:", allDivs.length);
 }
 
-function handleCanvasContainerMouseMove(event) {
-    focalPoint.handleCanvasContainerMouseMove(event);
-}
-
 var autoScrollingInterval = null;
 var autoScrollVelocity = 0;
 var oldAutoScrollVelocity = 0;
@@ -2001,9 +1997,9 @@ var focalPointX;
 var focalPointY;
 
 // this is called while focalPoint is in motion
-function focalPointPositionListener(x, y) {
-    focalPointX = x;
-    focalPointY = y;
+function focalPointPositionListener(position) {
+    focalPointX = position.x;
+    focalPointY = position.y;
     handleFocalPointMove();
     // debugFocalPoint();
 }
@@ -2152,7 +2148,7 @@ function handleWindowResize() {
     renderAllTranslateableDivsAtCanvasContainerCenter();
     positionGradients();
     centerBullsEye();
-    focalPointIsHeaderToBullsEyeToSleep();
+    focalPoint.handleOnWindwoResize();
 }
 
 // Attach event listeners
@@ -2410,13 +2406,7 @@ selectFirstBizcardButton.addEventListener("click", function (event) {
 //---------------------------------------
 // canvas container event listeners
 
-addCanvasContainerEventListener("mousemove", handleCanvasContainerMouseMove);
-
 addCanvasContainerEventListener("wheel", handleCanvasContainerWheel, { passive: true });
-
-addCanvasContainerEventListener('mouseenter', handleMouseEnterCanvasContainer);
-
-addCanvasContainerEventListener('mouseleave', handleMouseLeaveCanvasContainer);
 
 addCanvasContainerEventListener('scroll', handleCanvasContainerScroll);
 
