@@ -4,8 +4,9 @@ reference for the #main-container to occupy the full height of the viewport.
 */
 
 :root {
-  --background-light: midnightblue; /* Define a CSS variable for the primary color */
-  --background-dark: #000066; /* Define a CSS variable for the secondary color */
+  --background-light: rgb(24, 24, 111); /* 25% darker than rgb(32, 32, 148) */
+  --background-dark: rgb(0, 0, 77); /* 25% darker than #000066 */
+  --native-dark-bg-blend-mode: normal !important;
 }
 
 html, body {
@@ -113,6 +114,9 @@ overflow and ensures consistent sizing.
   -ms-overflow-style: none; /* Hide scrollbar for IE and Edge */
   scrollbar-width: none; /* Hide scrollbar for Firefox */
   overflow-x: hidden; /* prevent horizontal scrolling */
+  position: relative;
+  isolation: isolate;
+  z-index: 0;
 }
 
 #canvas-container::-webkit-scrollbar {
@@ -121,10 +125,11 @@ overflow and ensures consistent sizing.
 
 #canvas {
   position: relative;
+  width: 100%;
   height: fit-content;
   scroll-behavior: smooth;
-  background-color: var(--background-dark));
-  z-index: 0;
+  z-index: 1;
+  isolation: isolate;
 }
 
 #canvas-btm-gradient {
@@ -132,9 +137,9 @@ overflow and ensures consistent sizing.
   width: 100%;
   height: 1000px;
   bottom: 0px;
-  background: linear-gradient(to top, var(--background-light), black); 
+  background: linear-gradient(to top, var(--background-light) 0%, var(--background-dark) 100%); 
   pointer-events: none;
-  z-index: 1;
+  z-index: 2;
 }
 
 #canvas-top-gradient {
@@ -142,9 +147,9 @@ overflow and ensures consistent sizing.
   width: 100%;
   height: 1000px;
   top: 0px;
-  background: linear-gradient(to bottom, var(--background-light) black); 
+  background: linear-gradient(to bottom, var(--background-light) 0%, var(--background-dark) 100%); 
   pointer-events: none;
-  z-index: 2;
+  z-index: 3;
 }
 
 
@@ -356,4 +361,13 @@ div.card-div span.tag-link {
   width: 16px;
   height: 16px;
   margin: 1px; /* Adjust as needed for spacing */
+}
+
+/* Override all native dark mode styles with maximum specificity */
+html[native-dark-active][native-dark-active] #canvas-container,
+html[native-dark-active] #canvas-container,
+#canvas-container {
+  background-color: #000066 !important;
+  background-blend-mode: normal !important;
+  mix-blend-mode: normal !important;
 }

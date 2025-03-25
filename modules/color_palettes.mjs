@@ -198,11 +198,32 @@ export class PaletteSelector {
   }
   
   applyPaletteToDocument() {
-    const root = document.documentElement;
-    root.style.setProperty('--background-light', this.findDarkestBgHexColor());
-    root.style.setProperty('--background-dark', this.darkest_bg_hex_color);
-    console.log(`root.style.[--background-light]: ${root.style.getPropertyValue('--background-light')}`);
-    console.log(`root.style.[--background-dark]: ${root.style.getPropertyValue('--background-dark')}`);
+    try {
+      const root = document.documentElement;
+      const lightColor = this.findDarkestBgHexColor();
+      const darkColor = this.darkest_bg_hex_color;
+
+      // Validate colors are not null/undefined
+      if (!lightColor || !darkColor) {
+        console.error('Invalid color values:', { light: lightColor, dark: darkColor });
+        return false;
+      }
+
+      root.style.setProperty('--background-light', lightColor);
+      root.style.setProperty('--background-dark', darkColor);
+      
+      // Verify the colors were set correctly
+      const setLight = root.style.getPropertyValue('--background-light');
+      const setDark = root.style.getPropertyValue('--background-dark');
+      
+      console.log(`root.style.[--background-light]: ${setLight}`);
+      console.log(`root.style.[--background-dark]: ${setDark}`);
+
+      return setLight && setDark;
+    } catch (error) {
+      console.error('Error applying color palette:', error);
+      return false;
+    }
   }
 }
 
