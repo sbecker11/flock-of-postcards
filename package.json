@@ -5,7 +5,8 @@
   "main": "main.mjs",
   "type": "module",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "node server.js"
   },
   "repository": {
     "type": "git",
@@ -27,6 +28,7 @@
     "sheetjs": "latest",
     "log4js": "^6.9.1",
     "node-fetch": "^3.3.2",
+    "express": "^4.21.2",
     "openai": "^4.86.1"
   }
 }

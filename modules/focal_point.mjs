@@ -66,25 +66,25 @@ export function handleOnWindwoResize() {
 
 // on window resize
 function updateBullsEyeCenter() {
-    const canvasRect = _canvasContainer.getBoundingClientRect();
+    // Calculate center position relative to viewport
     _bullsEyeCenter = {
-        x: canvasRect.left + canvasRect.width / 2,
-        y: canvasRect.top + canvasRect.height / 2
+        x: window.innerWidth / 2,
+        y: window.innerHeight / 2
     };
 }
 
 export function getBullsEye() {
-    return _bullsEyeCenter; // Use the precomputed bullsEye center
+    return _bullsEyeCenter;
 }
 
 // Add a listener for window resize to update bullsEye center
 window.addEventListener('resize', updateBullsEyeCenter);
 
 export function getFocalPoint() {
-    const focalPointRect = _focalPointElement.getBoundingClientRect();
+    const rect = _focalPointElement.getBoundingClientRect();
     return {
-        x: focalPointRect.left + _focalPointRadius,
-        y: focalPointRect.top + _focalPointRadius
+        x: rect.left + (rect.width / 2),
+        y: rect.top + (rect.height / 2)
     };
 }
 
@@ -99,11 +99,9 @@ export function moveFocalPointTo(position) {
     _lastStatus = _currentStatus;
     _currentStatus = "moveFocalPoint";
 
-    const left = position.x - _focalPointRadius;
-    const top = position.y - _focalPointRadius;
-
-    _focalPointElement.style.left = `${left}px`;
-    _focalPointElement.style.top = `${top}px`;
+    // Since we're using transform: translate(-50%, -50%), we need to set the position directly
+    _focalPointElement.style.left = `${position.x}px`;
+    _focalPointElement.style.top = `${position.y}px`;
 
     notifyPositionListeners(position);
 }
@@ -180,8 +178,15 @@ export function onCanvasContainerLeave(event) {
     const eventPosition = getEventPosition(event);
     _lastStatus = _currentStatus;
     _currentStatus = "leaveContainer";
-    if ( _currentStatus != _lastStatus )
-        console.log("onCanvasContainerLeave immediately startEasingToBullsEye");
+    console.log("onCanvasContainerLeave called with position:", eventPosition);
+    console.log("Current status:", _currentStatus);
+    console.log("Is being dragged:", getIsBeingDraggedByMouse());
+    
+    if (getIsBeingDraggedByMouse()) {
+        console.log("Ignoring leave event because focal point is being dragged");
+        return;
+    }
+    
     startEasingToBullsEye(eventPosition);
 }
 
@@ -209,21 +214,22 @@ export function startEasingToMouse( position) {
 
 // unless being dragged by mouse
 export function startEasingToBullsEye(position) {
-    if ( getIsBeingDraggedByMouse() ) {
+    if (getIsBeingDraggedByMouse()) {
         console.log("startEasingToBullsEye ignored while isBeingDraggedByMouse");
         return;
     }
-    setAimPoint( getBullsEye() );
+    console.log("Starting to ease to bulls eye at position:", position);
+    console.log("Current bulls eye position:", getBullsEye());
+    
+    setAimPoint(getBullsEye());
     _isEasingToAimPoint = true;
     _isEasingToBullsEye = true;
     _isEasingToMouse = false;
     _isAwake = true;
-    const result = getIsBeingDraggedByMouse();
 
     _lastStatus = _currentStatus;
     _currentStatus = "easingToBullsEye";
-    if ( _currentStatus != _lastStatus )
-        console.log("startEasingToBullsEye with isBeingDraggedByMous:", result);
+    console.log("Status changed to:", _currentStatus);
 }
 
 
@@ -322,50 +328,57 @@ export function getPositionsDist( pos1, pos2 ) {
 
 // unless being dragged by mouse
 export function drawFocalPointAnimationFrame() {
-
-    if ( getIsBeingDraggedByMouse() ) {        _lastStatus = _currentStatus;
+    if (getIsBeingDraggedByMouse()) {
+        _lastStatus = _currentStatus;
         _currentStatus = "drawIgnored";
-        if ( _currentStatus != _lastStatus )
+        if (_currentStatus != _lastStatus)
             console.log("drawFocalPointAnimationFrame ignored when isBeingDraggedByMouse");
         return;
     }
-    const dist = getPositionsDist( getFocalPoint(), getAimPoint() );
 
-    if ( _isEasingToBullsEye ) {
-        if ( dist <= 2  ) {
-            handleArrivedAtBullsEye(getFocalPoint());
+    const currentPos = getFocalPoint();
+    const aimPos = getAimPoint();
+    const dist = getPositionsDist(currentPos, aimPos);
+
+    console.log("Animation frame:", {
+        currentPos,
+        aimPos,
+        dist,
+        isEasingToBullsEye: _isEasingToBullsEye,
+        isEasingToMouse: _isEasingToMouse,
+        isEasingToAimPoint: _isEasingToAimPoint
+    });
+
+    if (_isEasingToBullsEye) {
+        if (dist <= 2) {
+            handleArrivedAtBullsEye(currentPos);
             return;
-        } 
+        }
     }
-    else if ( _isEasingToMouse ) {
-        if ( dist <= 2 ) {
-            handleArrivedAtMouse(getFocalPoint());
+    else if (_isEasingToMouse) {
+        if (dist <= 2) {
+            handleArrivedAtMouse(currentPos);
             return;
-        } 
-    } else if ( dist <= 2 ) {
-        handleArrivedAtAimPoint(getAimPoint());
+        }
+    } else if (dist <= 2) {
+        handleArrivedAtAimPoint(aimPos);
         return;
     }
 
-    // if ( _isEasingToBullsEye )
-    //     console.log("focalPoint animating to aimPoint as bullsEye with dist:", dist);
-    // else if ( _isEasingToMouse )
-    //     console.log("focalPoint animating to aimPoint as mouse with dist:", dist);
-    // else if ( _isEasingToAimPoint )
-    //     console.log("focalPoint animating to some aimPoint with dist:", dist);
-
-
     _focalPointNowSubpixelPrecision = computeAStepCloserToAimSubpixelPrecision(
         _focalPointNowSubpixelPrecision,
-        getAimPoint(),
+        aimPos,
         EASE_FACTOR,
         EPSILON
     );
-    if ( _focalPointNowSubpixelPrecision != null ) {
-        moveFocalPointTo( {
+
+    if (_focalPointNowSubpixelPrecision != null) {
+        const newPos = {
             x: Math.round(_focalPointNowSubpixelPrecision.x),
             y: Math.round(_focalPointNowSubpixelPrecision.y)
-        });
+        };
+        console.log("Moving to new position:", newPos);
+        moveFocalPointTo(newPos);
     }
 }
 

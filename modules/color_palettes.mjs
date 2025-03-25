@@ -201,7 +201,14 @@ export class PaletteSelector {
     try {
       const root = document.documentElement;
       const lightColor = this.findDarkestBgHexColor();
-      const darkColor = this.darkest_bg_hex_color;
+      const darkHSV = utils.get_HSV_from_RGB(utils.get_RGB_from_Hex(this.darkest_bg_hex_color));
+      const darkerHSV = darkHSV;
+      darkerHSV[2] += 0.25;
+      const darkestHSV = darkerHSV;
+      darkestHSV[2] *= 0.5;
+      const darkerHex = utils.get_Hex_from_HSV(darkerHSV);
+      const darkestHex = utils.get_Hex_from_HSV(darkestHSV);
+      darkHSV[2] *= 0.25;
 
       // Validate colors are not null/undefined
       if (!lightColor || !darkColor) {
@@ -209,8 +216,8 @@ export class PaletteSelector {
         return false;
       }
 
-      root.style.setProperty('--background-light', lightColor);
-      root.style.setProperty('--background-dark', darkColor);
+      root.style.setProperty('--background-light', darkerHex);
+      root.style.setProperty('--background-dark', darkestHex);
       
       // Verify the colors were set correctly
       const setLight = root.style.getPropertyValue('--background-light');

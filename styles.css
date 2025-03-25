@@ -57,14 +57,17 @@ overflow and ensures consistent sizing.
 }
 
 #bulls-eye {
-  position: absolute;
+  position: fixed;  /* Changed back to fixed to keep it centered in viewport */
+  top: 50%;        /* Position at vertical center */
+  left: 50%;       /* Position at horizontal center */
+  transform: translate(-50%, -50%);  /* Center the element itself */
   width: 50px;
   height: 50px;
   border-radius: 50%;
   border: 2px solid gray;
   z-index: 98;
   pointer-events: none;
-  display: flex; /* or inline-flex */
+  display: flex;
   align-items: center; 
   justify-content: center;
   font-size: 31px;
@@ -73,7 +76,10 @@ overflow and ensures consistent sizing.
 }
 
 #focal-point {
-  position: absolute;
+  position: fixed;  /* Keep fixed to position relative to viewport */
+  top: 50%;        /* Position at vertical center */
+  left: 50%;       /* Position at horizontal center */
+  transform: translate(-50%, -50%);  /* Center the element itself */
   width: 25px;
   height: 25px;
   border-radius: 50%;
@@ -82,10 +88,11 @@ overflow and ensures consistent sizing.
   font-size: 31px;
   font-weight: 700;
   color: gray;
-  background-color: transparent; /* Add a background color for visibility */
-  display: flex; /* or inline-flex */
+  background-color: transparent;
+  display: flex;
   align-items: center; 
   justify-content: center;
+  z-index: 100;
 }
 
 #focal-point .awake {
