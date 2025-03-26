@@ -181,12 +181,7 @@ export function onCanvasContainerLeave(event) {
     console.log("onCanvasContainerLeave called with position:", eventPosition);
     console.log("Current status:", _currentStatus);
     console.log("Is being dragged:", getIsBeingDraggedByMouse());
-    
-    if (getIsBeingDraggedByMouse()) {
-        console.log("Ignoring leave event because focal point is being dragged");
-        return;
-    }
-    
+        
     startEasingToBullsEye(eventPosition);
 }
 
@@ -340,14 +335,14 @@ export function drawFocalPointAnimationFrame() {
     const aimPos = getAimPoint();
     const dist = getPositionsDist(currentPos, aimPos);
 
-    console.log("Animation frame:", {
-        currentPos,
-        aimPos,
-        dist,
-        isEasingToBullsEye: _isEasingToBullsEye,
-        isEasingToMouse: _isEasingToMouse,
-        isEasingToAimPoint: _isEasingToAimPoint
-    });
+    // console.log("Animation frame:", {
+    //     currentPos,
+    //     aimPos,
+    //     dist,
+    //     isEasingToBullsEye: _isEasingToBullsEye,
+    //     isEasingToMouse: _isEasingToMouse,
+    //     isEasingToAimPoint: _isEasingToAimPoint
+    // });
 
     if (_isEasingToBullsEye) {
         if (dist <= 2) {
@@ -377,7 +372,7 @@ export function drawFocalPointAnimationFrame() {
             x: Math.round(_focalPointNowSubpixelPrecision.x),
             y: Math.round(_focalPointNowSubpixelPrecision.y)
         };
-        console.log("Moving to new position:", newPos);
+        // console.log("Moving to new position:", newPos);
         moveFocalPointTo(newPos);
     }
 }
@@ -404,10 +399,10 @@ function computeAStepCloserToAimSubpixelPrecision(nowPoint, aimPoint, ease_facto
 function onMouseDown_startDraggingFocalPoint(event) {
     const eventPosition = getEventPosition(event);
 
-    _lastStatus = _currentStatus;
-    _currentStatus = "startDragging";
-    if ( _currentStatus != _lastStatus )
-        console.log("onMouseDown_startDraggingFocalPoint");
+    // _lastStatus = _currentStatus;
+    // _currentStatus = "startDragging";
+    // if ( _currentStatus != _lastStatus )
+    //     console.log("onMouseDown_startDraggingFocalPoint");
 
     const currentTime = Date.now();
     if (currentTime - lastClickTime <= DOUBLE_CLICK_DELAY) {
@@ -463,6 +458,8 @@ function onMouseUp_stopDraggingFocalPoint(event) {
     _canvasContainer.style.pointerEvents = 'auto'; // Reenable pointer events on other elements
     document.body.style.userSelect = 'auto'; // Reenable text selection
 
+    console.log("setting aimPoint to ", eventPosition);
+    setAimPoint(eventPosition);
     startEasingToMouse( eventPosition );
 }
 

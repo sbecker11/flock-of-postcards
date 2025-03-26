@@ -123,6 +123,7 @@ overflow and ensures consistent sizing.
   overflow-x: hidden; /* prevent horizontal scrolling */
   position: relative;
   isolation: isolate;
+  background-color: var(--background-dark);
   z-index: 0;
 }
 
@@ -132,6 +133,7 @@ overflow and ensures consistent sizing.
 
 #canvas {
   position: relative;
+  background-color: var(--background-dark);
   width: 100%;
   height: fit-content;
   scroll-behavior: smooth;
@@ -156,7 +158,7 @@ overflow and ensures consistent sizing.
   top: 0px;
   background: linear-gradient(to bottom, var(--background-light) 0%, var(--background-dark) 100%); 
   pointer-events: none;
-  z-index: 3;
+  z-index: 2;
 }
 
 
@@ -348,7 +350,9 @@ div.card-div span.tag-link {
 }
 
 .buttons {
-  text-align:justify;
+  text-align: justify;
+  width: 100%;
+  margin-bottom: 10px;
 }
 
 .menu-button {
@@ -374,7 +378,32 @@ div.card-div span.tag-link {
 html[native-dark-active][native-dark-active] #canvas-container,
 html[native-dark-active] #canvas-container,
 #canvas-container {
-  background-color: #000066 !important;
-  background-blend-mode: normal !important;
-  mix-blend-mode: normal !important;
+  background-color: var(--background-dark) !important;
+}
+
+#color-palette-selector {
+  width: 100%;
+  padding: 5px;
+  margin-bottom: 10px;
+  background-color: green;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-weight: bold;
+}
+
+#color-palette-selector option {
+  background-color: green;
+  color: white;
+  font-weight: bold;
+}
+
+#color-palette-selector:hover {
+  background-color: #006400; /* darker green on hover */
+}
+
+#color-palette-selector:focus {
+  outline: none;
+  box-shadow: 0 0 5px rgba(255, 255, 255, 0.5);
 }

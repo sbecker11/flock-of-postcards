@@ -1,6 +1,6 @@
 #timeline-container {
     position: absolute;
-    z-index: 0;
+    z-index: 3;
     width: 200px;
     top: 0px;
     bottom: 0px;

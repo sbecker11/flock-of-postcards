@@ -5,7 +5,7 @@ const _color_palettes = {
   "Hyperpop": [
     "#FF007A", "#00FFCC", "#FFCC00", "#9900FF", "#FF3366",
     "#33FF99", "#FF6600", "#CC00FF", "#66FFCC", "#FF9933",
-    "#FF00CC", "#00CCFF"
+    "#FF00CC", "#00CCFF", "#9400D3"
   ],
   "Canyon": [
     "#8C5523", "#D9A566", "#BF6F4A", "#4A2C1F", "#E8C8A3",
@@ -26,11 +26,8 @@ const _color_palettes = {
     "#FFD700", "#FFEA80"
   ],
   "White Monotone": [
-    "#EEEEEE"
+    "#DDDDDD"
   ],  
-  "Light Grey Monotone": [
-    "#BBBBBB"
-  ],
   "Medium Grey Monotone": [
     "#888888"
   ],
@@ -57,18 +54,18 @@ export class PaletteSelector {
       console.error("Only one PaletteSelector allowed");
     }
     this.#instance = this;
-    console.log("_color_palettes:", _color_palettes);
-    console.log("_color_palettes.length:", Object.keys(_color_palettes).length);
+    // console.log("_color_palettes:", _color_palettes);
+    // console.log("_color_palettes.length:", Object.keys(_color_palettes).length);
     this.color_palettes = _color_palettes;
-    console.log("this.color_palettes:", this.color_palettes);
-    console.log("this.color_palettes.length:", Object.keys(this.color_palettes).length);
+    // console.log("this.color_palettes:", this.color_palettes);
+    // console.log("this.color_palettes.length:", Object.keys(this.color_palettes).length);
     this.current_value = Object.keys(this.color_palettes)[0];
     this.current_color_palette = this.color_palettes[this.current_value];
-    console.log("this.current_color_palette:", this.current_color_palette);
-    console.log("this.current_color_palette.length:", Object.keys(this.current_color_palette).length);
+    // console.log("this.current_color_palette:", this.current_color_palette);
+    // console.log("this.current_color_palette.length:", Object.keys(this.current_color_palette).length);
 
     this.current_num_colors = Object.keys(this.current_color_palette).length;
-    console.log("this.current_color_num_colors:", this.current_num_colors);
+    // console.log("this.current_color_num_colors:", this.current_num_colors);
 
     // Ensure the DOM element for the palette selector exists
     this.paletteSelector = document.getElementById('color-palette-selector');
@@ -184,49 +181,55 @@ export class PaletteSelector {
   }
 
   findDarkestBgHexColor() {
-    let darkest_value = 100;
-    let darkest_bgHexColor = null;
+    let darkest_value = 300;
+    let darkest_bgHexColor = this.current_color_palette[0];
     for (const bgHexColor of this.current_color_palette) {
+      if ( bgHexColor === darkest_bgHexColor ) {
+        continue;
+      }
       const RGB = utils.get_RGB_from_Hex(bgHexColor);
-      const value = utils.get_HSV_from_RGB(RGB)[2];
+      const value = utils.getEuclideanDistance(RGB, [0, 0, 0]);
+      // console.log(`bgHexColor:${bgHexColor} RGB:${RGB} value:${value}`);
       if (value < darkest_value) {
         darkest_bgHexColor = bgHexColor;
         darkest_value = value;
+        // console.log(`darkest_bgHexColor:${darkest_bgHexColor} darkest_value:${darkest_value}`);
       }
     }
+    // console.log(`darkest_bgHexColor:${darkest_bgHexColor} darkest_value:${darkest_value}`);
     return darkest_bgHexColor;
   }
   
   applyPaletteToDocument() {
     try {
       const root = document.documentElement;
-      const lightColor = this.findDarkestBgHexColor();
-      const darkHSV = utils.get_HSV_from_RGB(utils.get_RGB_from_Hex(this.darkest_bg_hex_color));
-      const darkerHSV = darkHSV;
-      darkerHSV[2] += 0.25;
-      const darkestHSV = darkerHSV;
-      darkestHSV[2] *= 0.5;
-      const darkerHex = utils.get_Hex_from_HSV(darkerHSV);
-      const darkestHex = utils.get_Hex_from_HSV(darkestHSV);
-      darkHSV[2] *= 0.25;
+      const darkerHex = this.findDarkestBgHexColor();
+
+      let darkerRGB = utils.get_RGB_from_Hex(darkerHex);
+      let darkerHSV = utils.get_HSV_from_RGB(darkerRGB);
+      darkerHSV[2] *= 0.5;
+      const darkerHexAdjusted = utils.get_Hex_from_HSV(darkerHSV);
+
+      // Use pure black for the darkest color
+      const darkestHexAdjusted = '#000000';
 
       // Validate colors are not null/undefined
-      if (!lightColor || !darkColor) {
-        console.error('Invalid color values:', { light: lightColor, dark: darkColor });
+      if (!darkerHexAdjusted || !darkestHexAdjusted) {
+        console.log('ERROR: Invalid color values:', { light: darkerHexAdjusted, dark: darkestHexAdjusted });
         return false;
       }
 
-      root.style.setProperty('--background-light', darkerHex);
-      root.style.setProperty('--background-dark', darkestHex);
+      root.style.setProperty('--background-light', darkerHexAdjusted);
+      root.style.setProperty('--background-dark', darkestHexAdjusted);
       
       // Verify the colors were set correctly
-      const setLight = root.style.getPropertyValue('--background-light');
-      const setDark = root.style.getPropertyValue('--background-dark');
+      const checkLight = root.style.getPropertyValue('--background-light');
+      const checkDark = root.style.getPropertyValue('--background-dark');
       
-      console.log(`root.style.[--background-light]: ${setLight}`);
-      console.log(`root.style.[--background-dark]: ${setDark}`);
+      console.log(`root.style.[--background-light]: ${checkLight}`);
+      console.log(`root.style.[--background-dark]: ${checkDark}`);
 
-      return setLight && setDark;
+      return checkLight && checkDark;
     } catch (error) {
       console.error('Error applying color palette:', error);
       return false;

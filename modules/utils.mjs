@@ -48,8 +48,16 @@ export const validateFloat = (num) => { if (typeof num === 'undefined' || num ==
 export const clampInt = (value, min, max) => Math.round(Math.max(min, Math.min(max, value)));
 export const adjustRgbBrightness = (rgb, brightness) => { validateIntArrayLength(rgb, 3); return rgb.map(channel => clampInt(Math.round(channel * brightness), 0, 255)); }; // 1.0 is normal brightness
 export const adjustHexBrightness = (hexStr, brightness) => { validateHexColorString(hexStr); validateFloat(brightness); return get_Hex_from_RGB(adjustRgbBrightness(get_RGB_from_Hex(`${hexStr}`), brightness)); }; // 1.0 is normal brightness
+export const get_RGB_from_Hex = hexStr => {
+    validateHexColorString(hexStr);
+    const r = parseInt(hexStr.slice(1, 3), 16);
+    const g = parseInt(hexStr.slice(3, 5), 16);
+    const b = parseInt(hexStr.slice(5, 7), 16);
+    return [r, g, b];
+};
+
 export const get_Hex_from_RGB = RGB => { validateIntArrayLength(RGB, 3); return "#" + RGB.map(c => c.toString(16).padStart(2, "0")).join("").toUpperCase(); };
-export const get_RGB_from_Hex = hexStr => { validateHexColorString(hexStr); return hexStr.match(/^#?([A-F\d]{2})([A-F\d]{2})([A-F\d]{2})$/i)?.slice(1).map(c => parseInt(c, 16)); };
+
 export const toFixedPoint = (value, precision) => +value.toFixed(precision);
 export const linearInterp = (x, x1, y1, x2, y2) => y1 + ((x - x1) / (x2 - x1)) * (y2 - y1);
 export const getRandomInt = (min, max) => Math.floor(Math.random() * (max - min + 1)) + min;
@@ -141,24 +149,63 @@ export const get_RGB_from_HSV = (HSV) => {
     return RGB;
 }
 
-export function test_HSV_RGB_functions() {
+export function get_HSV_from_Hex(hexStr) {
+    validateHexColorString(hexStr);
+    const RGB = get_RGB_from_Hex(hexStr);
+    validateRGB(RGB);
+    const HSV = get_HSV_from_RGB(RGB);
+    validateHSV(HSV);
+    return HSV;
+}
+
+export function get_Hex_from_HSV(HSV) {
+    validateHSV(HSV);
+    const RGB = get_RGB_from_HSV(HSV);
+    validateRGB(RGB);
+    const Hex = get_Hex_from_RGB(RGB);
+    validateHexColorString(Hex);
+    return Hex;
+}
+
+
+export function test_HSV_RGB_Hex_functions() {
     function test_get_HSV_from_RGB() {
         const RGBIn = [64, 128, 255];
         const HSV = get_HSV_from_RGB([RGBIn[0],RGBIn[1],RGBIn[2]]);
         const RGBOut = get_RGB_from_HSV([HSV[0],HSV[1],HSV[2]]);
         const rgbDist = getEuclideanDistance(RGBOut, RGBIn);
-        console.log(`rgbDist:${rgbDist}`);
-        console.assert( rgbDist < EPSILON, `ERROR: rgbDist:${rgbDist} exceeds ESPSILON:${EPSILON}`);
+        if ( rgbDist > EPSILON )
+            console.log(`ERROR: rgbDist:${rgbDist} exceeds ESPSILON:${EPSILON}`);
     }
     function test_get_RGB_from_HSV() {
         const HSVIn = [180, 75, 100]; // H in [0..360], S in [0..100], V in [0..100]
         const RGB = get_RGB_from_HSV([HSVIn[0],HSVIn[1],HSVIn[2]]);
         const HSVOut = get_HSV_from_RGB([RGB[0],RGB[1],RGB[2]]);
         const hsvDist = getEuclideanDistance(HSVOut, HSVIn);
-        console.assert( hsvDist < EPSILON, `ERROR: hsvDist:${hsvDist} exceeds ESPSILON:${EPSILON}`);
+        if (hsvDist > EPSILON ) 
+            console.log(`ERROR: hsvDist:${hsvDist} exceeds ESPSILON:${EPSILON}`);
     }
+    function test_get_HSV_from_Hex() {
+        const hexStr = "#66AAEE";
+        const HSV = get_HSV_from_Hex(hexStr);
+        const hexOut = get_Hex_from_HSV(HSV);
+        if ( hexStr !== hexOut ) {
+            console.log(`ERROR: hexStr:${hexStr} != hexOut:${hexOut}`);
+        }
+    }
+    function test_get_Hex_from_HSV() {
+        const HSVin = [45, 90, 80];
+        const Hex = get_Hex_from_HSV(HSVin);
+        const HSVout = get_HSV_from_Hex(Hex);
+        const hsvDist = getEuclideanDistance(HSVout, HSVin);
+        if ( hsvDist > EPSILON )
+            console.log(`ERROR: hsvDist:${hsvDist} exceeds ESPSILON:${EPSILON}`);
+    }
+    
     test_get_HSV_from_RGB();
     test_get_RGB_from_HSV();
+    test_get_HSV_from_Hex();
+    test_get_Hex_from_HSV();
 }
 
 export function get_RGB_from_RgbStr(rgbStr) {
@@ -186,13 +233,16 @@ export function test_RGB_RgbStr_functions() {
         const rgbStrIn = 'rgb(255, 64, 127)';
         const RGB = get_RGB_from_RgbStr(rgbStrIn);
         const rgbStrOut = get_RgbStr_from_RGB(RGB);
-        console.assert(rgbStrIn === rgbStrOut);
+        const rgbDist = getEuclideanDistance(RGB, [255, 64, 127]);
+        if ( rgbStrIn !== rgbStrOut )
+            console.log(`ERROR: rgbStrIn:${rgbStrIn} != rgbStrOut:${rgbStrOut}`);
     }
     function test_get_RgbStr_from_RGB() {
         const rgbIn = [255, 0, 0];
         const rgbStr = get_RgbStr_from_RGB(rgbIn);
         const rgbOut = get_RGB_from_RgbStr(rgbStr);
-        console.assert(arraysAreEqual(rgbOut, rgbIn));
+        if ( !arraysAreEqual(rgbOut, rgbIn) )
+            console.log(`ERROR: rgbOut:${rgbOut} != rgbIn:${rgbIn}`);
     }
     test_get_RGB_from_RgbStr();
     test_get_RgbStr_from_RGB();
@@ -246,13 +296,15 @@ export function test_RGB_ColorStr_functions() {
         const RGBin = [127, 64, 255];
         const ColorStr = get_ColorStr_from_RGB(RGBin);
         const RGBout = get_RGB_from_ColorStr(ColorStr);
-        console.assert( arraysAreEqual(RGBout, RGBin) );
+        if ( !arraysAreEqual(RGBout, RGBin) )
+            console.log(`ERROR: RGBout:${RGBout} != RGBin:${RGBin}`);
     }
     function test_get_RGB_from_ColorStr() {
         const ColorStrIn = "color(127, 64, 255)";
         const RGB = get_RGB_from_ColorStr(ColorStrIn);
         const ColorStrOut = get_ColorStr_from_RGB(RGB);
-        console.assert( ColorStrOut == ColorStrIn );
+        if ( ColorStrOut != ColorStrIn )
+            console.log(`ERROR: ColorStrOut:${ColorStrOut} != ColorStrIn:${ColorStrIn}`);
     }
     test_get_ColorStr_from_RGB();
     test_get_RGB_from_ColorStr();
@@ -309,7 +361,7 @@ export function getHighContrastCssHexColorStr(bgHex) {
 
 // This function tests the high/low contrast color generated 
 // by comparing a low/high luminance colos
-export function test_getHighContractCssHexColorStr() {
+export function test_getHighContrastCssHexColorStr() {
     let lo_RGB = [26, 13, 46];
     validateRGB(lo_RGB)
     let lo_Hex = get_Hex_from_RGB( lo_RGB );
@@ -317,7 +369,7 @@ export function test_getHighContractCssHexColorStr() {
     let hi_RGB = get_RGB_from_Hex(hi_Hex);
     console.log(`lo_RGB:${lo_RGB} lo_Hex:${lo_Hex} -> hi_Hex:${hi_Hex} hi_RGB:${hi_RGB}`);
     if ( hi_RGB[0] !== 0xff || hi_RGB[1] !== 0xff || hi_RGB[2] !== 0xff ) {
-        console.error("FAILURE expected white, not hi_RGB:", hi_RGB);
+        console.log("FAILURE expected white, not hi_RGB:", hi_RGB);
     } 
 
     hi_RGB = [222, 100, 150];
@@ -327,7 +379,7 @@ export function test_getHighContractCssHexColorStr() {
     lo_RGB = get_RGB_from_Hex(lo_Hex);
     console.log(`hi_Hex:${hi_Hex} hi_RGB:${hi_RGB} -> lo_RGB:${lo_RGB} lo_Hex:${lo_Hex} `);
     if ( lo_RGB[0] !== 0 || lo_RGB[1] !== 0 || lo_RGB[2] !== 0 ) {
-        console.error("FAILURE expected black, not lo_RGB:", lo_RGB);
+        console.log("FAILURE expected black, not lo_RGB:", lo_RGB);
     } 
 }
 
@@ -719,10 +771,10 @@ export function computeTextColor(backgroundHexColor) {
 
 export function testColorUtils() {
     console.log("-------------------------------------");
-    test_HSV_RGB_functions();
+    test_HSV_RGB_Hex_functions();
     test_RGB_RgbStr_functions();
     test_RGB_ColorStr_functions();
-    test_getHighContractCssHexColorStr();
+    test_getHighContrastCssHexColorStr();
     testColorFunctions();
     console.log("-------------------------------------");
 }

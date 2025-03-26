@@ -1,4 +1,3 @@
-
 // @ts-nocheck
 'use strict';
 
@@ -588,27 +587,31 @@ function addIconClickListener(icon) {
         event.stopPropagation();
     });
 
+    // Only add LinkedIn icon listener if it exists
     const linkedinIcon = document.querySelector('img.linkedin.icon');
-    linkedinIcon.addEventListener("click", (event) => {
-        const iconElement = event.target;
-        event.stopPropagation();
-        const url = "https://www.linkedin.com/in/shawnbecker";
-        const title = "Shawn's LinkedIn profile";
-        console.log(`linkedinIcon click: ${url} title: [${title}]`);
-        alerts.confirmOpenNewBrowserWindow(title, url);
-    });
+    if (linkedinIcon) {
+        linkedinIcon.addEventListener("click", (event) => {
+            const iconElement = event.target;
+            event.stopPropagation();
+            const url = "https://www.linkedin.com/in/shawnbecker";
+            const title = "Shawn's LinkedIn profile";
+            console.log(`linkedinIcon click: ${url} title: [${title}]`);
+            alerts.confirmOpenNewBrowserWindow(title, url);
+        });
+    }
 
+    // Only add Sankey icon listener if it exists
     const sankeyIcon = document.querySelector('img.sankey.icon');
-    sankeyIcon.addEventListener("click", (event) => {
-        const iconElement = event.target;
-        event.stopPropagation();
-        const img = "static_content/graphics/sankeymatic_20240104_204625_2400x1600.png";
-        const title = "a SankeyMatic&copy; diagram of Shawn's technical proficiencies";
-        console.log(`sankeyIcon click: ${img} title: [${title}]`);
-        alerts.confirmOpenNewBrowserWindow(title, img);
-    });
-
-
+    if (sankeyIcon) {
+        sankeyIcon.addEventListener("click", (event) => {
+            const iconElement = event.target;
+            event.stopPropagation();
+            const img = "static_content/graphics/sankeymatic_20240104_204625_2400x1600.png";
+            const title = "a SankeyMatic&copy; diagram of Shawn's technical proficiencies";
+            console.log(`sankeyIcon click: ${img} title: [${title}]`);
+            alerts.confirmOpenNewBrowserWindow(title, img);
+        });
+    }
 }
 
 function getBizcardDivDays(bizcardDiv) {
@@ -887,7 +890,7 @@ export function logAllBizcardDivs() {
                 }
                 let months = Math.round(cardDiv.dataset.bizcardDivDays * 12 / 365.25);
                 let years = Math.round(months / 12);
-                if ( cardDivText.includes('“') ) {
+                if ( cardDivText.includes('"') ) {
                     if ( showSkips ) console.log("skip", cardDivText, years);
                     continue;
                 }
@@ -1863,8 +1866,8 @@ function addCardDivLineItemFollowingButtonClickHandler(cardDivLineItemFollowingB
 
 function getLatestBizcardDivId() {
     var dateSortedIds = getDateSortedBizcardIds();
-    if (dateSortedIds != null) {
-        return dateSortedIds[ 0 ].id;
+    if (dateSortedBizcardIds != null) {
+        return dateSortedBizcardIds[ 0 ].id;
     }
     // there are zero bizcardDivsId
     return null;
@@ -2045,7 +2048,15 @@ function createAllElements() {
     const DEFAULT_TIMELINE_YEAR = MAX_TIMELINE_YEAR;
     timeline.createTimeline(timelineContainer, canvasContainer, MIN_TIMELINE_YEAR, MAX_TIMELINE_YEAR, DEFAULT_TIMELINE_YEAR);
     focalPoint.createFocalPoint(focalPointElement, focalPointPositionListener); // starts easing to mouse
-    paletteSelector = createPaletteSelector(); // defines default palette
+    
+    // Initialize paletteSelector first
+    paletteSelector = createPaletteSelector();
+    if (!paletteSelector) {
+        console.error('Failed to create palette selector');
+        return;
+    }
+    
+    // Create bizcards and apply palette
     createBizcardDivs();
     addAllIconClickListeners();
     positionGradients();
@@ -2053,7 +2064,11 @@ function createAllElements() {
 
 // createAllElements after DOM is ready
 document.addEventListener("DOMContentLoaded", () => {
-    createAllElements();
+    try {
+        createAllElements();
+    } catch (error) {
+        console.error('Error in createAllElements:', error);
+    }
 });
 
 function handleWindowLoad() {

@@ -38,28 +38,16 @@
     </div>
 
     <div id="right-column" class="column-50">
-      <div id="right-header-div">
-
-        <!-- your resume head goes here -->
-        <table cellspacing="0" style="color:#fff;font-family:-apple-system,sans-serif;font-size:13px;width:100%;line-height:100%">
-          <tbody>
-            <tr>
-              <td style="vertical-align:top">
-                <p><span style="font-size:30px">Shawn Becker</span></p>
-                <p><strong><span style="font-size:11pt">Data Engineer / Software Developer</span></strong></p>
-                <p>sbecker@alum.mit.edu &bull; 857-891-0896<br>https://linkedin.com/in/shawnbecker<img class="linkedin icon" src="static_content/icons/icons8-url-16-white.png"/> &bull; Lehi - Utah, USA <img class="sankey icon" src="static_content/icons/icons8-img-16-white.png"/></p>
-              </td>
-            </tr>
-          </tbody>
-        </table>
-        <!-- your resume head goes here -->
+      <div id="right-header-div" style="display: flex; flex-direction: column; align-items: flex-start;">
+        <p class="intro">Welcome to your flock-of-postcards!</p>
+        <p class="user">Hello, {{user}}!</p>
         <div class="buttons">
-          <button id="clear-all-line-items" class="menu-button">Clear All</button>
-          <button id="select-all-bizcards" class="menu-button">Select All</button>
-          <button id="select-next-bizcard" class="menu-button">Select Next</button>
-          <button id="select-first-bizcard" class="menu-button">Select First</button>
+          <button id="select-first-bizcard">select first</button>
+          <button id="select-next-bizcard">select next</button>
+          <button id="select-all-bizcards">select all</button>
+          <button id="clear-all-line-items">clear all</button>
         </div>
-
+        <select id="color-palette-selector"></select>
       </div>
       <div id="right-content-div" class="scrollable-container">
         <!-- all children must have class="right-content-div-child"-->
@@ -72,9 +60,6 @@
                 create a flock-of-postcards for your own resume at
                 <a target="_blank" href="https://github.com/sbecker11/flock-of-postcards/">flock-of-postcards</a><br>
             </p>
-            <div>
-                <select id="color-palette-selector"></select>
-            </div>
         </div>
     
         <!--
