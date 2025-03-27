@@ -67,10 +67,10 @@ export function handleOnWindwoResize() {
 // on window resize
 function updateBullsEyeCenter() {
     // Calculate center position relative to viewport
-    _bullsEyeCenter = {
-        x: window.innerWidth / 2,
-        y: window.innerHeight / 2
-    };
+        _bullsEyeCenter = {
+            x: window.innerWidth / 4,  // Half of the left half
+            y: window.innerHeight / 2  // Vertical center
+        };
 }
 
 export function getBullsEye() {
@@ -135,9 +135,14 @@ export function createFocalPoint(
     _isEasingToBullsEye = false;
     _isEasingToMouse = true;
     _canvasContainer = document.getElementById("canvas-container");
-    if ( ! _canvasContainer ) {
+    if (!_canvasContainer) {
         throw new Error("canvasContainer not initialized");
     }
+    console.log("Canvas container initialized:", {
+        exists: !!_canvasContainer,
+        width: _canvasContainer.offsetWidth,
+        left: _canvasContainer.offsetLeft
+    });
 
     addFocalPointListener(focalPointPositionListener);
 
@@ -333,16 +338,23 @@ export function drawFocalPointAnimationFrame() {
 
     const currentPos = getFocalPoint();
     const aimPos = getAimPoint();
+    const bullsEye = getBullsEye();  // Get the current calculated bulls-eye position
     const dist = getPositionsDist(currentPos, aimPos);
 
-    // console.log("Animation frame:", {
-    //     currentPos,
-    //     aimPos,
-    //     dist,
-    //     isEasingToBullsEye: _isEasingToBullsEye,
-    //     isEasingToMouse: _isEasingToMouse,
-    //     isEasingToAimPoint: _isEasingToAimPoint
-    // });
+    if (_isEasingToBullsEye) {
+        // Use the calculated bulls-eye position for easing
+        setAimPoint(bullsEye);
+        _isEasingToAimPoint = true;
+        
+        console.log("Animation frame:\n", 
+            "currentPos:", currentPos,'\n',
+            "aimPos:", aimPos, '\n',
+            "bullsEye:", bullsEye,'\n',
+            "dist:", dist,'\n',
+            "isEasingToMouse:", _isEasingToMouse,'\n',
+            "isEasingToAimPoint:", _isEasingToAimPoint,'\n'
+        );
+    }
 
     if (_isEasingToBullsEye) {
         if (dist <= 2) {
@@ -372,7 +384,6 @@ export function drawFocalPointAnimationFrame() {
             x: Math.round(_focalPointNowSubpixelPrecision.x),
             y: Math.round(_focalPointNowSubpixelPrecision.y)
         };
-        // console.log("Moving to new position:", newPos);
         moveFocalPointTo(newPos);
     }
 }
