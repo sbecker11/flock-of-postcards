@@ -80,17 +80,7 @@
   </div>
 
   <script>
-    window.addEventListener('load', (event) => {
-      import('./main.mjs').then(module => {
-        if (typeof module.selectFirstBizcard === 'function') {
-          module.selectFirstBizcard();
-        } else {
-          console.error('selectFirstBizcard is not defined in main.mjs');
-        }
-      }).catch(error => {
-        console.error('Error loading main.mjs:', error);
-      });
-    });
+    // Initialization is now handled in main.mjs
   </script>
 
 </body>
