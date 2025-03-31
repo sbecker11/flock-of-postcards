@@ -6,7 +6,6 @@ reference for the #main-container to occupy the full height of the viewport.
 :root {
   --background-light: rgb(24, 24, 111); /* 25% darker than rgb(32, 32, 148) */
   --background-dark: rgb(0, 0, 77); /* 25% darker than #000066 */
-  --native-dark-bg-blend-mode: normal !important;
 }
 
 html, body {
