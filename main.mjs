@@ -89,15 +89,12 @@ const PARALLAX_Y_EXAGGERATION_FACTOR = 0.1;
 // z = MAX_Z - zindex,
 // conversely 
 // zindex = MAX_Z - z.
-const ALL_CARDS_MAX_Z = 15;
-
-const BIZCARD_MAX_Z = 14;
-
-const BIZCARD_MIN_Z = 12;
-const CARD_MAX_Z = 8;
-const CARD_MIN_Z = 1;
-
-const ALL_CARDS_MIN_Z = 1;
+const ALL_CARDS_MAX_Z = 19;
+const CARD_MAX_Z = 19;
+const CARD_MIN_Z = 9;
+const BIZCARD_MAX_Z = 8;
+const BIZCARD_MIN_Z = 4;
+const ALL_CARDS_MIN_Z = 4;
 
 // brightness decreases to MIN_BRIGHTNESS_PERCENT as z increases
 const MIN_BRIGHTNESS_PERCENT = 75;
@@ -1239,6 +1236,9 @@ function handleCanvasContainerWheel(wheelEvent) {
     focalPoint.setAimPoint(position);
 }
 
+// Keep the passive: true option to improve scroll performance
+addCanvasContainerEventListener("wheel", handleCanvasContainerWheel, { passive: true });
+
 // handle mouse enter event for any div element with
 // cardClass "card-div" or "bizcard-div"
 function handleCardDivMouseEnter(event, cardClass) {
@@ -1984,19 +1984,6 @@ function canvasContainerScrollToBottom() {
     canvasContainer.scrollTo({ top: canvasContainer.scrollHeight, behavior: 'smooth' });
 }
 
-var bullsEyeX;
-var bullsEyeY;
-
-// center bullsEye at canvasContainerCenter
-function centerBullsEye() {
-    bullsEyeX = utils.half(canvasContainer.offsetWidth);
-    bullsEyeY = utils.half(canvasContainer.offsetHeight);
-    var newLeft = bullsEyeX - utils.half(bullsEye.offsetWidth);
-    var newTop = bullsEyeY - utils.half(bullsEye.offsetHeight);
-    bullsEye.style.left = `${newLeft}px`;
-    bullsEye.style.top = `${newTop}px`;
-}
-
 var focalPointX;
 var focalPointY;
 
@@ -2012,6 +1999,9 @@ var parallaxX;
 var parallaxY;
 
 function getParallax() {
+    const bullsEye = focalPoint.getBullsEye();
+    const bullsEyeX = bullsEye['x'];
+    const bullsEyeY = bullsEye['y'];
     parallaxX = bullsEyeX - focalPointX;
     parallaxY = bullsEyeY - focalPointY;
     return { parallaxX, parallaxY };
@@ -2060,12 +2050,23 @@ function createAllElements() {
     createBizcardDivs();
     addAllIconClickListeners();
     positionGradients();
+
+    // Add event listeners after elements are created
+    addCanvasContainerEventListener("wheel", handleCanvasContainerWheel, { passive: true });
+    addCanvasContainerEventListener('scroll', handleCanvasContainerScroll);
+    addCanvasContainerEventListener('click', handleCanvasContainerMouseClick);
 }
 
 // createAllElements after DOM is ready
 document.addEventListener("DOMContentLoaded", () => {
     try {
         createAllElements();
+        
+        // Add event listeners after elements are created
+        addCanvasContainerEventListener("wheel", handleCanvasContainerWheel, { passive: true });
+        addCanvasContainerEventListener('scroll', handleCanvasContainerScroll);
+        addCanvasContainerEventListener('click', handleCanvasContainerMouseClick);
+        
     } catch (error) {
         console.error('Error in createAllElements:', error);
     }
@@ -2076,7 +2077,6 @@ function handleWindowLoad() {
 
     renderAllTranslateableDivsAtCanvasContainerCenter();
     positionGradients();
-    centerBullsEye();
 
     let lastFrameTime = 0;
     const maxFramesPerSecond = 10;
@@ -2163,18 +2163,21 @@ function handleWindowResize() {
     canvas.style.width = canvasContainerWidth + "px";
     renderAllTranslateableDivsAtCanvasContainerCenter();
     positionGradients();
-    centerBullsEye();
-    focalPoint.handleOnWindwoResize();
 }
 
 // Attach event listeners
 window.addEventListener("load", handleWindowLoad);
 window.addEventListener("resize", handleWindowResize);
 
-var canvasContainerEventListeners = [];
+// First, ensure the array exists as a global variable
+window.canvasContainerEventListeners = [];
 
+// Then modify the function to check if the array exists and create it if needed
 function addCanvasContainerEventListener(eventType, listener, options) {
-    canvasContainerEventListeners.push({ eventType, listener, options });
+    if (!window.canvasContainerEventListeners) {
+        window.canvasContainerEventListeners = [];
+    }
+    window.canvasContainerEventListeners.push({ eventType, listener, options });
     canvasContainer.addEventListener(eventType, listener, options);
 }
 

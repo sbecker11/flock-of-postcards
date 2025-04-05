@@ -201,39 +201,25 @@ export class PaletteSelector {
   }
   
   applyPaletteToDocument() {
-    try {
-      const root = document.documentElement;
-      const darkerHex = this.findDarkestBgHexColor();
+    const root = document.documentElement;
+    const darkHex = this.findDarkestBgHexColor();
 
-      let darkerRGB = utils.get_RGB_from_Hex(darkerHex);
-      let darkerHSV = utils.get_HSV_from_RGB(darkerRGB);
-      darkerHSV[2] *= 0.5;
-      const darkerHexAdjusted = utils.get_Hex_from_HSV(darkerHSV);
+    let darkRGB = utils.get_RGB_from_Hex(darkHex);
+    let darkHSV = utils.get_HSV_from_RGB(darkRGB);
+    darkHSV[2] *= 0.50;
+    const darkerHex = utils.get_Hex_from_HSV(darkHSV);
 
-      // Use pure black for the darkest color
-      const darkestHexAdjusted = '#000000';
+    darkHSV[2] *= 0.50;
+    const darkestHex = utils.get_Hex_from_HSV(darkHSV);
 
-      // Validate colors are not null/undefined
-      if (!darkerHexAdjusted || !darkestHexAdjusted) {
-        console.log('ERROR: Invalid color values:', { light: darkerHexAdjusted, dark: darkestHexAdjusted });
-        return false;
-      }
-
-      root.style.setProperty('--background-light', darkerHexAdjusted);
-      root.style.setProperty('--background-dark', darkestHexAdjusted);
-      
-      // Verify the colors were set correctly
-      const checkLight = root.style.getPropertyValue('--background-light');
-      const checkDark = root.style.getPropertyValue('--background-dark');
-      
-      console.log(`root.style.[--background-light]: ${checkLight}`);
-      console.log(`root.style.[--background-dark]: ${checkDark}`);
-
-      return checkLight && checkDark;
-    } catch (error) {
-      console.error('Error applying color palette:', error);
-      return false;
-    }
+    root.style.setProperty('--background-light', darkerHex);
+    root.style.setProperty('--background-dark', darkestHex);
+    
+    // Verify the colors were set correctly
+    const checkLight = root.style.getPropertyValue('--background-light');
+    const checkDark = root.style.getPropertyValue('--background-dark');
+    
+    console.log(`root.style.[--background-light]: ${checkLight}`);
+    console.log(`root.style.[--background-dark]: ${checkDark}`);
   }
-}
-
+} // PaletteSelector

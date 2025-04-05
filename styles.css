@@ -55,6 +55,20 @@ overflow and ensures consistent sizing.
   font-size: 12px;
 }
 
+#aim-point-dot {
+  position: fixed; /* Keep fixed to position relative to viewport */
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background-color: red;
+  border: 0.5px solid white;
+  z-index: 200;
+  pointer-events: none;
+}
+#aim-ooint .hidden {
+  display: none;
+}
+
 #bulls-eye {
   position: fixed;  /* Changed back to fixed to keep it centered in viewport */
   top: 50%;        /* Position at vertical center */
@@ -104,7 +118,7 @@ overflow and ensures consistent sizing.
 
 .draggable-focal-point {
   pointer-events: auto;
-  cursor: grab; 
+  cursor: move; 
 }
 
 .column-50 {
@@ -138,6 +152,15 @@ overflow and ensures consistent sizing.
   scroll-behavior: smooth;
   z-index: 1;
   isolation: isolate;
+}
+
+#diagonal-canvas {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;  // lets clicks pass through
 }
 
 #canvas-btm-gradient {
