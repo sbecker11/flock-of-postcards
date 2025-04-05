@@ -477,6 +477,7 @@ function onMouseDrag_keepDraggingFocalPoint(event) {
 
     if ( getIsBeingDraggedByMouse() ) {
         moveFocalPointTo(eventPosition);
+        setAimPoint(eventPosition);
 
         // Avoid calling preventDefault() to allow wheel scrolling
 
