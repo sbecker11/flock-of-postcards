@@ -1,5 +1,7 @@
 const EASE_FACTOR = 0.15;
 const EPSILON = EASE_FACTOR / 2.0;
+const MAX_NEAR_DISTANCE = 0.5;
+const BULLSEYE_WONKYOFFSET = 12.5;
 
 import * as utils from './utils.mjs';
 
@@ -11,6 +13,7 @@ var _currentStatus = null;
 var _lastStatus = null;
 var _canvasContainer;
 var _focalPointElement;
+var _bullsEyeElement = document.getElementById("bulls-eye");
 var _focalPointNowSubpixelPrecision;
 var _aimPoint = null;
 var _focalPointPositionListener;
@@ -27,6 +30,10 @@ let _bullsEyeCenter = { x: 0, y: 0 };
 // on windwo load
 export function handleOnWindowLoad() {
     console.log("focalPoint handlingOnWindowLoad");
+
+    if ( ! _focalPointElement ) {
+        throw new Error("focalPointElement not created by `createFocalPoint`");   
+    }
 
     // Compute focalPoint radius
     _focalPointRadius = _focalPointElement.getBoundingClientRect().width / 2;
@@ -67,10 +74,12 @@ export function handleOnWindwoResize() {
 // on window resize
 function updateBullsEyeCenter() {
     // Calculate center position relative to viewport
-        _bullsEyeCenter = {
-            x: window.innerWidth / 4,  // Half of the left half
-            y: window.innerHeight / 2  // Vertical center
-        };
+    _bullsEyeCenter = {
+        x: window.innerWidth / 4,
+        y: window.innerHeight / 2
+    };
+    _bullsEyeElement.style.top = (_bullsEyeCenter.y - _bullsEyeRadius + BULLSEYE_WONKYOFFSET) + "px";
+    _bullsEyeElement.style.left = (_bullsEyeCenter.x - _bullsEyeRadius + BULLSEYE_WONKYOFFSET) + "px";
 }
 
 export function getBullsEye() {
@@ -146,6 +155,7 @@ export function createFocalPoint(
 
     addFocalPointListener(focalPointPositionListener);
 
+    // Add canvas container event listeners
     utils.updateEventListener( _canvasContainer, "mouseenter", onCanvasContainerEnter);
     utils.updateEventListener( _canvasContainer, "mousemove", onCanvasContainerMove);
     utils.updateEventListener( _canvasContainer, "mouseleave", onCanvasContainerLeave);
@@ -158,6 +168,9 @@ export function createFocalPoint(
     utils.updateEventListener(_focalPointElement, 'mouseleave', () => {
         utils.removeClass(_focalPointElement, 'draggable-focal-point');
     });
+
+    // Add drag event listeners to the focal-point element
+    utils.updateEventListener(_focalPointElement, 'mousedown', onMouseDown_startDraggingFocalPoint);
 
     moveFocalPointTo(getBullsEye());
 }
@@ -338,36 +351,30 @@ export function drawFocalPointAnimationFrame() {
 
     const currentPos = getFocalPoint();
     const aimPos = getAimPoint();
-    const bullsEye = getBullsEye();  // Get the current calculated bulls-eye position
     const dist = getPositionsDist(currentPos, aimPos);
+    const bullsEye = getBullsEye();
+
+    console.log("Animation frame:", {
+        currentPos,
+        aimPos,
+        dist,
+        isEasingToBullsEye: _isEasingToBullsEye,
+        isEasingToMouse: _isEasingToMouse,
+        isEasingToAimPoint: _isEasingToAimPoint
+    });
 
     if (_isEasingToBullsEye) {
-        // Use the calculated bulls-eye position for easing
-        setAimPoint(bullsEye);
-        _isEasingToAimPoint = true;
-        
-        console.log("Animation frame:\n", 
-            "currentPos:", currentPos,'\n',
-            "aimPos:", aimPos, '\n',
-            "bullsEye:", bullsEye,'\n',
-            "dist:", dist,'\n',
-            "isEasingToMouse:", _isEasingToMouse,'\n',
-            "isEasingToAimPoint:", _isEasingToAimPoint,'\n'
-        );
-    }
-
-    if (_isEasingToBullsEye) {
-        if (dist <= 2) {
+        if (dist <= MAX_NEAR_DISTANCE) {
             handleArrivedAtBullsEye(currentPos);
             return;
         }
     }
     else if (_isEasingToMouse) {
-        if (dist <= 2) {
+        if (dist <= MAX_NEAR_DISTANCE) {
             handleArrivedAtMouse(currentPos);
             return;
         }
-    } else if (dist <= 2) {
+    } else if (dist <= MAX_NEAR_DISTANCE) {
         handleArrivedAtAimPoint(aimPos);
         return;
     }
@@ -384,6 +391,7 @@ export function drawFocalPointAnimationFrame() {
             x: Math.round(_focalPointNowSubpixelPrecision.x),
             y: Math.round(_focalPointNowSubpixelPrecision.y)
         };
+        console.log("Moving to new position:", newPos);
         moveFocalPointTo(newPos);
     }
 }
@@ -434,7 +442,7 @@ function onMouseDown_startDraggingFocalPoint(event) {
     _canvasContainer.style.pointerEvents = 'none'; // Disable pointer events on other elements
     document.body.style.userSelect = 'none'; // Disable text selection
 
-    moveFocalPointTo( eventPosition );
+    moveFocalPointTo(eventPosition);
 
     // add mousemove and mouseup listeners
     utils.updateEventListener(document,'mousemove', onMouseDrag_keepDraggingFocalPoint);
