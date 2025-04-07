@@ -1,6 +1,7 @@
 // @ts-check
-
 import * as css_colors from './css_colors.mjs';
+import { Logger, LogLevel } from './logger.mjs';
+const logger = new Logger("utils", LogLevel.INFO);
 
 // --------------------------------------
 // Utility export functions
@@ -81,6 +82,7 @@ export const get_Hex_from_RGB = RGB => { validateIntArrayLength(RGB, 3); return 
 export const toFixedPoint = (value, precision) => +value.toFixed(precision);
 export const linearInterp = (x, x1, y1, x2, y2) => y1 + ((x - x1) / (x2 - x1)) * (y2 - y1);
 export const getRandomInt = (min, max) => Math.floor(Math.random() * (max - min + 1)) + min;
+export const getRandomSign = () => Math.random() < 0.5 ? -1 : 1;
 export const zeroPad = (num, places) => num.toString().padStart(places, "0");
 
 export function isHSV(HSV) {
@@ -196,7 +198,7 @@ export function test_HSV_RGB_Hex_functions() {
         const RGBOut = get_RGB_from_HSV([HSV[0],HSV[1],HSV[2]]);
         const rgbDist = getEuclideanDistance(RGBOut, RGBIn);
         if ( rgbDist > EPSILON )
-            console.log(`ERROR: rgbDist:${rgbDist} exceeds ESPSILON:${EPSILON}`);
+            logger.log(`ERROR: rgbDist:${rgbDist} exceeds ESPSILON:${EPSILON}`);
     }
     function test_get_RGB_from_HSV() {
         const HSVIn = [180, 75, 100]; // H in [0..360], S in [0..100], V in [0..100]
@@ -204,7 +206,7 @@ export function test_HSV_RGB_Hex_functions() {
         const HSVOut = get_HSV_from_RGB([RGB[0],RGB[1],RGB[2]]);
         const hsvDist = getEuclideanDistance(HSVOut, HSVIn);
         if (hsvDist > EPSILON ) 
-            console.log(`ERROR: hsvDist:${hsvDist} exceeds ESPSILON:${EPSILON}`);
+            logger.log(`ERROR: hsvDist:${hsvDist} exceeds ESPSILON:${EPSILON}`);
     }
     function test_get_HSV_from_Hex() {
         const hexStr = "#66AAEE";
@@ -212,7 +214,7 @@ export function test_HSV_RGB_Hex_functions() {
         const hexOut = get_Hex_from_HSV(HSV);
         const hexDiff = getHexDifference(hexStr, hexOut);
         if ( hexDiff > 1 ) {
-            console.log(`ERROR: hexDiff:${hexDiff} exceeds 1`);
+            logger.log(`ERROR: hexDiff:${hexDiff} exceeds 1`);
         }
     }
     function test_get_Hex_from_HSV() {
@@ -221,7 +223,7 @@ export function test_HSV_RGB_Hex_functions() {
         const HSVout = get_HSV_from_Hex(Hex);
         const hsvDist = getEuclideanDistance(HSVout, HSVin);
         if ( hsvDist > EPSILON )
-            console.log(`ERROR: hsvDist:${hsvDist} exceeds ESPSILON:${EPSILON}`);
+            logger.log(`ERROR: hsvDist:${hsvDist} exceeds ESPSILON:${EPSILON}`);
     }
     
     test_get_HSV_from_RGB();
@@ -257,14 +259,14 @@ export function test_RGB_RgbStr_functions() {
         const rgbStrOut = get_RgbStr_from_RGB(RGB);
         const rgbDist = getEuclideanDistance(RGB, [255, 64, 127]);
         if ( rgbStrIn !== rgbStrOut )
-            console.log(`ERROR: rgbStrIn:${rgbStrIn} != rgbStrOut:${rgbStrOut}`);
+            logger.log(`ERROR: rgbStrIn:${rgbStrIn} != rgbStrOut:${rgbStrOut}`);
     }
     function test_get_RgbStr_from_RGB() {
         const rgbIn = [255, 0, 0];
         const rgbStr = get_RgbStr_from_RGB(rgbIn);
         const rgbOut = get_RGB_from_RgbStr(rgbStr);
         if ( !arraysAreEqual(rgbOut, rgbIn) )
-            console.log(`ERROR: rgbOut:${rgbOut} != rgbIn:${rgbIn}`);
+            logger.log(`ERROR: rgbOut:${rgbOut} != rgbIn:${rgbIn}`);
     }
     test_get_RGB_from_RgbStr();
     test_get_RgbStr_from_RGB();
@@ -319,14 +321,14 @@ export function test_RGB_ColorStr_functions() {
         const ColorStr = get_ColorStr_from_RGB(RGBin);
         const RGBout = get_RGB_from_ColorStr(ColorStr);
         if ( !arraysAreEqual(RGBout, RGBin) )
-            console.log(`ERROR: RGBout:${RGBout} != RGBin:${RGBin}`);
+            logger.log(`ERROR: RGBout:${RGBout} != RGBin:${RGBin}`);
     }
     function test_get_RGB_from_ColorStr() {
         const ColorStrIn = "color(127, 64, 255)";
         const RGB = get_RGB_from_ColorStr(ColorStrIn);
         const ColorStrOut = get_ColorStr_from_RGB(RGB);
         if ( ColorStrOut != ColorStrIn )
-            console.log(`ERROR: ColorStrOut:${ColorStrOut} != ColorStrIn:${ColorStrIn}`);
+            logger.log(`ERROR: ColorStrOut:${ColorStrOut} != ColorStrIn:${ColorStrIn}`);
     }
     test_get_ColorStr_from_RGB();
     test_get_RGB_from_ColorStr();
@@ -390,9 +392,9 @@ export function test_getHighContrastCssHexColorStr() {
     let lo_Hex = get_Hex_from_RGB( lo_RGB );
     let hi_Hex = getHighContrastCssHexColorStr(lo_Hex);
     let hi_RGB = get_RGB_from_Hex(hi_Hex);
-    console.log(`lo_RGB:${lo_RGB} lo_Hex:${lo_Hex} -> hi_Hex:${hi_Hex} hi_RGB:${hi_RGB}`);
+    logger.log(`lo_RGB:${lo_RGB} lo_Hex:${lo_Hex} -> hi_Hex:${hi_Hex} hi_RGB:${hi_RGB}`);
     if ( hi_RGB[0] !== 0xff || hi_RGB[1] !== 0xff || hi_RGB[2] !== 0xff ) {
-        console.log("FAILURE expected white, not hi_RGB:", hi_RGB);
+        logger.log("FAILURE expected white, not hi_RGB:", hi_RGB);
     } 
 
     hi_RGB = [222, 100, 150];
@@ -400,9 +402,9 @@ export function test_getHighContrastCssHexColorStr() {
     hi_Hex = get_Hex_from_RGB( hi_RGB );
     lo_Hex = getHighContrastCssHexColorStr(hi_Hex);
     lo_RGB = get_RGB_from_Hex(lo_Hex);
-    console.log(`hi_Hex:${hi_Hex} hi_RGB:${hi_RGB} -> lo_RGB:${lo_RGB} lo_Hex:${lo_Hex} `);
+    logger.log(`hi_Hex:${hi_Hex} hi_RGB:${hi_RGB} -> lo_RGB:${lo_RGB} lo_Hex:${lo_Hex} `);
     if ( lo_RGB[0] !== 0 || lo_RGB[1] !== 0 || lo_RGB[2] !== 0 ) {
-        console.log("FAILURE expected black, not lo_RGB:", lo_RGB);
+        logger.log("FAILURE expected black, not lo_RGB:", lo_RGB);
     } 
 }
 
@@ -794,13 +796,13 @@ export function computeTextColor(backgroundHexColor) {
 }
 
 export function testColorUtils() {
-    console.log("-------------------------------------");
+    logger.log("-------------------------------------");
     test_HSV_RGB_Hex_functions();
     test_RGB_RgbStr_functions();
     test_RGB_ColorStr_functions();
     test_getHighContrastCssHexColorStr();
     testColorFunctions();
-    console.log("-------------------------------------");
+    logger.log("-------------------------------------");
 }
 
   // counts all styles of prop strings
@@ -828,7 +830,7 @@ export class PropStyleCounter {
 
   reportPropStyles() {
     for (const prop_style in this.prop_styles) {
-      console.log(`${prop_style}: ${this.prop_styles[prop_style]}`);
+      logger.log(`${prop_style}: ${this.prop_styles[prop_style]}`);
     }
   }
 }
@@ -924,3 +926,40 @@ export function updateEventListener(element, eventType, newListener, options = n
     }
 }
 
+export const formatNumbersReplacer = (key, value) => {
+    if (typeof value === 'number') {
+        return value.toFixed(2);
+    }
+    return value;
+}
+
+/**
+ * Finds the next sibling element of a given element that has a specific CSS class.
+ *
+ * @param {Element} element The starting element.
+ * @param {string} className The CSS class name to search for.
+ * @returns {Element|null} The first matching next sibling element, or null if none is found.
+ */
+export function findNextSiblingWithClass(element, className) {
+    if (!element || !className) {
+      logger.error("findNextSiblingWithClass: Invalid element or className provided.");
+      return null;
+    }
+  
+    // Start with the immediately following sibling ELEMENT
+    let nextElement = element.nextElementSibling;
+  
+    // Loop through subsequent sibling elements
+    while (nextElement) {
+      // Check if the current sibling element has the specified class
+      if (nextElement.classList.contains(className)) {
+        return nextElement; // Found a match!
+      }
+      // Move to the next sibling ELEMENT
+      nextElement = nextElement.nextElementSibling;
+    }
+  
+    // If the loop finishes without finding a match
+    return null;
+  }
+  

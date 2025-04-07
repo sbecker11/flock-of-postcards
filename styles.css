@@ -5,6 +5,7 @@ reference for the #main-container to occupy the full height of the viewport.
 
 :root {
   --background-light: rgb(24, 24, 111); /* 25% darker than rgb(32, 32, 148) */
+  --background-middle: rgb(100, 100, 100); /* 25% darker than rgb(32, 32, 148) */
   --background-dark: rgb(0, 0, 77); /* 25% darker than #000066 */
 }
 
@@ -56,7 +57,7 @@ overflow and ensures consistent sizing.
 }
 
 #aim-point-dot {
-  position: fixed; /* Keep fixed to position relative to viewport */
+  position: fixed;
   width: 10px;
   height: 10px;
   border-radius: 50%;
@@ -64,16 +65,19 @@ overflow and ensures consistent sizing.
   border: 0.5px solid white;
   z-index: 200;
   pointer-events: none;
+  top: 0;
+  left: 0;
+  transform: translate(-50%, -50%); /* Match bullseye's centering */
 }
 #aim-ooint .hidden {
   display: none;
 }
 
 #bulls-eye {
-  position: fixed;  /* Changed back to fixed to keep it centered in viewport */
-  top: 50%;        /* Position at vertical center */
-  left: 50%;       /* Position at horizontal center */
-  transform: translate(-50%, -50%);  /* Center the element itself */
+  position: fixed;
+  top: 50%;
+  left: 25%;
+  transform: translate(-50%, -50%); /* Center the bullseye */
   width: 50px;
   height: 50px;
   border-radius: 50%;
@@ -108,7 +112,7 @@ overflow and ensures consistent sizing.
   z-index: 100;
 }
 
-#focal-point .awake {
+#focal-point.awake {
   color: white;
 }
 
@@ -160,7 +164,7 @@ overflow and ensures consistent sizing.
   left: 0;
   width: 100%;
   height: 100%;
-  pointer-events: none;  // lets clicks pass through
+  pointer-events: none;  /* lets clicks pass through */
 }
 
 #canvas-btm-gradient {
@@ -197,6 +201,7 @@ overflow and ensures consistent sizing.
   box-sizing: border-box;
   overflow: hidden;
   cursor: pointer;
+  z-index: 4; /* Minimum z-index for bizcards */
 }
 
 .bizcard-div-role {
@@ -223,6 +228,14 @@ overflow and ensures consistent sizing.
   padding: 0px;
   box-sizing: border-box;
   cursor: pointer;
+  z-index: 20; /* Minimum z-index for cards */
+}
+
+div.card-div.selected,
+div.bizcard-div.selected {
+  border-width: 5px !important;
+  border-style: dotted !important;
+  border-color: white !important;
 }
 
 div.card-div span.tag-link {
@@ -261,6 +274,7 @@ div.card-div span.tag-link {
   font-family: "Roboto", sans-serif;
   display: flex;
   flex-direction: column;
+  height: 100vh; /* Ensure right column takes full viewport height */
 }
 #right-header-div {
   background-color: #444444;
@@ -270,6 +284,8 @@ div.card-div span.tag-link {
   display: flex;
   flex-direction: column;
   align-items: flex-start;
+  height: fit-content; /* Height based on content */
+  flex-shrink: 0; /* Prevent header from shrinking */
 }
 
 .intro, .user, .footnote{
@@ -292,14 +308,16 @@ div.card-div span.tag-link {
   overflow-y: auto;
   overflow-x: hidden;
   box-sizing: border-box; 
-  background-color: #dddddd;
+  background-color: var(--background-middle);
   color: black;
   padding: 10px;
+  position: relative;
 }
 
 .right-content-div-child {
   max-width: 100%;
   height: auto;
+  position: relative;
 }
 
 #right-footer-div {
@@ -307,6 +325,8 @@ div.card-div span.tag-link {
   flex-direction: column;
   background-color: #999999;
   padding: 10px;
+  height: fit-content; /* Height based on content */
+  flex-shrink: 0; /* Prevent footer from shrinking */
 }
 
 .tag-link {
@@ -322,9 +342,14 @@ div.card-div span.tag-link {
   justify-content: space-between;
   margin: 0px 0px;
   cursor: pointer;
-  border-width: 5px;
+  border-width: 2px;
   border-style: solid;
   border-color: white;
+  filter: brightness(100%);
+}
+.card-div-line-item.selected {
+  filter: brightness(125%);
+  border-width: 5px;
 }
 
 .card-div-line-item-content {
@@ -363,12 +388,6 @@ div.card-div span.tag-link {
   background-color: green;
   background: url("./static_content/icons/green-next.gif");
   cursor: pointer;
-}
-
-.selected {
-  border-width: 2px !important;
-  border-style: dotted !important;
-  border-color: white !important;
 }
 
 .buttons {
@@ -429,3 +448,4 @@ html[native-dark-active] #canvas-container,
   outline: none;
   box-shadow: 0 0 5px rgba(255, 255, 255, 0.5);
 }
+

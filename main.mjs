@@ -6,6 +6,8 @@ import * as timeline from './modules/timeline.mjs';
 import * as focalPoint from './modules/focal_point.mjs';
 import * as alerts from './modules/alerts.mjs';
 import { createPaletteSelector } from './modules/color_palettes.mjs';
+import { Logger, LogLevel } from "./modules/logger.mjs";
+const logger = new Logger("main", LogLevel.INFO);
 
 
 utils.testColorUtils();
@@ -54,6 +56,12 @@ const BIZCARD_WIDTH = 200;
 const BIZCARD_INDENT = 29;
 const MIN_BIZCARD_HEIGHT = 200;
 
+// brightness decreases to MIN_BRIGHTNESS_PERCENT as z increases
+const MIN_BRIGHTNESS_PERCENT = 70;
+
+// card blur increases as z increases
+const BLUR_Z_SCALE_FACTOR = 0.1;
+
 // --------------------------------------
 // CardDiv globals
 
@@ -86,21 +94,124 @@ const PARALLAX_Y_EXAGGERATION_FACTOR = 0.1;
 
 // ground is zindex = 0 and zindex is offset from ground,
 // and z is distance to viewer, so 
-// z = MAX_Z - zindex,
+// card.z = MAX_ALL_CARDS_Z_INDEX - card.zindex,
 // conversely 
-// zindex = MAX_Z - z.
-const ALL_CARDS_MAX_Z = 19;
-const CARD_MAX_Z = 19;
-const CARD_MIN_Z = 9;
-const BIZCARD_MAX_Z = 8;
-const BIZCARD_MIN_Z = 4;
-const ALL_CARDS_MIN_Z = 4;
+// card.zindex = MAX_ALL_CARDS_Z_INDEX - card.z.
 
-// brightness decreases to MIN_BRIGHTNESS_PERCENT as z increases
-const MIN_BRIGHTNESS_PERCENT = 75;
+const ROOT_Z_INDEX = 0;             // no parallax 
+const CANVAS_Z_INDEX = 1;           // no parallax
+const CANVAS_GRADIENTS_Z_INDEX = 2; // no parallax
+const TIMELINE_Z_INDEX = 3;         // no parallax
 
-// card blur increases as z increases
-const BLUR_Z_SCALE_FACTOR = 4;
+// all Z_INDEX values less than MIN_BIZCARD_Z_INDEX or
+// greater than MAX_CARD_Z_INDEX are reserved for special cases
+// and do not convert to Z values and are not used in parallax calculations
+
+const SELECTED_CARD_Z_INDEX = 91;       // no parallax
+const SELECTED_CARD_FILTER = "brightness(1.25) blur(0px)";
+const BULLSEYE_Z_INDEX = 98;            // no parallax
+const FOCAL_POINT_Z_INDEX = 99;         // no parallax
+const AIM_POINT_Z_INDEX = 100;          // no parallax
+
+// bizcards have minimum z_index and 
+// max Z values of MAX_ALL_CARDS_Z_INDEX - bizcard_z_index
+
+const MIN_BIZCARD_Z_INDEX = 4;
+const MAX_BIZCARD_Z_INDEX = 9;
+const MIN_CARD_Z_INDEX = 19;
+const MAX_CARD_Z_INDEX = 29; 
+const MAX_ALL_CARDS_Z_INDEX = 31;
+
+// selected bizcards and cardDivs have no Z value
+const ALL_CARDS_MAX_Z = 35;
+const BIZCARD_MAX_Z = 35;
+const BIZCARD_MIN_Z = 30;
+const CARD_MAX_Z = 20;
+const CARD_MIN_Z = 10;
+const ALL_CARDS_MIN_Z = 10;
+
+function get_z_from_z_index(z_index) {
+    if (z_index > MAX_ALL_CARDS_Z_INDEX) {
+        // For z-indices over MAX_ALL_CARDS_Z_INDEX, return null to indicate no z-value conversion
+        return null;
+    }
+    if (z_index >= MIN_BIZCARD_Z_INDEX && z_index <= MAX_BIZCARD_Z_INDEX) {
+        // For bizcards, z should be between BIZCARD_MIN_Z and BIZCARD_MAX_Z
+        const z_index_range = MAX_BIZCARD_Z_INDEX - MIN_BIZCARD_Z_INDEX;
+        const z_range = BIZCARD_MAX_Z - BIZCARD_MIN_Z;
+        const z_index_offset = z_index - MIN_BIZCARD_Z_INDEX;
+        return Math.round(BIZCARD_MIN_Z + (z_index_offset * z_range / z_index_range));
+    } else if (z_index >= MIN_CARD_Z_INDEX && z_index <= MAX_CARD_Z_INDEX) {
+        // For cards, z should be between CARD_MIN_Z and CARD_MAX_Z
+        const z_index_range = MAX_CARD_Z_INDEX - MIN_CARD_Z_INDEX;
+        const z_range = CARD_MAX_Z - CARD_MIN_Z;
+        const z_index_offset = z_index - MIN_CARD_Z_INDEX;
+        return Math.round(CARD_MIN_Z + (z_index_offset * z_range / z_range));
+    } else {
+        // For special cases like selected cards
+        return z_index;
+    }
+}
+
+function get_z_from_zIndexStr(zIndexStr) {
+    return get_z_from_z_index(parseInt(zIndexStr));
+}
+
+function get_zindex_from_z(z) {
+    if (z >= BIZCARD_MIN_Z && z <= BIZCARD_MAX_Z) {
+        // For bizcards
+        const z_range = BIZCARD_MAX_Z - BIZCARD_MIN_Z;
+        const z_index_range = MAX_BIZCARD_Z_INDEX - MIN_BIZCARD_Z_INDEX;
+        const z_offset = z - BIZCARD_MIN_Z;
+        return Math.round(MIN_BIZCARD_Z_INDEX + (z_offset * z_index_range / z_range));
+    } else if (z >= CARD_MIN_Z && z <= CARD_MAX_Z) {
+        // For cards
+        const z_range = CARD_MAX_Z - CARD_MIN_Z;
+        const z_index_range = MAX_CARD_Z_INDEX - MIN_CARD_Z_INDEX;
+        const z_offset = z - CARD_MIN_Z;
+        return Math.round(MIN_CARD_Z_INDEX + (z_offset * z_index_range / z_range));
+    } else {
+        // For special cases like selected cards
+        return z;
+    }
+}
+
+function get_zIndexStr_from_z(z) {
+    return `${get_zindex_from_z(z)}`;
+}
+
+function test_z_functions() {
+    // Test bizcard z-index to z conversion
+    logger.log("Testing bizcard z-index to z conversion...");
+    for (let z_index = MIN_BIZCARD_Z_INDEX; z_index <= MAX_BIZCARD_Z_INDEX; z_index++) {
+        const z = get_z_from_z_index(z_index);
+        if (z < BIZCARD_MIN_Z || z > BIZCARD_MAX_Z) {
+            console.error(`ERROR: z:${z} is out of bizcard_z range of ${BIZCARD_MIN_Z}..${BIZCARD_MAX_Z} for z_index:${z_index}`);
+        }
+        const zIndexStr = get_zIndexStr_from_z(z);
+        const check_z = get_z_from_zIndexStr(zIndexStr);
+        if (z != check_z) {
+            console.error(`ERROR: z:${z} != check_z:${check_z} for z_index:${z_index}`);
+        }
+    }
+
+    // Test card z-index to z conversion
+    logger.log("Testing card z-index to z conversion...");
+    for (let z = CARD_MIN_Z; z <= CARD_MAX_Z; z++) {
+        const zIndexStr = get_zIndexStr_from_z(z);
+        const check_z = get_z_from_zIndexStr(zIndexStr);
+        const check_z_index = get_zindex_from_z(check_z);
+        const z_index = parseInt(zIndexStr);
+        if (check_z_index != z_index) {
+            console.error(`ERROR: check_z_index:${check_z_index} != z_index:${z_index} for z:${z}`);
+        }
+    }
+
+    logger.log("Z function tests completed.");
+}
+
+test_z_functions();
+
 
 //--------------------------------------
 // Default mouse behavior: prevent selections while mouse is fown
@@ -118,12 +229,10 @@ document.addEventListener('mouseup', function() {
 //--------------------------------------
 // Z functions
 
-function get_zIndexStr_from_z(z) {
-    return `${ALL_CARDS_MAX_Z - z}`;
-}
-function get_z_from_zIndexStr(zindex) {
-    return ALL_CARDS_MAX_Z - parseInt(zindex);
-}
+// only cards have Z values
+// bizcards have maximum Z values
+// cards have minimum Z values = MAX_CARD_Z_INDEX - 
+
 // brightness max CARD_MIN_Z is 1.0 is normal
 // brightness dims as z increated to CARD_MAX_Z
 function get_brightness_value_from_z(z) {
@@ -143,7 +252,7 @@ function get_brightness_str_from_z(z) {
 // returns a filter blur string
 // blur increases as z increases
 function get_blur_str_from_z(z) {
-    var blur = (z > 0) ? (z - CARD_MIN_Z) / BLUR_Z_SCALE_FACTOR : 0;
+    var blur = (z > 0) ? (z - CARD_MIN_Z) * BLUR_Z_SCALE_FACTOR : 0;
     return `blur(${blur}px)`;
 }
 
@@ -268,19 +377,25 @@ function createBizcardDivs() {
         var startBottomPx = timeline.getTimelineYearMonthBottom(startYearStr, startMonthStr);
 
         var heightPx = Math.max(startBottomPx - endBottomPx, MIN_BIZCARD_HEIGHT);
-        var zIndexStr = job[ "z-index" ];
-        var zIndex = parseInt(zIndexStr);
-        var z = get_z_from_zIndexStr(zIndexStr);
-        var indent = (zIndex - 1) * BIZCARD_INDENT;
+        
+        var z_index = utils.getRandomInt(MIN_BIZCARD_Z_INDEX, MAX_BIZCARD_Z_INDEX);
+        if ( z_index < MIN_BIZCARD_Z_INDEX || z_index > MAX_BIZCARD_Z_INDEX ) {
+            console.error(`ERROR: z_index:${z_index} is out of z_index range of ${MIN_BIZCARD_Z_INDEX}..${MAX_BIZCARD_Z_INDEX}`);
+        }
+        var zIndexStr = `${z_index}`;
+        var z = get_z_from_zIndexStr(zIndexStr); // z is distance to viewer = ALL_CARDS_MAX_ZINDEX - z_index
+        if ( z < BIZCARD_MIN_Z || z > BIZCARD_MAX_Z ) {
+            console.error(`ERROR: z:${z} is out of bizcard_z range of ${BIZCARD_MIN_Z}..${BIZCARD_MAX_Z}`);
+        }
+        var halfIndent = (z_index - 1) * BIZCARD_INDENT/4;
+        var indent = utils.getRandomInt(-halfIndent, halfIndent);
 
         // here we go
         var bizcardDiv = document.createElement("div");
-        // console.assert(bizcardDiv != null);
-        var top = endBottomPx;
-        // console.assert(top > 0, "Q");
-        var height = heightPx;
         var left = indent;
         var width = BIZCARD_WIDTH;
+        var top = endBottomPx;
+        var height = heightPx;
 
         bizcardDiv.id = getNextBizcardDivId();
         bizcardDiv.classList.add("bizcard-div");
@@ -294,33 +409,19 @@ function createBizcardDivs() {
         canvas.appendChild(bizcardDiv);
         bizcardDiv.dataset.employer = employer;
         bizcardDiv.dataset.cardDivIds = [];
-        try {
-            //console.log(`startDate:[${endDate}]`);
-            bizcardDiv.setAttribute("endDate", utils.getIsoDateString(endDate));
-        } catch (e) {
-            console.error(e);
-        }
+        bizcardDiv.setAttribute("endDate", utils.getIsoDateString(endDate));
         bizcardDiv.setAttribute("startDate", utils.getIsoDateString(startDate));
 
-        // save the bizcardDiv's original center 
-        var originalCtrX = left + width / 2;
-        var originalCtrY = top + height / 2;
-        var originalZ = z;
-        bizcardDiv.setAttribute("originalLeft", `${bizcardDiv.offsetLeft}`);
-        bizcardDiv.setAttribute("originalTop", `${bizcardDiv.offsetTop}`);
-        // console.assert(bizcardDiv.offsetTop > 0, 'L');
-        // console.assert(parseInt(bizcardDiv.getAttribute("originalTop")) > 0, 'M');
-        bizcardDiv.setAttribute("originalWidth", `${bizcardDiv.offsetWidth}`);
-        bizcardDiv.setAttribute("originalHeight", `${bizcardDiv.offsetHeight}`);
-        bizcardDiv.setAttribute("originalCtrX", `${originalCtrX}`);
-        bizcardDiv.setAttribute("originalCtrY", `${originalCtrY}`);
-        bizcardDiv.setAttribute("originalZ", `${originalZ}`);
+        bizcardDiv.setAttribute("saved_left", `${bizcardDiv.offsetLeft}`);
+        bizcardDiv.setAttribute("saved_lop", `${bizcardDiv.offsetTop}`);
+        bizcardDiv.setAttribute("saved_width", `${bizcardDiv.offsetWidth}`);
+        bizcardDiv.setAttribute("saved_height", `${bizcardDiv.offsetHeight}`);
+        bizcardDiv.setAttribute("saved_z", `${z}`);
+        bizcardDiv.setAttribute("saved_zIndexStr", zIndexStr);
+        bizcardDiv.setAttribute("saved_filterStr", get_filterStr_from_z(z));
 
-        bizcardDiv.setAttribute("saved-zIndexStr", zIndexStr);
-        bizcardDiv.setAttribute("saved-filterStr", get_filterStr_from_z(z));
-
-        bizcardDiv.style.zIndex = bizcardDiv.getAttribute("saved-zIndexStr") || "";
-        bizcardDiv.style.filter = bizcardDiv.getAttribute("saved-filterStr") || "";
+        bizcardDiv.style.zIndex = bizcardDiv.getAttribute("saved_zIndexStr") || "";
+        bizcardDiv.style.filter = bizcardDiv.getAttribute("saved_filterStr") || "";
 
         var description_raw = job[ "Description" ];
         if (description_raw && description_raw.length > 0) {
@@ -332,7 +433,7 @@ function createBizcardDivs() {
 
         var html = "";
         html += `<span class="bizcard-div-role">${role}</span><br/>`;
-        html += `(${bizcardDiv.id})<br/>`;
+        html += `(${bizcardDiv.id} z_index:${z_index} z:${z})<br/>`;
         html += `<span class="bizcard-div-employer">${employer}</span><br/>`;
         html += `<span class="bizcard-div-dates">${jobStartStr} - ${jobEndStr}</span><br/>`;
         bizcardDiv.innerHTML = html;
@@ -344,7 +445,7 @@ function createBizcardDivs() {
         addCardDivClickListener(bizcardDiv);
         // does not select self
         // does not scroll self into view
-    }
+    } // all jobs loop
     paletteSelector.applyPaletteToElements();
 }
 
@@ -365,7 +466,7 @@ function initAllTagLinks() {
 //
 // Parse each description_item to find the pattern `[skill_phrase](skill_img_url)(skill_url)`.
 // Finds or creates a `card-div` for each `skill_phrase` and replaces the 
-// original html with `<card-link card-div-id="id" card-img-url="url">skill</card-link>`
+// saved_ html with `<card-link card-div-id="id" card-img-url="url">skill</card-link>`
 // The `card-img-url` is ignored if its value if "url" or blank.
 //
 // Uses the BULLET_JOINER to join the list of description_items 
@@ -397,7 +498,7 @@ function process_bizcard_description_HTML(bizcardDiv, description_HTML) {
     var processed_bizcard_description_HTML = description_HTML;
     if (processed_items.length > 0)
         processed_bizcard_description_HTML = processed_items.join(BULLET_JOINER);
-    // console.log("bizcardTagLinks:" + bizcardTagLinks.length  + " [" + debugTagLinksToStr(bizcardTagLinks) + "]")
+    // logger.log("bizcardTagLinks:" + bizcardTagLinks.length  + " [" + debugTagLinksToStr(bizcardTagLinks) + "]")
     return [processed_bizcard_description_HTML, bizcardTagLinks];
 }
 
@@ -415,7 +516,7 @@ function createBackAnchorTag(bizcard_id) { // when class is "icon" use fg_color
 
 // This function takes an inputString, applies the regular expression to extract the 
 // newTagLink objects with properties text, img, url, and html, and then replaces 
-// these newTagLinks in the original string with their html values. The function return 
+// these newTagLinks in the saved_ string with their html values. The function return 
 // both the list of newTagLinks and the updatedString with embedded HTML elements.
 
 function process_bizcard_description_item(bizcardDiv, inputString) {
@@ -484,15 +585,15 @@ function process_bizcard_description_item(bizcardDiv, inputString) {
         // create a tag_link span element with the targetCardDivId attribute and the htmlElementStr as its innerHTML
         let htmlSpanElementStr = `<span class="tag-link" targetCardDivId="${tag_link.cardDivId}">${htmlElementStr}</span>`;
 
-        // reconstruct the original pattern
-        let originalPattern = `[${text}]`;
+        // reconstruct the saved_ pattern
+        let saved_Pattern = `[${text}]`;
         if ( tag_link.img.length > 0 )
-            originalPattern += `{${tag_link.img}}`;
+            saved_Pattern += `{${tag_link.img}}`;
         if (tag_link.url.length > 0) 
-            originalPattern += `(${tag_link.url})`;
+            saved_Pattern += `(${tag_link.url})`;
 
-         // Replace the original pattern with the new HTML element
-         updatedString = updatedString.replace(originalPattern, htmlSpanElementStr);
+         // Replace the saved_ pattern with the new HTML element
+         updatedString = updatedString.replace(saved_Pattern, htmlSpanElementStr);
          if ( updatedString.includes('undefined') ) {
             throw new Error(`updatedString:${updatedString} must not have an undefined attribute`);
         }
@@ -536,7 +637,7 @@ function addIconClickListener(icon) {
                         url = url.endsWith('/') ? url.slice(0,-1) : url;
                         let urlStr = (tag_link_text.length + url.length < 40) ? ` at <u>${url}</u>` : '';
                         let title = tag_link_text ? `the webpage for <b>${tag_link_text}</b>${urlStr}` : `the webpage at ${url}`;
-                        console.log(`iconElement iconType:${iconType} click: ${url} title: [${title}]`);
+                        logger.log(`iconElement iconType:${iconType} click: ${url} title: [${title}]`);
                         alerts.confirmOpenNewBrowserWindow(title, url);
                     } else {
                         console.error(`iconElement iconType:${iconType} click: no url`);
@@ -549,7 +650,7 @@ function addIconClickListener(icon) {
                         img = img.endsWith('/') ? img.slice(0,-1) : img;
                         img = "<u>" + img + "</u>";
                         let title = tag_link_text ? `the image for <b>${tag_link_text}</b>` : `the image at ${img}`;
-                        console.log(`iconElement iconType:${iconType} click: ${img} title: [${title}]`);
+                        logger.log(`iconElement iconType:${iconType} click: ${img} title: [${title}]`);
                         alerts.confirmOpenNewBrowserWindow(title, img);
                     } else {
                         console.error(`iconElement iconType:${iconType} click: no img`);
@@ -561,7 +662,7 @@ function addIconClickListener(icon) {
                     if (bizcardId) {
                         const bizcardDiv = document.getElementById(bizcardId);
                         if (bizcardDiv) {
-                            console.log(`iconElement click: ${bizcardId}`);
+                            logger.log(`iconElement click: ${bizcardId}`);
                             selectTheCardDiv(bizcardDiv, true);
                             // scrollElementIntoView(bizcardDiv);
                         } else {
@@ -579,7 +680,7 @@ function addIconClickListener(icon) {
                 }
             }
         } else {
-            // console.log(`iconElement click: no iconElement`);
+            // logger.log(`iconElement click: no iconElement`);
         }
         event.stopPropagation();
     });
@@ -592,7 +693,7 @@ function addIconClickListener(icon) {
             event.stopPropagation();
             const url = "https://www.linkedin.com/in/shawnbecker";
             const title = "Shawn's LinkedIn profile";
-            console.log(`linkedinIcon click: ${url} title: [${title}]`);
+            logger.log(`linkedinIcon click: ${url} title: [${title}]`);
             alerts.confirmOpenNewBrowserWindow(title, url);
         });
     }
@@ -605,7 +706,7 @@ function addIconClickListener(icon) {
             event.stopPropagation();
             const img = "static_content/graphics/sankeymatic_20240104_204625_2400x1600.png";
             const title = "a SankeyMatic&copy; diagram of Shawn's technical proficiencies";
-            console.log(`sankeyIcon click: ${img} title: [${title}]`);
+            logger.log(`sankeyIcon click: ${img} title: [${title}]`);
             alerts.confirmOpenNewBrowserWindow(title, img);
         });
     }
@@ -615,9 +716,9 @@ function getBizcardDivDays(bizcardDiv) {
     const endMillis = getBizcardDivEndDate(bizcardDiv).getTime();
     const startMillis = getBizcardDivStartDate(bizcardDiv).getTime();
     const bizcardMillis = endMillis - startMillis;
-    // console.log(`bizcardDiv.id:${bizcardDiv.id} bizcardMillis:${bizcardMillis}`);
+    // logger.log(`bizcardDiv.id:${bizcardDiv.id} bizcardMillis:${bizcardMillis}`);
     const bizcardDivDays = bizcardMillis / (1000 * 60 * 60 * 24);
-    // console.log(`bizcardDiv.id:${bizcardDiv.id} bizcardDivDays:${bizcardDivDays}`);
+    // logger.log(`bizcardDiv.id:${bizcardDiv.id} bizcardDivDays:${bizcardDivDays}`);
     return parseInt(bizcardDivDays);
 }
 
@@ -695,7 +796,7 @@ function convert_description_HTML_to_line_items_HTML(description_HTML, cardDivLi
         }
         HTML += "</ul>"
     } else {
-        // console.log(`unparsed description: ${description_HTML}`);
+        // logger.log(`unparsed description: ${description_HTML}`);
         HTML += description_HTML;
     }
     HTML += "</p>"
@@ -734,46 +835,58 @@ function createCardDiv(bizcardDiv, tag_link) {
     canvas.appendChild(cardDiv); 
     cardDiv.dataset.bizcardDivDays = getBizcardDivDays(bizcardDiv);
 
+    // cardDivs distributed mostly around the bizcardDiv min and max y
+    const bizCardMinY = bizcardDiv.offsetTop;
+    const bizCardMaxY = bizCardMinY + bizcardDiv.offsetHeight;
+    const cardCloudMinY = MAX_CARD_POSITION_OFFSET/3; // overhang the bizcardDiv
+    const cardCloudMaxY = MAX_CARD_POSITION_OFFSET;
+    const cardCloudY = utils.getRandomInt(cardCloudMinY, cardCloudMaxY);
+    let cardY = 0;
+    if ( utils.getRandomSign() == 1 ) {
+        cardY = bizCardMinY - cardCloudY;
+    } else {
+        cardY = bizCardMaxY + cardCloudY;
+    }
+
+    // cardDivs distributed mostly around the bizcardDiv min and max x
+    const bizCardMinX = bizcardDiv.offsetLeft;
+    const bizCardMaxX = bizCardMinX + bizcardDiv.offsetWidth;
+    const cardCloudMinX = MAX_CARD_POSITION_OFFSET / 3; // surround the bizcardDiv without obscuring it
+    const cardCloudMaxX = MAX_CARD_POSITION_OFFSET / 3; // surround the bizcardDiv without obscuring it
+    const cardCloudX = utils.getRandomInt(cardCloudMinX, cardCloudMaxX);
+    let cardX = 0;
+    if ( utils.getRandomSign() == 1 ) {
+        cardX = bizCardMinX - cardCloudX;
+    } else {
+        cardX = bizCardMaxX + cardCloudX;
+    }
     const cardDivIndex = getCardDivIndex(cardDivId) || 0;
 
-    const total_vt_distance = timeline.getTimelineHeight();
-    const vt_top_to_top = total_vt_distance / ESTIMATED_NUMBER_CARD_DIVS;
-    const vt_top = cardDivIndex * vt_top_to_top - vt_top_to_top / 2;
-
-    // card-div tops can be UNIFORMLY REDISTRIBUTED
-    // and given random offsets after all card-divs 
-    // have been created
-
-    const verticalOffset = utils.getRandomInt(-MAX_CARD_POSITION_OFFSET, MAX_CARD_POSITION_OFFSET);
-
-    var top = vt_top + verticalOffset;
-    if ( top < 200 )
-        top += 200;
+    const top = cardY;
     cardDiv.style.top = `${top}px`;
-
-    const horizontalOffset = utils.getRandomInt(-MAX_CARD_POSITION_OFFSET, MAX_CARD_POSITION_OFFSET);
-    var left = MEAN_CARD_LEFT + horizontalOffset;
+    const left = cardX - MEAN_CARD_WIDTH / 2;
     cardDiv.style.left = `${left}px`;
+    cardDiv.style.width = `${MEAN_CARD_WIDTH}px`;
+    cardDiv.style.height = `${MEAN_CARD_HEIGHT}px`;
+
 
     var z = utils.getRandomInt(CARD_MIN_Z, CARD_MAX_Z);
     while (z === prev_z) {
         // Generate a new z if it's the same as the previous one
-
         z = utils.getRandomInt(CARD_MIN_Z, CARD_MAX_Z);
     }
     prev_z = z;
 
-    var zIndexStr = get_zIndexStr_from_z(z);
-
     // inherit colors of bizcardDiv
     cardDiv.setAttribute("bizcardDivId", bizcardDiv.id);
     cardDiv.setAttribute("data-color-index", bizcardDiv.id);
+    
+    cardDiv.setAttribute("saved_z", z);
+    cardDiv.setAttribute("saved_zIndexStr", get_zIndexStr_from_z(z));
+    cardDiv.setAttribute("saved_filterStr", get_filterStr_from_z(z));
 
-    cardDiv.setAttribute("saved-zIndexStr", zIndexStr);
-    cardDiv.setAttribute("saved-filterStr", get_filterStr_from_z(z));
-
-    cardDiv.style.zIndex = cardDiv.getAttribute("saved-zIndexStr") || "";
-    cardDiv.style.filter = cardDiv.getAttribute("saved-filterStr") || "";
+    cardDiv.style.zIndex = cardDiv.getAttribute("saved_zIndexStr") || "";
+    cardDiv.style.filter = cardDiv.getAttribute("saved_filterStr") || "";
 
     // the tag_link is used to define the contents of this cardDiv
     const spanId = `tag_link-${cardDivId}`;
@@ -798,17 +911,15 @@ function createCardDiv(bizcardDiv, tag_link) {
     cardDiv.style.width = `${width}px`;
     cardDiv.style.height = `${height}px`;
 
-    // save the original center 
-    var originalCtrX = left + width / 2;
-    var originalCtrY = top + height / 2;
-    var originalZ = z;
-    cardDiv.setAttribute("originalLeft", `${cardDiv.offsetLeft}`);
-    cardDiv.setAttribute("originalTop", `${cardDiv.offsetTop}`);
-    cardDiv.setAttribute("originalWidth", `${cardDiv.offsetWidth}`);
-    cardDiv.setAttribute("originalHeight", `${cardDiv.offsetHeight}`);
-    cardDiv.setAttribute("originalCtrX", `${originalCtrX}`);
-    cardDiv.setAttribute("originalCtrY", `${originalCtrY}`);
-    cardDiv.setAttribute("originalZ", `${originalZ}`);
+    // save the saved_ center 
+    var saved_ctrX = left + width / 2;
+    var saved_ctrY = top + height / 2;
+    cardDiv.setAttribute("saved_left", `${cardDiv.offsetLeft}`);
+    cardDiv.setAttribute("saved_top", `${cardDiv.offsetTop}`);
+    cardDiv.setAttribute("saved_width", `${cardDiv.offsetWidth}`);
+    cardDiv.setAttribute("saved_height", `${cardDiv.offsetHeight}`);
+    cardDiv.setAttribute("saved_ctrX", `${saved_ctrX}`);
+    cardDiv.setAttribute("saved_ctrY", `${saved_ctrY}`);
 
     if (img_src !== null) {
         var img = document.createElement("img");
@@ -861,131 +972,131 @@ function isWordSubstringInList(word, stringList) {
     return false;
 }
   
-// write the exmployer of each bizcardDiv and the text of each of its cardDivs
-export function logAllBizcardDivs() {
-    let allBizcardDivs = document.getElementsByClassName("bizcard-div");
-    let showSkips = false;
-    var log = "";
-    console.log('---------------------------------------------------');
-    for (let bizcardDiv of allBizcardDivs) {
-        let employer = bizcardDiv.dataset.employer;
-        if (employer === undefined || employer === null) {
-            continue;
-        }
-        let cardDivIds = bizcardDiv.dataset.cardDivIds;
-        if ( cardDivIds.length > 0 ) {
-            var cardDivTuples = [];
-            for (let cardDivId of cardDivIds.split(',')) {
-                let cardDiv = document.getElementById(cardDivId);
-                if (cardDiv === null) {
-                    console.log(`No element with id cardDivId:${cardDivId}`);
-                    continue;
-                }
-                let cardDivText = cardDiv.getAttribute('tagLinkText').trim();
-                if ( cardDivText === undefined || cardDivText == null ) {
-                    continue;
-                }
-                let months = Math.round(cardDiv.dataset.bizcardDivDays * 12 / 365.25);
-                let years = Math.round(months / 12);
-                if ( cardDivText.includes('"') ) {
-                    if ( showSkips ) console.log("skip", cardDivText, years);
-                    continue;
-                }
-                if ( cardDivText == "CentOS Linux" ) {
-                    cardDivText = "Linux";
-                }
-                if ( cardDivText == 'Linix' ) {
-                    cardDivText = 'Linux';
-                }
-                if ( employer == 'Greenseed Tech' ) {
-                    employer = 'Data Laboratory';
-                }
-                if ( employer == 'Warner Brothers Interactive Entertainment' ) {
-                    employer = 'Warner Bros';
-                }
-                let keep = [
-                    "Python",
-                    "Redshift",
-                    "Glue",
-                    "PostgreSQL",
-                    "Airflow",
-                    "Kinesis",
-                    "AWS",
-                    "REST",
-                    "REST API",
-                    "Docker",
-                    "Linux",
-                    "bash",
-                    "Spring",
-                    "Cimmetrix",
-                    "Akamai",
-                    "Jenkins",
-                    "Jira",
-                    "PySpark",
-                    "Oracle",
-                    "MySQL",
-                    "Vue"
-                ];
-                if ( isWordSubstringInList(cardDivText, keep) || years >= 8) {
-                } else {
-                    if ( showSkips ) console.log("skip", cardDivText, years);
-                    continue;
-                }
-                let ignores = [
-                    "Massachusetts Institute of Technology",
-                    "Trimble Mobile Solutions",
-                    "OneCall",
-                    "HomePortfolio.com",
-                    "HomePortfolio",
-                    "Brigham Young University",
-                    "four patents",
-                    "X11",
-                    "XMotif",
-                    "API Gateway",
-                    "OpenAPI",
-                ];
-                if ( ignores.includes(cardDivText) ) {
-                    if ( showSkips ) console.log("skip", cardDivText, years);
-                    continue;
-                }
-                if ( employer.includes(cardDivText) ) {
-                    if ( showSkips ) console.log("skip", cardDivText, years);
-                    continue;
-                }
-                if ( cardDivText.includes(employer) ) {
-                    if ( showSkips ) console.log("skip", cardDivText, years);
-                    continue;
-                }
-                cardDivTuples.push([employer,cardDivText]);
-            }
-            // Sorting function to compare the uppercase values of tuple[1]
-            const sortByUppercaseValue = (a, b) => {
-                const uppercaseA = a[1].toUpperCase();
-                const uppercaseB = b[1].toUpperCase();
+// // write the exmployer of each bizcardDiv and the text of each of its cardDivs
+// export function logAllBizcardDivs() {
+//     let allBizcardDivs = document.getElementsByClassName("bizcard-div");
+//     let showSkips = false;
+//     var log = "";
+//     logger.log('---------------------------------------------------');
+//     for (let bizcardDiv of allBizcardDivs) {
+//         let employer = bizcardDiv.dataset.employer;
+//         if (employer === undefined || employer === null) {
+//             continue;
+//         }
+//         let cardDivIds = bizcardDiv.dataset.cardDivIds;
+//         if ( cardDivIds.length > 0 ) {
+//             var cardDivTuples = [];
+//             for (let cardDivId of cardDivIds.split(',')) {
+//                 let cardDiv = document.getElementById(cardDivId);
+//                 if (cardDiv === null) {
+//                     logger.log(`No element with id cardDivId:${cardDivId}`);
+//                     continue;
+//                 }
+//                 let cardDivText = cardDiv.getAttribute('tagLinkText').trim();
+//                 if ( cardDivText === undefined || cardDivText == null ) {
+//                     continue;
+//                 }
+//                 let months = Math.round(cardDiv.dataset.bizcardDivDays * 12 / 365.25);
+//                 let years = Math.round(months / 12);
+//                 if ( cardDivText.includes('"') ) {
+//                     if ( showSkips ) logger.log("skip", cardDivText, years);
+//                     continue;
+//                 }
+//                 if ( cardDivText == "CentOS Linux" ) {
+//                     cardDivText = "Linux";
+//                 }
+//                 if ( cardDivText == 'Linix' ) {
+//                     cardDivText = 'Linux';
+//                 }
+//                 if ( employer == 'Greenseed Tech' ) {
+//                     employer = 'Data Laboratory';
+//                 }
+//                 if ( employer == 'Warner Brothers Interactive Entertainment' ) {
+//                     employer = 'Warner Bros';
+//                 }
+//                 let keep = [
+//                     "Python",
+//                     "Redshift",
+//                     "Glue",
+//                     "PostgreSQL",
+//                     "Airflow",
+//                     "Kinesis",
+//                     "AWS",
+//                     "REST",
+//                     "REST API",
+//                     "Docker",
+//                     "Linux",
+//                     "bash",
+//                     "Spring",
+//                     "Cimmetrix",
+//                     "Akamai",
+//                     "Jenkins",
+//                     "Jira",
+//                     "PySpark",
+//                     "Oracle",
+//                     "MySQL",
+//                     "Vue"
+//                 ];
+//                 if ( isWordSubstringInList(cardDivText, keep) || years >= 8) {
+//                 } else {
+//                     if ( showSkips ) logger.log("skip", cardDivText, years);
+//                     continue;
+//                 }
+//                 let ignores = [
+//                     "Massachusetts Institute of Technology",
+//                     "Trimble Mobile Solutions",
+//                     "OneCall",
+//                     "HomePortfolio.com",
+//                     "HomePortfolio",
+//                     "Brigham Young University",
+//                     "four patents",
+//                     "X11",
+//                     "XMotif",
+//                     "API Gateway",
+//                     "OpenAPI",
+//                 ];
+//                 if ( ignores.includes(cardDivText) ) {
+//                     if ( showSkips ) logger.log("skip", cardDivText, years);
+//                     continue;
+//                 }
+//                 if ( employer.includes(cardDivText) ) {
+//                     if ( showSkips ) logger.log("skip", cardDivText, years);
+//                     continue;
+//                 }
+//                 if ( cardDivText.includes(employer) ) {
+//                     if ( showSkips ) logger.log("skip", cardDivText, years);
+//                     continue;
+//                 }
+//                 cardDivTuples.push([employer,cardDivText]);
+//             }
+//             // Sorting function to compare the uppercase values of tuple[1]
+//             const sortByUppercaseValue = (a, b) => {
+//                 const uppercaseA = a[1].toUpperCase();
+//                 const uppercaseB = b[1].toUpperCase();
             
-                if (uppercaseA < uppercaseB) return -1;
-                if (uppercaseA > uppercaseB) return 1;
-                return 0;
-            };
+//                 if (uppercaseA < uppercaseB) return -1;
+//                 if (uppercaseA > uppercaseB) return 1;
+//                 return 0;
+//             };
 
-            // Sort the array using the sorting function
-            cardDivTuples.sort(sortByUppercaseValue);
+//             // Sort the array using the sorting function
+//             cardDivTuples.sort(sortByUppercaseValue);
 
-            // Filter the array to keep only the first occurrence of each uppercase value
-            const uniqueTuples = cardDivTuples.filter((tuple, index, arr) => {
-                const currentUppercaseValue = tuple[1].toUpperCase();
-                const firstIndexOfValue = arr.findIndex((t) => t[1].toUpperCase() === currentUppercaseValue);
-                return index === firstIndexOfValue;
-            });
+//             // Filter the array to keep only the first occurrence of each uppercase value
+//             const uniqueTuples = cardDivTuples.filter((tuple, index, arr) => {
+//                 const currentUppercaseValue = tuple[1].toUpperCase();
+//                 const firstIndexOfValue = arr.findIndex((t) => t[1].toUpperCase() === currentUppercaseValue);
+//                 return index === firstIndexOfValue;
+//             });
 
-            for( let tpl of uniqueTuples ) {
-                log += `${tpl[0]} [1] ${tpl[1]}\n`;
-            }
-        }
-    }
-    console.log(log);
-    console.log('---------------------------------------------------');
-}
+//             for( let tpl of uniqueTuples ) {
+//                 log += `${tpl[0]} [1] ${tpl[1]}\n`;
+//             }
+//         }
+//     }
+//     logger.log(log);
+//     logger.log('---------------------------------------------------');
+// }
 
 /**
  * Summary. Returns the translate string used to transform
@@ -1008,10 +1119,15 @@ export function logAllBizcardDivs() {
  */
 
 function getZTranslateStr(dh, dv, z, canvasContainer_dx, canvasContainer_dy) {
+    // If z is null (meaning z_index > MAX_ALL_CARDS_Z_INDEX), return no translation
+    if (z === null) {
+        return "0px 0px";
+    }
+    
     // z ranges from 0 (closest) to viewer to MAX_Z furthest from viewer
     // zindex ranges MAX_Z (closest to viewer) to 1 furthest from viewer
-    var zIndex = parseInt(get_zIndexStr_from_z(z));
-    var zScale = (zIndex <= ALL_CARDS_MAX_Z) ? zIndex : 0.0;
+    var z_index = parseInt(get_zIndexStr_from_z(z));
+    var zScale = (z_index <= ALL_CARDS_MAX_Z) ? z_index : 0.0;
 
     // by definition, divs have zero mean hzCtrs so canvas translation is required
     var dx = dh * zScale + canvasContainer_dx;
@@ -1035,11 +1151,25 @@ function getAllTranslateableCardDivs() {
     return allDivs;
 }
 
-// uses the given newStyleProps to apply parallax to the given cardDiv
-// and returns the updated styleProps of the parallaxed cardDiv
-function applyParallaxToOneCardDivStyleProps(cardDiv, newStyleProps ) {
+// apply parallax to the given cardDiv and returns
+// the translate string used to transform. The transform
+// will be applied on the next animation frame
+function applyParallaxToOneCardDiv(cardDiv) {
     // utils.validateIsCardDivOrBizcardDiv(cardDiv);
     // utils.validateIsStyleProps(newStyleProps);
+    var zIndexStr = cardDiv.style.zIndex;
+    var z = cardDiv.getAttribute("saved_z");
+    if ( (z === "") || (zIndexStr == SELECTED_CARD_Z_INDEX) ) {
+        // empty string z or selected card means no parallax is needed
+        return null;
+    }
+
+    // if zIndexStr is null do not apply parallax, because
+    // the cardDiv is either not in the viewport or its position 
+    // has been set through the selectTheCardDiv mechanism.
+    if ( zIndexStr === null  ) {
+        return null;
+    }
 
     var { parallaxX, parallaxY } = getParallax();
     const canvasContainerX = utils.half(canvasContainer.offsetWidth);
@@ -1050,8 +1180,6 @@ function applyParallaxToOneCardDivStyleProps(cardDiv, newStyleProps ) {
     const dv = parallaxY * PARALLAX_Y_EXAGGERATION_FACTOR;
 
     // compute and apply translations to this translatableDiv
-    var zIndexStr = newStyleProps.zIndex;
-
     var z = get_z_from_zIndexStr(zIndexStr);
 
     var cardDivX = utils.half(cardDiv.offsetWidth);
@@ -1068,22 +1196,22 @@ function applyParallaxToOneCardDivStyleProps(cardDiv, newStyleProps ) {
     } catch (error) {
         // console.error(`applyParallax cardDiv:${cardDiv.id}`, error);
     }
-    const parallaxedStyleProps = utils.getStyleProps(cardDiv);
-    return parallaxedStyleProps;
+    return zTranslateStr;
 }
 
-function applyParallaxToOneCardDiv(cardDiv) {
-    // utils.validateIsCardDivOrBizcardDiv(cardDiv);
-    const cardDivStyleProps = utils.getStyleProps(cardDiv);
-    // utils.validateIsStyleProps(cardDivStyleProps);
-    applyParallaxToOneCardDivStyleProps(cardDiv,cardDivStyleProps);
-}
+// function applyParallaxToOneCardDiv(cardDiv) {
+//     // utils.validateIsCardDivOrBizcardDiv(cardDiv);
+//     const cardDivStyleProps = utils.getStyleProps(cardDiv);
+//     // utils.validateIsStyleProps(cardDivStyleProps);
+//     applyParallaxToOneCardDivStyleProps(cardDiv,cardDivStyleProps);
+// }
 
 /**
  * applyz-depth scaled parallax to all translateableDiv 
  * currently visible in the canvasContainer viewport
  */
 function applyParallax() {
+    logger.log("applyParallax");
     // let numVisible = 0;
     var allDivs = getAllTranslateableCardDivs();    
     for (var i = 0; i < allDivs.length; i++) {
@@ -1093,8 +1221,10 @@ function applyParallax() {
             // numVisible += 1;
         }
     } 
-    // console.log("numVisible:", numVisible, "numDivs:", allDivs.length);
+    // logger.log("numVisible:", numVisible, "numDivs:", allDivs.length);
 }
+
+// ************* AUTO SCROLLING *************
 
 var autoScrollingInterval = null;
 var autoScrollVelocity = 0;
@@ -1204,6 +1334,7 @@ function handleFocalPointMove() {
 //     }
 // }
 
+
 // Display mouse position and delta coordinates in the right-message-div  
 
 function handleMouseEnterCanvasContainer(event) {
@@ -1226,7 +1357,7 @@ function handleCanvasContainerScroll(scrollEvent) {
     // debugScrolling("scroll", canvasContainer, "scrollVelocity", `${deltaTop}/${deltaTime}`);
     lastScrollTime = thisTime;
     lastScrollTop = thisScrollTop;
-} 
+}
 
 function handleCanvasContainerWheel(wheelEvent) {
     const position = {
@@ -1262,15 +1393,20 @@ function handleCardDivMouseLeave(event, cardClass) {
     }
 }
 
-document.addEventListener('click', function(event) {
+// Prevents clicks anywhere during animation
+document.addEventListener( // Call addEventListener
+  'click',                 // Argument 1: Event type
+  function(event) {        // Argument 2: Listener function starts here
     if (ANIMATION_IN_PROGRESS) {
       event.preventDefault();
       event.stopPropagation();
-      // console.log("Click blocked, animation in progress");
+      // logger.log("Click blocked...");
     }
-  }, { capture: true });
+  },                       // Listener function ends here, followed by comma
+  { capture: true }        // Argument 3: Options object
+);                         // Closing parenthesis for addEventListener call
 
-  function startAnimationWithParallax(div, styleFrameArray) {
+function startAnimationWithParallax(div, styleFrameArray) {
     // utils.validateIsDivElement(div);
     // utils.validateIsStyleFrameArray(styleFrameArray);
     const frameInterval = ANIMATION_DURATION_MILLIS / NUM_ANIMATION_FRAMES;
@@ -1309,193 +1445,306 @@ function endAnimation(div, targetStyleFrame) {
     // utils.validateIsStyleFrame(targetStyleFrame);
     // apply the targetProps 
     if ( targetStyleFrame != null ) {
-        // console.log(`endAnimation targetStyleFrame:${targetStyleFrame}`)
+        // logger.log(`endAnimation targetStyleFrame:${targetStyleFrame}`)
         const targetStyleArray = targetStyleFrame;
         // utils.validateIsStyleArray(targetStyleArray);
         applyStyleArray(div, targetStyleArray);
     }
-    // console.log(`animationend for ${funcName} ${div.id}`);
+    // logger.log(`animationend for ${funcName} ${div.id}`);
     ANIMATION_IN_PROGRESS = false;
+}  
+
+function moveElementCenter(element, newCenter) {
+    const rect = element.getBoundingClientRect();
+    const newLeft = newCenter.x - rect.width / 2;
+    const newTop = newCenter.y - rect.height / 2;
+    element.style.left = `${newLeft}px`;
+    element.style.top = `${newTop}px`;
+    const checkLeft = parseInt(element.style.left);
+    const checkTop = parseInt(element.style.top);
+    const checkCenter = {
+        x: checkLeft + rect.width / 2,
+        y: checkTop + rect.height / 2
+    }
+    const dist = utils.getEuclideanDistance(checkCenter, newCenter);
+    if (dist > utils.EPSILON) {
+        throw new Error(`moveElementCenter:${element.id} dist:${dist} > EPSILON`);
+    }
 }
 
 // works for card-div, bizcard-div, and card-div-line-item
-// currentProps describes current styling
-// targetProps describes target styling
-function setSelectedStyle(obj) {
-    // utils.validateIsElement(obj);
-    var notLineItem = !isCardDivLineItem(obj);
-    // futzing required to use createStyleArray
-    if ( notLineItem ) {
-        // save these for restoreSavedStyle
-        obj.setAttribute("saved-left", `${obj.offsetLeft}`);
-        obj.setAttribute("saved-top", `${obj.offsetTop}`);
-        obj.setAttribute("saved-zIndex", obj.style.zIndex);
-
-        // set these for createStyleArray
-        obj.setAttribute("saved-selected-left", obj.getAttribute("originalLeft"));
-        obj.setAttribute("saved-selected-top", obj.getAttribute("originalTop"));
-        obj.setAttribute("saved-selected-zIndex", SELECTED_CARD_DIV_ZINDEX_STR);
-
-        var top = parseInt(obj.getAttribute("saved-top"))
-        // console.assert( top> 0, `A saved-top is ${top}`);
-        top = parseInt(obj.getAttribute("saved-selected-top"))
-        // console.assert( top > 0,`B saved-selected-top is ${top}`);
-    }
-    var currentStyleArray = createStyleArray(obj,"saved");
-    var targetStyleArray = createStyleArray(obj,"saved-selected");
-
-    if (notLineItem && currentStyleArray[8] < 0) {
-        currentStyleArray[8] = parseInt(obj.getAttribute('originalZ'));
-        // console.log("select div.id:", div.id, "currentZ should not be negative so reset to", currentProps[8]);
-    }
-    if (notLineItem && targetStyleArray[8] > 0) {
-        targetStyleArray[8] = parseInt(obj.getAttribute('saved-selected-zIndex'));
-        // console.log("select div.id:", div.id, "targetZ should not be positive so reset to", targetProps[8]);
-    }
-
-    if ( notLineItem && NUM_ANIMATION_FRAMES > 0) { // xxx
-        var styleFrameArray = [];
-        for( let frame=0; frame<validateIsBizcardDiv; frame++ ) {
-            var t = frame / (NUM_ANIMATION_FRAMES-1);
-            const interpStyleArray = utils.linearInterpArray(t, currentStyleArray, targetStyleArray);
-            // utils.validateIsStyleArray(interpStyleArray);
-            const styleFrame = interpStyleArray;
-            // utils.validateIsStyleFrame(styleFrame);
-            styleFrameArray.push( styleFrame );
-        }
-        // utils.validateIsStyleFrameArray(styleFrameArray);
-        startAnimationWithParallax(obj, styleFrameArray);
+// override all saved style and appeend the card to the 
+// parent and position of the bullsEye element.
+function setSelectedStyle(element) {
+    logger.info(`setSelectedStyle:${element.id}`);
+    if ( isCardDivLineItem(element) ) {
+        element.classList.add("selected");
     } else {
-        applyStyleArray(obj, targetStyleArray);
-    }
+        showElement(element, "before setSelectedStyle");
+        element.classList.add("selected");
 
-    if ( !notLineItem ) {
-        let cardDivId = obj.getAttribute("targetCardDivId");
-        if ( cardDivId !== null ) {
-            let cardDiv = document.getElementById(cardDivId);
-        }
-    }
+        // top, left, and z-index are handled here in javascript.
+        // save the element's current sibling
+        element['saved-next-sibling'] = element.nextSibling;
 
-    obj.classList.add('selected');
+        // remove the element from its current parent
+        element.parentElement.removeChild(element);
+
+        // append the element to the bulls-eye parent
+        const bullsEyeElement = document.getElementById("bulls-eye");
+        const bullsEyeParent = bullsEyeElement.parentElement;
+        bullsEyeParent.appendChild(element);
+
+        // move the element to the center of the bulls-eye
+        moveElementCenter(element, focalPoint.getBullsEye())
+
+        element.setAttribute('z', ""); // no parallax
+        element.style.zIndex = SELECTED_CARD_Z_INDEX;
+        element.style.filter = SELECTED_CARD_FILTER;
+        
+        // showElement(element, "after setSelectedStyle");
+
+        // render the repositioned element
+        applyParallaxToOneCardDiv(element);
+    }
 }
 
+function log_saved_and_current_styles(element, prefix) {
+    const saved_width = element.getAttribute("saved_width");
+    const saved_height = element.getAttribute("saved_height");
+    const saved_top = element.getAttribute("saved_top");
+    const saved_left = element.getAttribute("saved_left");
+    const saved_ctrX = element.getAttribute("saved_ctrX");
+    const saved_ctrY = element.getAttribute("saved_ctrY");
+    logger.info(`${prefix} saved ctrX:${saved_ctrX} ctrY:${saved_ctrY}`);
+    const saved_filterStr = element.getAttribute("saved_filterStr");
+    const saved_zIndexStr = element.getAttribute("saved_zIndexStr");
+    const saved_z = element.getAttribute("saved_z");
+    const saved_next_sibling = element['saved-next-sibling'];
+    const saved_next_sibling_id = (saved_next_sibling != null) ? saved_next_sibling.id : "";
 
-// works for card-div, bizcard-div, and card-div-line-item
-// currentProps describes current styling
-// targetProps describes target styling
-function restoreSavedStyle(obj) {
-    // utils.validateIsElement(obj);
-    var notLineItem =  !isCardDivLineItem(obj);
-    var currentStyleArray = createStyleArray(obj, null);
-    var targetStyleArray = createStyleArray(obj,"saved");
+    logger.info(`${prefix} saved filterStr:${saved_filterStr} zIndexStr:${saved_zIndexStr} z:${saved_z} nextSiblingId:${saved_next_sibling_id}`);
 
-    if (notLineItem && currentStyleArray[8] > 0) {
-        currentStyleArray[8] = -25;
-        // console.log("select div.id:", div.id, "currentZ should not be positive so reset to", currentProps[8]);
-    }
-    if (notLineItem && targetStyleArray[8] < 0) {
-        targetStyleArray[8] = parseInt(obj.getAttribute('originalZ'))
-        // console.log("restore div.id:", div.id,"targetZ should not be negative so reset to", currentProps[8]);
-    }
+    const current_left = parseInt(element.style.left).toFixed(2);
+    const current_top = parseInt(element.style.top).toFixed(2);
+    const current_width = parseInt(element.style.width).toFixed(2);
+    const current_height = parseInt(element.style.height).toFixed(2);
+    const current_ctrX = (current_left + current_width / 2);
+    const current_ctrY = (current_top + current_height / 2);
+    logger.info(`${prefix} current_ctrX:${current_ctrX} ctrY:${current_ctrY}`);
+    const current_filterStr = element.style.filter;
+    const current_zIndexStr = element.style.zIndex;
+    const current_z = element.getAttribute("z");
+    const current_next_sibling = element.nextSibling;
+    const current_next_sibling_id = (current_next_sibling != null) ? current_next_sibling.id : "";
 
-    if( notLineItem && NUM_ANIMATION_FRAMES > 0) {
-        var styleFrameArray = [];
-        for( let frame=0; frame<NUM_ANIMATION_FRAMES; frame++ ) {
-            var t = frame / (NUM_ANIMATION_FRAMES-1);
-            var interpStyleArray = utils.linearInterpArray(t, currentStyleArray, targetStyleArray);
-            // utils.validateIsStyleArray(interpStyleArray);
-            var styleFrame = interpStyleArray;
-            // utils.validateIsStyleFrame(styleFrame);
-            styleFrameArray.push( styleFrame );
-        }
-        // utils.validateIsStyleFrameArray(styleFrameArray);
-        startAnimationWithParallax(obj,styleFrameArray);
+    logger.info(`${prefix} current filterStr:${current_filterStr} zIndexStr:${current_zIndexStr} z:${current_z} nextSiblingId:${current_next_sibling_id}`);
+}
+
+// restore all saved style properties
+function restoreSavedStyle(element) {
+    logger.info('restoreSavedStyle:${element.id}');
+    if ( isCardDivLineItem(element) ) {
+        element.classList.remove("selected");
     } else {
-        applyStyleArray(obj, targetStyleArray);
+        showElement(element, "before restoreSavedStyle");
+        element.classList.remove("selected");
+        
+        // log_saved_and_current_styles(element, "before restoreSavedStyle");
+
+        const saved_width = element.getAttribute("saved_width");
+        const saved_height = element.getAttribute("saved_height");
+        const saved_top = element.getAttribute("saved_top");
+        const saved_left = element.getAttribute("saved_left");
+        const saved_filterStr = element.getAttribute("saved_filterStr");
+        const saved_zIndexStr = element.getAttribute("saved_zIndexStr");
+        const saved_z = element.getAttribute("saved_z");
+        element.style.width = `${saved_width}px`;
+        element.style.height = `${saved_height}px`;
+        element.style.top = `${saved_top}px`;
+        element.style.left = `${saved_left}px`;
+        element.style.filter = saved_filterStr;
+        element.style.zIndex = saved_zIndexStr;
+        element.setAttribute("z", saved_z);
+
+        // log_saved_and_current_styles(element, "after restoreSavedStyle");
+
+        showElement(element, "after restoreSavedStyle");
+
+        applyParallaxToOneCardDiv(element);
     }
+} 
 
-    if ( !notLineItem ) {
-        let cardDivId = obj.getAttribute("targetCardDivId");
-        if ( cardDivId !== null ) { 
-            let cardDiv = document.getElementById(cardDivId);
-            // console.log(`RESTORED`);
-            // console.log(`cardDiv.saved-background-color: ${cardDiv.getAttribute("saved-background-color")}`);
-            // console.log(`lineitem.saved-background-color:${obj.getAttribute("saved-background-color")}`);
-        }
-    }
+//     // utils.validateIsElement(obj);
+//     var notLineItem = !isCardDivLineItem(obj);
+//     // futzing required to use createStyleArray
+//     if ( notLineItem ) {
+//         // save these for restoreSavedStyle
+//         obj.setAttribute("saved_left", `${obj.offsetLeft}`);
+//         obj.setAttribute("saved_top", `${obj.offsetTop}`);
+//         obj.setAttribute("saved_z_index", obj.style.z_index);
 
-    obj.classList.remove('selected');
-}
+//         // set these for createStyleArray
+//         obj.setAttribute("saved_selected-left", obj.getAttribute("saved_Left"));
+//         obj.setAttribute("saved_selected-top", obj.getAttribute("saved_Top"));
+//         obj.setAttribute("saved_selected-z_index", SELECTED_CARD_DIV_zIndexStr);
+
+//         var top = parseInt(obj.getAttribute("saved_top"))
+//         // console.assert( top> 0, `A saved_top is ${top}`);
+//         top = parseInt(obj.getAttribute("saved_selected-top"))
+//         // console.assert( top > 0,`B saved_selected-top is ${top}`);
+//     }
+//     var currentStyleArray = createStyleArray(obj,"saved");
+//     var targetStyleArray = createStyleArray(obj,"saved_selected");
+
+//     if (notLineItem && currentStyleArray[8] < 0) {
+//         currentStyleArray[8] = parseInt(obj.getAttribute('saved_Z'));
+//         // logger.log("select div.id:", div.id, "currentZ should not be negative so reset to", currentProps[8]);
+//     }
+//     if (notLineItem && targetStyleArray[8] > 0) {
+//         targetStyleArray[8] = parseInt(obj.getAttribute('saved_selected-z_index'));
+//         // logger.log("select div.id:", div.id, "targetZ should not be positive so reset to", targetProps[8]);
+//     }
+
+//     if ( notLineItem && NUM_ANIMATION_FRAMES > 0) { // xxx
+//         var styleFrameArray = [];
+//         for( let frame=0; frame<validateIsBizcardDiv; frame++ ) {
+//             var t = frame / (NUM_ANIMATION_FRAMES-1);
+//             const interpStyleArray = utils.linearInterpArray(t, currentStyleArray, targetStyleArray);
+//             // utils.validateIsStyleArray(interpStyleArray);
+//             const styleFrame = interpStyleArray;
+//             // utils.validateIsStyleFrame(styleFrame);
+//             styleFrameArray.push( styleFrame );
+//         }
+//         // utils.validateIsStyleFrameArray(styleFrameArray);
+//         startAnimationWithParallax(obj, styleFrameArray);
+//     } else {
+//         applyStyleArray(obj, targetStyleArray);
+//     }
+
+//     if ( !notLineItem ) {
+//         let cardDivId = obj.getAttribute("targetCardDivId");
+//         if ( cardDivId !== null ) {
+//             let cardDiv = document.getElementById(cardDivId);
+//         }
+//     }
+
+//     obj.classList.add('selected');
+// }
 
 
-// prefix can be "saved" or "saved-selected"
-function createStyleArray(obj, prefix) {
-    // utils.validateIsElement(obj);
-    let array = [];
-    var RGB;
-    if (prefix) { // use div.getAttribute
-        if ( !isCardDivLineItem(obj) ) { // positionals
-            var left = parseInt(obj.getAttribute(`${prefix}-left`));
-            array.push(left);
-            var top = parseInt(obj.getAttribute(`${prefix}-top`)); 
-            array.push(top);
-            array.push(get_z_from_zIndexStr(obj.getAttribute(`${prefix}-zIndex`)))
-        } else {
-            array = array.concat([0,0,0]);
-        }
-    } else { // use div or div.style
-        if ( !isCardDivLineItem(obj) ) { // positionals
-            var left = obj.offsetLeft;
-            array.push(left);
-            var top = obj.offsetTop;
-            array.push(top);
-            array.push(get_z_from_zIndexStr(obj.style.zIndex));
-        } else {
-            array = array.concat([0,0,0]);
-        }
-    }
-    // utils.validateIsStyleArray(array);
-    return array;
-}
+// // works for card-div, bizcard-div, and card-div-line-item
+// // currentProps describes current styling
+// // targetProps describes target styling
+// function restoreSavedStyle(obj) {
+//     // utils.validateIsElement(obj);
+//     var notLineItem =  !isCardDivLineItem(obj);
+//     var currentStyleArray = createStyleArray(obj, null);
+//     var targetStyleArray = createStyleArray(obj,"saved");
 
-// return a styleProps object from a styleArray
-function createStyleProps(div, styleArray) {
-    // utils.validateIsDivElement(div);
-    // utils.validateIsStyleArray(styleArray);
-    var styleProps = {};
-    if ( !isCardDivLineItem(div) ) { // positionals
-        styleProps['left'] = `${styleArray[6]}px`;
-        styleProps['top'] = `${styleArray[7]}px`;
-        var z = styleArray[8];
-        styleProps['zIndex'] = get_zIndexStr_from_z(z);
-        styleProps['filter'] = get_filterStr_from_z(z);
-    } 
-    //styleProps['offset'] = `${offset}`;
-    // utils.validateIsStyleProps(styleProps);
-    return styleProps;
-}
+//     if (notLineItem && currentStyleArray[8] > 0) {
+//         currentStyleArray[8] = -25;
+//         // logger.log("select div.id:", div.id, "currentZ should not be positive so reset to", currentProps[8]);
+//     }
+//     if (notLineItem && targetStyleArray[8] < 0) {
+//         targetStyleArray[8] = parseInt(obj.getAttribute('saved_Z'))
+//         // logger.log("restore div.id:", div.id,"targetZ should not be negative so reset to", currentProps[8]);
+//     }
 
-function applyStyleArray(obj, styleArray) {
-    // utils.validateIsElement(obj);
-    // utils.validateIsStyleArray(styleArray);
-    if ( !isCardDivLineItem(obj) ) { // positionals
-        obj.style.left = styleArray[6] + 'px';
-        obj.style.top = styleArray[7] + 'px';
-        var z = styleArray[8];
-        obj.style.zIndex = get_zIndexStr_from_z(z);
-        obj.style.filter = get_filterStr_from_z(z);
-    }
-}
+//     if( notLineItem && NUM_ANIMATION_FRAMES > 0) {
+//         var styleFrameArray = [];
+//         for( let frame=0; frame<NUM_ANIMATION_FRAMES; frame++ ) {
+//             var t = frame / (NUM_ANIMATION_FRAMES-1);
+//             var interpStyleArray = utils.linearInterpArray(t, currentStyleArray, targetStyleArray);
+//             // utils.validateIsStyleArray(interpStyleArray);
+//             var styleFrame = interpStyleArray;
+//             // utils.validateIsStyleFrame(styleFrame);
+//             styleFrameArray.push( styleFrame );
+//         }
+//         // utils.validateIsStyleFrameArray(styleFrameArray);
+//         startAnimationWithParallax(obj,styleFrameArray);
+//     } else {
+//         applyStyleArray(obj, targetStyleArray);
+//     }
+
+//     if ( !notLineItem ) {
+//         let cardDivId = obj.getAttribute("targetCardDivId");
+//         if ( cardDivId !== null ) { 
+//             let cardDiv = document.getElementById(cardDivId);
+//             // logger.log(`RESTORED`);
+//             // logger.log(`cardDiv.saved_background-color: ${cardDiv.getAttribute("saved_background-color")}`);
+//             // logger.log(`lineitem.saved_background-color:${obj.getAttribute("saved_background-color")}`);
+//         }
+//     }
+
+//     obj.classList.remove('selected');
+// }
+
+
+// // prefix can be "saved" or "saved_selected"
+// function createStyleArray(obj, prefix) {
+//     // utils.validateIsElement(obj);
+//     let array = [];
+//     var RGB;
+//     if (prefix) { // use div.getAttribute
+//         if ( !isCardDivLineItem(obj) ) { // positionals
+//             var left = parseInt(obj.getAttribute(`${prefix}-left`));
+//             array.push(left);
+//             var top = parseInt(obj.getAttribute(`${prefix}-top`)); 
+//             array.push(top);
+//             array.push(get_z_from_zIndexStr(obj.getAttribute(`${prefix}-z_index`)))
+//         } else {
+//             array = array.concat([0,0,0]);
+//         }
+//     } else { // use div or div.style
+//         if ( !isCardDivLineItem(obj) ) { // positionals
+//             var left = obj.offsetLeft;
+//             array.push(left);
+//             var top = obj.offsetTop;
+//             array.push(top);
+//             array.push(get_z_from_zIndexStr(obj.style.z_index));
+//         } else {
+//             array = array.concat([0,0,0]);
+//         }
+//     }
+//     // utils.validateIsStyleArray(array);
+//     return array;
+// }
+
+// // return a styleProps object from a styleArray
+// function createStyleProps(div, styleArray) {
+//     // utils.validateIsDivElement(div);
+//     // utils.validateIsStyleArray(styleArray);
+//     var styleProps = {};
+//     if ( !isCardDivLineItem(div) ) { // positionals
+//         styleProps['left'] = `${styleArray[6]}px`;
+//         styleProps['top'] = `${styleArray[7]}px`;
+//         var z = styleArray[8];
+//         styleProps['z_index'] = get_zIndexStr_from_z(z);
+//         styleProps['filter'] = get_filterStr_from_z(z);
+//     } 
+//     //styleProps['offset'] = `${offset}`;
+//     // utils.validateIsStyleProps(styleProps);
+//     return styleProps;
+// }
+
+// function applyStyleArray(obj, styleArray) {
+//     // utils.validateIsElement(obj);
+//     // utils.validateIsStyleArray(styleArray);
+//     if ( !isCardDivLineItem(obj) ) { // positionals
+//         obj.style.left = styleArray[6] + 'px';
+//         obj.style.top = styleArray[7] + 'px';
+//         var z = styleArray[8];
+//         obj.style.zIndex = get_zIndexStr_from_z(z);
+//         obj.style.filter = get_filterStr_from_z(z);
+//     }
+// }
 
 // ------------------------------------------------------------
 // theSelectedCardDiv vars, constants and functions
 
 var theSelectedCardDiv = null;
 var theSelectedCardDivLineItem = null;
-
-const SELECTED_CARD_DIV_Z = -10;
-const SELECTED_CARD_DIV_ZINDEX_STR = get_zIndexStr_from_z(SELECTED_CARD_DIV_Z);
-const SELECTED_CARD_DIV_FILTER_STR = get_filterStr_from_z(SELECTED_CARD_DIV_Z);
 
 function scrollElementIntoView(element) {
     // utils.validateIsElement(element);
@@ -1514,7 +1763,6 @@ function scrollElementIntoView(element) {
 }
 
 function scrollElementToTop(element) {
-    // console.log(`scrollElementToTop element:${element.id}`);
     const container = findNearestAncestorWithClassName(element, "scrollable-container");
     const elementRect = element.getBoundingClientRect();
     const containerRect = container.getBoundingClientRect();
@@ -1523,7 +1771,7 @@ function scrollElementToTop(element) {
 }
 
 function scrollElementToCenter(element) {
-    // console.log(`scrollElementToCenter element:${element.id}`);
+    // logger.log(`scrollElementToCenter element:${element.id}`);
     const container = findNearestAncestorWithClassName(element, "scrollable-container");
     const containerHeight = container.clientHeight;
     const elementTop = element.offsetTop;
@@ -1539,46 +1787,161 @@ function findNearestAncestorWithClassName(element, className) {
     return element;
 }
 
-// select the given cardDiv and scroll it into view
-function selectTheCardDiv(cardDiv, selectTheCardDivLineItemFlag=false) {
-    if ( cardDiv == null )
-        return;
-    if( !utils.isCardDivOrBizcardDiv(cardDiv) ) {
-        console.warn(`selectTheCardDiv ignoring invalid argument: ${cardDiv}`);
+function selectTheCardDiv(cardDiv) {
+    // the objective is to move the newly selected
+    // cardDiv to the end ot its parent's list of 
+    // children so it will be deplayed over the rest
+    // and then be able to restore it to its original 
+    // posiiton in the list. 
+    // 
+    // To do this find the sibling element that follows
+    // this cardDiv store a reference to the sibling
+    // as a named prpeperty of the cardDiv.
+    //
+    // To unselect the cardDiv, insert the cardDiv
+    // in front of its stored next sibling.
+    // 
+    // If there is no stored next sibling, then
+    // there was no need to move the cardDiv to the 
+    // end because it's already at the end.
+    
+    // re-select an alread selected cardDiv to unselect it. 
+    if ( cardDiv == null ) {
+        logger.warn('selectTheCardDiv given a null cardDiv');
         return;
     }
-    // utils.validateIsBoolean(selectTheCardDivLineItemFlag);
-
-    // click on selected to deselect
-    if (theSelectedCardDiv != null && cardDiv.id == theSelectedCardDiv.id ) {
-        // change the style of the selectedCardDiv if defined
-        deselectTheSelectedCardDiv(selectTheCardDivLineItemFlag);
+    if ( cardDiv != theSelectedCardDiv ) {
+        unselectCardDiv(theSelectedCardDiv);
+    }
+    const parent = cardDiv.parentElement;
+    if ( parent == null ) {
+        logger.warn(`selectTheCardDiv:${cardDiv.id} has no parent`);
         return;
     }
-    // change the style of the selectedCardDiv if defined
-    deselectTheSelectedCardDiv(selectTheCardDivLineItemFlag);
-
-    // saves self as theSelected
-    theSelectedCardDiv = cardDiv;
-    // console.log(`selectTheCardDiv cardDiv:${cardDiv.id}`);
-
-    // style self as selected
-    setSelectedStyle(theSelectedCardDiv);
-
-    if ( selectTheCardDivLineItemFlag ) {
-        // calls addCardDivLineItem()
-        var cardDivLineItem = addCardDivLineItem(cardDiv.id);
-        // console.log(`added cardDivLineItem:${cardDivLineItem.id}`);
-
-        // console.assert( cardDivLineItem != null );
-        // calls selectCardDivLineItem - does scroll self into view
-        selectTheCardDivLineItem(cardDivLineItem); 
+    const nextSibling = cardDiv.nextSibling;
+    if ( nextSibling == null ) {
+        // then reposition is not append only
+    } else {
+        showElement(cardDiv, "before setSelectedStyle");
+        cardDiv['saved-next-sibling'] = nextSibling; // Use JS property assignment        if ( theSelectedCardDiv != null ) {
+        unselectCardDiv(theSelectedCardDiv);
+        // proceed to move the cardDiv to the end of 
+        // its new parent's list of children
+        parent.removeChild(cardDiv);
+        const bullsEyeElement = focalPoint.getBullsEyeElement();
+        const newParent = bullsEyeElement.parentElement;
+        newParent.appendChild(cardDiv);
+        setSelectedStyle(cardDiv);
+        // showElement(cardDiv, "cardDiv after move and styling");
+        // showElement(bullsEyeElement, "bullsEyeElement");
+        // showPosition(focalPoint.getBullsEye(), "bullsEyePosition");
+        theSelectedCardDiv = cardDiv;
+        showElement(cardDiv, "after setSelectedStyle");
     }
-
-    scrollElementIntoView(theSelectedCardDiv);
-
-    // debugTheSelectedCardDivId();
 }
+function showPosition(position, prefix="") {
+    logger.log(prefix, JSON.stringify(position, utils.formatNumbersReplacer, 2));
+}
+function showElement(element, prefix="") {
+    if ( element == null ) {
+        logger.warn(prefix,`showElement given null element`);
+        return;
+    }
+
+    const parentElementId = (element.parentElement != null) ? element.parentElement.id : "";
+
+    let nextSiblingId = null;
+    if ( element.classList.contains("card-div") ) {
+        const nextSibling = utils.findNextSiblingWithClass(element, "card-div");
+        nextSiblingId = (nextSibling != null) ? nextSibling.id : "";
+    } else if ( element.classList.contains("bizcard-div") ) {
+        const nextSibling = utils.findNextSiblingWithClass(element, "bizcard-div");
+        nextSiblingId = (nextSibling != null) ? nextSibling.id : "";
+    }
+      
+    const center = {
+        x: element.offsetLeft + element.clientWidth / 2,
+        y: element.offsetTop + element.clientHeight / 2
+    }
+    const dims = {
+        width: element.clientWidth,
+        height: element.clientHeight
+    }
+    const elementStyle = {
+        id: element.id,
+        parent_id: parentElementId,
+        next_sibling_id: nextSiblingId,
+        center: center,
+        dims: dims,
+        zIndex: element.style.zIndex,
+        filter: element.style.filter
+    }
+    logger.info(prefix, JSON.stringify(elementStyle, utils.formatNumbersReplacer, 2));
+}
+
+function unselectCardDiv(cardDiv) {
+    if ( cardDiv == null ) {
+        return;
+    }
+    if ( cardDiv.parentElement == null ) {
+        logger.warn(`unselectCardDiv:${cardDiv.id} has no parent`);
+        return;
+    }
+    const parent = cardDiv.parentElement;
+    const nextSibling = cardDiv['saved-next-sibling']; // Read JS property
+    if ( nextSibling == null ) {
+        logger.warn(`unselectCardDiv:${cardDiv.id} has no saved next sibling`);
+        return;
+    }
+    const savedParent = nextSibling.parentElement;
+    parent.removeChild(cardDiv);
+    savedParent.insertBefore(cardDiv, nextSibling);
+    restoreSavedStyle(cardDiv);
+   
+    if ( cardDiv == theSelectedCardDiv ) {
+        theSelectedCardDiv = null;
+    }
+}
+
+// function selectTheCardDivOld(cardDiv, selectTheCardDivLineItemFlag=false) {
+//     if ( cardDiv == null )
+//         return;
+//     if( !utils.isCardDivOrBizcardDiv(cardDiv) ) {
+//         logger.warn(`selectTheCardDiv ignoring invalid argument: ${cardDiv}`);
+//         return;
+//     }
+//     // utils.validateIsBoolean(selectTheCardDivLineItemFlag);
+
+//     // click on selected to deselect
+//     if (theSelectedCardDiv != null && cardDiv.id == theSelectedCardDiv.id ) {
+//         // change the style of the selectedCardDiv if defined
+//         deselectTheSelectedCardDiv(selectTheCardDivLineItemFlag);
+//         return;
+//     }
+//     // change the style of the selectedCardDiv if defined
+//     deselectTheSelectedCardDiv(selectTheCardDivLineItemFlag);
+
+//     // saves self as theSelected
+//     theSelectedCardDiv = cardDiv;
+//     // logger.log(`selectTheCardDiv cardDiv:${cardDiv.id}`);
+
+//     // style self as selected
+//     setSelectedStyle(theSelectedCardDiv);
+
+//     if ( selectTheCardDivLineItemFlag ) {
+//         // calls addCardDivLineItem()
+//         var cardDivLineItem = addCardDivLineItem(cardDiv.id);
+//         // logger.log(`added cardDivLineItem:${cardDivLineItem.id}`);
+
+//         // console.assert( cardDivLineItem != null );
+//         // calls selectCardDivLineItem - does scroll self into view
+//         selectTheCardDivLineItem(cardDivLineItem); 
+//     }
+
+//     scrollElementIntoView(theSelectedCardDiv);
+
+//     // debugTheSelectedCardDivId();
+// }
 
 function getTheSelectedCardDivId() {
     if ( theSelectedCardDiv != null )
@@ -1694,7 +2057,7 @@ function addCardDivLineItemClickListener(cardDivLineItem, cardDiv) {
 function addCardDivLineItem(targetCardDivId) {
 
     if (targetCardDivId == null) {
-        // console.log(`ignoring request to add cardDivLineItem with null targetCardDivId`);
+        // logger.log(`ignoring request to add cardDivLineItem with null targetCardDivId`);
         return;
     }
 
@@ -1707,20 +2070,21 @@ function addCardDivLineItem(targetCardDivId) {
     if ( bizcardDivId == null ) {
         throw new Error(`no bizcardDivId found for targetCardDivId:${targetCardDivId}`);
     }
-    // console.log(`addCardDivLineItem targetCardDivId:${targetCardDivId}`);
+    // logger.log(`addCardDivLineItemIfNeeded targetCardDivId:${targetCardDivId}`);
     // only add a card-div-line-item for this targetCardDivId if
     // it hasn't already been added
     var existingCardDivLineItem = getCardDivLineItem(targetCardDivId);
-    // console.log(`existingCardDivLineItem:${existingCardDivLineItem} found for targetCardDivId:${targetCardDivId}`);
+    // logger.log(`existingCardDivLineItem:${existingCardDivLineItem} found for targetCardDivId:${targetCardDivId}`);
     if (existingCardDivLineItem == null) {
 
+        // create the card-div-line-item if one doesn't already exist
         var cardDivLineItem = document.createElement("li");
-        // console.log(`created cardDivLineItem:${cardDivLineItem.id}`);
+        // logger.log(`created cardDivLineItem:${cardDivLineItem.id}`);
         cardDivLineItem.classList.add("card-div-line-item");
         //cardDivLineItem.classList.add("right-column-div-child");
         cardDivLineItem.id = "card-div-line-item-" + targetCardDivId;
         cardDivLineItem.setAttribute("targetCardDivId", targetCardDivId);
-        console.log('cardDivLineItem bizcardDivId:', bizcardDivId);
+        logger.log('cardDivLineItem bizcardDivId:', bizcardDivId);
         cardDivLineItem.setAttribute("data-color-index", bizcardDivId);
 
         // add click listener
@@ -1804,9 +2168,12 @@ function addCardDivLineItem(targetCardDivId) {
             addIconClickListener(iconElements[i]);
         }
     } else {
-        // console.log(`returning preexisting cardDivLineItem for targetCardDivId:${targetCardDivId}`);
+        // logger.log(`returning preexisting cardDivLineItem for targetCardDivId:${targetCardDivId}`);
         cardDivLineItem = existingCardDivLineItem
     }
+
+    // set the selected style
+    setSelectedStyle(cardDivLineItem);
 
     // does not select self
     // does scroll self into view
@@ -1830,7 +2197,7 @@ function getCardDivLineItem(cardDivId) {
         var cardDivLineItem = cardDivLineItems[ i ];
         var isABizCarddivLineItemId = utils.isString(cardDivLineItem.id) && cardDivLineItem.id.includes("bizcard-div-");
         if( String(cardDivLineItem.id).includes(cardDivId) && isABizcardDivId == isABizCarddivLineItemId ) {
-            // console.log(`getCardDivId:${cardDivId} found cardDivLineItem:${cardDivLineItem.id}`);
+            // logger.log(`getCardDivId:${cardDivId} found cardDivLineItem:${cardDivLineItem.id}`);
             return cardDivLineItem;
         }
     }
@@ -1920,11 +2287,11 @@ function addTagLinkClickListener(tag_link) {
     // console.assert(tag_link != null);
     tag_link.addEventListener("click", function (event) {
         let cardDivId = tag_link.getAttribute("targetCardDivId");
-        // console.log(`cardDivId:${cardDivId}`);
+        // logger.log(`cardDivId:${cardDivId}`);
         var cardDiv = document.getElementById(cardDivId);
         if (cardDiv) {
             // var tagLinkText = cardDiv.getAttribute("tagLinkText");
-            // console.log(`tag_link.text:${tagLinkText}`);
+            // logger.log(`tag_link.text:${tagLinkText}`);
             // console.assert(tagLinkText != null && tagLinkUrl != null);
 
             // selectTheCardDiv and its cardDivLineItem
@@ -1933,7 +2300,7 @@ function addTagLinkClickListener(tag_link) {
             // need to scroll cardDiv into view
             // scrollElementIntoView(cardDiv);
         } else {
-            // console.log(`no cardDiv with tag_link found for cardDivId:${cardDivId}`);
+            // logger.log(`no cardDiv with tag_link found for cardDivId:${cardDivId}`);
         }
         event.stopPropagation();
     });
@@ -1959,7 +2326,7 @@ function renderAllTranslateableDivsAtCanvasContainerCenter() {
             try {
                 div.style.translate = translateStr;
             } catch (error) {
-                // console.log(`leftCenter div:${div.id}`, error);
+                // logger.log(`leftCenter div:${div.id}`, error);
                 // console.error(`leftCenter div:${div.id}`, error);
             }
         }
@@ -2037,7 +2404,7 @@ function createAllElements() {
     const [MIN_TIMELINE_YEAR, MAX_TIMELINE_YEAR] = getMinMaxTimelineYears(jobs);
     const DEFAULT_TIMELINE_YEAR = MAX_TIMELINE_YEAR;
     timeline.createTimeline(timelineContainer, canvasContainer, MIN_TIMELINE_YEAR, MAX_TIMELINE_YEAR, DEFAULT_TIMELINE_YEAR);
-    focalPoint.createFocalPoint(focalPointElement, focalPointPositionListener); // starts easing to mouse
+    focalPoint.createFocalPointWithPositionListener(focalPointElement, focalPointPositionListener); // starts easing to mouse
     
     // Initialize paletteSelector first
     paletteSelector = createPaletteSelector();
@@ -2106,7 +2473,7 @@ function drawFrame() {
 }
 
 const viewport = {};
-const VIEWPORT_PADDING = 1000;
+const VIEWPORT_PADDING = 100;
 
 /**
  * updates the canvas-constainer-relative 
@@ -2144,12 +2511,13 @@ function getViewpointCenter() {
  * @returns {boolean} - True if the cardDiv is within the viewport, false otherwise.
  */
 function isRectWithinViewport(rect) {
-    const intersects = !(rect.right < viewport.left || 
-                         rect.left > viewport.right || 
-                         rect.bottom < viewport.top || 
-                         rect.top > viewport.bottom);
+    const intersects = !(rect.right < (viewport.left) || 
+                         rect.left > (viewport.right) || 
+                         rect.bottom < (viewport.top) || 
+                         rect.top > (viewport.bottom));
     return intersects;
 }
+
 function isCardDivWithinViewport(cardDiv) {
     return isRectWithinViewport(cardDiv.getBoundingClientRect());
 }
@@ -2158,7 +2526,7 @@ function handleWindowResize() {
     // resize the canvas-container and the canvas since they don't do it themselves?
     var canvasContainerWidth = window.innerWidth/2;
     var canvasContainerHeight = window.innerHeight;
-    console.log("windowResize width:", canvasContainerWidth, "height:", canvasContainerHeight);
+    logger.log("windowResize width:", canvasContainerWidth, "height:", canvasContainerHeight);
     canvasContainer.style.width = canvasContainerWidth + "px";
     canvas.style.width = canvasContainerWidth + "px";
     renderAllTranslateableDivsAtCanvasContainerCenter();
@@ -2240,7 +2608,7 @@ function clearAllDivCardLineItems() {
 function selectAndScrollToCardDiv(cardDiv) {
     // utils.validateIsCardDivOrBizcardDiv(cardDiv);
     if ( !cardDiv ) {
-        console.log("Ignoring undefined cardDiv");
+        logger.log("Ignoring undefined cardDiv");
         return;
     }
     var cardDivLineItem = getCardDivLineItem(cardDiv.id);
@@ -2337,17 +2705,17 @@ function selectNextBizcard() {
     selectTheCardDiv(nextBizcardDiv, true);
 }
 
-export function selectFirstBizcard() {
-    console.log("selectFirstBizcard");
+function selectFirstBizcard() {
+    logger.log("selectFirstBizcard");
     var firstBizcardDivId = getFirstBizcardDivId();
-    console.log(`firstBizcardDivId:${firstBizcardDivId}`);
+    logger.log(`firstBizcardDivId:${firstBizcardDivId}`);
 
     if ( firstBizcardDivId !== null ) {
         var firstDiv = document.getElementById(firstBizcardDivId);
-        console.log(`firstDiv.id:${firstDiv.id}`);
+        logger.log(`firstDiv.id:${firstDiv.id}`);
         selectTheCardDiv(firstDiv, true);
     } else {
-        console.log("selectFirstBizcard none found");
+        logger.log("selectFirstBizcard none found");
     }
 }
 
@@ -2378,23 +2746,23 @@ function getLastBizcardDivWithLineItem() {
 
 // find all iconElements and add their click listeners
 // called on DOMContentLoaded
-export function addAllIconClickListeners() {
+function addAllIconClickListeners() {
     let iconElements = document.getElementsByClassName("icon");
     let N = iconElements.length;
-    console.log(`addAllIconClickListeners found ${N} iconElements`);
+    logger.log(`addAllIconClickListeners found ${N} iconElements`);
     for ( let i=0; i<N; i++ ) {
         let iconElement = iconElements[i];
         addIconClickListener(iconElement);
     }
     let allCardDivElements = document.getElementsByClassName("card-div");
-    console.log(`addAllIconClickListeners found ${allCardDivElements.length} allCardDivElements`);
+    logger.log(`addAllIconClickListeners found ${allCardDivElements.length} allCardDivElements`);
     let allDateSortedBizcardDivElements = getDateSortedBizcards();
-    console.log(`addAllIconClickListeners found ${allDateSortedBizcardDivElements.length} allDateSortedBizcardDivElements`);
+    logger.log(`addAllIconClickListeners found ${allDateSortedBizcardDivElements.length} allDateSortedBizcardDivElements`);
     let allCardDivLineItemElements = document.getElementsByClassName("card-div-line-item");
-    console.log(`addAllIconClickListeners found ${allCardDivLineItemElements.length} allCardDivLineItemElements`); 
+    logger.log(`addAllIconClickListeners found ${allCardDivLineItemElements.length} allCardDivLineItemElements`); 
 }
 
-export function addCardDivMonths(cardDiv, cardDivLineItemContent) {
+function addCardDivMonths(cardDiv, cardDivLineItemContent) {
     const days = cardDiv.dataset.bizcardDivDays;
     const months = Math.round(days * 12.0 / 365.25);
     cardDiv.dataset.bizcardDivMonths = months;
@@ -2413,7 +2781,7 @@ export function addCardDivMonths(cardDiv, cardDivLineItemContent) {
     } else {
         console.error(`no spanElement found for cardDiv:${cardDiv.id}`);
     }
-}
+} // <--- ADD THIS closing brace for addCardDivMonths function
 
 selectNextBizcardButton.addEventListener("click", function (event) {
     selectNextBizcard();
@@ -2430,4 +2798,19 @@ addCanvasContainerEventListener("wheel", handleCanvasContainerWheel, { passive: 
 addCanvasContainerEventListener('scroll', handleCanvasContainerScroll);
 
 addCanvasContainerEventListener('click', handleCanvasContainerMouseClick);
+
+// Add wheel event handler for right content div
+rightContentDiv.addEventListener("wheel", function(event) {
+    // Allow the wheel event to scroll the right content div
+    // and prevent it from propagating to the canvas container
+    event.stopPropagation();
+    
+    // Calculate the new scroll position
+    const currentScroll = rightContentDiv.scrollTop;
+    const delta = event.deltaY;
+    const newScroll = currentScroll + delta;
+    
+    // Apply the scroll
+    rightContentDiv.scrollTop = newScroll;
+}, { passive: true });
 
