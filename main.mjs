@@ -7,7 +7,7 @@ import * as focalPoint from './modules/focal_point.mjs';
 import * as alerts from './modules/alerts.mjs';
 import { getPaletteSelectorInstance } from './modules/color_palettes.mjs';
 import { Logger, LogLevel } from "./modules/logger.mjs";
-const logger = new Logger("main", LogLevel.INFO);
+const logger = new Logger("main", LogLevel.DEBUG);
 
 
 utils.testColorUtils();
@@ -388,7 +388,7 @@ function createBizcardDivs() {
             console.error(`ERROR: z:${z} is out of bizcard_z range of ${BIZCARD_MIN_Z}..${BIZCARD_MAX_Z}`);
         }
         var halfIndent = (z_index - 1) * BIZCARD_INDENT/4;
-        var indent = utils.getRandomInt(-halfIndent, halfIndent);
+        var indent = 3 * utils.getRandomInt(-halfIndent, halfIndent);
 
         // here we go
         var bizcardDiv = document.createElement("div");
@@ -1226,14 +1226,19 @@ function applyParallax() {
 
 // ************* AUTO SCROLLING *************
 
+// *** Add new flag ***
+const AUTOSCROLL_STOPS_ON_USER_SCROLL_OR_WHEEL = true; // Set to false to disable stopping autoscroll on user action
+const AUTOSCROLL_ENABLED = true; 
+
 var autoScrollingInterval = null;
 var autoScrollVelocity = 0;
 var oldAutoScrollVelocity = 0;
 var autoScrollEase = 0;
 const AUTOSCROLL_REPEAT_MILLIS = 10;
-const MAX_AUTOSCROLL_VELOCITY = 10.0;
+const MAX_AUTOSCROLL_VELOCITY = 40.0;
 const MIN_AUTOSCROLL_VELOCITY = 2.0;
 const AUTOSCROLL_CHANGE_THRESHOLD = 2.0;
+const ALLOW_FOCAL_POINT_AIMING_IN_WHEEL_EVENT = false;
 
 // set autoScrollVelocity based on current focalPoint 
 function updateAutoScrollVelocity() {
@@ -1257,6 +1262,7 @@ function updateAutoScrollVelocity() {
     } else {
         autoScrollEase = 0;
         autoScrollVelocity = 0;
+        console.log("autoScrollVelocity set to 0");
     }
 }
 
@@ -1277,10 +1283,11 @@ function handleFocalPointMove() {
                 clearInterval(autoScrollingInterval);
                 autoScrollingInterval = null;
                 autoScrollVelocity = 0;
+                console.log("AUTOSCROLL STOPPED AT LOW VELOCITY");
             }
         } else {
             // start the inteval if needed
-            if (autoScrollingInterval == null) {
+            if (autoScrollingInterval == null && AUTOSCROLL_ENABLED) {
                 autoScrollingInterval = setInterval(function () {
 
                     // apply the velocity
@@ -1299,8 +1306,10 @@ function handleFocalPointMove() {
                     if (Math.abs(canvasContainer.scrollTop - newScrollTop) > 0) {
                         // go ahead and scroll
 
+                        console.log(`canvasContainer.scrollTop changed to newScrollTop: ${newScrollTop}`);
                         canvasContainer.scrollTop = newScrollTop;
                     } else {
+                        console.log("AUTOSCROLL STOPPED AT BOUNDARY");
                         //  we've reached a boundary so 
                         // stop the auto-scroll
                         autoScrollVelocity = 0;
@@ -1349,6 +1358,18 @@ var lastScrollTop = null;
 var lastScrollTime = null;
 
 function handleCanvasContainerScroll(scrollEvent) {
+    // *** Wrap the stopping logic ***
+    if (AUTOSCROLL_STOPS_ON_USER_SCROLL_OR_WHEEL) {
+        if (autoScrollingInterval != null) {
+            logger.log("canvasContainer scroll detected, stopping autoscroll.");
+            clearInterval(autoScrollingInterval);
+            autoScrollingInterval = null;
+            autoScrollVelocity = 0;
+            oldAutoScrollVelocity = 0;
+        }
+    }
+    // *** End wrap ***
+
     var thisTime = (new Date()).getTime();
     var thisScrollTop = canvasContainer.scrollTop;
     var deltaTime = (lastScrollTime != null) ? (thisTime - lastScrollTime) : null;
@@ -1360,11 +1381,25 @@ function handleCanvasContainerScroll(scrollEvent) {
 }
 
 function handleCanvasContainerWheel(wheelEvent) {
+    // *** Wrap the stopping logic ***
+    if (AUTOSCROLL_STOPS_ON_USER_SCROLL_OR_WHEEL) {
+        if (autoScrollingInterval != null) {
+            logger.log("canvaseContainer wheel detected, stopping autoscroll.");
+            clearInterval(autoScrollingInterval);
+            autoScrollingInterval = null;
+            autoScrollVelocity = 0;
+            oldAutoScrollVelocity = 0;
+        }
+    }
+    // *** End wrap ***
+
     const position = {
         x: wheelEvent.clientX,
         y: wheelEvent.clientY
     };
-    focalPoint.setAimPoint(position);
+    if ( ALLOW_FOCAL_POINT_AIMING_IN_WHEEL_EVENT ) {
+        focalPoint.setAimPoint(position);
+    }
 }
 
 // Keep the passive: true option to improve scroll performance
@@ -2344,10 +2379,12 @@ function rightContentScrollToBottom() {
 }
 
 function canvasContainerScrollToTop() {
+    console.log("canvasContainerScrollToTop started scrollTo");
     canvasContainer.scrollTo({ top: 0, behavior: 'smooth' });
 }
 
 function canvasContainerScrollToBottom() {
+    console.log("canvasContainerScrollToBottom started scrollTo");
     canvasContainer.scrollTo({ top: canvasContainer.scrollHeight, behavior: 'smooth' });
 }
 
@@ -2436,6 +2473,8 @@ document.addEventListener("DOMContentLoaded", async () => { // Make listener asy
         // Call the async function to create elements
         await createAllElements(); // Add await
         console.log("Element creation process complete (async).");
+
+        // Removed the diagnostic block that directly attached listeners
         
         // Add event listeners after elements are created (Duplicate? These are also added in createAllElements)
         // Consider removing these duplicates if createAllElements always runs successfully

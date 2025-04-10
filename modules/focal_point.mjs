@@ -6,7 +6,7 @@ const EASE_FACTOR = 0.15;
 const EPSILON = EASE_FACTOR / 2.0;
 const MAX_NEAR_DISTANCE = 0.5;
 const BULLSEYE_WONKYOFFSET = 25; // 12.5
-
+const ALLOW_FOCAL_POINT_AIMING_IN_DOUBLE_CLICK = false;
 // custom double-click logic
 let lastClickTime = 0;
 const DOUBLE_CLICK_DELAY = 300; // Maximum delay in milliseconds for a double-click
@@ -27,7 +27,6 @@ var _focalPointPositionListener;
 var _isEasingToAimPoint = false;
 export var _isAwake = true;
 var _isEasingToBullsEye = false;
-var _isEasingToMouse = true;
 export var _isDraggable = true;
 
 let _focalPointRadius = 0;
@@ -56,7 +55,6 @@ export function setIsBeingDraggedByMouse_true() {
     _byMouseIsBeingDragged = true;
     _isEasingToAimPoint = false;
     _isEasingToBullsEye = false;
-    _isEasingToMouse = false;
     clearAimPoint();
 
     logger.log("set isBeingDraggedByMouse:", _byMouseIsBeingDragged);
@@ -164,7 +162,6 @@ export function createFocalPointWithPositionListener(
     _focalPointNowSubpixelPrecision = getFocalPoint();
     _isAwake = true;
     _isEasingToBullsEye = false;
-    _isEasingToMouse = true;
     _canvasContainer = document.getElementById("canvas-container");
     if (!_canvasContainer) {
         throw new Error("canvasContainer not initialized");
@@ -210,7 +207,7 @@ export function onCanvasContainerEnter(event) {
 
     awaken(eventPosition);
 
-    startEasingToMouse(eventPosition);
+    startEasingToAtPoint(eventPosition);
 }
 
 export function onCanvasContainerMove(event) {
@@ -230,20 +227,19 @@ export function onCanvasContainerLeave(event) {
 }
 
 // unless being dragged by mouse
-export function startEasingToMouse( position) {
+export function startEasingToAtPoint( position) {
     if ( getIsBeingDraggedByMouse() ) {
-        // logger.log("startEasingToMouse ignored while isBeingDraggedByMouse");
+        // logger.log("startEasingToAtPoint ignored while isBeingDraggedByMouse");
         return;
     }
     _lastStatus = _currentStatus;
     _currentStatus = "easingToMouse";
     if ( _currentStatus != _lastStatus ) {
-        // logger.log("startEasingToMouse:", position);
+        // logger.log("startEasingToAtPoint:", position);
     }
 
     setAimPoint( position );
     _isEasingToAimPoint = true;
-    _isEasingToMouse = true;
     _isEasingToBullsEye = false;
     _isAwake = true;
     
@@ -264,7 +260,6 @@ export function startEasingToBullsEye(position) {
     setAimPoint(getBullsEye());
     _isEasingToAimPoint = true;
     _isEasingToBullsEye = true;
-    _isEasingToMouse = false;
     _isAwake = true;
 
     _lastStatus = _currentStatus;
@@ -310,7 +305,6 @@ export function goToSleep(position) {
     _isAwake = false;
     _isEasingToAimPoint = false;
     _isEasingToBullsEye = false;
-    _isEasingToMouse = false;
 
     _lastStatus = _currentStatus;
     _currentStatus = "not awake";
@@ -324,7 +318,6 @@ export function awaken(position) {
     _isAwake = true;
     _isEasingToAimPoint = false;
     _isEasingToBullsEye = false;
-    _isEasingToMouse = false;
 
     _lastStatus = _currentStatus;
     _currentStatus = "awake";
@@ -333,26 +326,18 @@ export function awaken(position) {
     }
 }
 
-// this happens quite often
-export function handleArrivedAtMouse(position) {
-    _lastStatus = _currentStatus;
-    _currentStatus = "arrivedAtMouse";
-    if ( _currentStatus != _lastStatus ) {
-        logger.log("arrived at mouse:", _isEasingToMouse)
-    }
-}
-
 // this should never happen
 export function handleArrivedAtAimPoint(position) {
     _lastStatus = _currentStatus;
-    _currentStatus = "arrivedAtMouse";
+    _currentStatus = "arrivedAtAimPoint";
     if ( _currentStatus != _lastStatus ) {
-        logger.log("arrived at aimPoint")
+        logger.log("ARRIVED AT AIM POINT")
+    } else {
+        logger.log("ARRIVED AT AIM POINT AGAIN")
     }
 }
 
-
-export function awakeAndStartEasingToMouse( wakeUpPosition ) {
+export function awakeAndStartEasingToAtPoint( wakeUpPosition ) {
     // Change the focal point's color to white
     utils.addClass(_focalPointElement, "awake");
     _isAwake = true;
@@ -360,7 +345,7 @@ export function awakeAndStartEasingToMouse( wakeUpPosition ) {
     _currentStatus = "awake";
     if ( _currentStatus != _lastStatus )
         logger.log("Waking up at ", wakeUpPosition);
-    startEasingToMouse( wakeUpPosition );
+    startEasingToAtPoint( wakeUpPosition );
 }
 function max(a,b) {
     if ( a > b )
@@ -398,19 +383,12 @@ export function drawFocalPointAnimationFrame() {
     //     aimPos,
     //     dist,
     //     isEasingToBullsEye: _isEasingToBullsEye,
-    //     isEasingToMouse: _isEasingToMouse,
     //     isEasingToAimPoint: _isEasingToAimPoint
     // });
 
     if (_isEasingToBullsEye) {
         if (dist <= MAX_NEAR_DISTANCE) {
             handleArrivedAtBullsEye(currentPos);
-            return;
-        }
-    }
-    else if (_isEasingToMouse) {
-        if (dist <= MAX_NEAR_DISTANCE) {
-            handleArrivedAtMouse(currentPos);
             return;
         }
     } else if (dist <= MAX_NEAR_DISTANCE) {
@@ -473,7 +451,7 @@ function onMouseDown_startDraggingFocalPoint(event) {
     // { passive: true } allows wheel scrolling while dragging
     utils.updateEventListener(document, 'mousemove', onMouseDrag_keepDraggingFocalPoint, { passive: true });
 
-    event.stopPropagation(); // prevent the mouse event from propagating to other listeners
+    //event.stopPropagation(); // prevent the mouse event from propagating to other listeners
     event.preventDefault(); // prevent default browser behavior
 
     setIsBeingDraggedByMouse_true();
@@ -520,10 +498,13 @@ function onMouseUp_stopDraggingFocalPoint(event) {
 
     logger.log("setting aimPoint to ", eventPosition);
     setAimPoint(eventPosition);
-    startEasingToMouse( eventPosition );
+    startEasingToAtPoint( eventPosition );
 }
 
 function onCanvasContainerDoubleClick(event) {
+    if ( !ALLOW_FOCAL_POINT_AIMING_IN_DOUBLE_CLICK ) {  
+        return;
+    }
     const eventPosition = getEventPosition(event);
 
     if ( getIsBeingDraggedByMouse() ) {
@@ -542,7 +523,7 @@ function onCanvasContainerDoubleClick(event) {
         startEasingToBullsEye(eventPosition);
     } else {
         // logger.log("is not awake so awake and start easing to mouse");
-        awakeAndStartEasingToMouse(eventPosition);
+        awakeAndStartEasingToAtPoint(eventPosition);
     }
 }
 
