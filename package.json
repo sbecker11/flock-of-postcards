@@ -6,7 +6,7 @@
   "type": "module",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "start": "node server.js"
+    "start": "node server.mjs"
   },
   "repository": {
     "type": "git",
@@ -24,11 +24,12 @@
   },
   "homepage": "https://github.com/sbecker11/flock-of-postcards#readme",
   "dependencies": {
+    "cors": "^2.8.5",
     "dayjs": "^1.11.10",
-    "sheetjs": "latest",
+    "express": "^4.21.2",
     "log4js": "^6.9.1",
     "node-fetch": "^3.3.2",
-    "express": "^4.21.2",
-    "openai": "^4.86.1"
+    "openai": "^4.86.1",
+    "sheetjs": "latest"
   }
 }

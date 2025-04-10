@@ -5,7 +5,7 @@ import * as utils from './modules/utils.mjs';
 import * as timeline from './modules/timeline.mjs';
 import * as focalPoint from './modules/focal_point.mjs';
 import * as alerts from './modules/alerts.mjs';
-import { createPaletteSelector } from './modules/color_palettes.mjs';
+import { getPaletteSelectorInstance } from './modules/color_palettes.mjs';
 import { Logger, LogLevel } from "./modules/logger.mjs";
 const logger = new Logger("main", LogLevel.INFO);
 
@@ -2399,17 +2399,21 @@ function getMinMaxTimelineYears(jobs) {
     return [minYear, maxYear];
 }
 
-function createAllElements() {
+async function createAllElements() { // Add async
     const timelineContainer = document.getElementById("timeline-container");
     const [MIN_TIMELINE_YEAR, MAX_TIMELINE_YEAR] = getMinMaxTimelineYears(jobs);
     const DEFAULT_TIMELINE_YEAR = MAX_TIMELINE_YEAR;
     timeline.createTimeline(timelineContainer, canvasContainer, MIN_TIMELINE_YEAR, MAX_TIMELINE_YEAR, DEFAULT_TIMELINE_YEAR);
     focalPoint.createFocalPointWithPositionListener(focalPointElement, focalPointPositionListener); // starts easing to mouse
     
-    // Initialize paletteSelector first
-    paletteSelector = createPaletteSelector();
+    // --- Wait for the palette selector ---
+    console.log("Requesting palette selector instance...");
+    paletteSelector = await getPaletteSelectorInstance(); // Add await
+    console.log("Palette selector instance received:", paletteSelector);
+
     if (!paletteSelector) {
-        console.error('Failed to create palette selector');
+        console.error('Failed to get palette selector instance. Cannot proceed with palette-dependent setup.');
+        // Handle this error appropriately - maybe show a message to the user
         return;
     }
     
@@ -2422,20 +2426,27 @@ function createAllElements() {
     addCanvasContainerEventListener("wheel", handleCanvasContainerWheel, { passive: true });
     addCanvasContainerEventListener('scroll', handleCanvasContainerScroll);
     addCanvasContainerEventListener('click', handleCanvasContainerMouseClick);
+    console.log("createAllElements finished.");
 }
 
 // createAllElements after DOM is ready
-document.addEventListener("DOMContentLoaded", () => {
+document.addEventListener("DOMContentLoaded", async () => { // Make listener async
+    console.log("DOMContentLoaded event fired.");
     try {
-        createAllElements();
+        // Call the async function to create elements
+        await createAllElements(); // Add await
+        console.log("Element creation process complete (async).");
         
-        // Add event listeners after elements are created
-        addCanvasContainerEventListener("wheel", handleCanvasContainerWheel, { passive: true });
-        addCanvasContainerEventListener('scroll', handleCanvasContainerScroll);
-        addCanvasContainerEventListener('click', handleCanvasContainerMouseClick);
+        // Add event listeners after elements are created (Duplicate? These are also added in createAllElements)
+        // Consider removing these duplicates if createAllElements always runs successfully
+        // addCanvasContainerEventListener("wheel", handleCanvasContainerWheel, { passive: true });
+        // addCanvasContainerEventListener('scroll', handleCanvasContainerScroll);
+        // addCanvasContainerEventListener('click', handleCanvasContainerMouseClick);
         
     } catch (error) {
-        console.error('Error in createAllElements:', error);
+        // Use logger for consistency
+        // console.error('Error during initial setup (DOMContentLoaded):', error);
+        logger.error('Error during initial setup (DOMContentLoaded):', error);
     }
 });
 
