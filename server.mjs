@@ -8,7 +8,6 @@ const PROJECT_ROOT = process.cwd();
 const PALETTE_DIR_PATH = path.resolve(PROJECT_ROOT, 'static_content', 'color_palettes');
 
 const app = express();
-const PORT = process.env.PORT || 3000; // Use port 3000 unless specified
 
 // --- Middleware ---
 // Enable CORS for all origins (adjust for production if needed)
@@ -75,9 +74,37 @@ app.get('/api/palette-manifest', async (req, res) => {
     }
 });
 
-// --- Start the server ---
-app.listen(PORT, () => {
-    console.log(`Server listening on http://localhost:${PORT}`);
-    console.log(`Serving dynamic palette manifest at /api/palette-manifest`);
-    console.log(`Palette directory path: ${PALETTE_DIR_PATH}`);
-}); 
+// --- Start the server with port finding --- 
+const MAX_PORT_RETRIES = 10; // Limit how many ports to try
+const START_PORT = process.env.PORT ? parseInt(process.env.PORT, 10) : 3000;
+
+function startServer(port) {
+    if (port >= START_PORT + MAX_PORT_RETRIES) {
+        console.error(`Failed to bind server after trying ports ${START_PORT} to ${port - 1}. Exiting.`);
+        process.exit(1); // Exit if no port found
+    }
+
+    const server = app.listen(port, () => {
+        // Success!
+        console.log(`Server listening on http://localhost:${port}`);
+        console.log(`Serving dynamic palette manifest at /api/palette-manifest`);
+        console.log(`Palette directory path: ${PALETTE_DIR_PATH}`);
+    });
+
+    server.on('error', (err) => {
+        if (err.code === 'EADDRINUSE') {
+            console.warn(`Port ${port} is already in use. Trying port ${port + 1}...`);
+            // Close the server instance that failed before retrying
+            server.close(() => {
+                 startServer(port + 1); // Recursively try the next port
+            }); 
+        } else {
+            // Handle other server errors
+            console.error("Server failed to start:", err);
+            process.exit(1);
+        }
+    });
+}
+
+// Initial call to start the server process
+startServer(START_PORT); 

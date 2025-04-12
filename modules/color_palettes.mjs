@@ -99,15 +99,59 @@ async function loadOrRefreshPalettes(isRefresh = false) {
 
         const filePath = PALETTE_DIR + filename;
         const promise = fetch(filePath)
-            .then(response => response.ok ? response.json() : Promise.reject(new Error(`HTTP error ${response.status} for ${filename}`)))
-            .then(paletteData => {
+            // *** Step 1: Fetch as text first ***
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error(`HTTP error ${response.status} for ${filename}`);
+                }
+                return response.text(); // Get raw text content
+            })
+            .then(rawText => {
+                let paletteData = null;
+                try {
+                    // *** Step 2 & 3: Find boundaries and extract ***
+                    // Trim whitespace first
+                    const trimmedText = rawText.trim();
+                    let jsonText = trimmedText;
+
+                    // Basic attempt to handle trailing non-JSON characters after the main object/array
+                    if (trimmedText.startsWith('{') && trimmedText.endsWith('}')) {
+                         // Assume it's an object, find the matching closing brace
+                         // This simple lastIndexOf is NOT robust for nested structures if junk is *inside*
+                         const lastBraceIndex = trimmedText.lastIndexOf('}');
+                         if (lastBraceIndex > 0) {
+                             jsonText = trimmedText.substring(0, lastBraceIndex + 1);
+                         }
+                    } else if (trimmedText.startsWith('[') && trimmedText.endsWith(']')) {
+                         // Handle if root is an array (though our format expects object)
+                         const lastBracketIndex = trimmedText.lastIndexOf(']');
+                         if (lastBracketIndex > 0) {
+                              jsonText = trimmedText.substring(0, lastBracketIndex + 1);
+                         }
+                    }
+                    // If jsonText still differs significantly from trimmedText after basic cleanup, log it
+                    if (jsonText.length < trimmedText.length - 2) { // Allow for 1-2 trailing chars
+                         console.warn(`Potentially cleaned trailing characters from ${filename}. Original length: ${trimmedText.length}, Cleaned length: ${jsonText.length}`);
+                    }
+
+
+                    // *** Step 4: Parse the potentially cleaned text ***
+                    paletteData = JSON.parse(jsonText);
+
+                } catch (parseError) {
+                    // Throw error if parsing fails even after potential cleanup
+                    console.error(`Failed to parse JSON from ${filename} even after potential cleanup. Content:\n${rawText.substring(0, 200)}...`); // Log snippet
+                    throw parseError; // Re-throw to be caught by the outer .catch
+                }
+
+                // *** Step 5: Validate and store (same as before) ***
                 if (paletteData && paletteData.name && Array.isArray(paletteData.colors)) {
                     // Use the name *from the file* as the key
                     tempLoadedPalettes[paletteData.name] = paletteData.colors;
                     tempFilenameToNameMap[filename] = paletteData.name;
                     // console.log(`  - Processed palette: ${paletteData.name} from ${filename}`);
                 } else {
-                    console.warn(`Skipping invalid/incomplete palette data in file: ${filename}.`);
+                    console.warn(`Skipping invalid/incomplete palette data structure in file: ${filename}.`);
                 }
             })
             .catch(error => {

@@ -8,8 +8,8 @@ const logger = new Logger("utils", LogLevel.INFO);
 
 const EPSILON = 1.0;
 
-export function isHexColorString(hexColorStr) { // enforces uppercase hex string only
-    return (isNonEmptyString(hexColorStr) && /^#[0-9A-F]{6}$/.test(String(hexColorStr)));
+export function isHexColorString(hexColorStr) {
+    return (isNonEmptyString(hexColorStr) && /^#[0-9A-F]{6}$/i.test(String(hexColorStr)));
 }
 export function validateHexColorString(hexColorStr) {
     if (!isHexColorString(hexColorStr) ) {
@@ -17,17 +17,44 @@ export function validateHexColorString(hexColorStr) {
     }
 }
 
+export function abs(val) {
+    if ( typeof val !== 'number' ) {
+        throw new Error(`abs: val:${val} is not a number`);
+    }
+    return val < 0 ? -val : val; 
+}
+
+export function abs_diff(val1, val2) {
+    if ( typeof val1 !== 'number' || typeof val2 !== 'number' ) {
+        throw new Error(`abs_diff: val1:${val1} or val2:${val2} is not a number`);
+    }
+    return val1 < val2 ? val2 - val1 : val1 - val2; 
+}
+
+export function min(val1, val2) {
+    if ( typeof val1 !== 'number' || typeof val2 !== 'number' ) {
+        throw new Error(`min: val1:${val1} or val2:${val2} is not a number`);
+    }
+    return val1 < val2 ? val1 : val2;
+}
+
+export function max(val1, val2) {
+    if ( typeof val1 !== 'number' || typeof val2 !== 'number' ) {
+        throw new Error(`max: val1:${val1} or val2:${val2} is not a number`);
+    }
+    return val1 > val2 ? val1 : val2;
+}
+
+export function max3(val1, val2, val3) {
+    if ( typeof val1 !== 'number' || typeof val2 !== 'number' || typeof val3 !== 'number' ) {
+        throw new Error(`max3: val1:${val1} or val2:${val2} or val3:${val3} is not a number`);
+    }
+    return max(max(val1, val2), val3);
+}
+
+
 // return the maximum rgb difference between the hex strings
 export function getHexDifference(hexStr1, hexStr2) {
-    function abs(intVal) {
-        return intVal < 0 ? -intVal : intVal;
-    }
-    function max(intVal1, intVal2) {
-        return intVal1 > intVal2 ? intVal1 : intVal2;
-    }
-    function max3(intVal1, intVal2, intVal3) {
-        return max(max(intVal1, intVal2), intVal3);
-    }
     const rgb1 = get_RGB_from_Hex(hexStr1);
     const rgb2 = get_RGB_from_Hex(hexStr2);
     const rDist = abs(rgb1[0] - rgb2[0]);
@@ -379,7 +406,7 @@ export function getHighContrastCssHexColorStr(bgHex) {
     const clampedHSV = clampHSV(bgHSV);
     validateHSV(clampedHSV);
     const value = clampedHSV[2];
-    const fgHex = value < 50 ? "#FFFFFF" : "#000000";
+    const fgHex = value < 65 ? "#FFFFFF" : "#000000";
     validateHexColorString(fgHex);
     return fgHex;
 }
