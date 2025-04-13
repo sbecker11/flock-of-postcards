@@ -110,6 +110,8 @@ overflow and ensures consistent sizing.
   align-items: center; 
   justify-content: center;
   z-index: 100;
+  cursor: default;
+  pointer-events: auto;
 }
 
 #focal-point.awake {
@@ -118,11 +120,12 @@ overflow and ensures consistent sizing.
 
 .non-draggable-focal-point {
   pointer-events: none;
+  cursor: default;
 }
 
 .draggable-focal-point {
   pointer-events: auto;
-  cursor: move; 
+  cursor: grab; 
 }
 
 .column-50 {

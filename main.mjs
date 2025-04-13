@@ -281,14 +281,24 @@ function isCardDivId(divId) {
     return utils.isString(divId) && getCardDivIndex(divId) == null ? false : true;
 }
 function isCardDivLineItem(div) {
-    return div != null && div.classList.contains('card-div-line-item') ? true : false;
+    if ( div == null )
+        return false;
+    if ( !utils.isString(div.id) )
+        return false;
+    if ( div.classList == null )
+        return false;
+    if ( div.classList.length == 0 )
+        return false;
+    if ( div.classList.contains('card-div-line-item') )
+        return true;
+    return false;
 }
 
 // returns 99 for bizcard-div-99' or null
-function getBizcardDivIndex(cardDivId) {
-    // console.assert(utils.isString(cardDivId));
-    if (cardDivId.startsWith("bizcard-div-")) {
-        var index = parseInt(cardDivId.replace("bizcard-div-", ""));
+function getBizcardDivIndex(bizcardDivId) {
+    // console.assert(utils.isString(bizcardDivId));
+    if (bizcardDivId.startsWith("bizcard-div-")) {
+        var index = parseInt(bizcardDivId.replace("bizcard-div-", ""));
         return Number.isNaN(index) ? null : index;
     }
     return null;
@@ -324,7 +334,7 @@ function getBizcardDivIdFromAnyDiv(anyDiv) {
 
 // .Bizcard-divs are never deleted so next id
 // is just the current number of the .Bizcard-divs
-function getNextBizcardDivId() {
+function getNextNewBizcardDivId() {
     const bizcardDivs = document.getElementsByClassName("bizcard-div");
     const nextBizcardDivId = `bizcard-div-${bizcardDivs.length}`;
     return nextBizcardDivId;
@@ -397,7 +407,7 @@ function createBizcardDivs() {
         var top = endBottomPx;
         var height = heightPx;
 
-        bizcardDiv.id = getNextBizcardDivId();
+        bizcardDiv.id = getNextNewBizcardDivId();
         bizcardDiv.classList.add("bizcard-div");
         bizcardDiv.style.top = `${top}px`;
         bizcardDiv.style.height = `${height}px`;
@@ -972,132 +982,6 @@ function isWordSubstringInList(word, stringList) {
     return false;
 }
   
-// // write the exmployer of each bizcardDiv and the text of each of its cardDivs
-// export function logAllBizcardDivs() {
-//     let allBizcardDivs = document.getElementsByClassName("bizcard-div");
-//     let showSkips = false;
-//     var log = "";
-//     logger.log('---------------------------------------------------');
-//     for (let bizcardDiv of allBizcardDivs) {
-//         let employer = bizcardDiv.dataset.employer;
-//         if (employer === undefined || employer === null) {
-//             continue;
-//         }
-//         let cardDivIds = bizcardDiv.dataset.cardDivIds;
-//         if ( cardDivIds.length > 0 ) {
-//             var cardDivTuples = [];
-//             for (let cardDivId of cardDivIds.split(',')) {
-//                 let cardDiv = document.getElementById(cardDivId);
-//                 if (cardDiv === null) {
-//                     logger.log(`No element with id cardDivId:${cardDivId}`);
-//                     continue;
-//                 }
-//                 let cardDivText = cardDiv.getAttribute('tagLinkText').trim();
-//                 if ( cardDivText === undefined || cardDivText == null ) {
-//                     continue;
-//                 }
-//                 let months = Math.round(cardDiv.dataset.bizcardDivDays * 12 / 365.25);
-//                 let years = Math.round(months / 12);
-//                 if ( cardDivText.includes('"') ) {
-//                     if ( showSkips ) logger.log("skip", cardDivText, years);
-//                     continue;
-//                 }
-//                 if ( cardDivText == "CentOS Linux" ) {
-//                     cardDivText = "Linux";
-//                 }
-//                 if ( cardDivText == 'Linix' ) {
-//                     cardDivText = 'Linux';
-//                 }
-//                 if ( employer == 'Greenseed Tech' ) {
-//                     employer = 'Data Laboratory';
-//                 }
-//                 if ( employer == 'Warner Brothers Interactive Entertainment' ) {
-//                     employer = 'Warner Bros';
-//                 }
-//                 let keep = [
-//                     "Python",
-//                     "Redshift",
-//                     "Glue",
-//                     "PostgreSQL",
-//                     "Airflow",
-//                     "Kinesis",
-//                     "AWS",
-//                     "REST",
-//                     "REST API",
-//                     "Docker",
-//                     "Linux",
-//                     "bash",
-//                     "Spring",
-//                     "Cimmetrix",
-//                     "Akamai",
-//                     "Jenkins",
-//                     "Jira",
-//                     "PySpark",
-//                     "Oracle",
-//                     "MySQL",
-//                     "Vue"
-//                 ];
-//                 if ( isWordSubstringInList(cardDivText, keep) || years >= 8) {
-//                 } else {
-//                     if ( showSkips ) logger.log("skip", cardDivText, years);
-//                     continue;
-//                 }
-//                 let ignores = [
-//                     "Massachusetts Institute of Technology",
-//                     "Trimble Mobile Solutions",
-//                     "OneCall",
-//                     "HomePortfolio.com",
-//                     "HomePortfolio",
-//                     "Brigham Young University",
-//                     "four patents",
-//                     "X11",
-//                     "XMotif",
-//                     "API Gateway",
-//                     "OpenAPI",
-//                 ];
-//                 if ( ignores.includes(cardDivText) ) {
-//                     if ( showSkips ) logger.log("skip", cardDivText, years);
-//                     continue;
-//                 }
-//                 if ( employer.includes(cardDivText) ) {
-//                     if ( showSkips ) logger.log("skip", cardDivText, years);
-//                     continue;
-//                 }
-//                 if ( cardDivText.includes(employer) ) {
-//                     if ( showSkips ) logger.log("skip", cardDivText, years);
-//                     continue;
-//                 }
-//                 cardDivTuples.push([employer,cardDivText]);
-//             }
-//             // Sorting function to compare the uppercase values of tuple[1]
-//             const sortByUppercaseValue = (a, b) => {
-//                 const uppercaseA = a[1].toUpperCase();
-//                 const uppercaseB = b[1].toUpperCase();
-            
-//                 if (uppercaseA < uppercaseB) return -1;
-//                 if (uppercaseA > uppercaseB) return 1;
-//                 return 0;
-//             };
-
-//             // Sort the array using the sorting function
-//             cardDivTuples.sort(sortByUppercaseValue);
-
-//             // Filter the array to keep only the first occurrence of each uppercase value
-//             const uniqueTuples = cardDivTuples.filter((tuple, index, arr) => {
-//                 const currentUppercaseValue = tuple[1].toUpperCase();
-//                 const firstIndexOfValue = arr.findIndex((t) => t[1].toUpperCase() === currentUppercaseValue);
-//                 return index === firstIndexOfValue;
-//             });
-
-//             for( let tpl of uniqueTuples ) {
-//                 log += `${tpl[0]} [1] ${tpl[1]}\n`;
-//             }
-//         }
-//     }
-//     logger.log(log);
-//     logger.log('---------------------------------------------------');
-// }
-
 /**
  * Summary. Returns the translate string used to transform
  * any cardDiv's x,y coordinates into canvas-relative coordinates.
@@ -1199,19 +1083,12 @@ function applyParallaxToOneCardDiv(cardDiv) {
     return zTranslateStr;
 }
 
-// function applyParallaxToOneCardDiv(cardDiv) {
-//     // utils.validateIsCardDivOrBizcardDiv(cardDiv);
-//     const cardDivStyleProps = utils.getStyleProps(cardDiv);
-//     // utils.validateIsStyleProps(cardDivStyleProps);
-//     applyParallaxToOneCardDivStyleProps(cardDiv,cardDivStyleProps);
-// }
-
 /**
  * applyz-depth scaled parallax to all translateableDiv 
  * currently visible in the canvasContainer viewport
  */
 function applyParallax() {
-    logger.log("applyParallax");
+    //logger.log("applyParallax");
     // let numVisible = 0;
     var allDivs = getAllTranslateableCardDivs();    
     for (var i = 0; i < allDivs.length; i++) {
@@ -1227,7 +1104,7 @@ function applyParallax() {
 // ************* AUTO SCROLLING *************
 
 // *** Add new flag ***
-const AUTOSCROLL_STOPS_ON_USER_SCROLL_OR_WHEEL = true; // Set to false to disable stopping autoscroll on user action
+const AUTOSCROLL_STOPS_ON_USER_SCROLL_OR_WHEEL = false; // Set to false to disable stopping autoscroll on user action
 const AUTOSCROLL_ENABLED = true; 
 
 var autoScrollingInterval = null;
@@ -1262,7 +1139,7 @@ function updateAutoScrollVelocity() {
     } else {
         autoScrollEase = 0;
         autoScrollVelocity = 0;
-        console.log("autoScrollVelocity set to 0");
+        // logger.log("autoScrollVelocity set to 0");
     }
 }
 
@@ -1361,7 +1238,7 @@ function handleCanvasContainerScroll(scrollEvent) {
     // *** Wrap the stopping logic ***
     if (AUTOSCROLL_STOPS_ON_USER_SCROLL_OR_WHEEL) {
         if (autoScrollingInterval != null) {
-            logger.log("canvasContainer scroll detected, stopping autoscroll.");
+            logger.log("A canvasContainer scroll detected, stopping autoscroll.");
             clearInterval(autoScrollingInterval);
             autoScrollingInterval = null;
             autoScrollVelocity = 0;
@@ -1384,7 +1261,7 @@ function handleCanvasContainerWheel(wheelEvent) {
     // *** Wrap the stopping logic ***
     if (AUTOSCROLL_STOPS_ON_USER_SCROLL_OR_WHEEL) {
         if (autoScrollingInterval != null) {
-            logger.log("canvaseContainer wheel detected, stopping autoscroll.");
+            logger.log("B canvaseContainer wheel detected, stopping autoscroll.");
             clearInterval(autoScrollingInterval);
             autoScrollingInterval = null;
             autoScrollVelocity = 0;
@@ -1518,18 +1395,6 @@ function setSelectedStyle(element) {
         showElement(element, "before setSelectedStyle");
         element.classList.add("selected");
 
-        // top, left, and z-index are handled here in javascript.
-        // save the element's current sibling
-        element['saved-next-sibling'] = element.nextSibling;
-
-        // remove the element from its current parent
-        element.parentElement.removeChild(element);
-
-        // append the element to the bulls-eye parent
-        const bullsEyeElement = document.getElementById("bulls-eye");
-        const bullsEyeParent = bullsEyeElement.parentElement;
-        bullsEyeParent.appendChild(element);
-
         // move the element to the center of the bulls-eye
         moveElementCenter(element, focalPoint.getBullsEye())
 
@@ -1610,174 +1475,6 @@ function restoreSavedStyle(element) {
     }
 } 
 
-//     // utils.validateIsElement(obj);
-//     var notLineItem = !isCardDivLineItem(obj);
-//     // futzing required to use createStyleArray
-//     if ( notLineItem ) {
-//         // save these for restoreSavedStyle
-//         obj.setAttribute("saved_left", `${obj.offsetLeft}`);
-//         obj.setAttribute("saved_top", `${obj.offsetTop}`);
-//         obj.setAttribute("saved_z_index", obj.style.z_index);
-
-//         // set these for createStyleArray
-//         obj.setAttribute("saved_selected-left", obj.getAttribute("saved_Left"));
-//         obj.setAttribute("saved_selected-top", obj.getAttribute("saved_Top"));
-//         obj.setAttribute("saved_selected-z_index", SELECTED_CARD_DIV_zIndexStr);
-
-//         var top = parseInt(obj.getAttribute("saved_top"))
-//         // console.assert( top> 0, `A saved_top is ${top}`);
-//         top = parseInt(obj.getAttribute("saved_selected-top"))
-//         // console.assert( top > 0,`B saved_selected-top is ${top}`);
-//     }
-//     var currentStyleArray = createStyleArray(obj,"saved");
-//     var targetStyleArray = createStyleArray(obj,"saved_selected");
-
-//     if (notLineItem && currentStyleArray[8] < 0) {
-//         currentStyleArray[8] = parseInt(obj.getAttribute('saved_Z'));
-//         // logger.log("select div.id:", div.id, "currentZ should not be negative so reset to", currentProps[8]);
-//     }
-//     if (notLineItem && targetStyleArray[8] > 0) {
-//         targetStyleArray[8] = parseInt(obj.getAttribute('saved_selected-z_index'));
-//         // logger.log("select div.id:", div.id, "targetZ should not be positive so reset to", targetProps[8]);
-//     }
-
-//     if ( notLineItem && NUM_ANIMATION_FRAMES > 0) { // xxx
-//         var styleFrameArray = [];
-//         for( let frame=0; frame<validateIsBizcardDiv; frame++ ) {
-//             var t = frame / (NUM_ANIMATION_FRAMES-1);
-//             const interpStyleArray = utils.linearInterpArray(t, currentStyleArray, targetStyleArray);
-//             // utils.validateIsStyleArray(interpStyleArray);
-//             const styleFrame = interpStyleArray;
-//             // utils.validateIsStyleFrame(styleFrame);
-//             styleFrameArray.push( styleFrame );
-//         }
-//         // utils.validateIsStyleFrameArray(styleFrameArray);
-//         startAnimationWithParallax(obj, styleFrameArray);
-//     } else {
-//         applyStyleArray(obj, targetStyleArray);
-//     }
-
-//     if ( !notLineItem ) {
-//         let cardDivId = obj.getAttribute("targetCardDivId");
-//         if ( cardDivId !== null ) {
-//             let cardDiv = document.getElementById(cardDivId);
-//         }
-//     }
-
-//     obj.classList.add('selected');
-// }
-
-
-// // works for card-div, bizcard-div, and card-div-line-item
-// // currentProps describes current styling
-// // targetProps describes target styling
-// function restoreSavedStyle(obj) {
-//     // utils.validateIsElement(obj);
-//     var notLineItem =  !isCardDivLineItem(obj);
-//     var currentStyleArray = createStyleArray(obj, null);
-//     var targetStyleArray = createStyleArray(obj,"saved");
-
-//     if (notLineItem && currentStyleArray[8] > 0) {
-//         currentStyleArray[8] = -25;
-//         // logger.log("select div.id:", div.id, "currentZ should not be positive so reset to", currentProps[8]);
-//     }
-//     if (notLineItem && targetStyleArray[8] < 0) {
-//         targetStyleArray[8] = parseInt(obj.getAttribute('saved_Z'))
-//         // logger.log("restore div.id:", div.id,"targetZ should not be negative so reset to", currentProps[8]);
-//     }
-
-//     if( notLineItem && NUM_ANIMATION_FRAMES > 0) {
-//         var styleFrameArray = [];
-//         for( let frame=0; frame<NUM_ANIMATION_FRAMES; frame++ ) {
-//             var t = frame / (NUM_ANIMATION_FRAMES-1);
-//             var interpStyleArray = utils.linearInterpArray(t, currentStyleArray, targetStyleArray);
-//             // utils.validateIsStyleArray(interpStyleArray);
-//             var styleFrame = interpStyleArray;
-//             // utils.validateIsStyleFrame(styleFrame);
-//             styleFrameArray.push( styleFrame );
-//         }
-//         // utils.validateIsStyleFrameArray(styleFrameArray);
-//         startAnimationWithParallax(obj,styleFrameArray);
-//     } else {
-//         applyStyleArray(obj, targetStyleArray);
-//     }
-
-//     if ( !notLineItem ) {
-//         let cardDivId = obj.getAttribute("targetCardDivId");
-//         if ( cardDivId !== null ) { 
-//             let cardDiv = document.getElementById(cardDivId);
-//             // logger.log(`RESTORED`);
-//             // logger.log(`cardDiv.saved_background-color: ${cardDiv.getAttribute("saved_background-color")}`);
-//             // logger.log(`lineitem.saved_background-color:${obj.getAttribute("saved_background-color")}`);
-//         }
-//     }
-
-//     obj.classList.remove('selected');
-// }
-
-
-// // prefix can be "saved" or "saved_selected"
-// function createStyleArray(obj, prefix) {
-//     // utils.validateIsElement(obj);
-//     let array = [];
-//     var RGB;
-//     if (prefix) { // use div.getAttribute
-//         if ( !isCardDivLineItem(obj) ) { // positionals
-//             var left = parseInt(obj.getAttribute(`${prefix}-left`));
-//             array.push(left);
-//             var top = parseInt(obj.getAttribute(`${prefix}-top`)); 
-//             array.push(top);
-//             array.push(get_z_from_zIndexStr(obj.getAttribute(`${prefix}-z_index`)))
-//         } else {
-//             array = array.concat([0,0,0]);
-//         }
-//     } else { // use div or div.style
-//         if ( !isCardDivLineItem(obj) ) { // positionals
-//             var left = obj.offsetLeft;
-//             array.push(left);
-//             var top = obj.offsetTop;
-//             array.push(top);
-//             array.push(get_z_from_zIndexStr(obj.style.z_index));
-//         } else {
-//             array = array.concat([0,0,0]);
-//         }
-//     }
-//     // utils.validateIsStyleArray(array);
-//     return array;
-// }
-
-// // return a styleProps object from a styleArray
-// function createStyleProps(div, styleArray) {
-//     // utils.validateIsDivElement(div);
-//     // utils.validateIsStyleArray(styleArray);
-//     var styleProps = {};
-//     if ( !isCardDivLineItem(div) ) { // positionals
-//         styleProps['left'] = `${styleArray[6]}px`;
-//         styleProps['top'] = `${styleArray[7]}px`;
-//         var z = styleArray[8];
-//         styleProps['z_index'] = get_zIndexStr_from_z(z);
-//         styleProps['filter'] = get_filterStr_from_z(z);
-//     } 
-//     //styleProps['offset'] = `${offset}`;
-//     // utils.validateIsStyleProps(styleProps);
-//     return styleProps;
-// }
-
-// function applyStyleArray(obj, styleArray) {
-//     // utils.validateIsElement(obj);
-//     // utils.validateIsStyleArray(styleArray);
-//     if ( !isCardDivLineItem(obj) ) { // positionals
-//         obj.style.left = styleArray[6] + 'px';
-//         obj.style.top = styleArray[7] + 'px';
-//         var z = styleArray[8];
-//         obj.style.zIndex = get_zIndexStr_from_z(z);
-//         obj.style.filter = get_filterStr_from_z(z);
-//     }
-// }
-
-// ------------------------------------------------------------
-// theSelectedCardDiv vars, constants and functions
-
 var theSelectedCardDiv = null;
 var theSelectedCardDivLineItem = null;
 
@@ -1822,62 +1519,76 @@ function findNearestAncestorWithClassName(element, className) {
     return element;
 }
 
+// returns the index of the child of the parent or null
+function findChildIndexOfOfParent(element) {
+    const parent = element.parentElement;
+    if ( parent == null ) {
+        return null;
+    }
+    for ( let i = 0; i < parent.children.length; i++ ) {
+        if ( parent.children[i] == element ) {
+            return i;
+        }
+    }
+    return null;
+}   
+
 function selectTheCardDiv(cardDiv) {
-    // the objective is to move the newly selected
-    // cardDiv to the end ot its parent's list of 
-    // children so it will be deplayed over the rest
-    // and then be able to restore it to its original 
-    // posiiton in the list. 
-    // 
-    // To do this find the sibling element that follows
-    // this cardDiv store a reference to the sibling
-    // as a named prpeperty of the cardDiv.
-    //
-    // To unselect the cardDiv, insert the cardDiv
-    // in front of its stored next sibling.
-    // 
-    // If there is no stored next sibling, then
-    // there was no need to move the cardDiv to the 
-    // end because it's already at the end.
-    
     // re-select an alread selected cardDiv to unselect it. 
     if ( cardDiv == null ) {
         logger.warn('selectTheCardDiv given a null cardDiv');
         return;
     }
-    if ( cardDiv != theSelectedCardDiv ) {
-        unselectCardDiv(theSelectedCardDiv);
+    if ( utils.isString(cardDiv) ) {
+        const cardDivId = cardDiv;
+        cardDiv = document.getElementById(cardDivId);
     }
-    const parent = cardDiv.parentElement;
-    if ( parent == null ) {
-        logger.warn(`selectTheCardDiv:${cardDiv.id} has no parent`);
+    if ( isCardDivLineItem(cardDiv) ) {
+        logger.warn(`selectTheCardDiv.id:${cardDiv.id} is a cardDivLineItem so not selecting`);
         return;
     }
-    const nextSibling = cardDiv.nextSibling;
-    if ( nextSibling == null ) {
-        // then reposition is not append only
-    } else {
-        showElement(cardDiv, "before setSelectedStyle");
-        cardDiv['saved-next-sibling'] = nextSibling; // Use JS property assignment        if ( theSelectedCardDiv != null ) {
-        unselectCardDiv(theSelectedCardDiv);
-        // proceed to move the cardDiv to the end of 
-        // its new parent's list of children
-        parent.removeChild(cardDiv);
-        const bullsEyeElement = focalPoint.getBullsEyeElement();
-        const newParent = bullsEyeElement.parentElement;
-        newParent.appendChild(cardDiv);
-        setSelectedStyle(cardDiv);
-        // showElement(cardDiv, "cardDiv after move and styling");
-        // showElement(bullsEyeElement, "bullsEyeElement");
-        // showPosition(focalPoint.getBullsEye(), "bullsEyePosition");
-        theSelectedCardDiv = cardDiv;
-        showElement(cardDiv, "after setSelectedStyle");
+    if ( ! isCardDivId(cardDiv.id) && ! isCardDivId(cardDiv) ) {
+        logger.warn(`selectTheCardDiv.id:${cardDiv.id} is not a cardDivId or bizcardId so not selecting`);
+        return;
     }
+
+    if ( cardDiv == theSelectedCardDiv ) {
+        logger.warn(`selectTheCardDiv.id:${cardDiv.id} is already selected so unselect it`);
+        unselectCardDiv(theSelectedCardDiv);
+        return;
+    }
+
+    const parent = cardDiv.parentElement;
+    if ( parent == null ) {
+        logger.warn(`selectTheCardDiv.id:${cardDiv.id} tagName:${cardDiv.tagName} obj:${cardDiv} has no parent`);
+        return;
+    }
+    const childIndex = findChildIndexOfOfParent(cardDiv);
+    if ( childIndex == null ) {
+        logger.warn(`selectedTheCardDiv.id:${cardDiv.id} childIndex is null`);
+        return;
+    }
+    cardDiv['saved-index'] = childIndex;
+
+    // remove cardDiv from its current parent
+    cardDiv.parentElement.removeChild(cardDiv);
+
+    // append the cardDiv to the bulls-eye parent
+    const bullsEyeElement = document.getElementById("bulls-eye");
+    const bullsEyeParent = bullsEyeElement.parentElement;
+    bullsEyeParent.appendChild(cardDiv);
+    setSelectedStyle(cardDiv);
+
+
+    theSelectedCardDiv = cardDiv;
+    applyParallaxToOneCardDiv(cardDiv);
 }
+
 function showPosition(position, prefix="") {
     logger.log(prefix, JSON.stringify(position, utils.formatNumbersReplacer, 2));
 }
 function showElement(element, prefix="") {
+    return;
     if ( element == null ) {
         logger.warn(prefix,`showElement given null element`);
         return;
@@ -1918,65 +1629,51 @@ function unselectCardDiv(cardDiv) {
     if ( cardDiv == null ) {
         return;
     }
+    if ( utils.isString(cardDiv) ) {
+        const cardDivId = cardDiv;
+        cardDiv = document.getElementById(cardDivId);
+    }
+    if ( cardDiv.id == null ) {
+        logger.warn(`unselectCardDiv:${cardDiv.tagName} has no id`);
+        return;
+    }
+    if ( isCardDivLineItem(cardDiv) ) {
+        logger.warn(`unselectCardDiv:${cardDiv.id} is a cardDivLineItem so not unselecting`);
+        return;
+    }
     if ( cardDiv.parentElement == null ) {
         logger.warn(`unselectCardDiv:${cardDiv.id} has no parent`);
         return;
     }
-    const parent = cardDiv.parentElement;
-    const nextSibling = cardDiv['saved-next-sibling']; // Read JS property
-    if ( nextSibling == null ) {
-        logger.warn(`unselectCardDiv:${cardDiv.id} has no saved next sibling`);
+    const savedParent = cardDiv['saved-parent'];
+    if ( savedParent == null ) {
+        logger.warn(`unselectCardDiv:${cardDiv.id} has no saved parent`);
         return;
     }
-    const savedParent = nextSibling.parentElement;
-    parent.removeChild(cardDiv);
-    savedParent.insertBefore(cardDiv, nextSibling);
+
+    // remove cardDiv from its current parent
+    cardDiv.parentElement.removeChild(cardDiv);
+
+    const childIndex = cardDiv['saved-index'];
+    if ( childIndex == null ) {
+        logger.warn(`unselectCardDiv:${cardDiv.id} has no saved index so append to savedParent`);
+        savedParent.appendChild(cardDiv);
+    }
+    else {
+        const referenceNode = savedParent.children[childIndex] || null; 
+        if ( referenceNode == null ) {
+            savedParent.appendChild(cardDiv);
+        } else {
+            savedParent.insertBefore(cardDiv, referenceNode);
+        }
+    }
+
     restoreSavedStyle(cardDiv);
    
     if ( cardDiv == theSelectedCardDiv ) {
         theSelectedCardDiv = null;
     }
 }
-
-// function selectTheCardDivOld(cardDiv, selectTheCardDivLineItemFlag=false) {
-//     if ( cardDiv == null )
-//         return;
-//     if( !utils.isCardDivOrBizcardDiv(cardDiv) ) {
-//         logger.warn(`selectTheCardDiv ignoring invalid argument: ${cardDiv}`);
-//         return;
-//     }
-//     // utils.validateIsBoolean(selectTheCardDivLineItemFlag);
-
-//     // click on selected to deselect
-//     if (theSelectedCardDiv != null && cardDiv.id == theSelectedCardDiv.id ) {
-//         // change the style of the selectedCardDiv if defined
-//         deselectTheSelectedCardDiv(selectTheCardDivLineItemFlag);
-//         return;
-//     }
-//     // change the style of the selectedCardDiv if defined
-//     deselectTheSelectedCardDiv(selectTheCardDivLineItemFlag);
-
-//     // saves self as theSelected
-//     theSelectedCardDiv = cardDiv;
-//     // logger.log(`selectTheCardDiv cardDiv:${cardDiv.id}`);
-
-//     // style self as selected
-//     setSelectedStyle(theSelectedCardDiv);
-
-//     if ( selectTheCardDivLineItemFlag ) {
-//         // calls addCardDivLineItem()
-//         var cardDivLineItem = addCardDivLineItem(cardDiv.id);
-//         // logger.log(`added cardDivLineItem:${cardDivLineItem.id}`);
-
-//         // console.assert( cardDivLineItem != null );
-//         // calls selectCardDivLineItem - does scroll self into view
-//         selectTheCardDivLineItem(cardDivLineItem); 
-//     }
-
-//     scrollElementIntoView(theSelectedCardDiv);
-
-//     // debugTheSelectedCardDivId();
-// }
 
 function getTheSelectedCardDivId() {
     if ( theSelectedCardDiv != null )
@@ -2264,15 +1961,6 @@ function addCardDivLineItemFollowingButtonClickHandler(cardDivLineItemFollowingB
 
         event.stopPropagation();
     });
-}
-
-function getLatestBizcardDivId() {
-    var dateSortedIds = getDateSortedBizcardIds();
-    if (dateSortedBizcardIds != null) {
-        return dateSortedBizcardIds[ 0 ].id;
-    }
-    // there are zero bizcardDivsId
-    return null;
 }
 
 // get the id of the bizcard that should be
@@ -2706,10 +2394,44 @@ function getDateSortedBizcards() {
     return dateSortedBizcards;
 }
 
+
+function getNextBizcardDivId(fromBizcardDivId) {
+    return getSiblingBizcardDivId(fromBizcardDivId, "next");
+}
+
+function getPreviousBizcardDivId(fromBizcardDivId) {
+    return getSiblingBizcardDivId(fromBizcardDivId, "previous");
+}
+
+function selectNextBizcardDivId(fromBizcardDivId) {
+    const nextBizcardDivId = getNextBizcardDivId(fromBizcardDivId);
+    selectTheCardDiv(nextBizcardDivId, true);
+}
+
+function selectPreviousBizcardDivId(fromBizcardDivId) {
+    const previousBizcardDivId = getPreviousBizcardDivId(fromBizcardDivId);
+    selectTheCardDiv(previousBizcardDivId, true);
+}
+
+function getTheSelectedBizcardDivId() {
+    const selectedCardDivId = getTheSelectedCardDivId();
+    if ( (selectedCardDivId != null) && isBizcardDivId(selectedCardDivId) ) {
+        return selectedCardDivId;
+    }
+    return null;
+}
+
 function getFirstBizcardDivId() {
     var sorted = getDateSortedBizcardIds();
     if ( sorted !== undefined && sorted !== null & sorted.length > 0 )
         return sorted[0].id;
+    return null;
+}
+
+function getLastBizcardDivId() {
+    var sorted = getDateSortedBizcardIds();
+    if ( sorted !== undefined && sorted !== null & sorted.length > 0 )
+        return sorted[sorted.length-1].id;
     return null;
 }
 
@@ -2728,45 +2450,54 @@ function getBizcardDivStartDate(bizcardDiv) {
 }
 
 
-// find bizcardDivId of the last bizcardDivLineItem and
-// get the next bizcardDivId that should be selected
-// if no bizcardDivLineItems exist then use the 
-// newest bizcardDivId that should be selected.
-//
-// This assumes that when a bizcardDiv is selected
-// The existing line item is created if needed and then
-// selected and the container slides it into view. 
-// 
-// Related note, the "selectNextButton" must always be 
-// moved to be after the last lineItem.
-//
-function selectNextBizcard() {
-    var nextBizcardDivId = null;
-    var theSelectedBizcardDivId = getTheSelectedCardDivId();
-    if ( theSelectedBizcardDivId == null )
-        nextBizcardDivId = getFirstBizcardDivId();
-    else
-        nextBizcardDivId = getFollowingBizcardDivId(theSelectedBizcardDivId);
-    // console.assert(nextBizcardDivId !== null);
-    var nextBizcardDiv = document.getElementById(nextBizcardDivId);
-    // console.assert(nextBizcardDiv !== null);
 
-    // select the nextBizcardDiv and its cardDivItem
-    selectTheCardDiv(nextBizcardDiv, true);
+// fromBizcardId is the id of the bizcardDiv to start from
+// direction is "next" or "previous"
+// returns the id of the sibling bizcardDiv in the given direction.
+// if fromBizcardId is null then the first or last bizcardDiv is returned
+function getSiblinghBizcardId(fromBizcardId, direction) {
+    const allOrderedBizcardDivIds = getDateSortedBizcardIds();
+    const N = allOrderedBizcardDivIds.length;
+    if ( N == 0 ) {
+        logger.log("selectBizcard: no bizcardDivs found");
+        return;
+    }
+    if ( fromBizcardId == null ) {
+        logger.log("selectBizcard: fromBizcardId is null");
+        if ( direction == "next" ) {
+            return allOrderedBizcardDivIds[0].id;
+        }
+        else {
+            return allOrderedBizcardDivIds[N-1].id;
+        }
+    }
+    var fromBizcardIndex = allOrderedBizcardDivIds.findIndex(bizcardDivId => bizcardDivId.id === fromBizcardId);
+    if ( fromBizcardIndex == -1 ) {
+        logger.log("selectBizcard: fromBizcardId not found");
+        return;
+    }
+    if ( direction == "next" ) {
+        newBizcardIndex = fromBizcardIndex + 1;
+    }
+    else {
+        newBizcardIndex = fromBizcardIndex - 1;
+    }
+    if ( newBizcardIndex == -1 ) {
+        newBizcardIndex = N - 1;
+    } else if ( newBizcardIndex >= N ) {
+        newBizcardIndex = 0;
+    }
+    return allOrderedBizcardDivIds[newBizcardIndex].id;
 }
 
 function selectFirstBizcard() {
-    logger.log("selectFirstBizcard");
-    var firstBizcardDivId = getFirstBizcardDivId();
-    logger.log(`firstBizcardDivId:${firstBizcardDivId}`);
-
-    if ( firstBizcardDivId !== null ) {
-        var firstDiv = document.getElementById(firstBizcardDivId);
-        logger.log(`firstDiv.id:${firstDiv.id}`);
-        selectTheCardDiv(firstDiv, true);
-    } else {
-        logger.log("selectFirstBizcard none found");
+    const firstBizcardDivId = getSiblinghBizcardId(null, "next");
+    const firstBizcardDiv = document.getElementById(firstBizcardDivId);
+    if ( firstBizcardDiv == null ) {
+        logger.log("selectFirstBizcard: firstBizcardDiv not found");
+        return;
     }
+    selectTheCardDiv(firstBizcardDiv, true);
 }
 
 // return the list of all bizcardDivLineItems or null
@@ -2834,11 +2565,58 @@ function addCardDivMonths(cardDiv, cardDivLineItemContent) {
 } // <--- ADD THIS closing brace for addCardDivMonths function
 
 selectNextBizcardButton.addEventListener("click", function (event) {
-    selectNextBizcard();
+    selectNextBizcardDivId();
 });
 selectFirstBizcardButton.addEventListener("click", function (event) {
     selectFirstBizcard();
 });
+
+function selectFirstBizcardDivId() {
+    logger.info("selectFirstBizcardDivId");
+    const nextBizcardDivId = getSiblinghBizcardId(null, "next");
+    const firstBizcardDiv = document.getElementById(firstBizcardDivId);
+    selectTheCardDiv(firstBizcardDiv, true);
+}
+
+function getSiblingBizcardDivId(fromBizcardDivId, direction) {
+    logger.info("getSiblingBizcardDivId direction:", direction);
+    
+    const allDateOrderedBizcardDivIds = getDateSortedBizcardIds();
+    const N = allDateOrderedBizcardDivIds.length;
+    
+    if (N === 0) {
+        logger.warn("No bizcard divs found");
+        return null;
+    }
+
+    // If no starting point provided, get from currently selected or default to first/last
+    if (fromBizcardDivId == null) {
+        fromBizcardDivId = getTheSelectedBizcardDivId();
+        if (fromBizcardDivId == null) {
+            return direction === "previous" ? allDateOrderedBizcardDivIds[N-1].id : allDateOrderedBizcardDivIds[0].id;
+        }
+    }
+
+    // Find the index of the fromBizcardDivId in our sorted array
+    const currentIndex = allDateOrderedBizcardDivIds.findIndex(item => item.id === fromBizcardDivId);
+    if (currentIndex === -1) {
+        logger.warn("Starting bizcard div not found in ordered list");
+        return direction === "previous" ? allDateOrderedBizcardDivIds[N-1].id : allDateOrderedBizcardDivIds[0].id;
+    }
+
+    // Calculate new index with wraparound
+    const delta = direction === "previous" ? -1 : 1;
+    let newIndex = currentIndex + delta;
+    
+    // Handle wraparound
+    if (newIndex < 0) {
+        newIndex = N - 1;
+    } else if (newIndex >= N) {
+        newIndex = 0;
+    }
+
+    return allDateOrderedBizcardDivIds[newIndex].id;
+}
 
 //---------------------------------------
 // canvas container event listeners
@@ -2864,3 +2642,22 @@ rightContentDiv.addEventListener("wheel", function(event) {
     rightContentDiv.scrollTop = newScroll;
 }, { passive: true });
 
+document.addEventListener("keydown", handleKeyDown);
+
+function handleKeyDown(event) {
+    logger.log("handleKeyDown code:", event.code);
+
+    if (event.code === 'ArrowLeft') {
+        selectPreviousBizcardDivId();
+    } else if (event.code === 'ArrowRight') {
+        selectNextBizcardDivId();
+    } else if (event.code === 'ArrowUp') {
+        canvasContainerScrollToTop();
+    } else if (event.code === 'ArrowDown') {
+        canvasContainerScrollToBottom();
+    } else if (event.code === 'Space') {
+        focalPoint.toggleDraggable();
+    } else {
+        logger.log(`handleKeyDown code: ${event.code}`);
+    }
+}
