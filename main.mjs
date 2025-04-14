@@ -1484,13 +1484,13 @@ function selectTheCardDiv(cardDiv) {
     const width = clone.offsetWidth;
     const height = clone.offsetHeight;
     
-    // Calculate viewport center
-    const viewportWidth = window.innerWidth;
-    const viewportHeight = window.innerHeight;
-    const centerX = viewportWidth / 2;
-    const centerY = viewportHeight / 2;
+    // Calculate center based on canvasContainer bounds
+    const canvasRect = canvasContainer.getBoundingClientRect();
+    const centerX = canvasRect.left + canvasRect.width / 2;
+    const centerY = canvasRect.top + canvasRect.height / 2; // Keep vertical center relative to viewport or container?
+                                                           // Let's stick to canvas container for now.
     
-    // Initial positioning
+    // Initial positioning at canvasContainer center
     clone.style.left = `${centerX - width/2}px`;
     clone.style.top = `${centerY - height/2}px`;
     clone.style.visibility = 'visible';
@@ -1499,13 +1499,12 @@ function selectTheCardDiv(cardDiv) {
     clone.style.zIndex = SELECTED_CARD_Z_INDEX;
     clone.style.filter = 'brightness(1.0) blur(0px)';
     
-    // Check position and adjust if needed
+    // Check position and adjust if needed (using canvas center as target)
     requestAnimationFrame(() => {
         const rect = clone.getBoundingClientRect();
         const actualCenterX = rect.left + (rect.width / 2);
         const actualCenterY = rect.top + (rect.height / 2);
         
-        // Calculate and apply adjustment if needed
         const adjustX = centerX - actualCenterX;
         const adjustY = centerY - actualCenterY;
         
@@ -1514,17 +1513,15 @@ function selectTheCardDiv(cardDiv) {
             const newTop = parseInt(clone.style.top) + adjustY;
             clone.style.left = `${newLeft}px`;
             clone.style.top = `${newTop}px`;
-            
-            // Log the adjustment
-            logger.info(`Position adjusted by x:${adjustX}, y:${adjustY}`);
+            logger.info(`Selected clone position adjusted by x:${adjustX.toFixed(2)}, y:${adjustY.toFixed(2)}`);
             
             // Verify final position
             requestAnimationFrame(() => {
                 const finalRect = clone.getBoundingClientRect();
                 const finalCenterX = finalRect.left + (finalRect.width / 2);
                 const finalCenterY = finalRect.top + (finalRect.height / 2);
-                logger.info(`Final position - Center: x=${finalCenterX}, y=${finalCenterY}`);
-                logger.info(`Final offset from target: x=${finalCenterX - centerX}, y=${finalCenterY - centerY}`);
+                logger.info(`Final position - Center: x=${finalCenterX.toFixed(2)}, y=${finalCenterY.toFixed(2)}`);
+                logger.info(`Final offset from target: x=${(finalCenterX - centerX).toFixed(2)}, y=${(finalCenterY - centerY).toFixed(2)}`);
             });
         }
     });
@@ -1542,14 +1539,14 @@ function selectTheCardDiv(cardDiv) {
         e.stopPropagation();
     });
 
-    // Log initial position
+    // Log initial position relative to canvas center
     const initialRect = clone.getBoundingClientRect();
     const initialCenterX = initialRect.left + (initialRect.width / 2);
     const initialCenterY = initialRect.top + (initialRect.height / 2);
     logger.info(`Initial dimensions: width=${width}, height=${height}`);
-    logger.info(`Target center: x=${centerX}, y=${centerY}`);
-    logger.info(`Initial center: x=${initialCenterX}, y=${initialCenterY}`);
-    logger.info(`Initial offset from target: x=${initialCenterX - centerX}, y=${initialCenterY - centerY}`);
+    logger.info(`Target center (canvas): x=${centerX.toFixed(2)}, y=${centerY.toFixed(2)}`);
+    logger.info(`Initial center: x=${initialCenterX.toFixed(2)}, y=${initialCenterY.toFixed(2)}`);
+    logger.info(`Initial offset from target: x=${(initialCenterX - centerX).toFixed(2)}, y=${(initialCenterY - centerY).toFixed(2)}`);
 }
 
 function unselectCardDiv() {
@@ -2576,10 +2573,12 @@ resizeHandle.appendChild(collapseLeftButton);
 resizeHandle.appendChild(collapseRightButton);
 
 // --- Helper Functions ---
+
 function setColumnWidths(leftPercent, rightPercent) {
     canvasContainer.style.width = `${leftPercent}%`;
     rightColumn.style.width = `${rightPercent}%`;
     resizeHandle.style.left = `${leftPercent}%`; // Update handle position based on left width
+    // REMOVED call to requestAnimationFrame(updateGradientWidths); 
 }
 
 function updateButtonStates() {
@@ -2611,6 +2610,7 @@ function resetLayout() {
     lastLeftPercentage = 50;
     lastRightPercentage = 50;
     updateButtonStates();
+    // REMOVED immediate call to updateGradientWidths(); 
     // Update bulls-eye and focal point after transition
     setTimeout(() => {
         updateBullsEyePosition();
@@ -2627,6 +2627,9 @@ collapseLeftButton.addEventListener('click', (e) => {
     if (isCollapsed) {
         resetLayout();
     } else {
+        // Unselect card before collapsing
+        unselectCardDiv(); 
+        
         // Store current widths before collapsing left
         lastLeftPercentage = parseFloat(canvasContainer.style.width) || 50;
         lastRightPercentage = parseFloat(rightColumn.style.width) || 50;
@@ -2736,6 +2739,19 @@ document.addEventListener('mouseup', () => {
 
 // Also update bulls-eye position on window resize
 window.addEventListener('resize', () => {
+    // Prevent updates if a column is collapsed (CSS handles this)
+    if (mainContainer.classList.contains('left-column-collapsed') || 
+        mainContainer.classList.contains('right-column-collapsed')) {
+        // Still update bulls-eye as container width changes even when collapsed
+        updateBullsEyePosition(); 
+        return;
+    }
+
+    // Reapply last known widths based on the *current* main container width
+    // Note: lastLeftPercentage and lastRightPercentage should always sum to 100
+    setColumnWidths(lastLeftPercentage, lastRightPercentage);
+    
+    // Update bulls-eye position relative to potentially resized container
     updateBullsEyePosition();
 });
 
