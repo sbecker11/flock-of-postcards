@@ -85,14 +85,17 @@ export function set_isBeingDragged_true(eventPosition) {
     _isBeingDragged = true;
     _isEasingToAimPoint = false;
     _isEasingToBullsEye = false;
-    clearAimPoint("set_isBeingDragged_true");
+    setAimPoint(eventPosition, "set_isBeingDragged_true");
     _mouseDrag.setStartPosition(eventPosition);
     logger.log("set _isBeingDragged:", _isBeingDragged, "eventPosition:", eventPosition);
 }
 export function set_isBeingDragged_false(eventPosition) {
-    setAimPoint(eventPosition, "set_isBeingDragged_false");
     _isBeingDragged = false;
+    _isEasingToAimPoint = false;  // Prevent animation from starting
+    _isEasingToBullsEye = false;  // Prevent animation from starting
+    setAimPoint(eventPosition, "set_isBeingDragged_false");
     _mouseDrag.setEndPosition(eventPosition);
+    moveFocalPointTo(eventPosition);
     logger.log("set _isBeingDragged:", _isBeingDragged, "eventPosition:", eventPosition);
 }
 
@@ -120,7 +123,12 @@ function updateBullsEyeCenter() {
 }
 
 export function getBullsEye() {
-    return _bullsEyeCenter;
+    // Convert bulls-eye center to viewport coordinates
+    const containerRect = _canvasContainer.getBoundingClientRect();
+    return {
+        x: containerRect.left + (_canvasContainer.offsetWidth / 2),
+        y: containerRect.top + (_canvasContainer.offsetHeight / 2)
+    };
 }
 
 export function getBullsEyeElement() {
@@ -145,9 +153,10 @@ export function getFocalPoint() {
 }
 
 function getEventPosition(event) {
+    // Always use viewport coordinates since FP is position: fixed
     return {
-        x: event.pageX,
-        y: event.pageY
+        x: event.clientX,
+        y: event.clientY
     };
 }
 
@@ -156,7 +165,7 @@ export function moveFocalPointTo(position, prefix="") {
         return; // Don't move if locked to bulls-eye
     }
     
-    // Since we're using transform: translate(-50%, -50%), we need to set the position directly
+    // Use viewport coordinates directly
     _focalPointElement.style.left = `${position.x}px`;
     _focalPointElement.style.top = `${position.y}px`;
 
@@ -305,12 +314,13 @@ export function startEasingToBullsEye(prefix="") {
 
 export function setAimPoint(position, prefix="") {
     _aimPoint = position;
+    // Use viewport coordinates for aim point dot too
     _aimPointDotElement.style.left = `${position.x}px`;
     _aimPointDotElement.style.top = `${position.y}px`;
-    if( _aimPointDotElement.classList.contains('hidden') ) {
+    if (_aimPointDotElement.classList.contains('hidden')) {
         _aimPointDotElement.classList.remove('hidden');
     }
-    if ( prefix != "" ) {
+    if (prefix != "") {
         logger.info(`setAimPoint:${prefix}`, position);
     }
 }
@@ -447,63 +457,55 @@ function onMouseDown_startDraggingFocalPoint(event) {
         return;
     }
     const eventPosition = getEventPosition(event);
-    _mouseDrag.setStartPosition(eventPosition);
-
-    setStatus("startDragging", "onMouseDown_startDraggingFocalPoint", LogLevel.LOG);
-
-    // { passive: true } allows wheel scrolling while dragging
-    utils.updateEventListener(document, "mousemove", onMouseDrag_keepDraggingFocalPoint, { passive: true });
-
     event.preventDefault(); // prevent default browser behavior
 
+    // Update subpixel precision to match current position
+    _focalPointNowSubpixelPrecision = eventPosition;
+    
     set_isBeingDragged_true(eventPosition);
-
-    _canvasContainer.style.pointerEvents = 'none'; // Disable pointer events on other elements
-    document.body.style.userSelect = 'none'; // Disable text selection
-    _focalPointElement.classList.add('focal-point-is-being-dragged');
-
     moveFocalPointTo(eventPosition);
 
-    // add mousemove and mouseup listeners
-    utils.updateEventListener(document,'mousemove', onMouseDrag_keepDraggingFocalPoint);
+    _canvasContainer.style.pointerEvents = 'none';
+    document.body.style.userSelect = 'none';
+    _focalPointElement.classList.add('focal-point-is-being-dragged');
+
+    utils.updateEventListener(document, 'mousemove', onMouseDrag_keepDraggingFocalPoint);
+    utils.updateEventListener(document, 'mouseup', onMouseUp_stopDraggingFocalPoint, { once: true });
 }
 
 function onMouseDrag_keepDraggingFocalPoint(event) {
-    if ( !_isDraggable ) {
+    if (!_isDraggable || !_isBeingDragged) {
         return;
     }
     const eventPosition = getEventPosition(event);
-
-    if ( _isBeingDragged ) {
-        moveFocalPointTo(eventPosition);
-        setAimPoint(eventPosition, "onMouseDrag_keepDraggingFocalPoint");
-
-        utils.updateEventListener(document,'mouseup', onMouseUp_stopDraggingFocalPoint, { once: true });
-
-        setStatus("keepDragging", "onMouseDrag_keepDraggingFocalPoint", LogLevel.LOG);
-    }
+    
+    // Keep subpixel precision in sync during drag
+    _focalPointNowSubpixelPrecision = eventPosition;
+    
+    moveFocalPointTo(eventPosition);
+    setAimPoint(eventPosition, "onMouseDrag_keepDraggingFocalPoint");
 }
 
 function onMouseUp_stopDraggingFocalPoint(event, prefix="") {
     if (!_isDraggable) {
         return;
     }
+    
     const eventPosition = getEventPosition(event);
-    _mouseDrag.setEndPosition(eventPosition);
+    
+    // Move to final position first
+    moveFocalPointTo(eventPosition);
+    setAimPoint(eventPosition, "onMouseUp_stopDraggingFocalPoint");
+    _focalPointNowSubpixelPrecision = eventPosition;  // Update subpixel position
+    
+    set_isBeingDragged_false(eventPosition);
 
-    prefix = `onMouseUp_stopDraggingFocalPoint:${prefix}`;
-
-    _mouseDrag.reset();
-
-    set_isBeingDragged_false(eventPosition, prefix);
-    setAimPoint(getBullsEye(), prefix);
-    startEasingToBullsEye(prefix); 
-
-    setStatus("stopDragging", "onMouseUp_stopDraggingFocalPoint", LogLevel.LOG);
-
-    _canvasContainer.style.pointerEvents = 'auto'; // Reenable pointer events on other elements
-    document.body.style.userSelect = 'auto'; // Reenable text selection
+    // Cleanup
+    _canvasContainer.style.pointerEvents = 'auto';
+    document.body.style.userSelect = 'auto';
     _focalPointElement.classList.remove('focal-point-is-being-dragged');
+
+    utils.updateEventListener(document, 'mousemove', onMouseDrag_keepDraggingFocalPoint, { remove: true });
 }
 
 export function handleKeyDown(event) {
