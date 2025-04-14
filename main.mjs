@@ -1446,33 +1446,45 @@ let originalCard = null;
 let theSelectedCardDivLineItem = null;  // Add this line
 
 function selectTheCardDiv(cardDiv) {
+    // Add logging to see when/why this is called during parallax
+    logger.log(`[selectTheCardDiv ENTRY] Triggered for card: ${cardDiv ? cardDiv.id : 'null'}. Current selectedClone: ${selectedClone ? selectedClone.id : 'null'}. OriginalCard: ${originalCard ? originalCard.id : 'null'}`);
+    
     if (!cardDiv) return;
     
     // Convert ID to element if needed
     if (typeof cardDiv === 'string') {
+        logger.log(`[selectTheCardDiv] Converting ID string '${cardDiv}' to element.`);
         cardDiv = document.getElementById(cardDiv);
-        if (!cardDiv) return;
+        if (!cardDiv) {
+            logger.warn(`[selectTheCardDiv] Element with ID '${cardDiv}' not found.`);
+            return;
+        }
     }
 
     // Validate card type
     if (isCardDivLineItem(cardDiv) || (!isCardDivId(cardDiv.id) && !isBizcardDivId(cardDiv.id))) {
+        logger.warn(`[selectTheCardDiv] Invalid card type for element: ${cardDiv.id}`);
         return;
     }
 
     // If clicking same card, unselect it
     if (cardDiv === originalCard) {
+        logger.log(`[selectTheCardDiv] Clicked same card (${cardDiv.id}), calling unselectCardDiv.`);
         unselectCardDiv();
         return;
     }
 
     // Unselect any previously selected card
     if (selectedClone) {
+        logger.log(`[selectTheCardDiv] Found existing clone (${selectedClone.id}), calling unselectCardDiv.`);
         unselectCardDiv();
     }
 
     // Create and style clone
+    logger.log(`[selectTheCardDiv] Creating clone for card: ${cardDiv.id}`);
     const clone = cardDiv.cloneNode(true);
     clone.id = `${cardDiv.id}-clone`;
+    logger.log(`[selectTheCardDiv] CREATED clone with ID: ${clone.id}`);
     clone.classList.add('selected-clone');
     
     // Position clone fixed at viewport center
@@ -1487,8 +1499,7 @@ function selectTheCardDiv(cardDiv) {
     // Calculate center based on canvasContainer bounds
     const canvasRect = canvasContainer.getBoundingClientRect();
     const centerX = canvasRect.left + canvasRect.width / 2;
-    const centerY = canvasRect.top + canvasRect.height / 2; // Keep vertical center relative to viewport or container?
-                                                           // Let's stick to canvas container for now.
+    const centerY = canvasRect.top + canvasRect.height / 2; 
     
     // Initial positioning at canvasContainer center
     clone.style.left = `${centerX - width/2}px`;
@@ -1527,14 +1538,17 @@ function selectTheCardDiv(cardDiv) {
     });
     
     // Hide original
+    logger.log(`[selectTheCardDiv] Hiding original card: ${cardDiv.id}`);
     cardDiv.style.visibility = 'hidden';
     
     // Update state
+    logger.log(`[selectTheCardDiv] Updating state: selectedClone=${clone.id}, originalCard=${cardDiv.id}`);
     selectedClone = clone;
     originalCard = cardDiv;
     
     // Add click handler to clone
     clone.addEventListener('click', (e) => {
+        logger.log(`[selectTheCardDiv] Clone ${clone.id} clicked, calling unselectCardDiv.`);
         unselectCardDiv();
         e.stopPropagation();
     });
@@ -1547,18 +1561,29 @@ function selectTheCardDiv(cardDiv) {
     logger.info(`Target center (canvas): x=${centerX.toFixed(2)}, y=${centerY.toFixed(2)}`);
     logger.info(`Initial center: x=${initialCenterX.toFixed(2)}, y=${initialCenterY.toFixed(2)}`);
     logger.info(`Initial offset from target: x=${(initialCenterX - centerX).toFixed(2)}, y=${(initialCenterY - centerY).toFixed(2)}`);
+    logger.log(`[selectTheCardDiv EXIT] Finished selecting ${cardDiv.id}`);
 }
 
 function unselectCardDiv() {
-    if (!selectedClone || !originalCard) return;
+    logger.log(`[unselectCardDiv ENTRY] Current selectedClone: ${selectedClone ? selectedClone.id : 'null'}. OriginalCard: ${originalCard ? originalCard.id : 'null'}`);
+    if (!selectedClone || !originalCard) {
+        logger.log('[unselectCardDiv] No selected clone/original found. Returning.');
+        return;
+    }
     
+    logger.log(`[unselectCardDiv] Removing clone: ${selectedClone.id}, Restoring original: ${originalCard.id}`);
     // Remove clone
     selectedClone.remove();
-    selectedClone = null;
     
     // Show original
     originalCard.style.visibility = 'visible';
+
+    // Clear state AFTER accessing them
+    let removedCloneId = selectedClone.id;
+    let restoredOriginalId = originalCard.id;
+    selectedClone = null;
     originalCard = null;
+    logger.log(`[unselectCardDiv EXIT] Finished unselecting. Clone ${removedCloneId} removed, Original ${restoredOriginalId} restored.`);
 }
 
 // Remove old selection-related functions that are no longer needed
@@ -2130,20 +2155,8 @@ function isCardDivWithinViewport(cardDiv) {
     return isRectWithinViewport(cardDiv.getBoundingClientRect());
 }
 
-function handleWindowResize() {
-    // resize the canvas-container and the canvas since they don't do it themselves?
-    var canvasContainerWidth = window.innerWidth/2;
-    var canvasContainerHeight = window.innerHeight;
-    logger.log("windowResize width:", canvasContainerWidth, "height:", canvasContainerHeight);
-    canvasContainer.style.width = canvasContainerWidth + "px";
-    canvas.style.width = canvasContainerWidth + "px";
-    renderAllTranslateableDivsAtCanvasContainerCenter();
-    positionGradients();
-}
-
 // Attach event listeners
 window.addEventListener("load", handleWindowLoad);
-window.addEventListener("resize", handleWindowResize);
 
 // First, ensure the array exists as a global variable
 window.canvasContainerEventListeners = [];
