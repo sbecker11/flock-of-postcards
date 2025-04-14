@@ -20,6 +20,7 @@ utils.testColorUtils();
 // Element reference globals
 
 const rightContentDiv = document.getElementById("right-content-div");
+const rightColumn = document.getElementById("right-column");  // Add this line
 // const debugScrollingElement = null; //  = document.getElementById("debugScrollingElement");
 // const debugFocalPointElement = null; //  = document.getElementById("debugFocalPointElement");
 // const debugTheSelectedCardDivIdElement = null; //  = document.getElementById("debugTheSelectedCardDivIdElement");
@@ -2547,3 +2548,196 @@ document.addEventListener('keydown', (event) => {
         return;
     }
 });
+
+// Add resize handle functionality
+const resizeHandle = document.getElementById('resize-handle');
+const mainContainer = document.getElementById('main-container');
+let isResizing = false;
+let startX;
+let startLeftWidth;
+let lastLeftPercentage = 50; // Store last known left width before collapse
+let lastRightPercentage = 50; // Store last known right width before collapse
+
+// Create collapse buttons
+const collapseLeftButton = document.createElement('button');
+collapseLeftButton.id = 'collapse-left-button';
+collapseLeftButton.className = 'toggle-collapse-button';
+collapseLeftButton.innerHTML = '&lt;'; // < character
+collapseLeftButton.title = 'Collapse left panel';
+
+const collapseRightButton = document.createElement('button');
+collapseRightButton.id = 'collapse-right-button';
+collapseRightButton.className = 'toggle-collapse-button';
+collapseRightButton.innerHTML = '&gt;'; // > character
+collapseRightButton.title = 'Collapse right panel';
+
+// Add buttons to the handle
+resizeHandle.appendChild(collapseLeftButton);
+resizeHandle.appendChild(collapseRightButton);
+
+// --- Helper Functions ---
+function setColumnWidths(leftPercent, rightPercent) {
+    canvasContainer.style.width = `${leftPercent}%`;
+    rightColumn.style.width = `${rightPercent}%`;
+    resizeHandle.style.left = `${leftPercent}%`; // Update handle position based on left width
+}
+
+function updateButtonStates() {
+    const leftIsCollapsed = canvasContainer.classList.contains('collapsed');
+    const rightIsCollapsed = rightColumn.classList.contains('collapsed');
+
+    if (leftIsCollapsed) {
+        collapseLeftButton.innerHTML = '○';
+        collapseLeftButton.title = 'Reset layout';
+    } else {
+        collapseLeftButton.innerHTML = '&lt;';
+        collapseLeftButton.title = 'Collapse left panel';
+    }
+
+    if (rightIsCollapsed) {
+        collapseRightButton.innerHTML = '○';
+        collapseRightButton.title = 'Reset layout';
+    } else {
+        collapseRightButton.innerHTML = '&gt;';
+        collapseRightButton.title = 'Collapse right panel';
+    }
+}
+
+function resetLayout() {
+    mainContainer.classList.remove('left-column-collapsed', 'right-column-collapsed');
+    canvasContainer.classList.remove('collapsed');
+    rightColumn.classList.remove('collapsed');
+    setColumnWidths(50, 50);
+    lastLeftPercentage = 50;
+    lastRightPercentage = 50;
+    updateButtonStates();
+    // Update bulls-eye and focal point after transition
+    setTimeout(() => {
+        updateBullsEyePosition();
+        focalPoint.handleOnWindowResize();
+    }, 310);
+}
+
+// --- Event Listeners ---
+
+// Collapse Left Button Click
+collapseLeftButton.addEventListener('click', (e) => {
+    e.stopPropagation();
+    const isCollapsed = canvasContainer.classList.contains('collapsed');
+    if (isCollapsed) {
+        resetLayout();
+    } else {
+        // Store current widths before collapsing left
+        lastLeftPercentage = parseFloat(canvasContainer.style.width) || 50;
+        lastRightPercentage = parseFloat(rightColumn.style.width) || 50;
+        // Collapse left
+        mainContainer.classList.add('left-column-collapsed');
+        mainContainer.classList.remove('right-column-collapsed'); // Ensure right isn't marked collapsed
+        canvasContainer.classList.add('collapsed');
+        rightColumn.classList.remove('collapsed');
+        setColumnWidths(0, 100);
+        updateButtonStates();
+        // Update bulls-eye and focal point after transition
+        setTimeout(() => {
+            updateBullsEyePosition();
+            focalPoint.handleOnWindowResize();
+        }, 310);
+    }
+});
+
+// Collapse Right Button Click
+collapseRightButton.addEventListener('click', (e) => {
+    e.stopPropagation();
+    const isCollapsed = rightColumn.classList.contains('collapsed');
+    if (isCollapsed) {
+        resetLayout();
+    } else {
+        // Store current widths before collapsing right
+        lastLeftPercentage = parseFloat(canvasContainer.style.width) || 50;
+        lastRightPercentage = parseFloat(rightColumn.style.width) || 50;
+        // Collapse right
+        mainContainer.classList.remove('left-column-collapsed'); // Ensure left isn't marked collapsed
+        mainContainer.classList.add('right-column-collapsed');
+        canvasContainer.classList.remove('collapsed');
+        rightColumn.classList.add('collapsed');
+        setColumnWidths(100, 0);
+        updateButtonStates();
+        // Update bulls-eye and focal point after transition
+        setTimeout(() => {
+            updateBullsEyePosition();
+            focalPoint.handleOnWindowResize();
+        }, 310);
+    }
+});
+
+// Function to update bulls-eye position based on canvas container
+function updateBullsEyePosition() {
+    const canvasRect = canvasContainer.getBoundingClientRect();
+    const bullsEye = document.getElementById('bulls-eye');
+    if (bullsEye) {
+        bullsEye.style.left = `${canvasRect.left + (canvasRect.width / 2)}px`;
+        bullsEye.style.top = '50%';
+    }
+}
+
+// --- Resize Handle Logic ---
+resizeHandle.addEventListener('mousedown', (e) => {
+    // Ignore mousedown if the click is on the buttons
+    if (e.target.classList.contains('toggle-collapse-button')) return;
+    
+    // Prevent resizing if a column is collapsed
+    if (mainContainer.classList.contains('left-column-collapsed') || 
+        mainContainer.classList.contains('right-column-collapsed')) {
+        return;
+    }
+
+    isResizing = true;
+    startX = e.pageX;
+    startLeftWidth = canvasContainer.offsetWidth;
+    resizeHandle.classList.add('dragging');
+    document.body.style.userSelect = 'none';
+    document.body.style.cursor = 'col-resize';
+});
+
+document.addEventListener('mousemove', (e) => {
+    if (!isResizing) return;
+    
+    const dx = e.pageX - startX;
+    const newLeftWidth = startLeftWidth + dx;
+    const containerWidth = mainContainer.offsetWidth;
+    const percentage = (newLeftWidth / containerWidth) * 100;
+    
+    // Apply new widths if within reasonable bounds (20% to 80%)
+    if (percentage >= 20 && percentage <= 80) {
+        lastLeftPercentage = percentage; // Store percentage during drag
+        lastRightPercentage = 100 - percentage;
+        setColumnWidths(percentage, 100 - percentage);
+        updateBullsEyePosition();
+        focalPoint.handleOnWindowResize();
+        // Minimal layout thrashing - offsetHeight might not be needed here
+        // canvasContainer.offsetHeight;
+        // rightColumn.offsetHeight;
+    }
+});
+
+document.addEventListener('mouseup', () => {
+    if (isResizing) {
+        isResizing = false;
+        resizeHandle.classList.remove('dragging');
+        document.body.style.userSelect = '';
+        document.body.style.cursor = '';
+        // Store the final percentage after dragging
+        lastLeftPercentage = parseFloat(canvasContainer.style.width) || 50;
+        lastRightPercentage = parseFloat(rightColumn.style.width) || 50;
+        // Final update of bulls-eye position
+        updateBullsEyePosition();
+    }
+});
+
+// Also update bulls-eye position on window resize
+window.addEventListener('resize', () => {
+    updateBullsEyePosition();
+});
+
+// Initial button state update
+updateButtonStates();
