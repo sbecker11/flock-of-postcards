@@ -97,4 +97,24 @@ export class Logger {
             }
         }
     }
+
+    // log the message with the given log level
+    logWithLevel(message, logLevel=LogLevel.LOG) {
+        switch(logLevel) {
+            case LogLevel.DEBUG:
+                this.debug(message);
+                break;
+            case LogLevel.INFO:
+                this.info(message);
+                break;
+            case LogLevel.WARN:
+                this.warn(message);
+                break;
+            case LogLevel.ERROR:
+                this.error(message);
+                break;
+            default:
+                this.log(message);
+        }
+    }
 }

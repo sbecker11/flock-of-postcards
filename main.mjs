@@ -7,6 +7,10 @@ import * as focalPoint from './modules/focal_point.mjs';
 import * as alerts from './modules/alerts.mjs';
 import { getPaletteSelectorInstance } from './modules/color_palettes.mjs';
 import { Logger, LogLevel } from "./modules/logger.mjs";
+import { 
+    // ... existing imports ...
+    handleKeyDown as handleFocalPointKeyDown,
+} from './modules/focal_point.mjs';
 const logger = new Logger("main", LogLevel.DEBUG);
 
 
@@ -21,8 +25,6 @@ const rightContentDiv = document.getElementById("right-content-div");
 // const debugTheSelectedCardDivIdElement = null; //  = document.getElementById("debugTheSelectedCardDivIdElement");
 const canvasContainer = document.getElementById("canvas-container");
 const canvas = document.getElementById("canvas");
-const canvasBtmGradient = document.getElementById("canvas-btm-gradient");
-const canvasTopGradient = document.getElementById("canvas-top-gradient");
 const focalPointElement = document.getElementById("focal-point");
 const bullsEye = document.getElementById("bulls-eye");
 const selectFirstBizcardButton = document.getElementById("select-first-bizcard");
@@ -107,11 +109,10 @@ const TIMELINE_Z_INDEX = 3;         // no parallax
 // greater than MAX_CARD_Z_INDEX are reserved for special cases
 // and do not convert to Z values and are not used in parallax calculations
 
-const SELECTED_CARD_Z_INDEX = 91;       // no parallax
-const SELECTED_CARD_FILTER = "brightness(1.25) blur(0px)";
 const BULLSEYE_Z_INDEX = 98;            // no parallax
-const FOCAL_POINT_Z_INDEX = 99;         // no parallax
-const AIM_POINT_Z_INDEX = 100;          // no parallax
+const SELECTED_CARD_Z_INDEX = 99;       // no parallax, higher than bulls-eye
+const FOCAL_POINT_Z_INDEX = 100;        // no parallax
+const AIM_POINT_Z_INDEX = 101;          // no parallax
 
 // bizcards have minimum z_index and 
 // max Z values of MAX_ALL_CARDS_Z_INDEX - bizcard_z_index
@@ -417,6 +418,7 @@ function createBizcardDivs() {
         bizcardDiv.setAttribute("data-color-index", bizcardDiv.id);
 
         canvas.appendChild(bizcardDiv);
+        bizcardDiv['saved-parent'] = canvas;
         bizcardDiv.dataset.employer = employer;
         bizcardDiv.dataset.cardDivIds = [];
         bizcardDiv.setAttribute("endDate", utils.getIsoDateString(endDate));
@@ -944,10 +946,9 @@ function createCardDiv(bizcardDiv, tag_link) {
 
     cardDiv.addEventListener("mouseenter", handleCardDivMouseEnter);
     cardDiv.addEventListener("mouseleave", handleCardDivMouseLeave);
-
     addCardDivClickListener(cardDiv);
 
-    // add the cardDivClickListener to all cardDiv descendants 
+    // add the cardDivClickListener to all cardDiv icon descendants 
     // except icon elements
     let cardDivDescendants = cardDiv.querySelectorAll('*');
     for ( let decendent of cardDivDescendants ) {
@@ -1112,7 +1113,7 @@ var autoScrollVelocity = 0;
 var oldAutoScrollVelocity = 0;
 var autoScrollEase = 0;
 const AUTOSCROLL_REPEAT_MILLIS = 10;
-const MAX_AUTOSCROLL_VELOCITY = 40.0;
+const MAX_AUTOSCROLL_VELOCITY = 5.0;
 const MIN_AUTOSCROLL_VELOCITY = 2.0;
 const AUTOSCROLL_CHANGE_THRESHOLD = 2.0;
 const ALLOW_FOCAL_POINT_AIMING_IN_WHEEL_EVENT = false;
@@ -1146,7 +1147,7 @@ function updateAutoScrollVelocity() {
 // implement autoscrolling and then apply 
 // parallax transformations to all 
 // transformable elements
-function handleFocalPointMove() {
+function handleFocalPointMove(prefix="") {
 
     updateAutoScrollVelocity();
 
@@ -1287,13 +1288,8 @@ addCanvasContainerEventListener("wheel", handleCanvasContainerWheel, { passive: 
 function handleCardDivMouseEnter(event, cardClass) {
     var targetCardDiv = event.target.closest('.' + cardClass);
     if (targetCardDiv) {
-        setSelectedStyle(targetCardDiv);
+        logger.info("handleCardDivMouseEnter", targetCardDiv);
     }
-}
-
-function handleCanvasContainerMouseClick() {
-    deselectTheSelectedCardDiv();
-    deselectTheSelectedCardDivLineItem();
 }
 
 // handle mouse leave event for any div element with
@@ -1301,9 +1297,68 @@ function handleCanvasContainerMouseClick() {
 function handleCardDivMouseLeave(event, cardClass) {
     var targetCardDiv = event.target.closest('.' + cardClass);
     if (targetCardDiv) {
-        restoreSavedStyle(targetCardDiv);
+        logger.info("handleCardDivMouseLeave", targetCardDiv);
     }
 }
+
+// handle mouse leave event for any div element with
+// cardClass "card-div" or "bizcard-div"
+function handleCardDivMouseClick(event, cardClass) {
+    var targetCardDiv = event.target.closest('.' + cardClass);
+    if (targetCardDiv) {
+        selectTheCardDiv(targetCardDiv);
+    }
+}
+
+function handleCanvasContainerMouseClick(event) {
+    const target = event.target;
+    if (target == canvasContainer ) {
+        logger.info("canvasContainer calling deselectTheSelectedCardDiv(true)");
+        deselectTheSelectedCardDiv(true);
+    } else if (target == canvas ) {
+        logger.info("canvas calling deselectTheSelectedCardDiv(true)");
+        deselectTheSelectedCardDiv(true);
+    } else if (target.classList.contains("card-div")) {
+        logger.info(`canvasContainer calling handleCardDivMouseClick(event, card-div`);
+        handleCardDivMouseClick(event, "card-div");
+    } else if (target.classList.contains("bizcard-div")) {
+        logger.info(`canvasContainer calling handleCardDivMouseClick(event, bizcard-div`);
+        handleCardDivMouseClick(event, "bizcard-div");
+    } else if (target.classList.contains("card-div-line-item")) {
+        logger.info(`canvasContainer calling handleCardDivMouseClick(event, card-div-line-item`);
+        handleCardDivMouseClick(event, "card-div-line-item");
+    } else if (target.id == "focal-point" ) {
+        // Save original pointer-events style
+        const originalPointerEvents = target.style.pointerEvents;
+        
+        // Get all elements at the click point, hiding focal point temporarily
+        target.style.pointerEvents = 'none';
+        const elementsAtPoint = document.elementsFromPoint(event.clientX, event.clientY);
+        // Restore original pointer-events style
+        target.style.pointerEvents = originalPointerEvents;
+        
+        // Find the first card-div or bizcard-div under the focal point
+        const cardDivUnder = elementsAtPoint.find(element => 
+            element.classList.contains('card-div') || element.classList.contains('bizcard-div')
+        );
+        
+        if (cardDivUnder) {
+            logger.info("handleCanvasContainerMouseClick found card under focal-point:", cardDivUnder.id);
+            selectTheCardDiv(cardDivUnder, true);
+        } else {
+            logger.info("handleCanvasContainerMouseClick focal-point with no card underneath");
+            deselectTheSelectedCardDiv(true);
+        }
+    } else if (target.id == "aim-point" ) { // TODO: remove this
+        logger.info("handleCanvasContainerMouseClick aim-point");
+    } else if (target.id == "bulls-eye" ) { // TODO: remove this
+        logger.info("handleCanvasContainerMouseClick bulls-eye");
+    } else {
+        logger.info("handleCanvasContainerMouseClick unknown target");
+        utils.showElement(target,"from handleCanvasContainerMouseClick", LogLevel.INFO);
+    }
+}
+
 
 // Prevents clicks anywhere during animation
 document.addEventListener( // Call addEventListener
@@ -1384,318 +1439,140 @@ function moveElementCenter(element, newCenter) {
     }
 }
 
-// works for card-div, bizcard-div, and card-div-line-item
-// override all saved style and appeend the card to the 
-// parent and position of the bullsEye element.
-function setSelectedStyle(element) {
-    logger.info(`setSelectedStyle:${element.id}`);
-    if ( isCardDivLineItem(element) ) {
-        element.classList.add("selected");
-    } else {
-        showElement(element, "before setSelectedStyle");
-        element.classList.add("selected");
-
-        // move the element to the center of the bulls-eye
-        moveElementCenter(element, focalPoint.getBullsEye())
-
-        element.setAttribute('z', ""); // no parallax
-        element.style.zIndex = SELECTED_CARD_Z_INDEX;
-        element.style.filter = SELECTED_CARD_FILTER;
-        
-        // showElement(element, "after setSelectedStyle");
-
-        // render the repositioned element
-        applyParallaxToOneCardDiv(element);
-    }
-}
-
-function log_saved_and_current_styles(element, prefix) {
-    const saved_width = element.getAttribute("saved_width");
-    const saved_height = element.getAttribute("saved_height");
-    const saved_top = element.getAttribute("saved_top");
-    const saved_left = element.getAttribute("saved_left");
-    const saved_ctrX = element.getAttribute("saved_ctrX");
-    const saved_ctrY = element.getAttribute("saved_ctrY");
-    logger.info(`${prefix} saved ctrX:${saved_ctrX} ctrY:${saved_ctrY}`);
-    const saved_filterStr = element.getAttribute("saved_filterStr");
-    const saved_zIndexStr = element.getAttribute("saved_zIndexStr");
-    const saved_z = element.getAttribute("saved_z");
-    const saved_next_sibling = element['saved-next-sibling'];
-    const saved_next_sibling_id = (saved_next_sibling != null) ? saved_next_sibling.id : "";
-
-    logger.info(`${prefix} saved filterStr:${saved_filterStr} zIndexStr:${saved_zIndexStr} z:${saved_z} nextSiblingId:${saved_next_sibling_id}`);
-
-    const current_left = parseInt(element.style.left).toFixed(2);
-    const current_top = parseInt(element.style.top).toFixed(2);
-    const current_width = parseInt(element.style.width).toFixed(2);
-    const current_height = parseInt(element.style.height).toFixed(2);
-    const current_ctrX = (current_left + current_width / 2);
-    const current_ctrY = (current_top + current_height / 2);
-    logger.info(`${prefix} current_ctrX:${current_ctrX} ctrY:${current_ctrY}`);
-    const current_filterStr = element.style.filter;
-    const current_zIndexStr = element.style.zIndex;
-    const current_z = element.getAttribute("z");
-    const current_next_sibling = element.nextSibling;
-    const current_next_sibling_id = (current_next_sibling != null) ? current_next_sibling.id : "";
-
-    logger.info(`${prefix} current filterStr:${current_filterStr} zIndexStr:${current_zIndexStr} z:${current_z} nextSiblingId:${current_next_sibling_id}`);
-}
-
-// restore all saved style properties
-function restoreSavedStyle(element) {
-    logger.info('restoreSavedStyle:${element.id}');
-    if ( isCardDivLineItem(element) ) {
-        element.classList.remove("selected");
-    } else {
-        showElement(element, "before restoreSavedStyle");
-        element.classList.remove("selected");
-        
-        // log_saved_and_current_styles(element, "before restoreSavedStyle");
-
-        const saved_width = element.getAttribute("saved_width");
-        const saved_height = element.getAttribute("saved_height");
-        const saved_top = element.getAttribute("saved_top");
-        const saved_left = element.getAttribute("saved_left");
-        const saved_filterStr = element.getAttribute("saved_filterStr");
-        const saved_zIndexStr = element.getAttribute("saved_zIndexStr");
-        const saved_z = element.getAttribute("saved_z");
-        element.style.width = `${saved_width}px`;
-        element.style.height = `${saved_height}px`;
-        element.style.top = `${saved_top}px`;
-        element.style.left = `${saved_left}px`;
-        element.style.filter = saved_filterStr;
-        element.style.zIndex = saved_zIndexStr;
-        element.setAttribute("z", saved_z);
-
-        // log_saved_and_current_styles(element, "after restoreSavedStyle");
-
-        showElement(element, "after restoreSavedStyle");
-
-        applyParallaxToOneCardDiv(element);
-    }
-} 
-
-var theSelectedCardDiv = null;
-var theSelectedCardDivLineItem = null;
-
-function scrollElementIntoView(element) {
-    // utils.validateIsElement(element);
-    if ( element == null )
-        throw new Error("null element");
-    else if ( element.id == null )
-        throw new Error("null element.id");
-    else if (isBizcardDiv(element) || isCardDivLineItem(element))
-        scrollElementToTop(element);
-    else if (isCardDiv(element) )
-        scrollElementToCenter(element);
-    else if (isCardDivLineItem(element) )
-        scrollElementToTop(element);
-    else
-        throw new Error("unhandled element with id:" + element.id)
-}
-
-function scrollElementToTop(element) {
-    const container = findNearestAncestorWithClassName(element, "scrollable-container");
-    const elementRect = element.getBoundingClientRect();
-    const containerRect = container.getBoundingClientRect();
-    const scrollTop = container.scrollTop + elementRect.top - containerRect.top;
-    container.scrollTo({ top: scrollTop, behavior: 'smooth' });
-}
-
-function scrollElementToCenter(element) {
-    // logger.log(`scrollElementToCenter element:${element.id}`);
-    const container = findNearestAncestorWithClassName(element, "scrollable-container");
-    const containerHeight = container.clientHeight;
-    const elementTop = element.offsetTop;
-    const elementHeight = element.clientHeight;
-    const scrollTop = elementTop + (elementHeight / 2) - (containerHeight / 2);
-    container.scrollTo({ top: scrollTop, behavior: 'smooth' });
-}
-
-// returns the nearest ancestor with className or null
-function findNearestAncestorWithClassName(element, className) {
-    // utils.validateIsElement(element);
-    while ((element = element.parentElement) && !element.classList.contains(className));
-    return element;
-}
-
-// returns the index of the child of the parent or null
-function findChildIndexOfOfParent(element) {
-    const parent = element.parentElement;
-    if ( parent == null ) {
-        return null;
-    }
-    for ( let i = 0; i < parent.children.length; i++ ) {
-        if ( parent.children[i] == element ) {
-            return i;
-        }
-    }
-    return null;
-}   
+// Track selected state
+let selectedClone = null;
+let originalCard = null;
+let theSelectedCardDivLineItem = null;  // Add this line
 
 function selectTheCardDiv(cardDiv) {
-    // re-select an alread selected cardDiv to unselect it. 
-    if ( cardDiv == null ) {
-        logger.warn('selectTheCardDiv given a null cardDiv');
-        return;
+    if (!cardDiv) return;
+    
+    // Convert ID to element if needed
+    if (typeof cardDiv === 'string') {
+        cardDiv = document.getElementById(cardDiv);
+        if (!cardDiv) return;
     }
-    if ( utils.isString(cardDiv) ) {
-        const cardDivId = cardDiv;
-        cardDiv = document.getElementById(cardDivId);
-    }
-    if ( isCardDivLineItem(cardDiv) ) {
-        logger.warn(`selectTheCardDiv.id:${cardDiv.id} is a cardDivLineItem so not selecting`);
-        return;
-    }
-    if ( ! isCardDivId(cardDiv.id) && ! isCardDivId(cardDiv) ) {
-        logger.warn(`selectTheCardDiv.id:${cardDiv.id} is not a cardDivId or bizcardId so not selecting`);
+
+    // Validate card type
+    if (isCardDivLineItem(cardDiv) || (!isCardDivId(cardDiv.id) && !isBizcardDivId(cardDiv.id))) {
         return;
     }
 
-    if ( cardDiv == theSelectedCardDiv ) {
-        logger.warn(`selectTheCardDiv.id:${cardDiv.id} is already selected so unselect it`);
-        unselectCardDiv(theSelectedCardDiv);
+    // If clicking same card, unselect it
+    if (cardDiv === originalCard) {
+        unselectCardDiv();
         return;
     }
 
-    const parent = cardDiv.parentElement;
-    if ( parent == null ) {
-        logger.warn(`selectTheCardDiv.id:${cardDiv.id} tagName:${cardDiv.tagName} obj:${cardDiv} has no parent`);
-        return;
-    }
-    const childIndex = findChildIndexOfOfParent(cardDiv);
-    if ( childIndex == null ) {
-        logger.warn(`selectedTheCardDiv.id:${cardDiv.id} childIndex is null`);
-        return;
-    }
-    cardDiv['saved-index'] = childIndex;
-
-    // remove cardDiv from its current parent
-    cardDiv.parentElement.removeChild(cardDiv);
-
-    // append the cardDiv to the bulls-eye parent
-    const bullsEyeElement = document.getElementById("bulls-eye");
-    const bullsEyeParent = bullsEyeElement.parentElement;
-    bullsEyeParent.appendChild(cardDiv);
-    setSelectedStyle(cardDiv);
-
-
-    theSelectedCardDiv = cardDiv;
-    applyParallaxToOneCardDiv(cardDiv);
-}
-
-function showPosition(position, prefix="") {
-    logger.log(prefix, JSON.stringify(position, utils.formatNumbersReplacer, 2));
-}
-function showElement(element, prefix="") {
-    return;
-    if ( element == null ) {
-        logger.warn(prefix,`showElement given null element`);
-        return;
+    // Unselect any previously selected card
+    if (selectedClone) {
+        unselectCardDiv();
     }
 
-    const parentElementId = (element.parentElement != null) ? element.parentElement.id : "";
-
-    let nextSiblingId = null;
-    if ( element.classList.contains("card-div") ) {
-        const nextSibling = utils.findNextSiblingWithClass(element, "card-div");
-        nextSiblingId = (nextSibling != null) ? nextSibling.id : "";
-    } else if ( element.classList.contains("bizcard-div") ) {
-        const nextSibling = utils.findNextSiblingWithClass(element, "bizcard-div");
-        nextSiblingId = (nextSibling != null) ? nextSibling.id : "";
-    }
-      
-    const center = {
-        x: element.offsetLeft + element.clientWidth / 2,
-        y: element.offsetTop + element.clientHeight / 2
-    }
-    const dims = {
-        width: element.clientWidth,
-        height: element.clientHeight
-    }
-    const elementStyle = {
-        id: element.id,
-        parent_id: parentElementId,
-        next_sibling_id: nextSiblingId,
-        center: center,
-        dims: dims,
-        zIndex: element.style.zIndex,
-        filter: element.style.filter
-    }
-    logger.info(prefix, JSON.stringify(elementStyle, utils.formatNumbersReplacer, 2));
-}
-
-function unselectCardDiv(cardDiv) {
-    if ( cardDiv == null ) {
-        return;
-    }
-    if ( utils.isString(cardDiv) ) {
-        const cardDivId = cardDiv;
-        cardDiv = document.getElementById(cardDivId);
-    }
-    if ( cardDiv.id == null ) {
-        logger.warn(`unselectCardDiv:${cardDiv.tagName} has no id`);
-        return;
-    }
-    if ( isCardDivLineItem(cardDiv) ) {
-        logger.warn(`unselectCardDiv:${cardDiv.id} is a cardDivLineItem so not unselecting`);
-        return;
-    }
-    if ( cardDiv.parentElement == null ) {
-        logger.warn(`unselectCardDiv:${cardDiv.id} has no parent`);
-        return;
-    }
-    const savedParent = cardDiv['saved-parent'];
-    if ( savedParent == null ) {
-        logger.warn(`unselectCardDiv:${cardDiv.id} has no saved parent`);
-        return;
-    }
-
-    // remove cardDiv from its current parent
-    cardDiv.parentElement.removeChild(cardDiv);
-
-    const childIndex = cardDiv['saved-index'];
-    if ( childIndex == null ) {
-        logger.warn(`unselectCardDiv:${cardDiv.id} has no saved index so append to savedParent`);
-        savedParent.appendChild(cardDiv);
-    }
-    else {
-        const referenceNode = savedParent.children[childIndex] || null; 
-        if ( referenceNode == null ) {
-            savedParent.appendChild(cardDiv);
-        } else {
-            savedParent.insertBefore(cardDiv, referenceNode);
+    // Create and style clone
+    const clone = cardDiv.cloneNode(true);
+    clone.id = `${cardDiv.id}-clone`;
+    clone.classList.add('selected-clone');
+    
+    // Position clone fixed at viewport center
+    clone.style.position = 'fixed';
+    
+    // Get exact dimensions of the card
+    clone.style.visibility = 'hidden';  // Temporarily hide to measure
+    document.body.appendChild(clone);    // Add to DOM to get accurate measurements
+    const width = clone.offsetWidth;
+    const height = clone.offsetHeight;
+    
+    // Calculate viewport center
+    const viewportWidth = window.innerWidth;
+    const viewportHeight = window.innerHeight;
+    const centerX = viewportWidth / 2;
+    const centerY = viewportHeight / 2;
+    
+    // Initial positioning
+    clone.style.left = `${centerX - width/2}px`;
+    clone.style.top = `${centerY - height/2}px`;
+    clone.style.visibility = 'visible';
+    
+    // Style clone to be prominent
+    clone.style.zIndex = SELECTED_CARD_Z_INDEX;
+    clone.style.filter = 'brightness(1.0) blur(0px)';
+    
+    // Check position and adjust if needed
+    requestAnimationFrame(() => {
+        const rect = clone.getBoundingClientRect();
+        const actualCenterX = rect.left + (rect.width / 2);
+        const actualCenterY = rect.top + (rect.height / 2);
+        
+        // Calculate and apply adjustment if needed
+        const adjustX = centerX - actualCenterX;
+        const adjustY = centerY - actualCenterY;
+        
+        if (Math.abs(adjustX) > 1 || Math.abs(adjustY) > 1) {
+            const newLeft = parseInt(clone.style.left) + adjustX;
+            const newTop = parseInt(clone.style.top) + adjustY;
+            clone.style.left = `${newLeft}px`;
+            clone.style.top = `${newTop}px`;
+            
+            // Log the adjustment
+            logger.info(`Position adjusted by x:${adjustX}, y:${adjustY}`);
+            
+            // Verify final position
+            requestAnimationFrame(() => {
+                const finalRect = clone.getBoundingClientRect();
+                const finalCenterX = finalRect.left + (finalRect.width / 2);
+                const finalCenterY = finalRect.top + (finalRect.height / 2);
+                logger.info(`Final position - Center: x=${finalCenterX}, y=${finalCenterY}`);
+                logger.info(`Final offset from target: x=${finalCenterX - centerX}, y=${finalCenterY - centerY}`);
+            });
         }
-    }
+    });
+    
+    // Hide original
+    cardDiv.style.visibility = 'hidden';
+    
+    // Update state
+    selectedClone = clone;
+    originalCard = cardDiv;
+    
+    // Add click handler to clone
+    clone.addEventListener('click', (e) => {
+        unselectCardDiv();
+        e.stopPropagation();
+    });
 
-    restoreSavedStyle(cardDiv);
-   
-    if ( cardDiv == theSelectedCardDiv ) {
-        theSelectedCardDiv = null;
-    }
+    // Log initial position
+    const initialRect = clone.getBoundingClientRect();
+    const initialCenterX = initialRect.left + (initialRect.width / 2);
+    const initialCenterY = initialRect.top + (initialRect.height / 2);
+    logger.info(`Initial dimensions: width=${width}, height=${height}`);
+    logger.info(`Target center: x=${centerX}, y=${centerY}`);
+    logger.info(`Initial center: x=${initialCenterX}, y=${initialCenterY}`);
+    logger.info(`Initial offset from target: x=${initialCenterX - centerX}, y=${initialCenterY - centerY}`);
 }
 
-function getTheSelectedCardDivId() {
-    if ( theSelectedCardDiv != null )
-       return theSelectedCardDiv.id;
-    return null;
+function unselectCardDiv() {
+    if (!selectedClone || !originalCard) return;
+    
+    // Remove clone
+    selectedClone.remove();
+    selectedClone = null;
+    
+    // Show original
+    originalCard.style.visibility = 'visible';
+    originalCard = null;
 }
 
-function deselectTheSelectedCardDiv(deselectTheSelectedCardDivLineItemFlag=false) {
-    // if theSelectedCardDiv is defined
-    if (theSelectedCardDiv != null) {
-        // utils.validateIsCardDivOrBizcardDiv(theSelectedCardDiv);
-        // styles self as saved
-        restoreSavedStyle(theSelectedCardDiv);
+// Remove old selection-related functions that are no longer needed
+function setSelectedStyle() {} // Remove
+function restoreSavedStyle() {} // Remove
 
-        if ( deselectTheSelectedCardDivLineItemFlag )
-            deselectTheSelectedCardDivLineItem();
-
-        // sets the theSelectedCardDiv to null
-        theSelectedCardDiv = null;
-
+// Update any existing functions that reference old selection state
+function deselectTheSelectedCardDiv(deselectLineItem = false) {
+    unselectCardDiv();
+    if (deselectLineItem) {
+        deselectTheSelectedCardDivLineItem();
     }
-    // debugTheSelectedCardDivId();
 }
 
 // add the mouse click event handler to any div element with
@@ -1711,11 +1588,12 @@ function addCardDivClickListener(cardDiv) {
 function cardDivClickListener(event) {
     let element = event.target;
     let cardDiv = element;
-    if ( !utils.isCardDivOrBizcardDiv(cardDiv) ) {
+    if ( utils.isCardDivOrBizcardDiv(cardDiv) ) {
         cardDiv = cardDiv.closest('.card-div, .bizcard-div');
-    }
-    if ( cardDiv && !element.classList.contains('icon') ) {
         selectTheCardDiv(cardDiv, true);
+    }
+    // stop event propagation if the element is not an icon
+    if ( cardDiv && !element.classList.contains('icon') ) {
         event.stopPropagation();
     }
 }
@@ -1779,6 +1657,7 @@ function addCardDivLineItemClickListener(cardDivLineItem, cardDiv) {
         // then select its cardDiv and bring it into view
         selectTheCardDivLineItem(cardDivLineItem, true);
 
+        // stop event propagation after selecting the cardDivLineItem
         event.stopPropagation();
     })
 }
@@ -1788,8 +1667,8 @@ function addCardDivLineItemClickListener(cardDivLineItem, cardDiv) {
 // returns the newly addedCardDivLineItem or null
 function addCardDivLineItem(targetCardDivId) {
 
-    if (targetCardDivId == null) {
-        // logger.log(`ignoring request to add cardDivLineItem with null targetCardDivId`);
+    if ( targetCardDivId == null) {
+        logger.log(`ignoring request to add cardDivLineItem with null targetCardDivId`);
         return;
     }
 
@@ -2056,12 +1935,6 @@ function renderAllTranslateableDivsAtCanvasContainerCenter() {
     }
 }
 
-function positionGradients() {
-    const canvasHeight = canvas.scrollHeight;
-    const btmGrdHeight = canvasBtmGradient.offsetHeight;
-    canvasBtmGradient.style.top = `${canvasHeight - btmGrdHeight}px`;
-}
-
 function rightContentScrollToBottom() {
     rightContentDiv.scrollTop = rightContentDiv.scrollHeight;
 }
@@ -2080,10 +1953,10 @@ var focalPointX;
 var focalPointY;
 
 // this is called while focalPoint is in motion
-function focalPointPositionListener(position) {
+function focalPointPositionListener(position, prefix="") {
     focalPointX = position.x;
     focalPointY = position.y;
-    handleFocalPointMove();
+    handleFocalPointMove(prefix);
     // debugFocalPoint();
 }
 
@@ -2129,7 +2002,8 @@ async function createAllElements() { // Add async
     const [MIN_TIMELINE_YEAR, MAX_TIMELINE_YEAR] = getMinMaxTimelineYears(jobs);
     const DEFAULT_TIMELINE_YEAR = MAX_TIMELINE_YEAR;
     timeline.createTimeline(timelineContainer, canvasContainer, MIN_TIMELINE_YEAR, MAX_TIMELINE_YEAR, DEFAULT_TIMELINE_YEAR);
-    focalPoint.createFocalPointWithPositionListener(focalPointElement, focalPointPositionListener); // starts easing to mouse
+    focalPoint.createFocalPoint(focalPointElement);
+    focalPoint.addFocalPointPositionListener(focalPointPositionListener); // starts easing to mouse
     
     // --- Wait for the palette selector ---
     console.log("Requesting palette selector instance...");
@@ -2145,7 +2019,6 @@ async function createAllElements() { // Add async
     // Create bizcards and apply palette
     createBizcardDivs();
     addAllIconClickListeners();
-    positionGradients();
 
     // Add event listeners after elements are created
     addCanvasContainerEventListener("wheel", handleCanvasContainerWheel, { passive: true });
@@ -2181,7 +2054,6 @@ function handleWindowLoad() {
     focalPoint.handleOnWindowLoad();
 
     renderAllTranslateableDivsAtCanvasContainerCenter();
-    positionGradients();
 
     let lastFrameTime = 0;
     const maxFramesPerSecond = 10;
@@ -2414,11 +2286,7 @@ function selectPreviousBizcardDivId(fromBizcardDivId) {
 }
 
 function getTheSelectedBizcardDivId() {
-    const selectedCardDivId = getTheSelectedCardDivId();
-    if ( (selectedCardDivId != null) && isBizcardDivId(selectedCardDivId) ) {
-        return selectedCardDivId;
-    }
-    return null;
+    return originalCard ? originalCard.id : null;
 }
 
 function getFirstBizcardDivId() {
@@ -2656,8 +2524,26 @@ function handleKeyDown(event) {
     } else if (event.code === 'ArrowDown') {
         canvasContainerScrollToBottom();
     } else if (event.code === 'Space') {
+        event.preventDefault();  // Prevent default space key scrolling
         focalPoint.toggleDraggable();
     } else {
         logger.log(`handleKeyDown code: ${event.code}`);
     }
 }
+
+// Add key event listener
+document.addEventListener('keydown', (event) => {
+    // Handle space key for toggling focal point draggable state
+    if (event.key === ' ') {
+        event.preventDefault();
+        focalPoint.toggleDraggable();
+        return;
+    }
+    
+    // Handle 'b' key for bulls-eye lock
+    if (event.key === 'b') {
+        event.preventDefault();
+        focalPoint.handleKeyDown(event);
+        return;
+    }
+});

@@ -125,7 +125,16 @@ overflow and ensures consistent sizing.
 
 .draggable-focal-point {
   pointer-events: auto;
-  cursor: grab; 
+  cursor: grab;
+  color: green;
+}
+
+.focal-point-is-draggable {
+    cursor: grab;
+}
+
+.focal-point-is-being-dragged {
+    cursor: move;
 }
 
 .column-50 {
@@ -174,8 +183,10 @@ overflow and ensures consistent sizing.
   position: absolute;
   width: 100%;
   height: 1000px;
-  bottom: 0px;
-  background: linear-gradient(to top, var(--background-light) 0%, var(--background-dark) 100%); 
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background: linear-gradient(to top, var(--background-light) 0%, var(--background-dark) 100%);
   pointer-events: none;
   z-index: 2;
 }
@@ -184,8 +195,10 @@ overflow and ensures consistent sizing.
   position: absolute;
   width: 100%;
   height: 1000px;
-  top: 0px;
-  background: linear-gradient(to bottom, var(--background-light) 0%, var(--background-dark) 100%); 
+  top: 0;
+  left: 0;
+  right: 0;
+  background: linear-gradient(to bottom, var(--background-light) 0%, var(--background-dark) 100%);
   pointer-events: none;
   z-index: 2;
 }
