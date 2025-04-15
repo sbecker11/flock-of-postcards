@@ -11,6 +11,9 @@ const FALLBACK_WHITE_HEX = '#FFFFFF';
 const FALLBACK_GREY_HEX = '#888888';
 const FALLBACK_BLACK_HEX = '#000000';
 
+// Add localStorage key constant
+const LOCAL_STORAGE_PALETTE_KEY = 'lastSelectedPalette';
+
 // Object to hold loaded palettes
 let _color_palettes = {};
 let _palettesLoadedPromise = null; // Promise to track loading state
@@ -211,7 +214,6 @@ export function getPaletteSelectorInstance() {
          .then(() => {
              // Create instance only after load attempt (even if failed, uses fallbacks)
              const selector = new PaletteSelector();
-             selector.selectPalette(selector.getFirstPalette());
              return selector;
          });
          // No catch here, let errors propagate if initial load truly fails fatally
@@ -227,24 +229,37 @@ export class PaletteSelector {
             console.error("PaletteSelector instance already exists."); // Should ideally not happen with getPaletteSelectorInstance
             return this.#instance;
         }
-         if (Object.keys(_color_palettes).length === 0) {
+        if (Object.keys(_color_palettes).length === 0) {
            throw new Error("Cannot instantiate PaletteSelector: _color_palettes is empty. Ensure palettes are loaded first.");
-         }
+        }
 
         this.#instance = this;
         this.color_palettes = _color_palettes; // Use the loaded palettes
 
-        // *** Use the FIRST name from the ORDERED list ***
-        this.current_value = _orderedPaletteNames.length > 0 ? _orderedPaletteNames[0] : null;
+        // Try to get the last selected palette from localStorage
+        const savedPalette = localStorage.getItem(LOCAL_STORAGE_PALETTE_KEY);
+        // Use saved palette if it exists and is valid, otherwise use first palette
+        this.current_value = (savedPalette && _color_palettes[savedPalette]) 
+            ? savedPalette 
+            : (_orderedPaletteNames.length > 0 ? _orderedPaletteNames[0] : null);
+
         if (!this.current_value) {
             throw new Error("Cannot initialize: No palettes available after loading.");
         }
         this.current_color_palette = this.color_palettes[this.current_value];
         this.current_num_colors = this.current_color_palette.length;
 
+        // Initialize the color arrays before they can be used
+        this.initializePaletteDivColors();
+
         this.paletteSelector = document.getElementById('color-palette-selector');
         if (!this.paletteSelector) {
             throw new Error("DOM Error: #color-palette-selector element not found.");
+        }
+
+        const container = document.getElementById('color-palette-container');
+        if (!container) {
+            throw new Error("DOM Error: #color-palette-container element not found.");
         }
 
         // Clear potentially old options before repopulating
@@ -265,18 +280,33 @@ export class PaletteSelector {
             console.warn("Mismatch in palette options count. Expected:", _orderedPaletteNames.length, "Got:", this.paletteSelector.childElementCount);
         }
 
-        // Add event listener (only once)
-        // Check if listener already exists to avoid duplicates if constructor is somehow called again
+        // Add event listeners (only once)
         if (!this.paletteSelector.dataset.listenerAdded) {
-             this.paletteSelector.addEventListener('change', (event) => {
-                 const selectedValue = event.target.value;
-                 console.log("Palette selected via UI:", selectedValue);
-                 this.selectPalette(selectedValue);
-             });
-             this.paletteSelector.dataset.listenerAdded = 'true';
+            // Change event for palette selection
+            this.paletteSelector.addEventListener('change', (event) => {
+                const selectedValue = event.target.value;
+                console.log("Palette selected via UI:", selectedValue);
+                this.selectPalette(selectedValue);
+            });
+
+            // Click event to handle focus
+            container.addEventListener('click', () => {
+                this.paletteSelector.focus();
+            });
+
+            // Prevent up/down keys from changing selection when not focused
+            container.addEventListener('keydown', (event) => {
+                if (!this.paletteSelector.matches(':focus')) {
+                    event.stopPropagation();
+                }
+            });
+
+            this.paletteSelector.dataset.listenerAdded = 'true';
         }
 
-        // Initial color setup happens in selectPalette, called by getPaletteSelectorInstance
+        // Apply the initial palette to both elements and document
+        this.applyPaletteToElements();
+        this.applyPaletteToDocument();
     }
 
     selectPalette(selected_value) {
@@ -294,6 +324,13 @@ export class PaletteSelector {
         }
 
         this.current_value = selected_value;
+        // Save the selected palette to localStorage
+        try {
+            localStorage.setItem(LOCAL_STORAGE_PALETTE_KEY, selected_value);
+        } catch (error) {
+            console.warn('Failed to save palette selection to localStorage:', error);
+        }
+
         // Update the <select> element UI to match the programmatically selected value
         for( let option of this.paletteSelector.options ) { // Use .options collection
             option.selected = (option.value === this.current_value);
@@ -347,6 +384,15 @@ export class PaletteSelector {
           // console.warn("Element lacks 'data-color-index' attribute:", element);
           return; // Skip elements without the attribute
        }
+
+       // If color arrays are missing, use fallback colors instead of trying to reinitialize
+       if (!this.bg_hex_colors || !this.fg_hex_colors) {
+           console.warn('Color arrays not initialized, using fallback colors');
+           element.style.backgroundColor = FALLBACK_GREY_HEX;
+           element.style.color = FALLBACK_BLACK_HEX;
+           return;
+       }
+
        const number_string = this.extractDigitsString(data_color_index);
        const data_color_int = parseInt(number_string, 10);
 

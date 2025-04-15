@@ -542,16 +542,23 @@ html[native-dark-active] #canvas-container,
   background-color: var(--background-dark) !important;
 }
 
+#color-palette-container {
+    position: relative;
+    display: inline-block;
+    outline: none;
+}
+
 #color-palette-selector {
-  width: 100%;
-  padding: 5px;
-  margin-bottom: 10px;
-  background-color: green;
-  color: white;
-  border: none;
-  border-radius: 4px;
-  cursor: pointer;
-  font-weight: bold;
+    width: 100%;
+    padding: 5px;
+    margin-bottom: 10px;
+    background-color: green;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-weight: bold;
+    outline: none;
 }
 
 #color-palette-selector option {
@@ -567,5 +574,13 @@ html[native-dark-active] #canvas-container,
 #color-palette-selector:focus {
   outline: none;
   box-shadow: 0 0 5px rgba(255, 255, 255, 0.5);
+}
+
+#color-palette-selector:not(:focus) {
+    pointer-events: none;
+}
+
+#color-palette-container:hover #color-palette-selector {
+    pointer-events: auto;
 }
 
