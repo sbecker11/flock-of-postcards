@@ -3,6 +3,13 @@ import * as utils from './utils.mjs';
 // Directory where palette files are stored
 const PALETTE_DIR = './static_content/color_palettes/';
 const MANIFEST_ENDPOINT = '/api/palette-manifest';
+const FALLBACK_LIGHT_RGBA = 'rgba(100,100,100,1.0)';
+const FALLBACK_DARK_RGBA = 'rgba(64,64,64,1.0)';
+const FALLBACK_LIGHT_HEX = '#CCCCCC';
+const FALLBACK_DARK_HEX = '#666666';    
+const FALLBACK_WHITE_HEX = '#FFFFFF';
+const FALLBACK_GREY_HEX = '#888888';
+const FALLBACK_BLACK_HEX = '#000000';
 
 // Object to hold loaded palettes
 let _color_palettes = {};
@@ -51,10 +58,10 @@ async function loadOrRefreshPalettes(isRefresh = false) {
             newPaletteFiles = manifestData; // Server sorted this list
             console.log(`Manifest fetch attempt ${attempt} successful.`);
         } catch (error2) {
-             // If second attempt also fails, log critical and apply fallback/rethrow
+             // If second attempt also fails, log critical and apply fallBack/rethrow
             console.error(`CRITICAL: Manifest fetch attempt ${attempt} also failed:`, error2.message);
             console.error(`CRITICAL: Failed to load ${isRefresh ? 'refreshed ' : ''}palette manifest from ${MANIFEST_ENDPOINT}. Cannot proceed.`);
-            if (!isRefresh) { // Only set fallback on initial load fail
+            if (!isRefresh) { // Only set fallBack on initial load fail
                 _color_palettes = { "Error": ["#FF0000", "#000000"] };
                 _orderedPaletteNames = ["Error"];
                 _filenameToNameMap = {};
@@ -176,7 +183,7 @@ async function loadOrRefreshPalettes(isRefresh = false) {
 
     if (_orderedPaletteNames.length === 0) {
          console.error("CRITICAL: No valid color palettes were loaded. Check manifest and JSON files.");
-         // Set fallback state
+         // Set fallBack state
          _color_palettes = { "Default": ["#CCCCCC", "#AAAAAA", "#888888"] };
          _orderedPaletteNames = ["Default"];
          _filenameToNameMap = {};
@@ -277,7 +284,7 @@ export class PaletteSelector {
         // Ensure the selected value exists in the loaded palettes
         if (selected_value === null || !this.color_palettes[selected_value]) {
             console.error(`Selected palette "${selected_value}" not found in loaded palettes. Available:`, Object.keys(this.color_palettes));
-            // Fallback to first available palette if selection is invalid
+            // fallBack to first available palette if selection is invalid
             selected_value = this.getFirstPalette();
             if (!selected_value) {
                  console.error("CRITICAL: No palettes available to select.");
@@ -319,15 +326,15 @@ export class PaletteSelector {
            const bg_hex_color_string = this.current_color_palette[index];
            if (typeof bg_hex_color_string !== 'string') {
               console.warn(`Invalid color at index ${index} in palette ${this.current_value}:`, bg_hex_color_string);
-              this.bg_hex_colors[index] = '#CCCCCC'; // Fallback color
-              this.fg_hex_colors[index] = '#000000'; // Fallback contrast
+              this.bg_hex_colors[index] = FALLBACK_LIGHT_HEX;
+              this.fg_hex_colors[index] = FALLBACK_DARK_HEX;
               continue;
            }
            // Ensure utils functions handle potential errors gracefully
            // const fg_hex_color_string = utils.getHighContrastCssHexColorStrSafe(bg_hex_color_string); // Assume a safe version exists
            const fg_hex_color_string = utils.getHighContrastCssHexColorStr(bg_hex_color_string); // Revert if safe version doesn't exist
-           this.bg_hex_colors[index] = bg_hex_color_string;
-           this.fg_hex_colors[index] = fg_hex_color_string || '#000000'; // Fallback contrast
+           this.bg_hex_colors[index] = bg_hex_color_string || FALLBACK_WHITE_HEX;
+           this.fg_hex_colors[index] = fg_hex_color_string || FALLBACK_BLACK_HEX;
        }
        this.darker_bg_hex_color = this.findDarkestBgHexColor();
        // this.darkest_bg_hex_color = '#000000'; // This line seems redundant if calculated below
@@ -346,8 +353,8 @@ export class PaletteSelector {
        // Handle potential NaN from parseInt or invalid index
        if (isNaN(data_color_int) || this.current_num_colors === 0) {
            console.warn(`Invalid data-color-index value "${data_color_index}" or no colors in palette for element:`, element);
-           element.style.backgroundColor = '#CCCCCC'; // Default fallback
-           element.style.color = '#000000';
+           element.style.backgroundColor = FALLBACK_GREY_HEX; 
+           element.style.color = FALLBACK_BLACK_HEX;
            return;
        }
 
@@ -384,7 +391,7 @@ export class PaletteSelector {
 
     findDarkestBgHexColor() {
        if (!this.current_color_palette || this.current_color_palette.length === 0) {
-          return '#222222'; // Default dark if no palette
+          return FALLBACK_GREY_HEX; // Default dark if no palette
        }
 
        let darkest_value = Infinity; // Start high
@@ -404,12 +411,14 @@ export class PaletteSelector {
                console.warn(`Error processing color ${bgHexColor} for darkest calculation:`, error);
            }
        }
-       return darkest_bgHexColor || '#222222'; // Return default if loop failed somehow
+       return darkest_bgHexColor || FALLBACK_DARKEST_HEX; // Return default if loop failed somehow
    }
 
    applyPaletteToDocument() {
        const root = document.documentElement;
        const darkHex = this.findDarkestBgHexColor();
+       const fallbackLightRGBA = FALLBACK_LIGHT_RGBA;
+       const fallbackDarkRGBA = FALLBACK_DARK_RGBA;
        if (!darkHex) return; // Don't proceed if darkest couldn't be found
 
        try {
@@ -425,17 +434,21 @@ export class PaletteSelector {
            let darkestHSV = [...darkHSV]; // Clone
            darkestHSV[2] *= 0.35; // Reduce brightness more
            const darkestHex = utils.get_Hex_from_HSV(darkestHSV);
+           const darkerRGB = utils.get_RGB_from_Hex(darkerHex);
+           const darkestRGB = utils.get_RGB_from_Hex(darkestHex);
+           const darkerRGBA = utils.get_RGBA_from_RGB(darkerRGB, 1.0);
+           const darkestRGBA = utils.get_RGBA_from_RGB(darkestRGB, 1.0);
 
-           root.style.setProperty('--background-light', darkerHex || '#333333'); // Fallback
-           root.style.setProperty('--background-dark', darkestHex || '#111111');   // Fallback
+           root.style.setProperty('--background-light', darkerRGBA || FALLBACK_LIGHT_RGBA);
+           root.style.setProperty('--background-dark', darkestRGBA || FALLBACK_DARK_RGBA);
 
-           console.log(`Applied document background: light=${darkerHex}, dark=${darkestHex}`);
+           console.log(`Applied document background: light=${darkerRGBA}, dark=${darkestRGBA}`);
 
        } catch (error) {
            console.error("Error applying palette to document background:", error);
-           // Apply fallback defaults directly
-           root.style.setProperty('--background-light', '#333333');
-           root.style.setProperty('--background-dark', '#111111');
+           // Apply fallBack defaults directly
+           root.style.setProperty('--background-light', FALLBACK_LIGHT_RGBA);
+           root.style.setProperty('--background-dark', FALLBACK_DARK_RGBA);
        }
    }
 

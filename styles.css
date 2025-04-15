@@ -4,9 +4,9 @@ reference for the #main-container to occupy the full height of the viewport.
 */
 
 :root {
-  --background-light: rgb(24, 24, 111); /* 25% darker than rgb(32, 32, 148) */
-  --background-middle: rgb(100, 100, 100); /* 25% darker than rgb(32, 32, 148) */
-  --background-dark: rgb(0, 0, 77); /* 25% darker than #000066 */
+  --background-light: rgba(24, 24, 111, 1.0); 
+  --background-middle: rgba(100, 100, 100, 1.0); 
+  --background-dark: rgba(0, 0, 77, 1.0); 
 }
 
 html, body {
@@ -181,7 +181,7 @@ overflow and ensures consistent sizing.
   bottom: 0;
   left: 0;
   right: 0;
-  background: linear-gradient(to top, var(--background-light) 0%, var(--background-dark) 100%);
+  background-image: linear-gradient(to bottom, var(--background-light), var(--background-dark));
   pointer-events: none;
   z-index: 2;
 }
@@ -193,7 +193,7 @@ overflow and ensures consistent sizing.
   top: 0;
   left: 0;
   right: 0;
-  background: linear-gradient(to bottom, var(--background-light) 0%, var(--background-dark) 100%);
+  background: linear-gradient(to bottom, var(--background-light), var(--background-dark));
   pointer-events: none;
   z-index: 2;
 }

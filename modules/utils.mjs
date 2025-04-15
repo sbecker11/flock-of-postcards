@@ -93,6 +93,7 @@ export const validateKey = (obj, key) => { if (!(key in obj)) throw new Error(`K
 export const validateString = (str) => { if (typeof str === 'undefined' || str === null || typeof str !== 'string' || str.trim().length === 0) throw new Error(`Invalid string:[${str}]`); };
 export const validateIntArrayLength = (arr, length) => { if (typeof arr === 'undefined' || arr === null || !Array.isArray(arr) || arr.some(item => !Number.isInteger(item)) || (typeof length !== 'undefined' && arr.length !== length)) throw new Error('Invalid array of integers or length mismatch'); };
 export const validateFloat = (num) => { if (typeof num === 'undefined' || num === null || typeof num !== 'number' || !Number.isFinite(num)) throw new Error('Invalid floating-point number'); };
+export const validateFloatInRange = (num, min, max) => { if (typeof num === 'undefined' || num === null || typeof num !== 'number' || !Number.isFinite(num) || num < min || num > max) throw new Error(`Invalid floating-point number:[${num}] out of range:[${min}..${max}]`); };
 export const clampInt = (value, min, max) => Math.round(Math.max(min, Math.min(max, value)));
 export const adjustRgbBrightness = (rgb, brightness) => { validateIntArrayLength(rgb, 3); return rgb.map(channel => clampInt(Math.round(channel * brightness), 0, 255)); }; // 1.0 is normal brightness
 export const adjustHexBrightness = (hexStr, brightness) => { validateHexColorString(hexStr); validateFloat(brightness); return get_Hex_from_RGB(adjustRgbBrightness(get_RGB_from_Hex(`${hexStr}`), brightness)); }; // 1.0 is normal brightness
@@ -103,6 +104,7 @@ export const get_RGB_from_Hex = hexStr => {
     const b = parseInt(hexStr.slice(5, 7), 16);
     return [r, g, b];
 };
+export const get_RGBA_from_RGB = (RGB, alpha) => { validateIntArrayLength(RGB, 3); validateFloatInRange(alpha, 0.0, 1.0); return `rgba(${RGB[0]}, ${RGB[1]}, ${RGB[2]}, ${alpha})`; };
 
 export const get_Hex_from_RGB = RGB => { validateIntArrayLength(RGB, 3); return "#" + RGB.map(c => c.toString(16).padStart(2, "0")).join("").toUpperCase(); };
 
