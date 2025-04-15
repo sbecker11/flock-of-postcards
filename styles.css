@@ -318,8 +318,16 @@ div.card-div span.tag-link {
   display: flex;
   flex-direction: column; /* Stack buttons vertically */
   align-items: center;
-  justify-content: center; /* Center buttons vertically */
+  justify-content: flex-start; /* Align items to top */
   padding: 5px 0; /* Add some padding */
+}
+
+/* Position the draggable button absolutely */
+#toggle-draggable-button {
+  position: absolute;
+  bottom: 5px;
+  left: 50%;
+  transform: translateX(-50%);
 }
 
 /* Handle position when left is collapsed */
@@ -358,6 +366,44 @@ div.card-div span.tag-link {
 .toggle-collapse-button:hover {
     background-color: rgba(80, 80, 80, 1);
     border-color: white;
+}
+
+/* New styles for the state toggle button (like the 'd' button) */
+.toggle-state-button {
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    border: 1px solid gray;
+    background: rgba(50, 50, 50, 0.9);
+    color: white;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 12px;
+    font-weight: bold;
+    line-height: 1;
+    z-index: 1001;
+    transition: all 0.2s ease;
+    margin: 2px 0;
+    padding: 0;
+    font-family: monospace; /* Use monospace for single letters */
+}
+
+.toggle-state-button:hover {
+    background-color: rgba(80, 80, 80, 1);
+    border-color: white;
+}
+
+/* Styles for the draggable button states */
+.toggle-state-button.d-button.draggable-on {
+    background-color: white; /* ON state */
+    color: gray;
+}
+
+.toggle-state-button.d-button.draggable-off {
+    background-color: gray; /* OFF state */
+    color: white;
 }
 
 #right-header-div {

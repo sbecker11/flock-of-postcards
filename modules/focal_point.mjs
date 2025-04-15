@@ -221,6 +221,27 @@ export function createFocalPoint(focalPointElement) {
     // Add drag event listeners to the focal-point element
     _focalPointElement.addEventListener('mousedown', onMouseDown_startDraggingFocalPoint);
 
+    // Add wheel event listener to redirect scroll events to canvas container
+    _focalPointElement.addEventListener('wheel', (event) => {
+        // Prevent the default scroll behavior on the focal point
+        event.preventDefault();
+        
+        // Create a new wheel event with the same properties
+        const redirectedEvent = new WheelEvent('wheel', {
+            deltaX: event.deltaX,
+            deltaY: event.deltaY,
+            deltaZ: event.deltaZ,
+            deltaMode: event.deltaMode,
+            clientX: event.clientX,
+            clientY: event.clientY,
+            screenX: event.screenX,
+            screenY: event.screenY
+        });
+        
+        // Dispatch the event to the canvas container
+        _canvasContainer.dispatchEvent(redirectedEvent);
+    }, { passive: false }); // passive: false is needed to call preventDefault()
+
     setAimPoint(getBullsEye(), "createFocalPoint");
     moveFocalPointTo(getBullsEye(), "createFocalPoint");
 }
@@ -360,6 +381,10 @@ export function awaken(position) {
     _isEasingToBullsEye = false;
 
     setStatus("awake", "awaken", LogLevel.LOG);
+}
+
+export function isDraggable() {
+    return _isDraggable;
 }
 
 function handleArrivedAtAimPoint(position) {

@@ -1092,14 +1092,10 @@ function applyParallaxToOneCardDiv(cardDiv) {
 function applyParallax() {
     //logger.log("applyParallax");
     // let numVisible = 0;
-    var allDivs = getAllTranslateableCardDivs();    
-    for (var i = 0; i < allDivs.length; i++) {
-        var cardDiv = allDivs[i];
-        if ( isCardDivWithinViewport(cardDiv) ) {
-            applyParallaxToOneCardDiv(cardDiv); // Apply parallax to the cloned cardDiv
-            // numVisible += 1;
-        }
-    } 
+    var allCardDivs = getAllTranslateableCardDivs();   
+    for ( var cardDiv of allCardDivs) {
+        applyParallaxToOneCardDiv(cardDiv); // Apply parallax to the cloned cardDiv
+    }
     // logger.log("numVisible:", numVisible, "numDivs:", allDivs.length);
 }
 
@@ -2537,6 +2533,7 @@ function handleKeyDown(event) {
     } else if (event.code === 'Space') {
         event.preventDefault();  // Prevent default space key scrolling
         focalPoint.toggleDraggable();
+        updateDraggableButtonState(); // Sync button state
     } else {
         logger.log(`handleKeyDown code: ${event.code}`);
     }
@@ -2546,8 +2543,10 @@ function handleKeyDown(event) {
 document.addEventListener('keydown', (event) => {
     // Handle space key for toggling focal point draggable state
     if (event.key === ' ') {
-        event.preventDefault();
-        focalPoint.toggleDraggable();
+        // This logic is now handled in the main handleKeyDown function above
+        // event.preventDefault();
+        // focalPoint.toggleDraggable();
+        // updateDraggableButtonState(); // Sync button state
         return;
     }
     
@@ -2567,6 +2566,7 @@ let startX;
 let startLeftWidth;
 let lastLeftPercentage = 50; // Store last known left width before collapse
 let lastRightPercentage = 50; // Store last known right width before collapse
+let draggableButton = null; // Declare draggable button variable
 
 // Create collapse buttons
 const collapseLeftButton = document.createElement('button');
@@ -2581,9 +2581,31 @@ collapseRightButton.className = 'toggle-collapse-button';
 collapseRightButton.innerHTML = '&gt;'; // > character
 collapseRightButton.title = 'Collapse right panel';
 
-// Add buttons to the handle
-resizeHandle.appendChild(collapseLeftButton);
-resizeHandle.appendChild(collapseRightButton);
+// --- Create Draggable Toggle Button ---
+draggableButton = document.createElement('button');
+draggableButton.id = 'toggle-draggable-button';
+draggableButton.className = 'toggle-state-button d-button'; // Add specific class
+draggableButton.innerHTML = 'd';
+draggableButton.title = 'Toggle focal point draggable state (Space)';
+
+// Add click handler to draggable button
+draggableButton.addEventListener('click', (e) => {
+    e.stopPropagation(); // Prevent resize handle from handling the click
+    focalPoint.toggleDraggable();
+    updateDraggableButtonState();
+});
+
+// --- Create a container for the collapse buttons ---
+const collapseButtonContainer = document.createElement('div');
+collapseButtonContainer.style.display = 'flex';
+collapseButtonContainer.style.flexDirection = 'column';
+collapseButtonContainer.style.gap = '5px'; // Add consistent spacing between buttons
+collapseButtonContainer.appendChild(collapseLeftButton);
+collapseButtonContainer.appendChild(collapseRightButton);
+
+// Add the container and the draggable button to the handle
+resizeHandle.appendChild(collapseButtonContainer);
+resizeHandle.appendChild(draggableButton);
 
 // --- Helper Functions ---
 
@@ -2770,3 +2792,20 @@ window.addEventListener('resize', () => {
 
 // Initial button state update
 updateButtonStates();
+
+// --- New Helper Function for Draggable Button State ---
+function updateDraggableButtonState() {
+    if (!draggableButton) return; // Guard against early calls
+    const isDraggable = focalPoint.isDraggable(); // Use the new getter
+    if (isDraggable) {
+        draggableButton.classList.add('draggable-on');
+        draggableButton.classList.remove('draggable-off');
+    } else {
+        draggableButton.classList.add('draggable-off');
+        draggableButton.classList.remove('draggable-on');
+    }
+}
+
+// Initial button state update
+updateButtonStates();
+updateDraggableButtonState(); // Update draggable button initial state
