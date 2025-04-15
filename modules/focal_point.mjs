@@ -221,27 +221,6 @@ export function createFocalPoint(focalPointElement) {
     // Add drag event listeners to the focal-point element
     _focalPointElement.addEventListener('mousedown', onMouseDown_startDraggingFocalPoint);
 
-    // Add wheel event listener to redirect scroll events to canvas container
-    _focalPointElement.addEventListener('wheel', (event) => {
-        // Prevent the default scroll behavior on the focal point
-        event.preventDefault();
-        
-        // Create a new wheel event with the same properties
-        const redirectedEvent = new WheelEvent('wheel', {
-            deltaX: event.deltaX,
-            deltaY: event.deltaY,
-            deltaZ: event.deltaZ,
-            deltaMode: event.deltaMode,
-            clientX: event.clientX,
-            clientY: event.clientY,
-            screenX: event.screenX,
-            screenY: event.screenY
-        });
-        
-        // Dispatch the event to the canvas container
-        _canvasContainer.dispatchEvent(redirectedEvent);
-    }, { passive: false }); // passive: false is needed to call preventDefault()
-
     setAimPoint(getBullsEye(), "createFocalPoint");
     moveFocalPointTo(getBullsEye(), "createFocalPoint");
 }
@@ -464,14 +443,11 @@ function computeAStepCloserToAimSubpixelPrecision(nowPoint, aimPoint, ease_facto
 }
 
 export function toggleDraggable() {
+    _isDraggable = !_isDraggable;
     if (_isDraggable) {
-        utils.addClass(_focalPointElement, "non-draggable-focal-point");
-        _isDraggable = false;
-        _focalPointElement.classList.remove('focal-point-is-draggable');
-    } else {
-        utils.removeClass(_focalPointElement, "non-draggable-focal-point");
-        _isDraggable = true;
         _focalPointElement.classList.add('focal-point-is-draggable');
+    } else {
+        _focalPointElement.classList.remove('focal-point-is-draggable');
     }
     logger.info(`toggleDraggable: ${_isDraggable}`);
 }
@@ -483,6 +459,9 @@ function onMouseDown_startDraggingFocalPoint(event) {
     }
     const eventPosition = getEventPosition(event);
     event.preventDefault(); // prevent default browser behavior
+
+    // Enable pointer events only during drag
+    _focalPointElement.style.pointerEvents = 'auto';
 
     // Update subpixel precision to match current position
     _focalPointNowSubpixelPrecision = eventPosition;
@@ -526,6 +505,7 @@ function onMouseUp_stopDraggingFocalPoint(event, prefix="") {
     set_isBeingDragged_false(eventPosition);
 
     // Cleanup
+    _focalPointElement.style.pointerEvents = 'none';  // Disable pointer events after drag
     _canvasContainer.style.pointerEvents = 'auto';
     document.body.style.userSelect = 'auto';
     _focalPointElement.classList.remove('focal-point-is-being-dragged');

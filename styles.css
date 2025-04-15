@@ -112,30 +112,20 @@ overflow and ensures consistent sizing.
   justify-content: center;
   z-index: 100;
   cursor: default;
-  pointer-events: auto;
+  pointer-events: none;  /* Always let events pass through by default */
 }
 
 #focal-point.awake {
   color: white;
 }
 
-.non-draggable-focal-point {
-  pointer-events: none;
-  cursor: default;
-}
-
-.draggable-focal-point {
-  pointer-events: auto;
+.focal-point-is-draggable {
   cursor: grab;
   color: green;
 }
 
-.focal-point-is-draggable {
-    cursor: grab;
-}
-
 .focal-point-is-being-dragged {
-    cursor: move;
+  cursor: move;
 }
 
 .column-50 {
