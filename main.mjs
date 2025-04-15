@@ -1494,43 +1494,69 @@ function selectTheCardDiv(cardDiv) {
     
     // Calculate center based on canvasContainer bounds
     const canvasRect = canvasContainer.getBoundingClientRect();
-    const centerX = canvasRect.left + canvasRect.width / 2;
-    const centerY = canvasRect.top + canvasRect.height / 2; 
+    const bullsEyeCenterX = canvasRect.left + canvasRect.width / 2;
+    const bullsEyeCenterY = canvasRect.top + canvasRect.height / 2;
     
-    // Initial positioning at canvasContainer center
-    clone.style.left = `${centerX - width/2}px`;
-    clone.style.top = `${centerY - height/2}px`;
+    // Position clone
+    if (isBizcardDivId(cardDiv.id)) {
+        // For bizcards: center X = bulls-eye center X, top = bulls-eye center Y - 100px
+        clone.style.left = `${bullsEyeCenterX - width/2}px`;  // Center horizontally
+        clone.style.top = `${bullsEyeCenterY - 100}px`;      // Top edge 100px above bulls-eye
+    } else {
+        // For regular cards: center both X and Y
+        clone.style.left = `${bullsEyeCenterX - width/2}px`;
+        clone.style.top = `${bullsEyeCenterY - height/2}px`;
+    }
     clone.style.visibility = 'visible';
     
     // Style clone to be prominent
     clone.style.zIndex = SELECTED_CARD_Z_INDEX;
     clone.style.filter = 'brightness(1.0) blur(0px)';
     
-    // Check position and adjust if needed (using canvas center as target)
+    // Check position and adjust if needed
     requestAnimationFrame(() => {
         const rect = clone.getBoundingClientRect();
         const actualCenterX = rect.left + (rect.width / 2);
-        const actualCenterY = rect.top + (rect.height / 2);
         
-        const adjustX = centerX - actualCenterX;
-        const adjustY = centerY - actualCenterY;
-        
-        if (Math.abs(adjustX) > 1 || Math.abs(adjustY) > 1) {
-            const newLeft = parseInt(clone.style.left) + adjustX;
-            const newTop = parseInt(clone.style.top) + adjustY;
-            clone.style.left = `${newLeft}px`;
-            clone.style.top = `${newTop}px`;
-            logger.info(`Selected clone position adjusted by x:${adjustX.toFixed(2)}, y:${adjustY.toFixed(2)}`);
+        if (isBizcardDivId(cardDiv.id)) {
+            // For bizcards: verify center X alignment and top position
+            const actualTop = rect.top;
+            const adjustX = bullsEyeCenterX - actualCenterX;
+            const adjustY = (bullsEyeCenterY - 100) - actualTop;
             
-            // Verify final position
-            requestAnimationFrame(() => {
-                const finalRect = clone.getBoundingClientRect();
-                const finalCenterX = finalRect.left + (finalRect.width / 2);
-                const finalCenterY = finalRect.top + (finalRect.height / 2);
-                logger.info(`Final position - Center: x=${finalCenterX.toFixed(2)}, y=${finalCenterY.toFixed(2)}`);
-                logger.info(`Final offset from target: x=${(finalCenterX - centerX).toFixed(2)}, y=${(finalCenterY - centerY).toFixed(2)}`);
-            });
+            if (Math.abs(adjustX) > 1 || Math.abs(adjustY) > 1) {
+                const newLeft = parseInt(clone.style.left) + adjustX;
+                const newTop = parseInt(clone.style.top) + adjustY;
+                clone.style.left = `${newLeft}px`;
+                clone.style.top = `${newTop}px`;
+                logger.info(`Bizcard clone adjusted - X center offset: ${adjustX.toFixed(2)}, Top offset: ${adjustY.toFixed(2)}`);
+            }
+        } else {
+            // For regular cards: verify center alignment
+            const actualCenterY = rect.top + (rect.height / 2);
+            const adjustX = bullsEyeCenterX - actualCenterX;
+            const adjustY = bullsEyeCenterY - actualCenterY;
+            
+            if (Math.abs(adjustX) > 1 || Math.abs(adjustY) > 1) {
+                const newLeft = parseInt(clone.style.left) + adjustX;
+                const newTop = parseInt(clone.style.top) + adjustY;
+                clone.style.left = `${newLeft}px`;
+                clone.style.top = `${newTop}px`;
+                logger.info(`Card clone adjusted - Center offset X: ${adjustX.toFixed(2)}, Y: ${adjustY.toFixed(2)}`);
+            }
         }
+        
+        // Verify final position
+        requestAnimationFrame(() => {
+            const finalRect = clone.getBoundingClientRect();
+            if (isBizcardDivId(cardDiv.id)) {
+                logger.info(`Final bizcard position - Center X: ${(finalRect.left + finalRect.width/2).toFixed(2)}, Top: ${finalRect.top.toFixed(2)}`);
+                logger.info(`Target position was - Center X: ${bullsEyeCenterX.toFixed(2)}, Top: ${(bullsEyeCenterY - 100).toFixed(2)}`);
+            } else {
+                logger.info(`Final card position - Center: x=${(finalRect.left + finalRect.width/2).toFixed(2)}, y=${(finalRect.top + finalRect.height/2).toFixed(2)}`);
+                logger.info(`Target position was - Center: x=${bullsEyeCenterX.toFixed(2)}, y=${bullsEyeCenterY.toFixed(2)}`);
+            }
+        });
     });
     
     // Hide original
@@ -1554,9 +1580,9 @@ function selectTheCardDiv(cardDiv) {
     const initialCenterX = initialRect.left + (initialRect.width / 2);
     const initialCenterY = initialRect.top + (initialRect.height / 2);
     logger.info(`Initial dimensions: width=${width}, height=${height}`);
-    logger.info(`Target center (canvas): x=${centerX.toFixed(2)}, y=${centerY.toFixed(2)}`);
+    logger.info(`Target center (canvas): x=${bullsEyeCenterX.toFixed(2)}, y=${bullsEyeCenterY.toFixed(2)}`);
     logger.info(`Initial center: x=${initialCenterX.toFixed(2)}, y=${initialCenterY.toFixed(2)}`);
-    logger.info(`Initial offset from target: x=${(initialCenterX - centerX).toFixed(2)}, y=${(initialCenterY - centerY).toFixed(2)}`);
+    logger.info(`Initial offset from target: x=${(initialCenterX - bullsEyeCenterX).toFixed(2)}, y=${(initialCenterY - bullsEyeCenterY).toFixed(2)}`);
     logger.log(`[selectTheCardDiv EXIT] Finished selecting ${cardDiv.id}`);
 }
 
