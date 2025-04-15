@@ -115,6 +115,21 @@ overflow and ensures consistent sizing.
   pointer-events: none;  /* Always let events pass through by default */
 }
 
+#focal-point.focal-point-is-draggable {
+  cursor: grab;
+  color: green;
+  pointer-events: all;  /* Only capture events when draggable */
+}
+
+#focal-point.focal-point-is-draggable:hover {
+  pointer-events: all;  /* Ensure we can interact when hovering */
+}
+
+#focal-point.focal-point-is-being-dragged {
+  cursor: move;
+  pointer-events: all;  /* Ensure we maintain interaction while dragging */
+}
+
 #focal-point.awake {
   color: white;
 }
@@ -303,21 +318,55 @@ div.card-div span.tag-link {
   z-index: 1000;
   transform: translateX(-50%);
   transition: background-color 0.2s, left 0.3s ease;
-  display: block !important; 
-  /* Add flex display to arrange buttons */
-  display: flex;
-  flex-direction: column; /* Stack buttons vertically */
+  display: flex !important; 
+  flex-direction: column;
   align-items: center;
-  justify-content: flex-start; /* Align items to top */
+  justify-content: space-between; /* This will push the d-button to the bottom */
   padding: 5px 0; /* Add some padding */
 }
 
-/* Position the draggable button absolutely */
-#toggle-draggable-button {
-  position: absolute;
-  bottom: 5px;
-  left: 50%;
-  transform: translateX(-50%);
+/* Container for the collapse buttons at the top */
+.collapse-buttons-container {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+/* Style for all buttons in the resize handle */
+#resize-handle button {
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  border: 1px solid gray;
+  background: rgba(50, 50, 50, 0.9);
+  color: white;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 12px;
+  font-weight: bold;
+  line-height: 1;
+  z-index: 1001;
+  transition: all 0.2s ease;
+  padding: 0;
+  margin: 2px 0;
+}
+
+#resize-handle button:hover {
+  background-color: rgba(80, 80, 80, 1);
+  border-color: white;
+}
+
+/* Specific styles for the draggable button states */
+#toggle-draggable-button.draggable-on {
+  background-color: white;
+  color: gray;
+}
+
+#toggle-draggable-button.draggable-off {
+  background-color: gray;
+  color: white;
 }
 
 /* Handle position when left is collapsed */

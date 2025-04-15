@@ -2548,20 +2548,65 @@ document.addEventListener("keydown", handleKeyDown);
 function handleKeyDown(event) {
     logger.log("handleKeyDown code:", event.code);
 
-    if (event.code === 'ArrowLeft') {
-        selectPreviousBizcardDivId();
-    } else if (event.code === 'ArrowRight') {
-        selectNextBizcardDivId();
-    } else if (event.code === 'ArrowUp') {
-        canvasContainerScrollToTop();
-    } else if (event.code === 'ArrowDown') {
-        canvasContainerScrollToBottom();
-    } else if (event.code === 'Space') {
-        event.preventDefault();  // Prevent default space key scrolling
-        focalPoint.toggleDraggable();
-        updateDraggableButtonState(); // Sync button state
-    } else {
-        logger.log(`handleKeyDown code: ${event.code}`);
+    const SCROLL_LARGE_STEP = 300; // For PageUp/PageDown
+    const SCROLL_SMALL_STEP = 100; // For Arrow Up/Down
+
+    switch (event.code) {
+        case 'ArrowLeft':
+            selectPreviousBizcardDivId();
+            break;
+        case 'ArrowRight':
+            selectNextBizcardDivId();
+            break;
+        case 'ArrowUp':
+            event.preventDefault();
+            canvasContainer.scrollBy({
+                top: -SCROLL_SMALL_STEP,
+                behavior: 'smooth'
+            });
+            break;
+        case 'ArrowDown':
+            event.preventDefault();
+            canvasContainer.scrollBy({
+                top: SCROLL_SMALL_STEP,
+                behavior: 'smooth'
+            });
+            break;
+        case 'PageUp':
+            event.preventDefault();
+            canvasContainer.scrollBy({
+                top: -SCROLL_LARGE_STEP,
+                behavior: 'smooth'
+            });
+            break;
+        case 'PageDown':
+            event.preventDefault();
+            canvasContainer.scrollBy({
+                top: SCROLL_LARGE_STEP,
+                behavior: 'smooth'
+            });
+            break;
+        case 'Home':
+            event.preventDefault();
+            canvasContainer.scrollTo({
+                top: 0,
+                behavior: 'smooth'
+            });
+            break;
+        case 'End':
+            event.preventDefault();
+            canvasContainer.scrollTo({
+                top: canvasContainer.scrollHeight,
+                behavior: 'smooth'
+            });
+            break;
+        case 'Space':
+            event.preventDefault();  // Prevent default space key scrolling
+            focalPoint.toggleDraggable();
+            updateDraggableButtonState(); // Sync button state
+            break;
+        default:
+            logger.log(`handleKeyDown code: ${event.code}`);
     }
 }
 
@@ -2622,25 +2667,61 @@ draggableButton.addEventListener('click', (e) => {
 });
 
 // --- Create a container for the collapse buttons ---
-const collapseButtonContainer = document.createElement('div');
-collapseButtonContainer.style.display = 'flex';
-collapseButtonContainer.style.flexDirection = 'column';
-collapseButtonContainer.style.gap = '5px'; // Add consistent spacing between buttons
-collapseButtonContainer.appendChild(collapseLeftButton);
-collapseButtonContainer.appendChild(collapseRightButton);
+const collapseButtonsContainer = document.createElement('div');
+collapseButtonsContainer.className = 'collapse-buttons-container';
+collapseButtonsContainer.appendChild(collapseLeftButton);
+collapseButtonsContainer.appendChild(collapseRightButton);
 
-// Add the container and the draggable button to the handle
-resizeHandle.appendChild(collapseButtonContainer);
+// Add the containers to the handle
+resizeHandle.appendChild(collapseButtonsContainer);
 resizeHandle.appendChild(draggableButton);
 
 // --- Helper Functions ---
 
+// Add localStorage key constant at the top with other constants
+const DIVIDER_POSITION_KEY = 'lastDividerPosition';
+
+// Add function to save divider position
+function saveDividerPosition(leftPercentage) {
+    try {
+        localStorage.setItem(DIVIDER_POSITION_KEY, leftPercentage.toString());
+    } catch (error) {
+        console.warn('Failed to save divider position:', error);
+    }
+}
+
+// Add function to load divider position
+function loadDividerPosition() {
+    try {
+        const savedPosition = localStorage.getItem(DIVIDER_POSITION_KEY);
+        if (savedPosition) {
+            const percentage = parseFloat(savedPosition);
+            // Allow full range from 0-100%
+            if (percentage >= 0 && percentage <= 100) {
+                return percentage;
+            }
+        }
+    } catch (error) {
+        console.warn('Failed to load divider position:', error);
+    }
+    return 50; // Default to 50% if no valid saved position
+}
+
+// Modify the setColumnWidths function to save the position
 function setColumnWidths(leftPercent, rightPercent) {
     canvasContainer.style.width = `${leftPercent}%`;
     rightColumn.style.width = `${rightPercent}%`;
     resizeHandle.style.left = `${leftPercent}%`; // Update handle position based on left width
-    // REMOVED call to requestAnimationFrame(updateGradientWidths); 
+    saveDividerPosition(leftPercent); // Save the position whenever it changes
 }
+
+// Initialize the divider position when the page loads
+document.addEventListener('DOMContentLoaded', () => {
+    const savedPosition = loadDividerPosition();
+    setColumnWidths(savedPosition, 100 - savedPosition);
+    lastLeftPercentage = savedPosition;
+    lastRightPercentage = 100 - savedPosition;
+});
 
 function updateButtonStates() {
     const leftIsCollapsed = canvasContainer.classList.contains('collapsed');
@@ -2771,16 +2852,13 @@ document.addEventListener('mousemove', (e) => {
     const containerWidth = mainContainer.offsetWidth;
     const percentage = (newLeftWidth / containerWidth) * 100;
     
-    // Apply new widths if within reasonable bounds (20% to 80%)
-    if (percentage >= 20 && percentage <= 80) {
+    // Allow full range from 0-100%
+    if (percentage >= 0 && percentage <= 100) {
         lastLeftPercentage = percentage; // Store percentage during drag
         lastRightPercentage = 100 - percentage;
         setColumnWidths(percentage, 100 - percentage);
         updateBullsEyePosition();
         focalPoint.handleOnWindowResize();
-        // Minimal layout thrashing - offsetHeight might not be needed here
-        // canvasContainer.offsetHeight;
-        // rightColumn.offsetHeight;
     }
 });
 
