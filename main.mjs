@@ -2675,9 +2675,19 @@ collapseButtonsContainer.className = 'collapse-buttons-container';
 collapseButtonsContainer.appendChild(collapseLeftButton);
 collapseButtonsContainer.appendChild(collapseRightButton);
 
+// Create percentage display
+const percentageDisplay = document.createElement('button');
+percentageDisplay.className = 'percentage-display';
+percentageDisplay.title = 'Click to reset to 50%';
+percentageDisplay.addEventListener('click', (e) => {
+    e.stopPropagation();
+    resetLayout();
+});
+
 // Add the containers to the handle
 resizeHandle.appendChild(collapseButtonsContainer);
 resizeHandle.appendChild(draggableButton);
+resizeHandle.appendChild(percentageDisplay);
 
 // --- Helper Functions ---
 
@@ -2712,10 +2722,57 @@ function loadDividerPosition() {
 
 // Modify the setColumnWidths function to save the position
 function setColumnWidths(leftPercent, rightPercent) {
+    // Allow full range from 0 to 100%
+    leftPercent = Math.max(0, Math.min(100, leftPercent));
+    rightPercent = 100 - leftPercent;
+    
     canvasContainer.style.width = `${leftPercent}%`;
     rightColumn.style.width = `${rightPercent}%`;
-    resizeHandle.style.left = `${leftPercent}%`; // Update handle position based on left width
-    focalPoint.saveState(); // Save state including divider position
+    resizeHandle.style.left = `${leftPercent}%`;
+    
+    // Update percentage display
+    percentageDisplay.textContent = `${Math.round(leftPercent)}%`;
+    
+    // Remove any existing position classes
+    mainContainer.classList.remove('left-column-collapsed', 'right-column-collapsed');
+    
+    // Apply appropriate class based on position
+    if (leftPercent === 0) {
+        mainContainer.classList.add('left-column-collapsed');
+    } else if (leftPercent === 100) {
+        mainContainer.classList.add('right-column-collapsed');
+    }
+    
+    // Update button visibility based on divider position
+    if (leftPercent <= 10) {
+        // Between 0 and 10: show o and >
+        collapseLeftButton.style.display = 'none';
+        collapseRightButton.style.display = 'block';
+        draggableButton.style.display = 'block';
+    } else if (leftPercent <= 35) {
+        // Between 10 and 35: show all 3
+        collapseLeftButton.style.display = 'block';
+        collapseRightButton.style.display = 'block';
+        draggableButton.style.display = 'block';
+    } else if (leftPercent <= 65) {
+        // Between 35 and 65: only < and >
+        collapseLeftButton.style.display = 'block';
+        collapseRightButton.style.display = 'block';
+        draggableButton.style.display = 'none';
+    } else if (leftPercent <= 90) {
+        // Between 65 and 90: show all 3
+        collapseLeftButton.style.display = 'block';
+        collapseRightButton.style.display = 'block';
+        draggableButton.style.display = 'block';
+    } else {
+        // Between 90 and 100: show < and o
+        collapseLeftButton.style.display = 'block';
+        collapseRightButton.style.display = 'none';
+        draggableButton.style.display = 'block';
+    }
+    
+    saveDividerPosition(leftPercent);
+    focalPoint.saveState();
 }
 
 // Initialize the divider position when the page loads

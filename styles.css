@@ -34,6 +34,9 @@ regardless of the window size.
   width: 100%; /* Full width */
   height: auto; /* resize to fit content */
   position: relative; /* For absolute positioning of resize handle */
+  margin: 0;
+  padding: 0;
+  overflow: hidden;
 }
 
 /*
@@ -160,6 +163,8 @@ overflow and ensures consistent sizing.
   background-color: var(--background-dark);
   z-index: 0;
   transition: width 0.3s ease; /* Add matching transition */
+  margin: 0;
+  padding: 0;
 }
 
 #canvas-container.collapsed {
@@ -301,6 +306,8 @@ div.card-div span.tag-link {
   position: relative;
   overflow-y: hidden;
   transition: width 0.3s ease; /* Add smooth transition */
+  margin: 0;
+  padding: 0;
 }
 
 #right-column.collapsed {
@@ -309,27 +316,60 @@ div.card-div span.tag-link {
 
 #resize-handle {
   position: absolute;
-  left: 50%; /* Initial position controlled by JS during resize */
+  left: 50%;
   top: 0;
   bottom: 0;
-  width: 10px; /* Slightly wider for two buttons */
+  width: 20px;
   background-color: rgba(128, 128, 128, 0.4);
   cursor: col-resize;
   z-index: 1000;
-  transform: translateX(-50%);
+  transform: translateX(-50%); /* Centers the handle on its left position */
   transition: background-color 0.2s, left 0.3s ease;
-  display: flex !important; 
+  display: flex !important;
   flex-direction: column;
   align-items: center;
-  justify-content: space-between; /* This will push the d-button to the bottom */
-  padding: 5px 0; /* Add some padding */
+  justify-content: space-between;
+  padding: 5px 0;
+  overflow: visible;
+  margin: 0;
+}
+
+/* Handle position when left is collapsed */
+#main-container.left-column-collapsed #resize-handle {
+    left: 0; /* Center at exactly 0% */
+    transform: translateX(-50%); /* This makes left edge at -10px and right edge at +10px */
+}
+
+/* Handle position when right is collapsed */
+#main-container.right-column-collapsed #resize-handle {
+    left: 100%; /* Center at exactly 100% */
+    transform: translateX(-50%); /* This makes left edge at width-10px and right edge at width+10px */
 }
 
 /* Container for the collapse buttons at the top */
 .collapse-buttons-container {
-  display: flex;
+  display: flex !important;
   flex-direction: column;
   gap: 2px;
+  position: relative;
+  z-index: 1001;
+  width: 20px;
+  align-items: center;
+  transition: transform 0.3s ease;
+}
+
+/* When at far left (0%), shift buttons right by 10px */
+#main-container.left-column-collapsed .collapse-buttons-container,
+#main-container.left-column-collapsed #toggle-draggable-button,
+#main-container.left-column-collapsed .percentage-display {
+    transform: translateX(10px);
+}
+
+/* When at far right (100%), shift buttons left by 10px */
+#main-container.right-column-collapsed .collapse-buttons-container,
+#main-container.right-column-collapsed #toggle-draggable-button,
+#main-container.right-column-collapsed .percentage-display {
+    transform: translateX(-10px);
 }
 
 /* Style for all buttons in the resize handle */
@@ -341,7 +381,7 @@ div.card-div span.tag-link {
   background: rgba(50, 50, 50, 0.9);
   color: white;
   cursor: pointer;
-  display: flex;
+  display: flex !important;
   align-items: center;
   justify-content: center;
   font-size: 12px;
@@ -351,6 +391,7 @@ div.card-div span.tag-link {
   transition: all 0.2s ease;
   padding: 0;
   margin: 2px 0;
+  position: relative;
 }
 
 #resize-handle button:hover {
@@ -367,18 +408,6 @@ div.card-div span.tag-link {
 #toggle-draggable-button.draggable-off {
   background-color: gray;
   color: white;
-}
-
-/* Handle position when left is collapsed */
-#main-container.left-column-collapsed #resize-handle {
-    left: 0% !important; 
-    transform: translateX(0%); 
-}
-
-/* Handle position when right is collapsed */
-#main-container.right-column-collapsed #resize-handle {
-    left: 100% !important;
-    transform: translateX(-100%);
 }
 
 /* Style for the toggle buttons */
@@ -416,17 +445,18 @@ div.card-div span.tag-link {
     background: rgba(50, 50, 50, 0.9);
     color: white;
     cursor: pointer;
-    display: flex;
+    display: flex !important; /* Force display flex */
     align-items: center;
     justify-content: center;
     font-size: 12px;
     font-weight: bold;
     line-height: 1;
-    z-index: 1001;
+    z-index: 1002; /* Ensure it's above other elements */
     transition: all 0.2s ease;
     margin: 2px 0;
     padding: 0;
-    font-family: monospace; /* Use monospace for single letters */
+    font-family: monospace;
+    position: relative; /* Ensure proper stacking context */
 }
 
 .toggle-state-button:hover {
@@ -652,5 +682,23 @@ html[native-dark-active] #canvas-container,
 
 #color-palette-container:hover #color-palette-selector {
     pointer-events: auto;
+}
+
+/* Add percentage display under buttons */
+.percentage-display {
+    color: white;
+    font-size: 10px;
+    font-family: monospace;
+    text-align: center;
+    margin-top: 5px;
+    cursor: pointer;
+    background: none;
+    border: none;
+    padding: 2px;
+    width: 100%;
+}
+
+.percentage-display:hover {
+    color: #00ff00;
 }
 
