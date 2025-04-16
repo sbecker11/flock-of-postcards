@@ -2742,6 +2742,21 @@ function setColumnWidths(leftPercent, rightPercent) {
     } else if (leftPercent === 100) {
         mainContainer.classList.add('right-column-collapsed');
     }
+
+    // Update button layout based on divider position
+    const buttonsContainer = document.querySelector('.buttons');
+    buttonsContainer.classList.remove('layout-vertical', 'layout-2x2', 'layout-horizontal');
+    
+    if (leftPercent >= 80) {
+        // 80-100%: 4 rows × 1 column
+        buttonsContainer.classList.add('layout-vertical');
+    } else if (leftPercent >= 70 && leftPercent < 80) {
+        // 70-80%: 2 rows × 2 columns
+        buttonsContainer.classList.add('layout-2x2');
+    } else {
+        // 0-70%: 1 row × 4 columns
+        buttonsContainer.classList.add('layout-horizontal');
+    }
     
     // Update button visibility based on divider position
     if (leftPercent <= 10) {
@@ -2888,11 +2903,9 @@ function updateBullsEyePosition() {
 // --- Resize Handle Logic ---
 resizeHandle.addEventListener('mousedown', (e) => {
     // Ignore mousedown if the click is on the buttons
-    if (e.target.classList.contains('toggle-collapse-button')) return;
-    
-    // Prevent resizing if a column is collapsed
-    if (mainContainer.classList.contains('left-column-collapsed') || 
-        mainContainer.classList.contains('right-column-collapsed')) {
+    if (e.target.classList.contains('toggle-collapse-button') || 
+        e.target.classList.contains('toggle-state-button') ||
+        e.target.classList.contains('percentage-display')) {
         return;
     }
 
@@ -2902,6 +2915,17 @@ resizeHandle.addEventListener('mousedown', (e) => {
     resizeHandle.classList.add('dragging');
     document.body.style.userSelect = 'none';
     document.body.style.cursor = 'col-resize';
+
+    // If a column is collapsed, restore to the last known position before starting the drag
+    if (mainContainer.classList.contains('left-column-collapsed')) {
+        mainContainer.classList.remove('left-column-collapsed');
+        canvasContainer.classList.remove('collapsed');
+        setColumnWidths(10, 90); // Start from 10% when expanding from left collapse
+    } else if (mainContainer.classList.contains('right-column-collapsed')) {
+        mainContainer.classList.remove('right-column-collapsed');
+        rightColumn.classList.remove('collapsed');
+        setColumnWidths(90, 10); // Start from 90% when expanding from right collapse
+    }
 });
 
 document.addEventListener('mousemove', (e) => {
@@ -2910,11 +2934,14 @@ document.addEventListener('mousemove', (e) => {
     const dx = e.pageX - startX;
     const newLeftWidth = startLeftWidth + dx;
     const containerWidth = mainContainer.offsetWidth;
-    const percentage = (newLeftWidth / containerWidth) * 100;
+    const rawPercentage = (newLeftWidth / containerWidth) * 100;
+    
+    // Snap to nearest 5% increment
+    const percentage = Math.round(rawPercentage / 5) * 5;
     
     // Allow full range from 0-100%
     if (percentage >= 0 && percentage <= 100) {
-        lastLeftPercentage = percentage; // Store percentage during drag
+        lastLeftPercentage = percentage;
         lastRightPercentage = 100 - percentage;
         setColumnWidths(percentage, 100 - percentage);
         updateBullsEyePosition();
@@ -2928,10 +2955,28 @@ document.addEventListener('mouseup', () => {
         resizeHandle.classList.remove('dragging');
         document.body.style.userSelect = '';
         document.body.style.cursor = '';
-        // Store the final percentage after dragging
-        lastLeftPercentage = parseFloat(canvasContainer.style.width) || 50;
-        lastRightPercentage = parseFloat(rightColumn.style.width) || 50;
-        // Final update of bulls-eye position
+        
+        // Get the final percentage
+        const finalLeftPercentage = parseFloat(canvasContainer.style.width) || 50;
+        
+        // Only collapse at exact 0% or 100%
+        if (finalLeftPercentage === 0) {
+            // Collapse left
+            mainContainer.classList.add('left-column-collapsed');
+            canvasContainer.classList.add('collapsed');
+            setColumnWidths(0, 100);
+        } else if (finalLeftPercentage === 100) {
+            // Collapse right
+            mainContainer.classList.add('right-column-collapsed');
+            rightColumn.classList.add('collapsed');
+            setColumnWidths(100, 0);
+        } else {
+            // Store the final percentage after dragging
+            lastLeftPercentage = finalLeftPercentage;
+            lastRightPercentage = 100 - finalLeftPercentage;
+        }
+        
+        updateButtonStates();
         updateBullsEyePosition();
     }
 });
@@ -2973,3 +3018,11 @@ function updateDraggableButtonState() {
 // Initial button state update
 updateButtonStates();
 updateDraggableButtonState(); // Update draggable button initial state
+
+function updateButtonLayout() {
+  // Remove any existing layout classes
+  buttonsContainer.classList.remove('layout-vertical', 'layout-horizontal', 'layout-2x2');
+  
+  // Let flexbox handle the layout naturally based on container width
+  // No need to add specific layout classes anymore
+}

@@ -590,30 +590,36 @@ div.card-div span.tag-link {
 }
 
 .buttons {
-  text-align: left;
-  width: 100%;
-  margin-bottom: 10px;
   display: flex;
   flex-wrap: wrap;
   gap: 5px;
+  width: 100%;
+  padding: 5px;
 }
 
 .buttons button {
-  flex: 1 1 auto;
-  min-width: 60px;
+  flex: 0 0 60px; /* Fixed width of 60px */
   padding: 8px 12px;
-  background-color: green;
+  background-color: #4CAF50;
   color: white;
   border: none;
   border-radius: 4px;
   cursor: pointer;
-  font-weight: bold;
-  white-space: nowrap;
   text-align: center;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* When container width is greater than 60%, allow buttons to grow */
+@media (min-width: 60%) {
+  .buttons button {
+    flex: 1 1 auto;
+  }
 }
 
 .buttons button:hover {
-  background-color: #006400;
+  background-color: #45a049;
 }
 
 .menu-button {
@@ -644,15 +650,19 @@ html[native-dark-active] #canvas-container,
 
 #color-palette-container {
     position: relative;
-    display: inline-block;
+    display: flex;
     outline: none;
+    padding: 5px;
+    width: 100%;
 }
 
 #color-palette-selector {
-    width: 100%;
-    padding: 5px;
-    margin-bottom: 10px;
-    background-color: green;
+    flex: 1 1 auto;
+    min-width: 60px;
+    max-width: calc(240px + 15px); /* 4 buttons + 3 gaps max */
+    padding: 8px 12px;
+    margin: 0;
+    background-color: #4CAF50;
     color: white;
     border: none;
     border-radius: 4px;
@@ -661,19 +671,40 @@ html[native-dark-active] #canvas-container,
     outline: none;
 }
 
+/* When container width is less than 90%, adjust max-width */
+@media (max-width: 90%) {
+    #color-palette-selector {
+        max-width: calc(180px + 10px); /* 3 buttons + 2 gaps */
+    }
+}
+
+/* When container width is less than 70%, adjust max-width */
+@media (max-width: 70%) {
+    #color-palette-selector {
+        max-width: calc(120px + 5px); /* 2 buttons + 1 gap */
+    }
+}
+
+/* When container width is less than 50%, adjust max-width */
+@media (max-width: 50%) {
+    #color-palette-selector {
+        max-width: 60px; /* 1 button */
+    }
+}
+
 #color-palette-selector option {
-  background-color: green;
-  color: white;
-  font-weight: bold;
+    background-color: #4CAF50;
+    color: white;
+    font-weight: bold;
 }
 
 #color-palette-selector:hover {
-  background-color: #006400; /* darker green on hover */
+    background-color: #45a049;
 }
 
 #color-palette-selector:focus {
-  outline: none;
-  box-shadow: 0 0 5px rgba(255, 255, 255, 0.5);
+    outline: none;
+    box-shadow: 0 0 5px rgba(255, 255, 255, 0.5);
 }
 
 #color-palette-selector:not(:focus) {
