@@ -49,6 +49,7 @@ var _isBeingDragged = false;
 let _focalPointRadius = 0;
 let _bullsEyeCenter = { x: 0, y: 0 };
 const _mouseDrag = new MouseDrag();
+let _resizeObserver = null;
 
 let _status = "asleep";
 let _lastStatus = "asleep";
@@ -68,7 +69,114 @@ function getStatus() {
     return _status;
 }
 
+// Add these functions near the top of the file, after the imports
+function saveDraggableState(state) {
+    try {
+        localStorage.setItem('focalPoint_isDraggable', JSON.stringify(state));
+    } catch (e) {
+        logger.error('Failed to save draggable state:', e);
+    }
+}
 
+function loadDraggableState() {
+    try {
+        const saved = localStorage.getItem('focalPoint_isDraggable');
+        return saved !== null ? JSON.parse(saved) : true;  // Default to true if not set
+    } catch (e) {
+        logger.error('Failed to load draggable state:', e);
+        return true;  // Default to true on error
+    }
+}
+
+// Add state management functions after the imports
+const STORAGE_KEY = 'focalPoint_state';
+
+function getDefaultState() {
+    return {
+        isDraggable: true,
+        isLockedToBullsEye: false,
+        lastPosition: null,
+        dividerPosition: 50, // Default 50% split
+        selectedPalette: null, // Will be set to first available palette
+        lastUpdated: new Date().toISOString(),
+        version: "1.0"
+    };
+}
+
+function saveState() {
+    try {
+        const paletteSelector = document.getElementById('color-palette-selector');
+        const canvasContainer = document.getElementById('canvas-container');
+        
+        const state = {
+            isDraggable: _isDraggable,
+            isLockedToBullsEye: _isLockedToBullsEye,
+            lastPosition: getFocalPoint(),
+            dividerPosition: parseFloat(canvasContainer.style.width) || 50,
+            selectedPalette: paletteSelector ? paletteSelector.value : null,
+            lastUpdated: new Date().toISOString(),
+            version: "1.0"
+        };
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(state, null, 2));
+        logger.info('Saved focal point state:', state);
+    } catch (e) {
+        logger.error('Failed to save focal point state:', e);
+    }
+}
+
+function loadState() {
+    try {
+        const saved = localStorage.getItem(STORAGE_KEY);
+        if (!saved) {
+            return getDefaultState();
+        }
+        const state = JSON.parse(saved);
+        logger.info('Loaded focal point state:', state);
+        return state;
+    } catch (e) {
+        logger.error('Failed to load focal point state:', e);
+        return getDefaultState();
+    }
+}
+
+// Initialize state from storage
+function initializeState() {
+    const state = loadState();
+    _isDraggable = state.isDraggable;
+    _isLockedToBullsEye = state.isLockedToBullsEye;
+    
+    // Apply divider position
+    const canvasContainer = document.getElementById('canvas-container');
+    const rightColumn = document.getElementById('right-column');
+    if (canvasContainer && rightColumn) {
+        const leftPercent = state.dividerPosition;
+        const rightPercent = 100 - leftPercent;
+        canvasContainer.style.width = `${leftPercent}%`;
+        rightColumn.style.width = `${rightPercent}%`;
+        const resizeHandle = document.getElementById('resize-handle');
+        if (resizeHandle) {
+            resizeHandle.style.left = `${leftPercent}%`;
+        }
+        // Update bulls-eye position after setting the divider
+        updateBullsEyeCenter();
+    }
+
+    // Apply palette selection if available
+    const paletteSelector = document.getElementById('color-palette-selector');
+    if (paletteSelector && state.selectedPalette) {
+        paletteSelector.value = state.selectedPalette;
+        // Trigger change event to apply the palette
+        const event = new Event('change');
+        paletteSelector.dispatchEvent(event);
+    }
+
+    return state;
+}
+
+// Export function to get current state (useful for debugging)
+export function getCurrentState() {
+    return loadState();
+}
 
 // on windwo load
 export function handleOnWindowLoad() {
@@ -106,20 +214,23 @@ export function handleOnWindowResize() {
 
 // on window resize
 function updateBullsEyeCenter() {
-    const canvasContainerDiv = document.getElementById('canvas-container');
-    if (!canvasContainerDiv) return;
-
-    const canvasContainerWidth = canvasContainerDiv.offsetWidth;
-    const canvasContainerHeight = canvasContainerDiv.offsetHeight;
-
-    _bullsEyeCenter = {
-        x: canvasContainerWidth / 2,
-        y: canvasContainerHeight / 2
-    };
-
-    if ( !_bullsEyeElement ) {
-        throw new Error("bulls-eye element not found");
+    if (!_canvasContainer || !_bullsEyeElement) {
+        logger.error("Cannot update bulls-eye: missing elements");
+        return;
     }
+
+    const containerRect = _canvasContainer.getBoundingClientRect();
+    const centerX = containerRect.left + (containerRect.width / 2);
+    const centerY = containerRect.top + (containerRect.height / 2);
+
+    // Update stored center position
+    _bullsEyeCenter = { x: centerX, y: centerY };
+
+    // Update bulls-eye element position
+    _bullsEyeElement.style.left = `${centerX}px`;
+    _bullsEyeElement.style.top = `${centerY}px`;
+
+    logger.info("Bulls-eye position updated:", _bullsEyeCenter);
 }
 
 export function getBullsEye() {
@@ -170,6 +281,7 @@ export function moveFocalPointTo(position, prefix="") {
     _focalPointElement.style.top = `${position.y}px`;
 
     notifyPositionListeners(position, prefix);
+    saveState(); // Save state when position changes
 }
 
 // -----------------------------------------------------
@@ -183,12 +295,15 @@ export function createFocalPoint(focalPointElement) {
     _focalPointElement = focalPointElement;
     _focalPointRadius = focalPointElement.getBoundingClientRect().width / 2.0;
 
+    // Initialize state from storage
+    const state = initializeState();
+    
     _focalPointNowSubpixelPrecision = getFocalPoint();
     _isAwake = true;
     _isEasingToBullsEye = false;
     
-    // Always keep pointer-events none by default
-    _focalPointElement.style.pointerEvents = 'none';
+    // Set initial pointer-events based on loaded draggable state
+    _focalPointElement.style.pointerEvents = _isDraggable ? 'all' : 'none';
     if (_isDraggable) {
         _focalPointElement.classList.add('focal-point-is-draggable');
     }
@@ -196,13 +311,18 @@ export function createFocalPoint(focalPointElement) {
     if (!_canvasContainer) {
         throw new Error("canvasContainer not initialized");
     }
+
+    // Initialize resize observer before any other operations
+    initializeResizeObserver();
     
     logger.log("Canvas container initialized:", {
         exists: !!_canvasContainer,
         width: _canvasContainer.offsetWidth,
-        left: _canvasContainer.offsetLeft
+        left: _canvasContainer.offsetLeft,
+        state: state
     });
 
+    // Initial bulls-eye position update
     updateBullsEyeCenter();
     checkFixtureParents();
 
@@ -229,6 +349,11 @@ export function createFocalPoint(focalPointElement) {
 
     setAimPoint(getBullsEye(), "createFocalPoint");
     moveFocalPointTo(getBullsEye(), "createFocalPoint");
+
+    // Update bulls-eye position again after any CSS transitions complete
+    setTimeout(() => {
+        updateBullsEyeCenter();
+    }, 310); // Match the transition duration from CSS
 }
 
 const _focalPointPositionListeners = [];
@@ -452,13 +577,12 @@ export function toggleDraggable() {
     _isDraggable = !_isDraggable;
     if (_isDraggable) {
         _focalPointElement.classList.add('focal-point-is-draggable');
-        // Enable pointer events when draggable
         _focalPointElement.style.pointerEvents = 'all';
     } else {
         _focalPointElement.classList.remove('focal-point-is-draggable');
-        // Disable pointer events when not draggable
         _focalPointElement.style.pointerEvents = 'none';
     }
+    saveState();
     logger.info(`toggleDraggable: ${_isDraggable}`);
 }
 
@@ -526,18 +650,16 @@ export function handleKeyDown(event) {
     if (event.key === 'b') {
         _isLockedToBullsEye = !_isLockedToBullsEye;
         if (_isLockedToBullsEye) {
-            // Move to bulls-eye and stay there
             moveFocalPointTo(getBullsEye(), "locked-to-bullseye");
-            // Disable dragging while locked
             if (_isDraggable) {
                 toggleDraggable();
             }
         } else {
-            // Re-enable dragging when unlocked
             if (!_isDraggable) {
                 toggleDraggable();
             }
         }
+        saveState();
         event.preventDefault();
     }
 }
@@ -547,3 +669,38 @@ window.addEventListener('load', handleOnWindowLoad);
 
 // Draw on window resize
 window.addEventListener('resize', handleOnWindowResize);
+
+// Function to initialize resize observer
+function initializeResizeObserver() {
+    if (_resizeObserver) {
+        _resizeObserver.disconnect();
+    }
+
+    _resizeObserver = new ResizeObserver((entries) => {
+        for (const entry of entries) {
+            if (entry.target === _canvasContainer) {
+                updateBullsEyeCenter();
+                // If focal point is locked to bulls-eye, update its position too
+                if (_isLockedToBullsEye) {
+                    moveFocalPointTo(getBullsEye(), "resize-observer");
+                }
+            }
+        }
+    });
+
+    if (_canvasContainer) {
+        _resizeObserver.observe(_canvasContainer);
+        logger.info("ResizeObserver initialized for canvas container");
+    }
+}
+
+// Clean up when needed (e.g., before page unload)
+function cleanup() {
+    if (_resizeObserver) {
+        _resizeObserver.disconnect();
+        _resizeObserver = null;
+    }
+}
+
+// Add cleanup listener
+window.addEventListener('unload', cleanup);

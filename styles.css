@@ -560,9 +560,30 @@ div.card-div span.tag-link {
 }
 
 .buttons {
-  text-align: justify;
+  text-align: left;
   width: 100%;
   margin-bottom: 10px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px;
+}
+
+.buttons button {
+  flex: 1 1 auto;
+  min-width: 60px;
+  padding: 8px 12px;
+  background-color: green;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-weight: bold;
+  white-space: nowrap;
+  text-align: center;
+}
+
+.buttons button:hover {
+  background-color: #006400;
 }
 
 .menu-button {

@@ -309,7 +309,7 @@ export class PaletteSelector {
         this.applyPaletteToDocument();
     }
 
-    selectPalette(selected_value) {
+    async selectPalette(selected_value) {
         console.log("selectPalette selected_value:", selected_value);
         // Ensure the selected value exists in the loaded palettes
         if (selected_value === null || !this.color_palettes[selected_value]) {
@@ -327,8 +327,11 @@ export class PaletteSelector {
         // Save the selected palette to localStorage
         try {
             localStorage.setItem(LOCAL_STORAGE_PALETTE_KEY, selected_value);
+            // Also save to focal point state
+            const focalPoint = await import('./focal_point.mjs');
+            focalPoint.saveState();
         } catch (error) {
-            console.warn('Failed to save palette selection to localStorage:', error);
+            console.warn('Failed to save palette selection:', error);
         }
 
         // Update the <select> element UI to match the programmatically selected value

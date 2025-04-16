@@ -2659,6 +2659,9 @@ draggableButton.className = 'toggle-state-button d-button'; // Add specific clas
 draggableButton.innerHTML = 'd';
 draggableButton.title = 'Toggle focal point draggable state (Space)';
 
+// Initialize draggable button state immediately after creation
+updateDraggableButtonState();
+
 // Add click handler to draggable button
 draggableButton.addEventListener('click', (e) => {
     e.stopPropagation(); // Prevent resize handle from handling the click
@@ -2712,7 +2715,7 @@ function setColumnWidths(leftPercent, rightPercent) {
     canvasContainer.style.width = `${leftPercent}%`;
     rightColumn.style.width = `${rightPercent}%`;
     resizeHandle.style.left = `${leftPercent}%`; // Update handle position based on left width
-    saveDividerPosition(leftPercent); // Save the position whenever it changes
+    focalPoint.saveState(); // Save state including divider position
 }
 
 // Initialize the divider position when the page loads
