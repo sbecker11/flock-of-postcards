@@ -1044,3 +1044,22 @@ export function showElement(element, prefix="", logLevel=LogLevel.LOG) {
     logger.logWithLevel(JSON.stringify(elementInfo, utils.formatNumbersReplacer, 2), logLevel);
 }
 
+export function getRandomElement(array) {
+    if ( ! this.isArray(array) ) {
+        throw new Error("getRandomElement: given non-array");
+    }
+    if ( array.length == 0 ) {
+        throw new Error("getRandomElement: given empty array");
+    }
+    return array[Math.floor(Math.random() * array.length)];
+}
+
+export function shuffle(array) {
+    if ( ! this.isArray(array) ) {
+        throw new Error("shuffle: given non-array");
+    }
+    if ( array.length == 0 ) {
+        throw new Error("shuffle: given empty array");
+    }
+    return array.sort(() => Math.random() - 0.5);
+}

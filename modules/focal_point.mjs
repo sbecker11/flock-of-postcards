@@ -103,7 +103,7 @@ function getDefaultState() {
     };
 }
 
-function saveState() {
+export function saveState() {
     try {
         const paletteSelector = document.getElementById('color-palette-selector');
         const canvasContainer = document.getElementById('canvas-container');
