@@ -262,6 +262,11 @@ overflow and ensures consistent sizing.
   z-index: 20; /* Minimum z-index for cards */
 }
 
+.card-div:hover,
+.bizcard-div:hover {
+  filter: brightness(150%) !important;
+}
+
 div.card-div.selected,
 div.bizcard-div.selected {
   border-width: 5px !important;

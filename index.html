@@ -42,12 +42,10 @@
 
     <div id="right-column">
       <div id="right-header-div" style="display: flex; flex-direction: column; align-items: flex-start;">
-        <p class="intro">Welcome to your flock-of-postcards!</p>
+        <p class="intro" style="padding-left: 5px;">Welcome to your flock-of-postcards!</p>
         <div class="buttons">
           <button id="select-first-bizcard">First</button>
           <button id="select-next-bizcard">Next</button>
-          <button id="select-all-bizcards">All</button>
-          <button id="clear-all-line-items">Clear</button>
         </div>
         <div id="color-palette-container" tabindex="-1">
             <select id="color-palette-selector" tabindex="0"></select>
@@ -60,7 +58,7 @@
       
       <div id="right-footer-div" style="display: flex; flex-direction: column;">
         <div style="display: flex; justify-content: space-between; align-items: center;">
-            <p class="footnote" style="margin: 0;">
+            <p class="footnote" style="margin: 0; padding-left: 5px;">
                 create a flock-of-postcards for your own resume at
                 <a target="_blank" href="https://github.com/sbecker11/flock-of-postcards/">flock-of-postcards</a><br>
             </p>
@@ -84,6 +82,12 @@
 
   <script>
     // Initialization is now handled in main.mjs
+
+    // For card-div elements
+    const cardDivs = document.getElementsByClassName("card-div");
+
+    // For bizcard-div elements
+    const bizcardDivs = document.getElementsByClassName("bizcard-div");
   </script>
 
 </body>

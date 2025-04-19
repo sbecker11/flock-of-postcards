@@ -55,6 +55,8 @@ let _status = "asleep";
 let _lastStatus = "asleep";
 
 let _isLockedToBullsEye = false;
+let _followPointerOutsideContainer = false;
+let _pointerIsOutsideWindow = false;  // New state to track if pointer is outside window
 
 function setStatus(new_status, prefix="") {
     _lastStatus = _status;
@@ -103,7 +105,7 @@ function getDefaultState() {
     };
 }
 
-function saveState() {
+export function saveState() {
     try {
         const paletteSelector = document.getElementById('color-palette-selector');
         const canvasContainer = document.getElementById('canvas-container');
@@ -118,7 +120,7 @@ function saveState() {
             version: "1.0"
         };
         localStorage.setItem(STORAGE_KEY, JSON.stringify(state, null, 2));
-        logger.info('Saved focal point state:', state);
+        logger.log('Saved focal point state:', state);
     } catch (e) {
         logger.error('Failed to save focal point state:', e);
     }
@@ -131,7 +133,7 @@ function loadState() {
             return getDefaultState();
         }
         const state = JSON.parse(saved);
-        logger.info('Loaded focal point state:', state);
+        logger.log('Loaded focal point state:', state);
         return state;
     } catch (e) {
         logger.error('Failed to load focal point state:', e);
@@ -230,7 +232,7 @@ function updateBullsEyeCenter() {
     _bullsEyeElement.style.left = `${centerX}px`;
     _bullsEyeElement.style.top = `${centerY}px`;
 
-    logger.info("Bulls-eye position updated:", _bullsEyeCenter);
+    logger.log("Bulls-eye position updated:", _bullsEyeCenter);
 }
 
 export function getBullsEye() {
@@ -410,7 +412,10 @@ function onCanvasContainerMove(event) {
 function onCanvasContainerLeave(event) {
     const eventPosition = getEventPosition(event);
     setStatus("leaveContainer", "onCanvasContainerLeave", LogLevel.LOG);        
-    startEasingToBullsEye("onCanvasContainerLeave");
+    if (!_followPointerOutsideContainer && !_isBeingDragged) {
+        setAimPoint(getBullsEye(), "onCanvasContainerLeave");
+        startEasingToBullsEye("onCanvasContainerLeave");
+    }
 }
 
 // unless being dragged by mouse
@@ -452,7 +457,7 @@ export function setAimPoint(position, prefix="") {
         _aimPointDotElement.classList.remove('hidden');
     }
     if (prefix != "") {
-        logger.info(`setAimPoint:${prefix}`, position);
+        logger.log(`setAimPoint:${prefix}`, position);
     }
 }
 
@@ -520,7 +525,7 @@ export function drawFocalPointAnimationFrame() {
     const aimPos = getAimPoint();
     const dist = getPositionsDist(currentPos, aimPos);
 
-    // logger.info("Animation frame:", {
+    // logger.log("Animation frame:", {
     //     currentPos,
     //     aimPos,
     //     dist,
@@ -550,7 +555,7 @@ export function drawFocalPointAnimationFrame() {
             x: Math.round(_focalPointNowSubpixelPrecision.x),
             y: Math.round(_focalPointNowSubpixelPrecision.y)
         };
-        //logger.info("Moving to new position:", newPos);
+        //logger.log("Moving to new position:", newPos);
         moveFocalPointTo(newPos);
     }
 }
@@ -583,7 +588,7 @@ export function toggleDraggable() {
         _focalPointElement.style.pointerEvents = 'none';
     }
     saveState();
-    logger.info(`toggleDraggable: ${_isDraggable}`);
+    logger.log(`toggleDraggable: ${_isDraggable}`);
 }
 
 // if focalPoint isDraggable and click on focalPoint then start dragging it
@@ -650,11 +655,13 @@ export function handleKeyDown(event) {
     if (event.key === 'b') {
         _isLockedToBullsEye = !_isLockedToBullsEye;
         if (_isLockedToBullsEye) {
+            logger.info("Aim point mode: Locked to bulls-eye");
             moveFocalPointTo(getBullsEye(), "locked-to-bullseye");
             if (_isDraggable) {
                 toggleDraggable();
             }
         } else {
+            logger.info("Aim point mode: Free movement");
             if (!_isDraggable) {
                 toggleDraggable();
             }
@@ -662,6 +669,49 @@ export function handleKeyDown(event) {
         saveState();
         event.preventDefault();
     }
+}
+
+// Add this function before the handleKeyDown function
+export function toggleFollowPointerOutsideContainer() {
+    _followPointerOutsideContainer = !_followPointerOutsideContainer;
+    logger.info(`Aim point mode: ${_followPointerOutsideContainer ? 'Following pointer (window bounds)' : 'Container bounds only'}`);
+    if (_followPointerOutsideContainer) {
+        document.addEventListener('mousemove', onDocumentMouseMove);
+        window.addEventListener('mouseleave', onWindowMouseLeave);
+        window.addEventListener('mouseenter', onWindowMouseEnter);
+    } else {
+        document.removeEventListener('mousemove', onDocumentMouseMove);
+        window.removeEventListener('mouseleave', onWindowMouseLeave);
+        window.removeEventListener('mouseenter', onWindowMouseEnter);
+        if (!_isBeingDragged) {
+            startEasingToBullsEye("toggleFollowPointerOutsideContainer");
+        }
+    }
+}
+
+function onDocumentMouseMove(event) {
+    if (!_followPointerOutsideContainer || _isBeingDragged) return;
+    const eventPosition = getEventPosition(event);
+    setAimPoint(eventPosition, "onDocumentMouseMove");
+    startEasingToAimPoint("onDocumentMouseMove");
+}
+
+function onWindowMouseLeave(event) {
+    if (!_followPointerOutsideContainer || _isBeingDragged) return;
+    _pointerIsOutsideWindow = true;
+    const exitPosition = getEventPosition(event);
+    logger.info("Pointer left window at position:", exitPosition);
+    // Keep the last known position
+    setAimPoint(exitPosition, "window.mouseleave");
+}
+
+function onWindowMouseEnter(event) {
+    if (!_followPointerOutsideContainer || _isBeingDragged) return;
+    _pointerIsOutsideWindow = false;
+    const entryPosition = getEventPosition(event);
+    logger.info("Pointer re-entered window at position:", entryPosition);
+    setAimPoint(entryPosition, "window.mouseenter");
+    startEasingToAimPoint("window.mouseenter");
 }
 
 // Draw on window load
@@ -690,7 +740,7 @@ function initializeResizeObserver() {
 
     if (_canvasContainer) {
         _resizeObserver.observe(_canvasContainer);
-        logger.info("ResizeObserver initialized for canvas container");
+        logger.log("ResizeObserver initialized for canvas container");
     }
 }
 
@@ -699,6 +749,12 @@ function cleanup() {
     if (_resizeObserver) {
         _resizeObserver.disconnect();
         _resizeObserver = null;
+    }
+    // Clean up the window event listeners
+    if (_followPointerOutsideContainer) {
+        document.removeEventListener('mousemove', onDocumentMouseMove);
+        window.removeEventListener('mouseleave', onWindowMouseLeave);
+        window.removeEventListener('mouseenter', onWindowMouseEnter);
     }
 }
 

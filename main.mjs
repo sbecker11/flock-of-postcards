@@ -30,8 +30,8 @@ const focalPointElement = document.getElementById("focal-point");
 const bullsEye = document.getElementById("bulls-eye");
 const selectFirstBizcardButton = document.getElementById("select-first-bizcard");
 const selectNextBizcardButton = document.getElementById("select-next-bizcard");
-const selectAllBizcardsButton = document.getElementById("select-all-bizcards");
-const clearAllLineItemsButton = document.getElementById("clear-all-line-items");
+// const selectAllBizcardsButton = document.getElementById("select-all-bizcards");
+// const clearAllLineItemsButton = document.getElementById("clear-all-line-items");
 let paletteSelector = null;
 
 // --------------------------------------
@@ -2235,16 +2235,16 @@ function selectAllBizcards() {
     selectAndScrollToCardDiv(allBizcardDivs[0]);
 }
 
-selectAllBizcardsButton.addEventListener("click", selectAllBizcards);
+// selectAllBizcardsButton.addEventListener("click", selectAllBizcards);
 
-// delete all cardDivLineItems in reverse order
-function clearAllDivCardLineItems() {
-    var allCardDivLineItems = document.getElementsByClassName("card-div-line-item");
-    for (let i=allCardDivLineItems.length-1; i >= 0 ; i--) {
-        allCardDivLineItems[i].remove();
-    }
-    deselectTheSelectedCardDiv();
-}
+// // delete all cardDivLineItems in reverse order
+// function clearAllDivCardLineItems() {
+//     var allCardDivLineItems = document.getElementsByClassName("card-div-line-item");
+//     for (let i=allCardDivLineItems.length-1; i >= 0 ; i--) {
+//         allCardDivLineItems[i].remove();
+//     }
+//     deselectTheSelectedCardDiv();
+// }
 
 // select the given cardDiv and its line item 
 // and scroll each into view
@@ -2260,13 +2260,13 @@ function selectAndScrollToCardDiv(cardDiv) {
     selectTheCardDiv(cardDiv, true);
 }
 
-//---------------------------------------
-// clearAllLineItemsButton - remove all cardDivLineItems in reverse order
+// //---------------------------------------
+// // clearAllLineItemsButton - remove all cardDivLineItems in reverse order
 
-clearAllLineItemsButton.addEventListener("click", function (event) {
-    // delete all cardDivLineItems in reverse order
-    clearAllDivCardLineItems();
-});
+// clearAllLineItemsButton.addEventListener("click", function (event) {
+//     // delete all cardDivLineItems in reverse order
+//     clearAllDivCardLineItems();
+// });
 
 //---------------------------------------
 // selectNextBizcardButton dateSortedBizcardIds
@@ -2599,6 +2599,10 @@ function handleKeyDown(event) {
                 top: canvasContainer.scrollHeight,
                 behavior: 'smooth'
             });
+            break;
+        case 'Period':
+            event.preventDefault();
+            focalPoint.toggleFollowPointerOutsideContainer();
             break;
         case 'Space':
             event.preventDefault();  // Prevent default space key scrolling
