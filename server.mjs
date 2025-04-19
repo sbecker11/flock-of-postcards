@@ -2,9 +2,14 @@ import express from 'express';
 import fs from 'fs/promises'; // Use promises for async/await
 import path from 'path';
 import cors from 'cors';
+import { fileURLToPath } from 'url';
 
-// Assume server is run from the project root directory
-const PROJECT_ROOT = process.cwd();
+// Get the directory name of the current module
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
+// Project root is the directory containing server.mjs
+const PROJECT_ROOT = __dirname;
 const PALETTE_DIR_PATH = path.resolve(PROJECT_ROOT, 'static_content', 'color_palettes');
 
 const app = express();
@@ -13,11 +18,11 @@ const app = express();
 // Enable CORS for all origins (adjust for production if needed)
 app.use(cors());
 
-// Serve static files (HTML, JS, CSS, and the palette JSON files)
-// Make sure client-side fetch paths match how files are served.
-// Serving the whole project root might be needed if index.html is there.
-console.log(`Serving static files from root: ${PROJECT_ROOT}`);
+// Serve static files from the project root
 app.use(express.static(PROJECT_ROOT));
+
+// Explicitly serve the modules directory
+app.use('/modules', express.static(path.join(PROJECT_ROOT, 'modules')));
 
 // --- API Endpoint for Dynamic Manifest ---
 app.get('/api/palette-manifest', async (req, res) => {

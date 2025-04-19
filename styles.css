@@ -219,20 +219,28 @@ overflow and ensures consistent sizing.
 }
 
 
+/* Old card styles */
 .bizcard-div {
-  position: absolute;
-  border-width: 5px;
-  border-style: solid;
-  border-color: white;
-  border-radius: 25px;
-  font-family: "Roboto", sans-serif;
-  font-weight: bold;
-  font-size: 12px;
-  padding: 20px;
-  box-sizing: border-box;
-  overflow: hidden;
-  cursor: pointer;
-  z-index: 4; /* Minimum z-index for bizcards */
+    position: absolute;
+    border-width: 5px;
+    border-style: solid;
+    border-color: white;
+    border-radius: 0px;  /* Square corners for old cards */
+    font-family: "Roboto", sans-serif;
+    font-weight: bold;
+    font-size: 12px;
+    padding: 20px;
+    box-sizing: border-box;
+    overflow: hidden;
+    cursor: default;
+    z-index: 4; /* Minimum z-index for bizcards */
+    transition: filter 0.2s ease;
+}
+
+.bizcard-div.card-hover, .card-div.card-hover,
+.bizcard-div:hover, .card-div:hover {
+    filter: brightness(125%) !important;
+    cursor: pointer;
 }
 
 .bizcard-div-role {
@@ -253,6 +261,7 @@ overflow and ensures consistent sizing.
   border-width: 3px;
   border-style: solid;
   border-color: white;
+  border-radius: 40px;  /* Increased border radius for new cards */
   font-family: "Roboto", sans-serif;
   font-weight: normal;
   font-size: 14px;
@@ -579,13 +588,13 @@ div.card-div span.tag-link {
 
 .card-div-line-item-right-column .card-div-line-item-delete-button {
   background-color: red;
-  background: url("./static_content/icons/big-red-x.gif");
+  background: url("/static_content/icons/big-red-x.gif");
   cursor: pointer;
 }
 
 .card-div-line-item-right-column .card-div-line-item-follow-button {
   background-color: green;
-  background: url("./static_content/icons/green-next.gif");
+  background: url("/static_content/icons/green-next.gif");
   cursor: pointer;
 }
 
@@ -732,4 +741,3 @@ html[native-dark-active] #canvas-container,
 .percentage-display:hover {
     color: #00ff00;
 }
-

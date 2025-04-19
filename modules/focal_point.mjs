@@ -1,6 +1,6 @@
 import * as utils from './utils.mjs';
 import { Logger, LogLevel } from "./logger.mjs";
-const logger = new Logger("focal_point", LogLevel.INFO, LogLevel.TRACE_ON_FAILURE);
+const logger = new Logger(LogLevel.INFO, LogLevel.TRACE_ON_FAILURE);
 
 class MouseDrag {
     _mouseDragStartPosition = null;
@@ -91,6 +91,9 @@ function loadDraggableState() {
 // Add state management functions after the imports
 const STORAGE_KEY = 'focalPoint_state';
 
+// Fix: Make TODAY a Date object instead of a string
+const TODAY = new Date();
+
 function getDefaultState() {
     return {
         isDraggable: true,
@@ -118,7 +121,7 @@ export function saveState() {
             version: "1.0"
         };
         localStorage.setItem(STORAGE_KEY, JSON.stringify(state, null, 2));
-        logger.info('Saved focal point state:', state);
+        logger.log('Saved focal point state:', state);
     } catch (e) {
         logger.error('Failed to save focal point state:', e);
     }
@@ -131,7 +134,7 @@ function loadState() {
             return getDefaultState();
         }
         const state = JSON.parse(saved);
-        logger.info('Loaded focal point state:', state);
+        logger.log('Loaded focal point state:', state);
         return state;
     } catch (e) {
         logger.error('Failed to load focal point state:', e);
@@ -230,7 +233,7 @@ function updateBullsEyeCenter() {
     _bullsEyeElement.style.left = `${centerX}px`;
     _bullsEyeElement.style.top = `${centerY}px`;
 
-    logger.info("Bulls-eye position updated:", _bullsEyeCenter);
+    logger.log("Bulls-eye position updated:", _bullsEyeCenter);
 }
 
 export function getBullsEye() {
@@ -452,7 +455,7 @@ export function setAimPoint(position, prefix="") {
         _aimPointDotElement.classList.remove('hidden');
     }
     if (prefix != "") {
-        logger.info(`setAimPoint:${prefix}`, position);
+        logger.log(`setAimPoint:${prefix}`, position);
     }
 }
 
@@ -520,7 +523,7 @@ export function drawFocalPointAnimationFrame() {
     const aimPos = getAimPoint();
     const dist = getPositionsDist(currentPos, aimPos);
 
-    // logger.info("Animation frame:", {
+    // logger.log("Animation frame:", {
     //     currentPos,
     //     aimPos,
     //     dist,
@@ -550,7 +553,7 @@ export function drawFocalPointAnimationFrame() {
             x: Math.round(_focalPointNowSubpixelPrecision.x),
             y: Math.round(_focalPointNowSubpixelPrecision.y)
         };
-        //logger.info("Moving to new position:", newPos);
+        //logger.log("Moving to new position:", newPos);
         moveFocalPointTo(newPos);
     }
 }
@@ -583,7 +586,7 @@ export function toggleDraggable() {
         _focalPointElement.style.pointerEvents = 'none';
     }
     saveState();
-    logger.info(`toggleDraggable: ${_isDraggable}`);
+    logger.log(`toggleDraggable: ${_isDraggable}`);
 }
 
 // if focalPoint isDraggable and click on focalPoint then start dragging it
@@ -690,7 +693,7 @@ function initializeResizeObserver() {
 
     if (_canvasContainer) {
         _resizeObserver.observe(_canvasContainer);
-        logger.info("ResizeObserver initialized for canvas container");
+        logger.log("ResizeObserver initialized for canvas container");
     }
 }
 

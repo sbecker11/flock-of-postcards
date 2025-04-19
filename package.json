@@ -5,8 +5,9 @@
   "main": "main.mjs",
   "type": "module",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
-    "start": "node server.mjs"
+    "start": "node server.mjs",
+    "dev": "nodemon --watch modules --watch server.mjs --watch main.mjs server.mjs",
+    "test": "node --experimental-vm-modules node_modules/jest/bin/jest.js"
   },
   "repository": {
     "type": "git",
@@ -26,12 +27,21 @@
   "dependencies": {
     "cors": "^2.8.5",
     "dayjs": "^1.11.10",
-    "exceljs": "^4.4.0",
     "express": "^4.21.2",
     "log4js": "^6.9.1",
     "node-fetch": "^3.3.2",
     "openai": "^4.86.1",
-    "sanitize-filename": "^1.6.3",
     "sheetjs": "latest"
+  },
+  "devDependencies": {
+    "jest": "^29.7.0",
+    "nodemon": "^3.1.9"
+  },
+  "jest": {
+    "transform": {},
+    "testEnvironment": "node",
+    "extensionsToTreatAsEsm": [
+      ".mjs"
+    ]
   }
 }

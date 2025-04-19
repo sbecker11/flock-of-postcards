@@ -1,0 +1,57 @@
+/* Legacy Card System Styles */
+
+.-bizcard-card-div- {
+    position: absolute;
+    width: 300px;
+    min-height: 150px;
+    background: rgba(30, 30, 30, 0.9);
+    border-radius: 15px;
+    padding: 20px;
+    color: white;
+    cursor: pointer;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+}
+
+.-card-div-hover- {
+    transform: scale(1.05);
+    box-shadow: 0 8px 16px rgba(0, 0, 0, 0.3);
+}
+
+.-card-div-clone- {
+    position: fixed;
+    z-index: 1000;
+    background: rgba(40, 40, 40, 0.95);
+    box-shadow: 0 16px 32px rgba(0, 0, 0, 0.4);
+    border-radius: 20px !important;
+}
+
+.-card-selected- {
+    transform: scale(1.1);
+    box-shadow: 0 12px 24px rgba(0, 0, 0, 0.4);
+    z-index: 1000;
+}
+
+.bizcard-header {
+    font-size: 1.5em;
+    font-weight: bold;
+    margin-bottom: 10px;
+}
+
+.bizcard-employer {
+    font-size: 1.2em;
+    color: #aaa;
+    margin-bottom: 5px;
+}
+
+.bizcard-dates {
+    font-size: 0.9em;
+    color: #888;
+    margin-bottom: 15px;
+}
+
+.bizcard-description {
+    font-size: 1em;
+    line-height: 1.4;
+    color: #ddd;
+} 

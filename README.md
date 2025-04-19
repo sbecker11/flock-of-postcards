@@ -116,7 +116,7 @@ If the app is already running, it will re-load the `jobs.mjs` file.
 ### Future work
 
 - Provide the option to print the resume to a PDF file
-- Need to ease focal point to BullsEye when any skillCardDiv is selected (or clicked?)
+- Need to ease focal point to BullsEye when any cardDiv is selected (or clicked?)
 - Need to add stamp icons to post cards
 - Click on post card to see it's full-size iomage in right-side detail panel
 - Render bizcards as 3D blocks with rounded corners

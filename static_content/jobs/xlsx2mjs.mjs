@@ -2,28 +2,9 @@ import { readFile, writeFile } from 'fs/promises';
 import ExcelJS from 'exceljs';
 import fetch from 'node-fetch';
 import { createRequire } from 'module';
-import fs from 'fs';
 const require = createRequire(import.meta.url);
-const log4js = require('log4js');
-
-// Configure logging
-log4js.configure({
-  appenders: {
-    console: { type: 'console' },
-    file: { type: 'file', filename: 'xlsx2mjs.log' }
-  },
-  categories: {
-    default: { appenders: ['console', 'file'], level: 'info' }
-  }
-});
-
-const logger = log4js.getLogger();
+const logger = require('log4js').getLogger();
 logger.level = 'info';
-
-// Add file logging
-function logToFile(message) {
-  fs.appendFileSync('xlsx2mjs.log', message + '\n');
-}
 
 // Default file paths (relative to script location)
 const defaultInputXlsxFile = 'jobs.xlsx';
@@ -45,12 +26,13 @@ if (args.length === 0) {
   process.exit(0);
 }
 
-import { resolve, basename, join } from 'path';
+import { resolve, basename } from 'path';
+
 import path from 'path';
 import sanitize from 'sanitize-filename';
 
-const inputXlsxFile = path.resolve(process.cwd(), args[0] || defaultInputXlsxFile);
-const outputMjsFile = path.resolve(process.cwd(), args[1] || defaultOutputMjsFile);
+const inputXlsxFile = path.resolve(sanitize(args[0] || defaultInputXlsxFile));
+const outputMjsFile = path.resolve(sanitize(args[1] || defaultOutputMjsFile));
 
 // Initialize counters
 function initCounters() {
@@ -363,51 +345,15 @@ async function convertXlsxToMjs() {
     // Process "job-skills" sheet
     const skillsSheet = workbook.getWorksheet('job-skills');
     if (!skillsSheet) throw new Error('Sheet "job-skills" not found');
-    
-    // Specifically examine Column C (3) where Spexture should be
-    const spextureCell = skillsSheet.getCell('C1');
-    console.log('\nExamining Column C (cell C1):');
-    console.log('Raw cell:', spextureCell);
-    console.log('Cell value:', spextureCell.value);
-    console.log('Cell text:', spextureCell.text);
-    console.log('Cell type:', spextureCell.type);
-    console.log('Cell style:', JSON.stringify(spextureCell.style, null, 2));
-    
-    // Read headers from row 1
-    const skillsHeaders = [];
-    const headerRow = skillsSheet.getRow(1);
-    
-    // Get all values from row 1
-    const rowValues = headerRow.values;
-    console.log('\nAll row 1 values:', rowValues);
-    
-    // Focus on getting Spexture from Column C
-    const spextureName = rowValues[3]; // index 3 corresponds to Column C
-    console.log('\nSpexture cell value (Column C):', spextureName);
-    
-    // Initialize the headers array with the known Spexture value
-    skillsHeaders[3] = 'Spexture'; // Explicitly set Spexture in Column C
-    
-    // Read the rest of the headers
-    headerRow.eachCell((cell, colNumber) => {
-      if (colNumber > 3) { // Start after Column C
-        const value = cell.value ? cell.value.toString().trim() : '';
-        if (value) {
-          console.log(`Found job name in column ${colNumber}: "${value}"`);
-          skillsHeaders[colNumber] = value;
-        }
-      }
-    });
-
+    const skillsHeaders = skillsSheet.getRow(1).values;
     const jobSkillsMap = {};
+
     for (let col = 3; col <= 22; col++) {
-      const jobName = skillsHeaders[col];
+      const jobName = skillsHeaders[col]?.toString().trim();
       if (jobName) {
         jobSkillsMap[jobName] = { column: col, skills: {} };
       }
     }
-
-    console.log('\nJob Skills Map:', jobSkillsMap);
 
     skillsSheet.eachRow((row, rowNumber) => {
       if (rowNumber <= 2) return;
@@ -425,54 +371,30 @@ async function convertXlsxToMjs() {
 
     // Process descriptions and add skills with fuzzy matching
     const counters = initCounters();
-    const skillsColumnIndex = 7; // Column G is the 7th column (1-based indexing)
-    logger.info(`Writing skills to column index ${skillsColumnIndex} (Column G)`);
-
-    const processedData = await Promise.all(jobsData.map(async (row, rowIndex) => {
+    const processedData = await Promise.all(jobsData.map(async row => {
       const { description, references } = await processDescription(row[targetColumn], counters);
       row[targetColumn] = description;
       row.references = references;
 
-      const jobName = row['job']?.toString().trim();
-      if (jobName) {
-        const { match, distance } = findBestMatch(jobName, Object.keys(jobSkillsMap));
+      const employer = row['employer']?.toString().trim();
+      if (employer) {
+        const { match, distance } = findBestMatch(employer, Object.keys(jobSkillsMap));
         if (match && distance < 10) {
           row['job-skills'] = jobSkillsMap[match].skills;
           if (distance > 0) {
-            logger.info(`Matched job "${jobName}" to "${match}" (distance: ${distance})`);
+            logger.info(`Matched "${employer}" to "${match}" (distance: ${distance})`);
           }
-          
-          // Update Skills column in Excel sheet
-          const skillsList = Object.values(jobSkillsMap[match].skills);
-          const skillsString = skillsList.join(', ');
-          const excelRow = jobsSheet.getRow(rowIndex + 2); // +2 because Excel is 1-based and we skip header
-          excelRow.getCell(skillsColumnIndex).value = skillsString;
-          logger.info(`Writing skills for job ${jobName}: ${skillsString}`);
-          row['Skills'] = skillsString; // Also add to the JSON output
         } else {
-          logger.warn(`No close match found for job: "${jobName}" (best: "${match}", distance: ${distance})`);
+          logger.warn(`No close match found for employer: "${employer}" (best: "${match}", distance: ${distance})`);
           row['job-skills'] = {};
-          row['Skills'] = '';
-          jobsSheet.getRow(rowIndex + 2).getCell(skillsColumnIndex).value = '';
         }
       } else {
-        logger.warn(`No job name specified, skipping job-skills`);
+        logger.warn(`No employer specified for job, skipping job-skills`);
         row['job-skills'] = {};
-        row['Skills'] = '';
-        jobsSheet.getRow(rowIndex + 2).getCell(skillsColumnIndex).value = '';
       }
       return row;
     }));
     reportCounters(counters);
-
-    // Save the Excel file with updated Skills column
-    try {
-      await workbook.xlsx.writeFile(inputXlsxFile);
-      logger.info('Successfully saved updated Excel file with Skills column');
-    } catch (error) {
-      logger.error(`Failed to save Excel file: ${error.message}`);
-      throw error;
-    }
 
     // Write to .mjs file without export default
     const mjsContent = `const jobs = ${JSON.stringify(processedData, null, 2)};`;

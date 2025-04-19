@@ -10,17 +10,14 @@
         content="ie=edge"/>
   <title>flock-of-cards</title>
   <link rel="stylesheet" href="./styles.css">
-  <link rel="stylesheet" href="./modules/timeline.css">
-  <link rel="stylesheet" href="./modules/alerts.css">
+  <link rel="stylesheet" href="./modules/timeline/styles.css">
+  <!-- <link rel="stylesheet" href="./modules/cards/modern/styles.css"> -->
 </head>
 
 <body>
   <script type="text/javascript" src="static_content/jobs/jobs.mjs"></script>
   <!-- <script type="text/javascript" src="static_content/media/img_paths.mjs"></script> -->
   <script type="module" src="./main.mjs" ></script>
-  <script type="module" src="./modules/alerts.mjs" ></script>
-  <script type="module" src="./modules/css_colors.mjs" ></script>
-  <script type="module" src="./modules/color_palettes.mjs" ></script>
   
   <div id="main-container">
 
@@ -46,8 +43,6 @@
         <div class="buttons">
           <button id="select-first-bizcard">First</button>
           <button id="select-next-bizcard">Next</button>
-          <button id="select-all-bizcards">All</button>
-          <button id="clear-all-line-items">Clear</button>
         </div>
         <div id="color-palette-container" tabindex="-1">
             <select id="color-palette-selector" tabindex="0"></select>
@@ -70,15 +65,6 @@
         <div id="debugFocalPointElement">mouse not in canvas<br>bullsEye:[303,452]<br>focalPoint:[303,452]<br>parallax:[0,0]<br>time:1702688539746<br></div>
         <div id="debugTheSelectedCardDivIdElement">theSelectedCardDivIdStr:null<br>theSelectedCardDivLineItemIdStr:null<br></div> 
         -->
-    </div>
-  </div>
-
-  <div id="confirm-modal" class="confirm-modal">
-    <div class="confirm-modal-content">
-      <span class="confirm-close">&times;</span>
-      <p id="confirm-modal-title"></p>
-      <button id="confirm-open-btn">Yes</button>
-      <button id="confirm-cancel-btn">No</button>
     </div>
   </div>
 

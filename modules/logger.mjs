@@ -1,21 +1,21 @@
 // Usage:
-// import { Loggera, LogLevel } from "./logger.mjs";
-// const logger = new Logger("focal_point", LogLevel.INFO);
+// import { Logger, LogLevel } from "./logger.mjs";
+// const logger = new Logger(LogLevel.INFO); // name is now optional
 // logger.log("This ia a trace");    // hidden
 // logger.log("This ia a log");      // hidden
 // logger.info("This is info");      // shown
 // logger.warn("This is a warning"); // shown
 // logger.error("This is an error"); // shown
 
+// @ts-nocheck
+'use strict';
+
 export const LogLevel = {
-    NONE: 0,
-    LOG: 1,
-    INFO: 2,
-    WARN: 3,
-    ERROR: 4,
-    CRITICAL: 5,
-    NO_TRACE_ON_FAILURE: 6,
-    TRACE_ON_FAILURE: 7
+    DEBUG: 'DEBUG',
+    INFO: 'INFO',
+    WARN: 'WARN',
+    ERROR: 'ERROR',
+    TRACE_ON_FAILURE: 'TRACE_ON_FAILURE'
 };
 
 export const LogLevelNames = {
@@ -30,69 +30,97 @@ export const LogLevelNames = {
 };
 
 export class Logger {
-    constructor(name="Logger", logLevel=LogLevel.LOG, traceOnFailure=LogLevel.NO_TRACE_ON_FAILURE) {
-        this.name = name;
-        this.logLevel = logLevel;
-        this.levelName = LogLevelNames[logLevel];
-        this.traceOnFailure = traceOnFailure;
+    constructor(level = LogLevel.INFO, traceLevel = null) {
+        this.level = level;
+        this.traceLevel = traceLevel;
+    }
+
+    // Get the calling module's name from the stack trace
+    getCallerInfo() {
+        const error = new Error();
+        const stack = error.stack.split('\n');
+        // Find the first line that's not from logger.mjs
+        for (let i = 1; i < stack.length; i++) {
+            const line = stack[i];
+            if (!line.includes('logger.mjs')) {
+                // Extract filename from the line
+                const match = line.match(/\/([^\/]+\.m?js)/);
+                if (match) {
+                    return match[1];
+                }
+                break;
+            }
+        }
+        return 'unknown';
     }
 
     trace(...args) {
-        if ( this.logLevel <= LogLevel.NONE ) {
-            console.log("TRACE:", this.name, ...args);
-            if ( this.traceOnFailure == LogLevel.TRACE_ON_FAILURE) {
+        if (this.level <= LogLevel.NONE) {
+            const caller = this.getCallerInfo();
+            console.log("TRACE:", caller, ...args);
+            if (this.traceLevel == LogLevel.TRACE_ON_FAILURE) {
                 const timestamp = new Date().toISOString();
-                const title = `${timestamp} [${this.levelName}] [${this.name}] -`;
+                const title = `${timestamp} [${this.levelName}] [${caller}] -`;
                 console.trace(title, ...args);
             }
         }
     }
+
     log(...args) {
-        if ( this.logLevel <= LogLevel.LOG  ) {
-            console.log("LOG:", this.name, ...args);
-            if ( this.traceOnFailure == LogLevel.TRACE_ON_FAILURE ) {
+        if (this.level <= LogLevel.LOG) {
+            const caller = this.getCallerInfo();
+            console.log("LOG:", caller, ...args);
+            if (this.traceLevel == LogLevel.TRACE_ON_FAILURE) {
                 const timestamp = new Date().toISOString();
-                const title = `${timestamp} [${this.levelName}] [${this.name}] -`;
+                const title = `${timestamp} [${this.levelName}] [${caller}] -`;
                 console.trace(title, ...args);
             }
         }
     }
+
     info(...args) {
-        if ( this.logLevel <= LogLevel.INFO ) {
-            console.log("INFO:", this.name, ...args);
-            if ( this.traceOnFailure == LogLevel.TRACE_ON_FAILURE ) {
+        if (this.level <= LogLevel.INFO) {
+            const caller = this.getCallerInfo();
+            console.log("INFO:", caller, ...args);
+            if (this.traceLevel == LogLevel.TRACE_ON_FAILURE) {
                 const timestamp = new Date().toISOString();
-                const title = `${timestamp} [${this.levelName}] [${this.name}] -`;
+                const title = `${timestamp} [${this.levelName}] [${caller}] -`;
                 console.trace(title, ...args);
             }
         }
     }
+
     warn(...args) {
-        if ( this.logLevel <= LogLevel.WARN ) {
-            console.warn("WARN:", this.name, ...args);
-            if ( this.traceOnFailure == LogLevel.TRACE_ON_FAILURE ) {
+        if (this.level <= LogLevel.WARN) {
+            const caller = this.getCallerInfo();
+            console.warn("WARN:", caller, ...args);
+            if (this.traceLevel == LogLevel.TRACE_ON_FAILURE) {
                 const timestamp = new Date().toISOString();
-                const title = `${timestamp} [${this.levelName}] [${this.name}] -`;
+                const title = `${timestamp} [${this.levelName}] [${caller}] -`;
                 console.trace(title, ...args);
             }
         }
     }
+
     error(...args) {
-        if ( this.logLevel <= LogLevel.ERROR ) {
-            console.error("ERROR:", this.name, ...args);
-            if ( this.traceOnFailure == LogLevel.TRACE_ON_FAILURE ) {
+        if (this.level <= LogLevel.ERROR) {
+            const caller = this.getCallerInfo();
+            console.error("ERROR:", caller, ...args);
+            if (this.traceLevel == LogLevel.TRACE_ON_FAILURE) {
                 const timestamp = new Date().toISOString();
-                const title = `${timestamp} [${this.levelName}] [${this.name}] -`;
+                const title = `${timestamp} [${this.levelName}] [${caller}] -`;
                 console.trace(title, ...args);
             }
         }
     }
+
     critical(...args) {
-        if ( this.logLevel <= LogLevel.CRITICAL ) {
-            console.error("CRITICAL:", this.name, ...args);
-            if ( this.traceOnFailure == LogLevel.TRACE_ON_FAILURE ) {
+        if (this.level <= LogLevel.CRITICAL) {
+            const caller = this.getCallerInfo();
+            console.error("CRITICAL:", caller, ...args);
+            if (this.traceLevel == LogLevel.TRACE_ON_FAILURE) {
                 const timestamp = new Date().toISOString();
-                const title = `${timestamp} [${this.levelName}] [${this.name}] -`;
+                const title = `${timestamp} [${this.levelName}] [${caller}] -`;
                 console.trace(title, ...args);
             }
         }
@@ -118,3 +146,6 @@ export class Logger {
         }
     }
 }
+
+// Create and export a singleton instance
+export const logger = new Logger(LogLevel.INFO);
