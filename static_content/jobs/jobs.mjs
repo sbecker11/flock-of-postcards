@@ -1,10 +1,9 @@
-const jobs = [
+export const jobs = [
   {
     "role": "Senior Data Engineer ",
     "employer": "Spexture",
     "start": "2024-08-15",
     "end": "CURRENT_DATE",
-    "z-index": "1",
     "Description": "• Implementing end-to-end MLOps CI/CD pipeline with target-based design\n• Hashicorp Terraform and Vault for multi-environment infrastructure and credentials\n• GitHub Actions for CI/CD and Argo CD for change detection\n• Kubernetes for orchestrating PySparkSQL Docker containers running on an EKS-managed cluster.\n• Amazon SageMaker for ML model integration, real-time scoring, and model versioning\n• Amazon Managed Grafana for real-time visualization\n• PySpark and PySpark SQL for data quality validation, data cleaning, and feature engineering \n• AWS Glue for metadata tagging, tracking versioning/lineage, and enforcing governance",
     "references": [],
     "job-skills": {
@@ -27,7 +26,6 @@ const jobs = [
     "employer": "Fannie Mae",
     "start": "2024-02-17",
     "end": "2024-06-27",
-    "z-index": "2",
     "Description": "• Extensive work with SQL, AWS Redshift, Glue, Airflow, S3, IAM, Lambda, REST, SNS, and dbt\n• Created dbt-validated SQL code for data cleansing and data lake ingestion \n• Used Amazon Glue to track schema changes and revise Redshift external views\n• Created custom views required for analysis and reporting in Redshift\n• Documented processes to build, test, and deploy data pipeline components for in-house ETL framework",
     "references": [],
     "job-skills": {
@@ -50,19 +48,13 @@ const jobs = [
     "employer": "The Cigna Group",
     "start": "2023-05-01",
     "end": "2023-12-17",
-    "z-index": "3",
-    "Description": "• As a senior data engineer in the data cyber security team of the [Cigna Group] created a [REST API] using [Postman], [Bash], [Linux], and [OpenAPI] for pulling credentials from [CyberArk] using [OpenSSL] with [mutual TLS SSL authentication] via [API Gateway]. \n•  Migrated a suite of legacy [ETL][data pipeline] [Python] elements running on the [Unity IoC platform] with [PostgreSQL] and [S3] to pull credentials from the [CyberArk] identity service at runtime rather than using [Fernet] encrypted local files. \n•  Upgraded [GitHub] apps to use [Jenkins] [CI/CD pipeline] for build, applying software and cyber-security code checks, and on-prem server installation.",
+    "Description": "• As a senior data engineer in the data cyber security team of the Cigna Group created a [REST API] using [Postman], [Bash], [Linux], and [OpenAPI] for pulling credentials from CyberArk using [OpenSSL] with mutual TLS SSL authentication via [API Gateway]. \n•  Migrated a suite of legacy [ETL][data pipeline] [Python] elements running on the [Unity IoC platform] with [PostgreSQL] and [S3] to pull credentials from the [CyberArk] identity service at runtime rather than using Fernet encrypted local files. \n•  Upgraded [GitHub] apps to use Jenkins [CI/CD pipeline] for build, applying software and cyber-security code checks, and on-prem server installation.",
     "references": [
       "<div class=\"anchor-ref\"><a href=\"https://www.thecignagroup.com/\">[Cigna Group]</a></div>",
       "<div class=\"anchor-ref\"><a href=\"https://www.cyberark.com/\">[CyberArk]</a></div>",
       "<div class=\"anchor-ref\"><a href=\"https://docs.solace.com/Security/Two-Way-SSL-Authentication.htm\">[mutual TLS SSL authentication]</a></div>",
       "<div class=\"anchor-ref\"><a href=\"https://cryptography.io/en/latest/fernet/\">[Fernet]</a></div>",
-      "<div class=\"anchor-ref\"><a href=\"https://docs.aws.amazon.com/apigateway/\">[Jenkins]</a></div>",
-      "<div class=\"anchor-ref\"><a href=\"http://www.thecignagroup.com\">http://www.thecignagroup.com</a></div>",
-      "<div class=\"anchor-ref\"><a href=\"http://www.cyberark.com\">http://www.cyberark.com</a></div>",
-      "<div class=\"anchor-ref\"><a href=\"http://docs.solace.com/Security/Two-Way-SSL-Authentication.htm\">http://docs.solace.com/Security/Two-Way-SSL-Authentication.htm</a></div>",
-      "<div class=\"anchor-ref\"><a href=\"http://cryptography.io/en/latest/fernet/\">http://cryptography.io/en/latest/fernet/</a></div>",
-      "<div class=\"anchor-ref\"><a href=\"http://docs.aws.amazon.com/apigateway/\">http://docs.aws.amazon.com/apigateway/</a></div>"
+      "<div class=\"anchor-ref\"><a href=\"https://docs.aws.amazon.com/apigateway/\">[Jenkins]</a></div>"
     ],
     "job-skills": {}
   },
@@ -71,8 +63,7 @@ const jobs = [
     "employer": "Warner Brothers",
     "start": "2022-09-01",
     "end": "2023-05-01",
-    "z-index": "2",
-    "Description": "• As a senior data engineer in the analytics team of [Warner Brothers] Division, implemented high-volume [ETL] [data pipeline] [integrations] transforming and sharing  game telemetry and [user PII data] between WB-distributed consumer games and [marketing service platforms] via [Segment customer data platform] using [Kafka], [Amazon S3], [Redshift], and [Apache Airflow]. \n• Employed [Python], [GitHub], [Bash], [Linux], [Amazon Glue] and [Apache Airflow] for external [3rd-party integrations] and internal dev-ops integrations with [Jenkins], [PostgreSQL], [DataDog],  [ZenDesk]. and [Tableau].\n• Integrated with [Google BigQuery](https://cloud.google.com/bigquery using  [Apache Airflow], [Amazon S3], and [Redshift].",
+    "Description": "• As a senior data engineer in the analytics team of Warner Brothers Division, implemented high-volume [ETL] [data pipeline] [integrations] transforming and sharing  game telemetry and [user PII data] between WB-distributed consumer games and [marketing service platforms] via Segment customer data platform using Kafka, [Amazon S3], Redshift, and Apache Airflow. \n• Employed [Python], [GitHub], [Bash], [Linux], Amazon Glue and Apache Airflow for external [3rd-party integrations] and internal dev-ops integrations with [Jenkins], [PostgreSQL], DataDog,  ZenDesk. and [Tableau].\n• Integrated with [Google BigQuery](https://cloud.google.com/bigquery using  Apache Airflow, [Amazon S3], and Redshift.",
     "references": [
       "<div class=\"anchor-ref\"><a href=\"https://warnerbrosgames.com/\">[Warner Brothers]</a></div>",
       "<div class=\"anchor-ref\"><a href=\"https://segment.com/customer-data-platform/\">[Segment customer data platform]</a></div>",
@@ -84,18 +75,7 @@ const jobs = [
       "<div class=\"anchor-ref\"><a href=\"https://www.datadoghq.com/\">[DataDog]</a></div>",
       "<div class=\"anchor-ref\"><a href=\"https://zendesk.com\">[ZenDesk]</a></div>",
       "<div class=\"anchor-ref\"><a href=\"https://aws.amazon.com/managed-workflows-for-apache-airflow/\">[Apache Airflow]</a></div>",
-      "<div class=\"anchor-ref\"><a href=\"https://aws.amazon.com/redshift/\">[Redshift]</a></div>",
-      "<div class=\"anchor-ref\"><a href=\"http://warnerbrosgames.com\">http://warnerbrosgames.com</a></div>",
-      "<div class=\"anchor-ref\"><a href=\"http://segment.com/customer-data-platform/\">http://segment.com/customer-data-platform/</a></div>",
-      "<div class=\"anchor-ref\"><a href=\"http://aws.amazon.com/msk/\">http://aws.amazon.com/msk/</a></div>",
-      "<div class=\"anchor-ref\"><a href=\"http://aws.amazon.com/redshift/\">http://aws.amazon.com/redshift/</a></div>",
-      "<div class=\"anchor-ref\"><a href=\"http://airflow.apache.org\">http://airflow.apache.org</a></div>",
-      "<div class=\"anchor-ref\"><a href=\"http://aws.amazon.com/glue/\">http://aws.amazon.com/glue/</a></div>",
-      "<div class=\"anchor-ref\"><a href=\"http://airflow.apache.org\">http://airflow.apache.org</a></div>",
-      "<div class=\"anchor-ref\"><a href=\"http://www.datadoghq.com\">http://www.datadoghq.com</a></div>",
-      "<div class=\"anchor-ref\"><a href=\"http://zendesk.com\">http://zendesk.com</a></div>",
-      "<div class=\"anchor-ref\"><a href=\"http://aws.amazon.com/managed-workflows-for-apache-airflow/\">http://aws.amazon.com/managed-workflows-for-apache-airflow/</a></div>",
-      "<div class=\"anchor-ref\"><a href=\"http://aws.amazon.com/redshift/\">http://aws.amazon.com/redshift/</a></div>"
+      "<div class=\"anchor-ref\"><a href=\"https://aws.amazon.com/redshift/\">[Redshift]</a></div>"
     ],
     "job-skills": {}
   },
@@ -104,8 +84,7 @@ const jobs = [
     "employer": "Angel Studios ",
     "start": "2021-11-01",
     "end": "2022-09-01",
-    "z-index": "1",
-    "Description": "• Senior data engineer for [Angel Studios], a streaming media service that offers family-friendly entertainment that amplifies light, with titles including The Chosen, Dry Bar Comedy, and Tuttle Twins.\n• Used [Python], [GitHub], [Pandas], [Numpy], [Keras], [Bash], [Linux], [PostgreSQL], and [Jupyter] to build and tune hyperparameters of a [convolutional neural network] with [supervised learning] on [Amazon Sagemaker] to classify movie frames from episodic programs stored in [Amazon S3]. \n• Built web client apps using [Python] with [Postman] that made [REST] requests to pull monthly usage data from various web marketing partners like [FaceBook Marketing], [Google Play] , and [Vimeo]. \n• Worked with [Segment customer data platform], [Excel], and [Tableau] to create scheduled reports for the company's sales and finance teams.",
+    "Description": "• Senior data engineer for Angel Studios, a streaming media service that offers family-friendly entertainment that amplifies light, with titles including The Chosen, Dry Bar Comedy, and Tuttle Twins.\n• Used [Python], [GitHub], [Pandas], [Numpy], [Keras], [Bash], [Linux], [PostgreSQL], and Jupyter to build and tune hyperparameters of a convolutional neural network with [supervised learning] on Amazon Sagemaker to classify movie frames from episodic programs stored in Amazon S3. \n• Built web client apps using [Python] with Postman that made [REST] requests to pull monthly usage data from various web marketing partners like FaceBook Marketing, Google Play , and Vimeo. \n• Worked with Segment customer data platform, [Excel], and [Tableau] to create scheduled reports for the company's sales and finance teams.",
     "references": [
       "<div class=\"anchor-ref\"><a href=\"https://www.angel.com/home\">[Angel Studios]</a></div>",
       "<div class=\"anchor-ref\"><a href=\"https://jupyter.org/\">[Jupyter]</a></div>",
@@ -113,19 +92,10 @@ const jobs = [
       "<div class=\"anchor-ref\"><a href=\"https://aws.amazon.com/pm/sagemaker/\">[Amazon Sagemaker]</a></div>",
       "<div class=\"anchor-ref\"><a href=\"https://aws.amazon.com/s3/storage-classes\">[Amazon S3]</a></div>",
       "<div class=\"anchor-ref\"><a href=\"https://www.postman.com/\">[Postman]</a></div>",
-      "<div class=\"anchor-ref-not-found\"><a href=\"\">[FaceBook Marketing]</a></div>",
+      "<div class=\"anchor-ref\"><a href=\"https://www.quora.com/What-is-Facebook-Marketing-1\">[FaceBook Marketing]</a></div>",
       "<div class=\"anchor-ref\"><a href=\"https://play.google/howplayworks/\">[Google Play]</a></div>",
       "<div class=\"anchor-ref\"><a href=\"https://vimeo.com/\">[Vimeo]</a></div>",
-      "<div class=\"anchor-ref\"><a href=\"https://segment.com/customer-data-platform/\">[Segment customer data platform]</a></div>",
-      "<div class=\"anchor-ref\"><a href=\"http://www.angel.com/home\">http://www.angel.com/home</a></div>",
-      "<div class=\"anchor-ref\"><a href=\"http://jupyter.org\">http://jupyter.org</a></div>",
-      "<div class=\"anchor-ref\"><a href=\"http://towardsdatascience.com/a-comprehensive-guide-to-convolutional-neural-networks-the-eli5-way-3bd2b1164a53\">http://towardsdatascience.com/a-comprehensive-guide-to-convolutional-neural-networks-the-eli5-way-3bd2b1164a53</a></div>",
-      "<div class=\"anchor-ref\"><a href=\"http://aws.amazon.com/pm/sagemaker/\">http://aws.amazon.com/pm/sagemaker/</a></div>",
-      "<div class=\"anchor-ref\"><a href=\"http://aws.amazon.com/s3/storage-classes\">http://aws.amazon.com/s3/storage-classes</a></div>",
-      "<div class=\"anchor-ref\"><a href=\"http://www.postman.com\">http://www.postman.com</a></div>",
-      "<div class=\"anchor-ref\"><a href=\"http://play.google/howplayworks/\">http://play.google/howplayworks/</a></div>",
-      "<div class=\"anchor-ref\"><a href=\"http://vimeo.com\">http://vimeo.com</a></div>",
-      "<div class=\"anchor-ref\"><a href=\"http://segment.com/customer-data-platform/\">http://segment.com/customer-data-platform/</a></div>"
+      "<div class=\"anchor-ref\"><a href=\"https://segment.com/customer-data-platform/\">[Segment customer data platform]</a></div>"
     ],
     "job-skills": {
       "5": "Ansible",
@@ -169,17 +139,12 @@ const jobs = [
     "employer": "Data Laboratory / Greenseed",
     "start": "2020-11-01",
     "end": "2021-11-01",
-    "z-index": "2",
-    "Description": "• As a senior software engineer for Data Laboratory, an internet company that provides daily lead reports for independent real-estage agents world-wide, I  [containerized] legacy web applications using [Bash], [Linux], [GitHub], [Docker] and [Amazon Secrets Manager]. \n• Updated legacy web apps using [Bash], [Linux], [HTML], [CSS], [JavaScript], [PostgreSQL], [NGINX], and [OpenSSL].\n• Documented existing data architecture as [ERDs] using [DBeaver Enterprise].",
+    "Description": "• As a senior software engineer for Data Laboratory, an internet company that provides daily lead reports for independent real-estage agents world-wide, I  [containerized] legacy web applications using [Bash], [Linux], [GitHub], Docker and Amazon Secrets Manager. \n• Updated legacy web apps using [Bash], [Linux], [HTML], [CSS], [JavaScript], [PostgreSQL], [NGINX], and [OpenSSL].\n• Documented existing data architecture as ERDs using DBeaver Enterprise.",
     "references": [
       "<div class=\"anchor-ref\"><a href=\"https://www.docker.com/\">[Docker]</a></div>",
       "<div class=\"anchor-ref\"><a href=\"https://aws.amazon.com/secrets-manager/\">[Amazon Secrets Manager]</a></div>",
       "<div class=\"anchor-ref\"><a href=\"https://www.lucidchart.com/pages/er-diagrams\">[ERDs]</a></div>",
-      "<div class=\"anchor-ref\"><a href=\"https://dbeaver.com/dbeaver-enterprise/\">[DBeaver Enterprise]</a></div>",
-      "<div class=\"anchor-ref\"><a href=\"http://www.docker.com\">http://www.docker.com</a></div>",
-      "<div class=\"anchor-ref\"><a href=\"http://aws.amazon.com/secrets-manager/\">http://aws.amazon.com/secrets-manager/</a></div>",
-      "<div class=\"anchor-ref\"><a href=\"http://www.lucidchart.com/pages/er-diagrams\">http://www.lucidchart.com/pages/er-diagrams</a></div>",
-      "<div class=\"anchor-ref\"><a href=\"http://dbeaver.com/dbeaver-enterprise/\">http://dbeaver.com/dbeaver-enterprise/</a></div>"
+      "<div class=\"anchor-ref\"><a href=\"https://dbeaver.com/dbeaver-enterprise/\">[DBeaver Enterprise]</a></div>"
     ],
     "job-skills": {
       "13": "AWS CloudFormation",
@@ -228,17 +193,12 @@ const jobs = [
     "employer": "NuSkin",
     "start": "2019-11-01",
     "end": "2020-11-01",
-    "z-index": "1",
-    "Description": "• As a senior full stack developer for [NuSkin](https://www.nuskin.com/us/en/, an international company known for its excellent  skin and beauty products I created new [Vue.js], [Nuxt], and [Vuetify] components using [Bash], [Linux], [GitHub], [NodeJS], [HTML] and [CSS].  \n• Internationalized content using [Adobe Experience Cloud].",
+    "Description": "• As a senior full stack developer for [NuSkin](https://www.nuskin.com/us/en/, an international company known for its excellent  skin and beauty products I created new Vue.js, Nuxt, and Vuetify components using [Bash], [Linux], [GitHub], [NodeJS], [HTML] and [CSS].  \n• Internationalized content using Adobe Experience Cloud.",
     "references": [
       "<div class=\"anchor-ref\"><a href=\"https://vuejs.org/\">[Vue.js]</a></div>",
       "<div class=\"anchor-ref\"><a href=\"https://nuxt.com/\">[Nuxt]</a></div>",
       "<div class=\"anchor-ref\"><a href=\"https://vuetifyjs.com/en/\">[Vuetify]</a></div>",
-      "<div class=\"anchor-ref\"><a href=\"https://business.adobe.com/\">[Adobe Experience Cloud]</a></div>",
-      "<div class=\"anchor-ref\"><a href=\"http://vuejs.org\">http://vuejs.org</a></div>",
-      "<div class=\"anchor-ref\"><a href=\"http://nuxt.com\">http://nuxt.com</a></div>",
-      "<div class=\"anchor-ref\"><a href=\"http://vuetifyjs.com/en/\">http://vuetifyjs.com/en/</a></div>",
-      "<div class=\"anchor-ref\"><a href=\"business.adobe.com/\">business.adobe.com/</a></div>"
+      "<div class=\"anchor-ref\"><a href=\"https://business.adobe.com/\">[Adobe Experience Cloud]</a></div>"
     ],
     "job-skills": {
       "44": "Bash",
@@ -272,10 +232,9 @@ const jobs = [
     "employer": "SeniorLink / Vela",
     "start": "2017-03-01",
     "end": "2019-11-01",
-    "z-index": "2",
-    "Description": "• As a senior data engineer for SeniorLink's [Vela project] a homeservices support platform, helped create [ETL] processes using [Amazon Kinesis], [Python], [PySpark], and [Amazon Data Pipeline] to load structured event data from [PostgreSQL] databases into [Redshift]. \n• Saved data to [Amazon S3] using [Amazon Kinesis] and triggered [Amazon Lambda] jobs to aggregate steaming event data into [schema-on-read] file formats, [Apache Avro] and [Apache Parquet].\n• Steered efforts in creating a [Data Lake] using [PostgreSQL] and [FlyWay] with [Python] and [PySpark] pre-processing on [EC2 instances] using shared [Amazon EFS] for staged storage.\n• Used streaming event messages queued in [RabbitMQ] and [Amazon Kinesis] to build [type-2 slowly changing dimensions] and accumulative facts tables. \n• Designed and implemented a custom [star-schema warehouse] and [ETL] processes to [de-normalize] and load data into [Redshift] data warehouse for BI reporting using [Tableau].\n• [Test-driven development] using [Bash], [Linux], [Python], [PyCharm], [PyTest], [Unit-test], [GitHub], [Jira], and [Jenkins].",
+    "Description": "• As a senior data engineer for SeniorLink's Vela project a homeservices support platform, helped create ETL processes using Amazon Kinesis, [Python], PySpark, and Amazon Data Pipeline to load structured event data from [PostgreSQL] databases into Redshift. \n• Saved data to [Amazon S3] using [Amazon Kinesis] and triggered Amazon Lambda jobs to aggregate steaming event data into [schema-on-read] file formats, Apache Avro and Apache Parquet.\n• Steered efforts in creating a Data Lake using [PostgreSQL] and FlyWay with [Python] and PySpark pre-processing on [EC2 instances] using shared Amazon EFS for staged storage.\n• Used streaming event messages queued in RabbitMQ and [Amazon Kinesis] to build [type-2 slowly changing dimensions] and accumulative facts tables. \n• Designed and implemented a custom star-schema warehouse and [ETL] processes to de-normalize and load data into Redshift data warehouse for BI reporting using Tableau.\n• Test-driven development using [Bash], [Linux], [Python], [PyCharm], [PyTest], [Unit-test], [GitHub], [Jira], and Jenkins.",
     "references": [
-      "<div class=\"img-ref-not-found\">[Vela project]<img src=\"/static_content/portfolio/Vela-150x126.png\"/></div>",
+      "<div class=\"img-ref\">[Vela project]<img src=\"/static_content/portfolio/Vela-150x126.png\"/></div>",
       "<div class=\"anchor-ref\"><a href=\"https://aws.amazon.com/what-is/etl/\">[ETL]</a></div>",
       "<div class=\"anchor-ref\"><a href=\"https://aws.amazon.com/pm/kinesis/\">[Amazon Kinesis]</a></div>",
       "<div class=\"anchor-ref\"><a href=\"https://spark.apache.org/\">[PySpark]</a></div>",
@@ -294,26 +253,7 @@ const jobs = [
       "<div class=\"anchor-ref\"><a href=\"https://aws.amazon.com/redshift/\">[Redshift]</a></div>",
       "<div class=\"anchor-ref\"><a href=\"https://www.tableau.com/\">[Tableau]</a></div>",
       "<div class=\"anchor-ref\"><a href=\"https://www.pluralsight.com/blog/software-development/tdd-vs-bdd\">[Test-driven development]</a></div>",
-      "<div class=\"anchor-ref\"><a href=\"https://www.jenkins.io/\">[Jenkins]</a></div>",
-      "<div class=\"anchor-ref\"><a href=\"http://aws.amazon.com/what-is/etl/\">http://aws.amazon.com/what-is/etl/</a></div>",
-      "<div class=\"anchor-ref\"><a href=\"http://aws.amazon.com/pm/kinesis/\">http://aws.amazon.com/pm/kinesis/</a></div>",
-      "<div class=\"anchor-ref\"><a href=\"http://spark.apache.org\">http://spark.apache.org</a></div>",
-      "<div class=\"anchor-ref\"><a href=\"http://docs.aws.amazon.com/datapipeline/latest/DeveloperGuide/what-is-datapipeline.html\">http://docs.aws.amazon.com/datapipeline/latest/DeveloperGuide/what-is-datapipeline.html</a></div>",
-      "<div class=\"anchor-ref\"><a href=\"http://aws.amazon.com/pm/redshift/\">http://aws.amazon.com/pm/redshift/</a></div>",
-      "<div class=\"anchor-ref\"><a href=\"http://docs.aws.amazon.com/lambda/\">http://docs.aws.amazon.com/lambda/</a></div>",
-      "<div class=\"anchor-ref\"><a href=\"http://avro.apache.org\">http://avro.apache.org</a></div>",
-      "<div class=\"anchor-ref\"><a href=\"http://parquet.apache.org\">http://parquet.apache.org</a></div>",
-      "<div class=\"anchor-ref\"><a href=\"http://aws.amazon.com/big-data/datalakes-and-analytics/datalakes/\">http://aws.amazon.com/big-data/datalakes-and-analytics/datalakes/</a></div>",
-      "<div class=\"anchor-ref\"><a href=\"http://flywaydb.org\">http://flywaydb.org</a></div>",
-      "<div class=\"anchor-ref\"><a href=\"http://spark.apache.org/docs/latest/api/python/index.html\">http://spark.apache.org/docs/latest/api/python/index.html</a></div>",
-      "<div class=\"anchor-ref\"><a href=\"http://zesty.co/blog/ebs-vs-efs-which-is-right\">http://zesty.co/blog/ebs-vs-efs-which-is-right</a></div>",
-      "<div class=\"anchor-ref\"><a href=\"http://docs.aws.amazon.com/amazon-mq/latest/developer-guide/working-with-rabbitmq.html\">http://docs.aws.amazon.com/amazon-mq/latest/developer-guide/working-with-rabbitmq.html</a></div>",
-      "<div class=\"anchor-ref\"><a href=\"http://www.databricks.com/glossary/star-schema\">http://www.databricks.com/glossary/star-schema</a></div>",
-      "<div class=\"anchor-ref\"><a href=\"http://en.wikipedia.org/wiki/Denormalization\">http://en.wikipedia.org/wiki/Denormalization</a></div>",
-      "<div class=\"anchor-ref\"><a href=\"http://aws.amazon.com/redshift/\">http://aws.amazon.com/redshift/</a></div>",
-      "<div class=\"anchor-ref\"><a href=\"http://www.tableau.com\">http://www.tableau.com</a></div>",
-      "<div class=\"anchor-ref\"><a href=\"http://www.pluralsight.com/blog/software-development/tdd-vs-bdd\">http://www.pluralsight.com/blog/software-development/tdd-vs-bdd</a></div>",
-      "<div class=\"anchor-ref\"><a href=\"http://www.jenkins.io/\">http://www.jenkins.io/</a></div>"
+      "<div class=\"anchor-ref\"><a href=\"https://www.jenkins.io/\">[Jenkins]</a></div>"
     ],
     "job-skills": {
       "9": "Application Monitoring",
@@ -375,18 +315,13 @@ const jobs = [
     "employer": "BigR.io",
     "start": "2016-12-01",
     "end": "2017-03-01",
-    "z-index": "1",
-    "Description": "• As a senior software engineer at [BigR.io] I used [Amazon microservices] for custom voice-based [natural language processing] applications.\n• Used [Apache ActiveMQ], [Swagger], [JSON], [Jackson], [AOP], [Eclipse], [Maven], [GitHub], [Jira], [PostgreSQL], and [Jenkins].\n• [Java], [J2EE], [Servlets], [Spring], [SpringBoot], [JAX-RS], [Bash], [Linux], [JUnit], [JMeter], and [JProfile]",
+    "Description": "• As a senior software engineer at BigR.io I used [Amazon microservices] for custom voice-based [natural language processing] applications.\n• Used Apache ActiveMQ, Swagger, [JSON], Jackson, AOP, [Eclipse], [Maven], [GitHub], [Jira], [PostgreSQL], and [Jenkins].\n• [Java], [J2EE], [Servlets], [Spring], [SpringBoot], [JAX-RS], [Bash], [Linux], [JUnit], [JMeter], and [JProfile]",
     "references": [
-      "<div class=\"img-ref-not-found\">[BigR.io]<img src=\"/static_content/portfolio/Bigr.io_-150x106.png\"/></div>",
+      "<div class=\"img-ref\">[BigR.io]<img src=\"/static_content/portfolio/Bigr.io_-150x106.png\"/></div>",
       "<div class=\"anchor-ref\"><a href=\"https://activemq.apache.org/\">[Apache ActiveMQ]</a></div>",
       "<div class=\"anchor-ref\"><a href=\"https://swagger.io/\">[Swagger]</a></div>",
-      "<div class=\"anchor-ref\"><a href=\"http://url.com\">[Jackson]</a></div>",
-      "<div class=\"anchor-ref\"><a href=\"https://www.baeldung.com/spring-aop\">[AOP]</a></div>",
-      "<div class=\"anchor-ref\"><a href=\"http://activemq.apache.org\">http://activemq.apache.org</a></div>",
-      "<div class=\"anchor-ref\"><a href=\"http://swagger.io/\">http://swagger.io/</a></div>",
-      "<div class=\"anchor-ref\"><a href=\"http://url.com\">http://url.com</a></div>",
-      "<div class=\"anchor-ref\"><a href=\"http://www.baeldung.com/spring-aop\">http://www.baeldung.com/spring-aop</a></div>"
+      "<div class=\"anchor-ref\"><a href=\"url\">[Jackson]</a></div>",
+      "<div class=\"anchor-ref\"><a href=\"https://www.baeldung.com/spring-aop\">[AOP]</a></div>"
     ],
     "job-skills": {
       "44": "Bash",
@@ -420,16 +355,14 @@ const jobs = [
     "employer": "ClipFile, LLC",
     "start": "2011-02-01",
     "end": "2016-12-01",
-    "z-index": "2",
-    "Description": "• Co-founded [ClipFile], a company that envisioned building a web destination where users could easily record and share their favorite pieces of content like facts, authored stories, quotes, articles, chapters, or personal thoughts, as a way of concretely defining their personal [mindset]http://sourcesofinsight.com/what-is-mindset/.\n• Implemented [fuzzy matching], [word clustering], [semantic similarity scores], and [collaborative filtering] to help users find content that matched or differed from thieir own mindset.\n• Launched a novel [SaaS] using [Amazon Web Services] that let individuals and content creators search and share mindsets.\n• Conceptualized patented technology by designing and implementing a fuil-stack consumer-facing content management system that supported tuned matching among selected attributes.\n• [Java], [J2EE], [JSP], [Servlets], [Spring], [Amazon services], [JavaScript], [JQuery], [HTML], [CSS], [JUnit], [JMeter], [JProfile].\n• Utilized [REST], [Swagger], [Apache Shiro], [Eclipse IDE], [Apache Maven], [Apache Ant], [GitHub], [Hibernate], [Amazon SimpleDB], [Linux], [Apache Tomcat], [Bash], [Linux], [Jetty], and [Spring MVC].\n• Served as co-founder and co-authored [four patents].",
+    "Description": "• Co-founded ClipFile, a company that envisioned building a web destination where users could easily record and share their favorite pieces of content like facts, authored stories, quotes, articles, chapters, or personal thoughts, as a way of concretely defining their personal mindset.\n• Implemented fuzzy matching, word clustering, semantic similarity scores, and collaborative filtering to help users find content that matched or differed from thieir own mindset.\n• Launched a novel [SaaS] using [Amazon Web Services] that let individuals and content creators search and share mindsets.\n• Conceptualized patented technology by designing and implementing a fuil-stack consumer-facing content management system that supported tuned matching among selected attributes.\n• [Java], [J2EE], [JSP], [Servlets], [Spring], [Amazon services], [JavaScript], [JQuery], [HTML], [CSS], [JUnit], [JMeter], [JProfile].\n• Utilized [REST], [Swagger], Apache Shiro, Eclipse IDE, Apache Maven, Apache Ant, [GitHub], [Hibernate], Amazon SimpleDB, Linux, Apache Tomcat, [Bash], [Linux], Jetty, and Spring MVC.\n• Served as co-founder and co-authored four patents.",
     "references": [
-      "<div class=\"img-ref-not-found\">[ClipFile]<img src=\"/static_content/portfolio/clipfile-infrastructure-150x150.png\"/></div>",
-      "<div class=\"img-ref\">[mindset]<img src=\"https://sourcesofinsight.com/wp-content/uploads/2014/04/Mindset-768x505.jpg\"/></div>",
       "<div class=\"img-ref anchor-ref\">[mindset]<a href=\"https://sourcesofinsight.com/what-is-mindset/\"><img src=\"https://sourcesofinsight.com/wp-content/uploads/2014/04/Mindset-768x505.jpg\"/></a></div>",
+      "<div class=\"img-ref\">[ClipFile]<img src=\"/static_content/portfolio/clipfile-infrastructure-150x150.png\"/></div>",
       "<div class=\"anchor-ref\"><a href=\"https://nanonets.com/blog/fuzzy-matching-fuzzy-logic/\">[fuzzy matching]</a></div>",
       "<div class=\"anchor-ref\"><a href=\"https://www.ilc.cnr.it/EAGLES96/rep2/node37.html#:~:text=Word%20clustering%20is%20a%20technique,to%20information%20retrieval%20and%20filtering.\">[word clustering]</a></div>",
-      "<div class=\"anchor-ref-not-found\"><a href=\"\">[semantic similarity scores]</a></div>",
-      "<div class=\"anchor-ref-not-found\"><a href=\"\">[collaborative filtering]</a></div>",
+      "<div class=\"anchor-ref\"><a href=\"https://towardsdatascience.com/semantic-similarity-using-transformers-8f3cb5bf66d6\">[semantic similarity scores]</a></div>",
+      "<div class=\"anchor-ref\"><a href=\"https://www.hindawi.com/journals/aai/2009/421425/\">[collaborative filtering]</a></div>",
       "<div class=\"anchor-ref\"><a href=\"https://shiro.apache.org/\">[Apache Shiro]</a></div>",
       "<div class=\"anchor-ref\"><a href=\"https://www.eclipse.org/home/whatis/\">[Eclipse IDE]</a></div>",
       "<div class=\"anchor-ref\"><a href=\"https://maven.apache.org/what-is-maven.html\">[Apache Maven]</a></div>",
@@ -439,20 +372,7 @@ const jobs = [
       "<div class=\"anchor-ref\"><a href=\"https://tomcat.apache.org/\">[Apache Tomcat]</a></div>",
       "<div class=\"anchor-ref\"><a href=\"https://projects.eclipse.org/projects/rt.jetty\">[Jetty]</a></div>",
       "<div class=\"anchor-ref\"><a href=\"https://docs.spring.io/spring-framework/reference/web/webmvc.html\">[Spring MVC]</a></div>",
-      "<div class=\"anchor-ref\"><a href=\"https://www.freepatentsonline.com/y2013/0325870.html\">[four patents]</a></div>",
-      "<div class=\"anchor-ref\"><a href=\"http://sourcesofinsight.com/what-is-mindset/\">http://sourcesofinsight.com/what-is-mindset/</a></div>",
-      "<div class=\"anchor-ref\"><a href=\"http://nanonets.com/blog/fuzzy-matching-fuzzy-logic/\">http://nanonets.com/blog/fuzzy-matching-fuzzy-logic/</a></div>",
-      "<div class=\"anchor-ref\"><a href=\"http://www.ilc.cnr.it/EAGLES96/rep2/node37.html#:~:text=Word%20clustering%20is%20a%20technique,to%20information%20retrieval%20and%20filtering.\">http://www.ilc.cnr.it/EAGLES96/rep2/node37.html#:~:text=Word%20clustering%20is%20a%20technique,to%20information%20retrieval%20and%20filtering.</a></div>",
-      "<div class=\"anchor-ref\"><a href=\"http://shiro.apache.org\">http://shiro.apache.org</a></div>",
-      "<div class=\"anchor-ref\"><a href=\"http://www.eclipse.org/home/whatis/\">http://www.eclipse.org/home/whatis/</a></div>",
-      "<div class=\"anchor-ref\"><a href=\"http://maven.apache.org/what-is-maven.html\">http://maven.apache.org/what-is-maven.html</a></div>",
-      "<div class=\"anchor-ref\"><a href=\"http://ant.apache.org\">http://ant.apache.org</a></div>",
-      "<div class=\"anchor-ref\"><a href=\"http://aws.amazon.com/simpledb/\">http://aws.amazon.com/simpledb/</a></div>",
-      "<div class=\"anchor-ref\"><a href=\"http://www.centos.org\">http://www.centos.org</a></div>",
-      "<div class=\"anchor-ref\"><a href=\"http://tomcat.apache.org\">http://tomcat.apache.org</a></div>",
-      "<div class=\"anchor-ref\"><a href=\"http://projects.eclipse.org/projects/rt.jetty\">http://projects.eclipse.org/projects/rt.jetty</a></div>",
-      "<div class=\"anchor-ref\"><a href=\"http://docs.spring.io/spring-framework/reference/web/webmvc.html\">http://docs.spring.io/spring-framework/reference/web/webmvc.html</a></div>",
-      "<div class=\"anchor-ref\"><a href=\"http://www.freepatentsonline.com/y2013/0325870.html\">http://www.freepatentsonline.com/y2013/0325870.html</a></div>"
+      "<div class=\"anchor-ref\"><a href=\"https://www.freepatentsonline.com/y2013/0325870.html\">[four patents]</a></div>"
     ],
     "job-skills": {
       "15": "AWS CloudWatch",
@@ -509,10 +429,9 @@ const jobs = [
     "employer": "Sierra Vista Group, LLC",
     "start": "2002-11-01",
     "end": "2011-02-01",
-    "z-index": "1",
-    "Description": "• Co-founded a finance and technology boutique called [Sierra Vista Group] that delivered support in planning and proposing effective IT strategies for key clients in several industries. \n• Performed various services, including system and architecture assessment and solutions design, to ensure the smooth running of technical projects.\n• Managed project schedules and technical specifications to match business requirements within contractual budget constraints. \n• Identified opportunities for potential clients requiring expertise in product development, software engineering, and data modeling. Negotiated and communicated with c-level client management regarding project milestone agreements.\n• Increased ROI for each client’s project by hiring and managing contractors to deliver custom software solutions.\n• Delivered high-level leadership and guidance to a team of software engineering consultants for several projects to accelerate operational excellence.",
+    "Description": "• Co-founded a finance and technology boutique called Sierra Vista Group that delivered support in planning and proposing effective IT strategies for key clients in several industries. \n• Performed various services, including system and architecture assessment and solutions design, to ensure the smooth running of technical projects.\n• Managed project schedules and technical specifications to match business requirements within contractual budget constraints. \n• Identified opportunities for potential clients requiring expertise in product development, software engineering, and data modeling. Negotiated and communicated with c-level client management regarding project milestone agreements.\n• Increased ROI for each client’s project by hiring and managing contractors to deliver custom software solutions.\n• Delivered high-level leadership and guidance to a team of software engineering consultants for several projects to accelerate operational excellence.",
     "references": [
-      "<div class=\"anchor-ref-not-found\"><a href=\"\">[Sierra Vista Group]</a></div>"
+      "<div class=\"anchor-ref\"><a href=\"https://6sense.com/company/sierra-vista-group-llc/5ba8a5247c8666394376fc4f\">[Sierra Vista Group]</a></div>"
     ],
     "job-skills": {
       "15": "AWS CloudWatch",
@@ -551,19 +470,13 @@ const jobs = [
     "employer": "HomePorfolio, Inc. ",
     "start": "1998-02-01",
     "end": "2002-11-01",
-    "z-index": "1",
-    "Description": "• As co-founder and CTO, designed and led the development of a public website used by discerning home designers and builders called [HomePortfolio]. \n• Hired a staff of  10 software and databases developers. \n• Worked with data acquisition team to scan and tag over 700,000 premium home design products from over 2,000 manufactures and vendors.\n• Designed datamodel and data entry tools for category-specific product attribution. \n• Helped extended the business model to provide online product selection tools for participating vendors and manufacturers.\n• Instrumental in raising over $70M in venture capital. \n• Used [Oracle], [ATG Dyanamo]( https://docs.oracle.com/cd/E24152_01/Platform.10-1/ATGPersBusinessGuide/html/s0102dynamoapplicationframework01.html), [Java], [Akamai]www.akamai.com/, [WebTrends], [FileMakerPro], [ImageMagik], [Bash], [Linux], [HTML], [JavaScript], [CSS], and [Omnigraffle] for data modeling and workflow designs.",
+    "Description": "• As co-founder and CTO, designed and led the development of a public website used by discerning home designers and builders called HomePortfolio. \n• Hired a staff of  10 software and databases developers. \n• Worked with data acquisition team to scan and tag over 700,000 premium home design products from over 2,000 manufactures and vendors.\n• Designed datamodel and data entry tools for category-specific product attribution. \n• Helped extended the business model to provide online product selection tools for participating vendors and manufacturers.\n• Instrumental in raising over $70M in venture capital. \n• Used [Oracle], [ATG Dyanamo]( https://docs.oracle.com/cd/E24152_01/Platform.10-1/ATGPersBusinessGuide/html/s0102dynamoapplicationframework01.html), [Java], Akamai, WebTrends, [FileMakerPro], ImageMagik, [Bash], [Linux], [HTML], [JavaScript], [CSS], and Omnigraffle for data modeling and workflow designs.",
     "references": [
-      "<div class=\"img-ref\">[Akamai]<img src=\"https://www.hiclipart.com/free-transparent-background-png-clipart-zkmsn\"/></div>",
       "<div class=\"img-ref anchor-ref\">[Akamai]<a href=\"https://www.akamai.com/\"><img src=\"https://www.hiclipart.com/free-transparent-background-png-clipart-zkmsn\"/></a></div>",
-      "<div class=\"anchor-ref-not-found\"><a href=\"\">[HomePortfolio]</a></div>",
+      "<div class=\"anchor-ref\"><a href=\"https://HomePortfolio/\">[HomePortfolio]</a></div>",
       "<div class=\"anchor-ref\"><a href=\"https://www.webtrends.com/\">[WebTrends]</a></div>",
       "<div class=\"anchor-ref\"><a href=\"https://imagemagick.org/index.php\">[ImageMagik]</a></div>",
-      "<div class=\"anchor-ref\"><a href=\"https://www.omnigroup.com/omnigraffle\">[Omnigraffle]</a></div>",
-      "<div class=\"anchor-ref\"><a href=\"www.akamai.com/\">www.akamai.com/</a></div>",
-      "<div class=\"anchor-ref\"><a href=\"http://www.webtrends.com\">http://www.webtrends.com</a></div>",
-      "<div class=\"anchor-ref\"><a href=\"http://imagemagick.org/index.php\">http://imagemagick.org/index.php</a></div>",
-      "<div class=\"anchor-ref\"><a href=\"http://www.omnigroup.com/omnigraffle\">http://www.omnigroup.com/omnigraffle</a></div>"
+      "<div class=\"anchor-ref\"><a href=\"https://www.omnigroup.com/omnigraffle\">[Omnigraffle]</a></div>"
     ],
     "job-skills": {
       "3": "Akamai",
@@ -599,15 +512,11 @@ const jobs = [
     "employer": "BuildingBlocks, LLC ",
     "start": "1996-06-01",
     "end": "1998-02-01",
-    "z-index": "1",
-    "Description": "• As lead software developer, built a CD-ROM-based home design application for selecting premium home design products for previewing in the context of images of any household rooms. \n• Built the prototype using Adobe Photoshop and [Macromedia Director].\n• Built the actual application using using [Bash], [Linux], [Java] and [Marimba Bongo] widget layout tool.\n• Updates for the self-updating application were delivered over the internet using [Marimba Castanet] push-technology.",
+    "Description": "• As lead software developer, built a CD-ROM-based home design application for selecting premium home design products for previewing in the context of images of any household rooms. \n• Built the prototype using Adobe Photoshop and Macromedia Director.\n• Built the actual application using using [Bash], [Linux], [Java] and Marimba Bongo widget layout tool.\n• Updates for the self-updating application were delivered over the internet using Marimba Castanet push-technology.",
     "references": [
       "<div class=\"anchor-ref\"><a href=\"https://macromedia.fandom.com/wiki/Macromedia_Director\">[Macromedia Director]</a></div>",
       "<div class=\"anchor-ref\"><a href=\"https://www.thriftbooks.com/w/official-marimba-guide-to-bongo_danny-goodman/2574616/#edition=58026223&idiq=42367912\">[Marimba Bongo]</a></div>",
-      "<div class=\"anchor-ref\"><a href=\"https://www.infoworld.com/article/2076707/marimba-launches-new-castanet-with-a-less-java-centric-focus.html\">[Marimba Castanet]</a></div>",
-      "<div class=\"anchor-ref\"><a href=\"http://macromedia.fandom.com/wiki/Macromedia_Director\">http://macromedia.fandom.com/wiki/Macromedia_Director</a></div>",
-      "<div class=\"anchor-ref\"><a href=\"http://www.thriftbooks.com/w/official-marimba-guide-to-bongo_danny-goodman/2574616/#edition=58026223&idiq=42367912\">http://www.thriftbooks.com/w/official-marimba-guide-to-bongo_danny-goodman/2574616/#edition=58026223&idiq=42367912</a></div>",
-      "<div class=\"anchor-ref\"><a href=\"http://www.infoworld.com/article/2076707/marimba-launches-new-castanet-with-a-less-java-centric-focus.html\">http://www.infoworld.com/article/2076707/marimba-launches-new-castanet-with-a-less-java-centric-focus.html</a></div>"
+      "<div class=\"anchor-ref\"><a href=\"https://www.infoworld.com/article/2076707/marimba-launches-new-castanet-with-a-less-java-centric-focus.html\">[Marimba Castanet]</a></div>"
     ],
     "job-skills": {
       "86": "JavaScript/HTML/CSS",
@@ -619,17 +528,13 @@ const jobs = [
     "employer": "MIT Media Lab",
     "start": "1990-09-01",
     "end": "1997-04-01",
-    "z-index": "2",
-    "Description": "•\tDoctor of Philosopy degree, [MIT], Cambridge, Massachusettes\n•\tMedia Laboratory, Media Arts and Sciences\n•\tTook courses in machine vision, signals and systems, digital signal processing, and stochastics.\n•\tHelped build the operating system for the [Cheops multi-processor system] used for digital video research and for holographic video\n•\t[“Vision-assisted modeling for model-based video representations”], (Ph.D. Dissertation) MIT, Program in Media Arts & Sciences, 1997\n•\t[“Semiautomatic 3-D Model Extraction from Uncalibrated 2-D Camera Views.”] S. Becker & V. M. Bove, Jr., Proc. SPIE Image Synthesis, 2410, 1995, pp. 447-461.\n•\t“Semiautomatic Scene Modeling From 2-D Views with Partially Known Structure.” Shawn Becker, MIT Media Lab Reports, 1995\n•\t“Semiautomatic Camera Lens Calibration from Partially Known Structure”, Shawn Becker, MIT Media Lab Reports, 1994\n•\t[“Formulating a scene probability equation to differentiate the effects of shape & albedo on image brightness.”] Shawn Becker, MIT Media Lab Reports, 1994\n•\t“Computation of some projective-chirplet-transform & metaplectic-chirplet-transform subspaces, with applications in image processing.” Steve Mann & Shawn Becker, DSP World Symposium, Boston, Massachusetts, November 1992.\n• [C programming language], [TclTk], [X11], [HTML], [JavaScript],[CSS],[XMotif], [Bash], [Linux]",
+    "Description": "•\tDoctor of Philosopy degree, MIT, Cambridge, Massachusettes\n•\tMedia Laboratory, Media Arts and Sciences\n•\tTook courses in machine vision, signals and systems, digital signal processing, and stochastics.\n•\tHelped build the operating system for the Cheops multi-processor system used for digital video research and for holographic video\n•\t“Vision-assisted modeling for model-based video representations”, (Ph.D. Dissertation) MIT, Program in Media Arts & Sciences, 1997\n•\t“Semiautomatic 3-D Model Extraction from Uncalibrated 2-D Camera Views.” S. Becker & V. M. Bove, Jr., Proc. SPIE Image Synthesis, 2410, 1995, pp. 447-461.\n•\t“Semiautomatic Scene Modeling From 2-D Views with Partially Known Structure.” Shawn Becker, MIT Media Lab Reports, 1995\n•\t“Semiautomatic Camera Lens Calibration from Partially Known Structure”, Shawn Becker, MIT Media Lab Reports, 1994\n•\t“Formulating a scene probability equation to differentiate the effects of shape & albedo on image brightness.” Shawn Becker, MIT Media Lab Reports, 1994\n•\t“Computation of some projective-chirplet-transform & metaplectic-chirplet-transform subspaces, with applications in image processing.” Steve Mann & Shawn Becker, DSP World Symposium, Boston, Massachusetts, November 1992.\n• [C programming language], [TclTk], [X11], [HTML], [JavaScript],[CSS],[XMotif], [Bash], [Linux]",
     "references": [
-      "<div class=\"img-ref-not-found\">[MIT]<img src=\"/static_content/portfolio/MIT-logo.png\"/></div>",
+      "<div class=\"img-ref\">[MIT]<img src=\"/static_content/portfolio/MIT-logo.png\"/></div>",
       "<div class=\"anchor-ref\"><a href=\"http://alumni.media.mit.edu/~wad/cheops_CSVT/cheops.html\">[Cheops multi-processor system]</a></div>",
       "<div class=\"anchor-ref\"><a href=\"https://dspace.mit.edu/handle/1721.1/29123\">[“Vision-assisted modeling for model-based video representations”]</a></div>",
       "<div class=\"anchor-ref\"><a href=\"https://www.media.mit.edu/publications/semiautomatic-3-d-model-extraction-from-uncalibrated-2-d-camera-views-2/\">[“Semiautomatic 3-D Model Extraction from Uncalibrated 2-D Camera Views.”]</a></div>",
-      "<div class=\"anchor-ref-not-found\"><a href=\"\">[“Formulating a scene probability equation to differentiate the effects of shape & albedo on image brightness.”]</a></div>",
-      "<div class=\"anchor-ref\"><a href=\"http://alumni.media.mit.edu/~wad/cheops_CSVT/cheops.html\">http://alumni.media.mit.edu/~wad/cheops_CSVT/cheops.html</a></div>",
-      "<div class=\"anchor-ref\"><a href=\"http://dspace.mit.edu/handle/1721.1/29123\">http://dspace.mit.edu/handle/1721.1/29123</a></div>",
-      "<div class=\"anchor-ref\"><a href=\"http://www.media.mit.edu/publications/semiautomatic-3-d-model-extraction-from-uncalibrated-2-d-camera-views-2/\">http://www.media.mit.edu/publications/semiautomatic-3-d-model-extraction-from-uncalibrated-2-d-camera-views-2/</a></div>"
+      "<div class=\"anchor-ref\"><a href=\"https://www.researchgate.net/publication/2668457_Formulating_a_Scene_Probability_Equation_to_Differentiate_the_Effects_of_Shape_and_Albedo_on_Image_Brightness\">[“Formulating a scene probability equation to differentiate the effects of shape & albedo on image brightness.”]</a></div>"
     ],
     "job-skills": {
       "4": "Algorithms",
@@ -657,17 +562,14 @@ const jobs = [
     "employer": "BYU",
     "start": "1987-09-01",
     "end": "1990-09-01",
-    "z-index": "2",
-    "Description": "• Masters of Science degree, [BYU], Provo, Utah\nTook all courses required for both bachelors and masters degrees in Computer Science\n• Thesis project [“Interactive Measurement of Three-Dimensional Objects Using a Depth Buffer & Linear Probe.”] CS MS Thesis, Shawn Becker, William A. Barrett & Dan R. Olsen, ACM Transactions on Graphics, Vol. 10, No. 2, April 1991\n• Top Research Presentation – New Tech Research Conference - BYU – Provo, UT – March 1990\n• [“Fast Automated Object Detection Using Signature Parsing.”] Tim Heaton; Shawn Becker; Kelley Anderson; William Barrett: Proceedings Volume 1192, Intelligent Robots & Computer Vision VIII: Algorithms & Techniques; http://1990.com https://doi.org/10.1117/12.969720\n• [“Probabilistic Segmentation of Myocardial Tissue by Deterministic Relaxation.”] Jerome A. Broekhuijsen, Shawn C. Becker, & William A. Barrett: IEEE Proceedings of Computers in Cardiology, pp. 99-12, Jerusalem, September 1989.\n• [“Interactive Measurement of three-Dimensional Cardiac Morphology.”] Shawn C Becker, William A Barrett, October 1989, DOI: 10.1109/CIC.1989.130586, Conference: Computers in Cardiology.\n• [C programming language], [Bash], [Linux], [XMotif], and [X11].",
+    "Description": "• Masters of Science degree, BYU, Provo, Utah\nTook all courses required for both bachelors and masters degrees in Computer Science\n• Thesis project “Interactive Measurement of Three-Dimensional Objects Using a Depth Buffer & Linear Probe.” CS MS Thesis, Shawn Becker, William A. Barrett & Dan R. Olsen, ACM Transactions on Graphics, Vol. 10, No. 2, April 1991\n• Top Research Presentation – New Tech Research Conference - BYU – Provo, UT – March 1990\n• “Fast Automated Object Detection Using Signature Parsing.” Tim Heaton; Shawn Becker; Kelley Anderson; William Barrett: Proceedings Volume 1192, Intelligent Robots & Computer Vision VIII: Algorithms & Techniques;  https://doi.org/10.1117/12.969720\n• “Probabilistic Segmentation of Myocardial Tissue by Deterministic Relaxation.” Jerome A. Broekhuijsen, Shawn C. Becker, & William A. Barrett: IEEE Proceedings of Computers in Cardiology, pp. 99-12, Jerusalem, September 1989.\n• “Interactive Measurement of three-Dimensional Cardiac Morphology.” Shawn C Becker, William A Barrett, October 1989, DOI: 10.1109/CIC.1989.130586, Conference: Computers in Cardiology.\n• [C programming language], [Bash], [Linux], [XMotif], and [X11].",
     "references": [
-      "<div class=\"img-ref-not-found\">[BYU]<img src=\"/static_content/portfolio/BYU-entrance-150x150.jpg\"/></div>",
-      "<div class=\"img-ref-not-found\">[“Interactive Measurement of three-Dimensional Cardiac Morphology.”]<img src=\"/static_content/portfolio/BYU-MS-CS-Skull-Cross-Section-1.jpeg\"/></div>",
-      "<div class=\"img-ref-not-found anchor-ref-not-found\">[“Interactive Measurement of three-Dimensional Cardiac Morphology.”]<a href=\"\"><img src=\"/static_content/portfolio/BYU-MS-CS-Skull-Cross-Section-1.jpeg\"/></a></div>",
-      "<div class=\"anchor-ref-not-found\"><a href=\"\">[“Interactive Measurement of Three-Dimensional Objects Using a Depth Buffer & Linear Probe.”]</a></div>",
+      "<div class=\"img-ref anchor-ref\">[“Interactive Measurement of three-Dimensional Cardiac Morphology.”]<a href=\"https://scholarsarchive.byu.edu/cgi/viewcontent.cgi?article=1736&context=facpub\"><img src=\"/static_content/portfolio/BYU-MS-CS-Skull-Cross-Section-1.jpeg\"/></a></div>",
+      "<div class=\"img-ref\">[BYU]<img src=\"/static_content/portfolio/BYU-entrance-150x150.jpg\"/></div>",
+      "<div class=\"anchor-ref\"><a href=\"https://dl.acm.org/doi/pdf/10.1145/108360.108446\">[“Interactive Measurement of Three-Dimensional Objects Using a Depth Buffer & Linear Probe.”]</a></div>",
       "<div class=\"anchor-ref\"><a href=\"https://www.spiedigitallibrary.org/conference-proceedings-of-spie/1192/1/Fast-Automated-Object-Detection-Using-Signature-Parsing/10.1117/12.969720.short\">[“Fast Automated Object Detection Using Signature Parsing.”]</a></div>",
-      "<div class=\"anchor-ref-not-found\"><a href=\"\">[“Probabilistic Segmentation of Myocardial Tissue by Deterministic Relaxation.”]</a></div>",
-      "<div class=\"anchor-ref\"><a href=\"http://www.spiedigitallibrary.org/conference-proceedings-of-spie/1192/1/Fast-Automated-Object-Detection-Using-Signature-Parsing/10.1117/12.969720.short\">http://www.spiedigitallibrary.org/conference-proceedings-of-spie/1192/1/Fast-Automated-Object-Detection-Using-Signature-Parsing/10.1117/12.969720.short</a></div>",
-      "<div class=\"anchor-ref\"><a href=\"http://1990.com\">http://1990.com</a></div>"
+      "<div class=\"anchor-ref\"><a href=\"https://scholarsarchive.byu.edu/cgi/viewcontent.cgi?article=1737&context=facpub\">[“Probabilistic Segmentation of Myocardial Tissue by Deterministic Relaxation.”]</a></div>",
+      "<div class=\"anchor-ref\"><a href=\"1990\">1990</a></div>"
     ],
     "job-skills": {
       "44": "Bash",
@@ -701,18 +603,13 @@ const jobs = [
     "employer": "Cimmetrix LLC",
     "start": "1988-06-01",
     "end": "1989-09-01",
-    "z-index": "3",
-    "Description": "• Front-end software developer of a reverse kinametics path planning system for multi-axis industrial robots for [Cimmetrix].\n• Technologies used include [Bash], [Linux], [C programming language], [Bash], [X11] , [Xt toolkit intrinsics], [Silicon Graphics Irix], and [HP-UX].",
+    "Description": "• Front-end software developer of a reverse kinametics path planning system for multi-axis industrial robots for Cimmetrix.\n• Technologies used include [Bash], [Linux], [C programming language], Bash, [X11] , Xt toolkit intrinsics, Silicon Graphics Irix, and HP-UX.",
     "references": [
-      "<div class=\"img-ref-not-found\">[Cimmetrix]<img src=\"/static_content/portfolio/Cimetrix-PDF-combined-logo-150x100.png\"/></div>",
+      "<div class=\"img-ref\">[Cimmetrix]<img src=\"/static_content/portfolio/Cimetrix-PDF-combined-logo-150x100.png\"/></div>",
       "<div class=\"anchor-ref\"><a href=\"https://en.wikipedia.org/wiki/Bourne_shell\">[Bash]</a></div>",
       "<div class=\"anchor-ref\"><a href=\"https://en.wikipedia.org/wiki/X_Toolkit_Intrinsics\">[Xt toolkit intrinsics]</a></div>",
       "<div class=\"anchor-ref\"><a href=\"https://en.wikipedia.org/wiki/Silicon_Graphics\">[Silicon Graphics Irix]</a></div>",
-      "<div class=\"anchor-ref\"><a href=\"https://en.wikipedia.org/wiki/HP-UX\">[HP-UX]</a></div>",
-      "<div class=\"anchor-ref\"><a href=\"http://en.wikipedia.org/wiki/Bourne_shell\">http://en.wikipedia.org/wiki/Bourne_shell</a></div>",
-      "<div class=\"anchor-ref\"><a href=\"http://en.wikipedia.org/wiki/X_Toolkit_Intrinsics\">http://en.wikipedia.org/wiki/X_Toolkit_Intrinsics</a></div>",
-      "<div class=\"anchor-ref\"><a href=\"http://en.wikipedia.org/wiki/Silicon_Graphics\">http://en.wikipedia.org/wiki/Silicon_Graphics</a></div>",
-      "<div class=\"anchor-ref\"><a href=\"http://en.wikipedia.org/wiki/HP-UX\">http://en.wikipedia.org/wiki/HP-UX</a></div>"
+      "<div class=\"anchor-ref\"><a href=\"https://en.wikipedia.org/wiki/HP-UX\">[HP-UX]</a></div>"
     ],
     "job-skills": {
       "15": "AWS CloudWatch",
@@ -769,11 +666,9 @@ const jobs = [
     "employer": "MSC ",
     "start": "2007-12-01",
     "end": "2010-08-01",
-    "z-index": "2",
-    "Description": "• MSC, now called [OneCall], is a leading workers compensation services company. \n• As project manager and technical lead for this Sierra Vista Group project, I presented fixed schedule-fixed budget project proposals to C-level executives to add features to their legacy call center system used by 10 different healthcare divisions. \n• Interviewed stakeholders to create functional requirements and technical spefications for each stage of development.\n• Worked with development team to create work plan, assign tasks.\n• Oversaw quality assurance and customer approval testing.\n• Used the MS Office suite of business apps a well as MS Visio.",
+    "Description": "• MSC, now called OneCall, is a leading workers compensation services company. \n• As project manager and technical lead for this Sierra Vista Group project, I presented fixed schedule-fixed budget project proposals to C-level executives to add features to their legacy call center system used by 10 different healthcare divisions. \n• Interviewed stakeholders to create functional requirements and technical spefications for each stage of development.\n• Worked with development team to create work plan, assign tasks.\n• Oversaw quality assurance and customer approval testing.\n• Used the MS Office suite of business apps a well as MS Visio.",
     "references": [
-      "<div class=\"anchor-ref\"><a href=\"https://onecallcm.com/\">[OneCall]</a></div>",
-      "<div class=\"anchor-ref\"><a href=\"http://onecallcm.com\">http://onecallcm.com</a></div>"
+      "<div class=\"anchor-ref\"><a href=\"https://onecallcm.com/\">[OneCall]</a></div>"
     ],
     "job-skills": {
       "44": "Bash",
@@ -807,18 +702,13 @@ const jobs = [
     "employer": "Eleven LLC",
     "start": "2006-02-01",
     "end": "2007-12-01",
-    "z-index": "2",
-    "Description": "• [Eleven LLC] built mobile apps used by beverage industry distributors to help manage placement  of their products in the shelves and coolers in retail locations. The work done by the Sierra Vista Group was instrumental in their company being acquired by [Trimble]. \n• As the architect and team lead, we used [Java], [Bash], [GitHub], [Linux], and  [JBoss] message-oriented middleware platform, [Sybase Anywhere] for the client/server based database, and [Windows Mobile] running on ruggedized mobile devices.",
+    "Description": "• Eleven LLC built mobile apps used by beverage industry distributors to help manage placement  of their products in the shelves and coolers in retail locations. The work done by the Sierra Vista Group was instrumental in their company being acquired by Trimble. \n• As the architect and team lead, we used [Java], [Bash], [GitHub], [Linux], and  JBoss message-oriented middleware platform, Sybase Anywhere for the client/server based database, and Windows Mobile running on ruggedized mobile devices.",
     "references": [
       "<div class=\"anchor-ref\"><a href=\"https://www.eleven.net/\">[Eleven LLC]</a></div>",
       "<div class=\"anchor-ref\"><a href=\"https://help.trimblegeospatial.com/TMM/Home.htm\">[Trimble]</a></div>",
       "<div class=\"anchor-ref\"><a href=\"https://developers.redhat.com/products/eap/overview\">[JBoss]</a></div>",
-      "<div class=\"anchor-ref-not-found\"><a href=\"\">[Sybase Anywhere]</a></div>",
-      "<div class=\"anchor-ref\"><a href=\"https://en.wikipedia.org/wiki/Windows_Mobile_5.0\">[Windows Mobile]</a></div>",
-      "<div class=\"anchor-ref\"><a href=\"http://www.eleven.net\">http://www.eleven.net</a></div>",
-      "<div class=\"anchor-ref\"><a href=\"http://help.trimblegeospatial.com/TMM/Home.htm\">http://help.trimblegeospatial.com/TMM/Home.htm</a></div>",
-      "<div class=\"anchor-ref\"><a href=\"http://developers.redhat.com/products/eap/overview\">http://developers.redhat.com/products/eap/overview</a></div>",
-      "<div class=\"anchor-ref\"><a href=\"http://en.wikipedia.org/wiki/Windows_Mobile_5.0\">http://en.wikipedia.org/wiki/Windows_Mobile_5.0</a></div>"
+      "<div class=\"anchor-ref\"><a href=\"https://texas.gs.shi.com/Product/30451452/Sybase-SQL-Anywhere-Advanced-Edition\">[Sybase Anywhere]</a></div>",
+      "<div class=\"anchor-ref\"><a href=\"https://en.wikipedia.org/wiki/Windows_Mobile_5.0\">[Windows Mobile]</a></div>"
     ],
     "job-skills": {
       "15": "AWS CloudWatch",
@@ -875,16 +765,12 @@ const jobs = [
     "employer": "Intrusic LLC",
     "start": "2005-02-01",
     "end": "2006-02-01",
-    "z-index": "2",
-    "Description": "• [Intrusic LLC] built real-time network monitoring systems that identified external and internal network intrusion attempts\n• As a Sierra Vista Group architech, I helped design and develop an approach for buffering live streaming network traffic for asynchronous package processing. \n• Used [Linux], [C programming language], and [Visio].",
+    "Description": "• Intrusic LLC built real-time network monitoring systems that identified external and internal network intrusion attempts\n• As a Sierra Vista Group architech, I helped design and develop an approach for buffering live streaming network traffic for asynchronous package processing. \n• Used Linux, C programming language, and Visio.",
     "references": [
-      "<div class=\"anchor-ref-not-found\"><a href=\"\">[Intrusic LLC]</a></div>",
+      "<div class=\"anchor-ref\"><a href=\"https://www.crunchbase.com/organization/intrusic\">[Intrusic LLC]</a></div>",
       "<div class=\"anchor-ref\"><a href=\"https://www.debian.org/\">[Linux]</a></div>",
       "<div class=\"anchor-ref\"><a href=\"https://www.cprogramming.com/books/ritchie.html\">[C programming language]</a></div>",
-      "<div class=\"anchor-ref\"><a href=\"https://www.microsoft.com/en-us/microsoft-365/visio/flowchart-software\">[Visio]</a></div>",
-      "<div class=\"anchor-ref\"><a href=\"http://www.debian.org\">http://www.debian.org</a></div>",
-      "<div class=\"anchor-ref\"><a href=\"http://www.cprogramming.com/books/ritchie.html\">http://www.cprogramming.com/books/ritchie.html</a></div>",
-      "<div class=\"anchor-ref\"><a href=\"http://www.microsoft.com/en-us/microsoft-365/visio/flowchart-software\">http://www.microsoft.com/en-us/microsoft-365/visio/flowchart-software</a></div>"
+      "<div class=\"anchor-ref\"><a href=\"https://www.microsoft.com/en-us/microsoft-365/visio/flowchart-software\">[Visio]</a></div>"
     ],
     "job-skills": {
       "15": "AWS CloudWatch",
@@ -941,14 +827,11 @@ const jobs = [
     "employer": "AMI Entertainment ",
     "start": "2004-02-01",
     "end": "2005-02-01",
-    "z-index": "2",
-    "Description": "•  AMI http://amientertainment.com was the internet-music distribution incarnation of Rowe International.  \n•  As a Sierra Vista Group project manager and technical lead, I helped design and implement their system for making monthly ACH royalty payments to music copyright owners for mechanical and performance licensing rights.\n•  Used [FileMaker Pro], [Bash], [Linux], [HTML], [CSS], [JavaScript], [Java], and [Visio].",
+    "Description": "•  AMI  was the internet-music distribution incarnation of Rowe International.  \n•  As a Sierra Vista Group project manager and technical lead, I helped design and implement their system for making monthly ACH royalty payments to music copyright owners for mechanical and performance licensing rights.\n•  Used FileMaker Pro, [Bash], [Linux], [HTML], [CSS], [JavaScript], [Java], and Visio.",
     "references": [
       "<div class=\"anchor-ref\"><a href=\"https://www.claris.com/filemaker/\">[FileMaker Pro]</a></div>",
       "<div class=\"anchor-ref\"><a href=\"https://www.microsoft.com/en-us/microsoft-365/visio/flowchart-software\">[Visio]</a></div>",
-      "<div class=\"anchor-ref\"><a href=\"http://amientertainment.com\">http://amientertainment.com</a></div>",
-      "<div class=\"anchor-ref\"><a href=\"http://www.claris.com/filemaker/\">http://www.claris.com/filemaker/</a></div>",
-      "<div class=\"anchor-ref\"><a href=\"http://www.microsoft.com/en-us/microsoft-365/visio/flowchart-software\">http://www.microsoft.com/en-us/microsoft-365/visio/flowchart-software</a></div>"
+      "<div class=\"anchor-ref\"><a href=\"https://amientertainment.com/\">https://amientertainment.com/</a></div>"
     ],
     "job-skills": {}
   },
@@ -957,16 +840,12 @@ const jobs = [
     "employer": "Rowe International",
     "start": "2003-03-01",
     "end": "2004-02-01",
-    "z-index": "2",
-    "Description": "•  [Rowe International] was the leading manufacturer of music jukeboxes. \n•  Sierra Vista Group was consulted to assess their available technologies and create a plan to build their back-end systems to let them become a leading provider of internet-based music.\n•  As project manager and technical lead created the project plan and led the development of a full-stack web application used by  jukebox owners and Rowe sales and marketing.\n•  Used [Java], [Bash], [Linux], [HTML], [CSS], [JavaScript], [ObjectDesign], [MySQL], and [Adobe Photoshop].",
+    "Description": "•  Rowe International was the leading manufacturer of music jukeboxes. \n•  Sierra Vista Group was consulted to assess their available technologies and create a plan to build their back-end systems to let them become a leading provider of internet-based music.\n•  As project manager and technical lead created the project plan and led the development of a full-stack web application used by  jukebox owners and Rowe sales and marketing.\n•  Used [Java], [Bash], [Linux], [HTML], [CSS], [JavaScript], ObjectDesign, MySQL, and Adobe Photoshop.",
     "references": [
-      "<div class=\"anchor-ref-not-found\"><a href=\"\">[Rowe International]</a></div>",
+      "<div class=\"anchor-ref\"><a href=\"https://pitchbook.com/profiles/company/13178-08\">[Rowe International]</a></div>",
       "<div class=\"anchor-ref\"><a href=\"https://object.design/\">[ObjectDesign]</a></div>",
       "<div class=\"anchor-ref\"><a href=\"https://www.mysql.com/\">[MySQL]</a></div>",
-      "<div class=\"anchor-ref\"><a href=\"https://www.adobe.com/products/photoshop.html\">[Adobe Photoshop]</a></div>",
-      "<div class=\"anchor-ref\"><a href=\"http://object.design/\">http://object.design/</a></div>",
-      "<div class=\"anchor-ref\"><a href=\"http://www.mysql.com\">http://www.mysql.com</a></div>",
-      "<div class=\"anchor-ref\"><a href=\"http://www.adobe.com/products/photoshop.html\">http://www.adobe.com/products/photoshop.html</a></div>"
+      "<div class=\"anchor-ref\"><a href=\"https://www.adobe.com/products/photoshop.html\">[Adobe Photoshop]</a></div>"
     ],
     "job-skills": {}
   }

@@ -116,7 +116,7 @@ If the app is already running, it will re-load the `jobs.mjs` file.
 ### Future work
 
 - Provide the option to print the resume to a PDF file
-- Need to ease focal point to BullsEye when any cardDiv is selected (or clicked?)
+- Need to ease focal point to BullsEye when any skillCardDiv is selected (or clicked?)
 - Need to add stamp icons to post cards
 - Click on post card to see it's full-size iomage in right-side detail panel
 - Render bizcards as 3D blocks with rounded corners
@@ -138,7 +138,7 @@ If the app is already running, it will re-load the `jobs.mjs` file.
 <a target="_new" href="http://spexture.com/">http://spexture.com</a>
 
 - CURRENT_DATE in job [end] replaced with first day of next month but displayed as 'working'
-- Always scroll newly selected bizcardDiv (and optionally its bizcardLineItem) into view in selectTheBizcard
+- Always scroll newly selected bizCardDiv (and optionally its bizcardLineItem) into view in selectTheBizcard
 - not started 
   in highlightTheDivCardBackArrow 
     unhighlightTheHighlightedDivCardBackArrow 

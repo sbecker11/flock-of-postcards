@@ -188,117 +188,35 @@ async function testPermutedUrl(originalUrl) {
 }
 
 // Process description and extract references
-async function processDescription(text, counters) {
+async function processDescription(text) {
   if (!text) return { description: text, references: [] };
 
   let newText = text;
   const references = [];
 
-  const imagePattern = /\[([^\[\]]+)\]\{([^\{\}]+)\}/g;
-  let match;
-  while ((match = imagePattern.exec(text)) !== null) {
-    const label = `[${match[1]}]`;
-    const imageUrl = match[2];
-    let imageResult = null;
-    imageResult = await testUrl(imageUrl);
-    // deepcode ignore AttrAccessOnNull: <please specify a reason of ignoring this>
-    if ( !imageResult ) {
-      imageResult = { valid: false };
-      counters.invalid_all_changes_cnt++;
-      continue;
-    }
-    const imgClass = imageResult && imageResult.valid !== undefined ? (imageResult.valid ? 'img-ref' : 'img-ref-error') : 'img-ref-not-found';
-    const refHtml = `<div class="${imgClass}">${label}<img src="${imageUrl}"/></div>`;
-    references.push(refHtml);
-    newText = newText.replace(match[0], label);
-  }
+  // Process combined image+web markup [label]{imageUrl}(webUrl)
+  newText = newText.replace(/\[([^\[\]]+)\]\{([^\{\}]+)\}\(([^\s)]+)\)/g, (match, label, imageUrl, webUrl) => {
+    references.push(`<div class="img-ref anchor-ref">[${label}]<a href="${webUrl}"><img src="${imageUrl}"/></a></div>`);
+    return label;
+  });
 
-  const combinedPattern = /\[([^\[\]]+)\]\{([^\{\}]+)\}\(([^\s)]+)\)/g;
-  while ((match = combinedPattern.exec(text)) !== null) {
-    const label = `[${match[1]}]`;
-    const imageUrl = match[2];
-    const webUrl = match[3];
-    const imageResult = await testUrl(imageUrl);
-    const webResult = await testPermutedUrl(webUrl);
-    let validatedWebUrl = webUrl;
-    if (webResult) {
-      if (webResult !== null && webResult !== undefined && webResult.code === -3) {
-        counters.skipped_timeout_cnt++;
-      } else if (webResult !== null && webResult !== undefined && webResult.valid) {
-        validatedWebUrl = webResult ? webResult.valid : '';
-        if (webResult && webResult.code === -1) counters.valid_no_changes_cnt++;
-        else counters.valid_some_changes_cnt++;
-      } else {
-        counters.invalid_all_changes_cnt++;
-        validatedWebUrl = '';
-      }
-    } else {
-      counters.invalid_all_changes_cnt++;
-      validatedWebUrl = '';
-    }
-    const imgClass = imageResult?.valid ? 'img-ref' : (imageResult ? 'img-ref-error' : 'img-ref-not-found');
-    const anchorClass = validatedWebUrl ? 'anchor-ref' : 'anchor-ref-not-found';
-    const refHtml = `<div class="${imgClass} ${anchorClass}">${label}<a href="${validatedWebUrl}"><img src="${imageUrl}"/></a></div>`;
-    references.push(refHtml);
-    newText = newText.replace(match[0], label);
-  }
+  // Process image markup [label]{imageUrl}
+  newText = newText.replace(/\[([^\[\]]+)\]\{([^\{\}]+)\}/g, (match, label, imageUrl) => {
+    references.push(`<div class="img-ref">[${label}]<img src="${imageUrl}"/></div>`);
+    return label;
+  });
 
-  const labeledWebPattern = /\[([^\[\]]+)\]\(([^\s)]+)\)/g;
-  while ((match = labeledWebPattern.exec(text)) !== null) {
-    const label = `[${match[1]}]`;
-    const webUrl = match[2];
-    const webResult = await testPermutedUrl(webUrl);
-    let validatedWebUrl = webUrl;
-    if (webResult) {
-      if (webResult !== null && webResult !== undefined && webResult.code === -3) {
-        counters.skipped_timeout_cnt++;
-      } else if (webResult !== null && webResult !== undefined && webResult.valid) {
-        validatedWebUrl = webResult ? webResult.valid : '';
-        if (webResult && webResult.code === -1) counters.valid_no_changes_cnt++;
-        else counters.valid_some_changes_cnt++;
-      } else {
-        counters.invalid_all_changes_cnt++;
-        validatedWebUrl = '';
-      }
-    } else {
-      counters.invalid_all_changes_cnt++;
-      validatedWebUrl = '';
-    }
-    const anchorClass = validatedWebUrl ? 'anchor-ref' : 'anchor-ref-not-found';
-    const refHtml = `<div class="${anchorClass}"><a href="${validatedWebUrl}">${label}</a></div>`;
-    references.push(refHtml);
-    newText = newText.replace(match[0], label);
-  }
+  // Process labeled web links [label](webUrl)
+  newText = newText.replace(/\[([^\[\]]+)\]\(([^\s)]+)\)/g, (match, label, webUrl) => {
+    references.push(`<div class="anchor-ref"><a href="${webUrl}">[${label}]</a></div>`);
+    return label;
+  });
 
-  const webPattern = /\((?:https?:\/\/)?([^\s)]+)\)/g;
-  while ((match = webPattern.exec(text)) !== null) {
-    const originalUrl = match[1];
-    if (!match) continue;
-    const fullMatch = match[0];
-    const webResult = await testPermutedUrl(originalUrl);
-    let validatedWebUrl = originalUrl;
-    if (webResult) {
-      if (webResult !== null && webResult !== undefined && webResult.code === -3) {
-        counters.skipped_timeout_cnt++;
-      } else if (webResult && webResult.valid) {
-        validatedWebUrl = webResult.valid;
-        if (webResult.code === -1) counters.valid_no_changes_cnt++;
-        else counters.valid_some_changes_cnt++;
-      } else {
-        counters.invalid_all_changes_cnt++;
-        validatedWebUrl = '';
-      }
-    } else {
-      counters.invalid_all_changes_cnt++;
-      validatedWebUrl = '';
-    }
-    if (validatedWebUrl) {
-      const anchorClass = validatedWebUrl ? 'anchor-ref' : 'anchor-ref-not-found';
-      const refHtml = `<div class="${anchorClass}"><a href="${validatedWebUrl}">${validatedWebUrl}</a></div>`;
-      references.push(refHtml);
-    }
-    newText = newText.replace(fullMatch, validatedWebUrl);
-  }
+  // Process plain web links (webUrl)
+  newText = newText.replace(/\(([^\s)]+)\)/g, (match, webUrl) => {
+    references.push(`<div class="anchor-ref"><a href="${webUrl}">${webUrl}</a></div>`);
+    return '';
+  });
 
   return { description: newText.trim(), references };
 }
@@ -323,6 +241,10 @@ async function convertXlsxToMjs() {
       const obj = {};
       row.eachCell((cell, colNumber) => {
         const header = jobHeaders[colNumber - 1];
+        // Skip visual styling properties
+        if (['z-index', 'css name', 'css RGB', 'text color'].includes(header)) {
+          return;
+        }
         let value;
         if (header === 'start' || header === 'end') {
           if (typeof cell.value === 'string') value = cell.value.trim();
@@ -372,7 +294,7 @@ async function convertXlsxToMjs() {
     // Process descriptions and add skills with fuzzy matching
     const counters = initCounters();
     const processedData = await Promise.all(jobsData.map(async row => {
-      const { description, references } = await processDescription(row[targetColumn], counters);
+      const { description, references } = await processDescription(row[targetColumn]);
       row[targetColumn] = description;
       row.references = references;
 
@@ -396,8 +318,8 @@ async function convertXlsxToMjs() {
     }));
     reportCounters(counters);
 
-    // Write to .mjs file without export default
-    const mjsContent = `const jobs = ${JSON.stringify(processedData, null, 2)};`;
+    // Write to .mjs file with export
+    const mjsContent = `export const jobs = ${JSON.stringify(processedData, null, 2)};`;
     await writeFile(outputMjsFile, mjsContent, 'utf-8');
     console.log(`Successfully output ${outputMjsFile}.`);
   } catch (error) {

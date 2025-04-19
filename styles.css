@@ -219,7 +219,7 @@ overflow and ensures consistent sizing.
 }
 
 
-.bizcard-div {
+.biz-skill-card-div {
   position: absolute;
   border-width: 5px;
   border-style: solid;
@@ -235,19 +235,19 @@ overflow and ensures consistent sizing.
   z-index: 4; /* Minimum z-index for bizcards */
 }
 
-.bizcard-div-role {
+.biz-skill-card-div-role {
   font-size: 20px;
 }
 
-.bizcard-div-employer {
+.biz-skill-card-div-employer {
   font-size: 18px;
 }
 
-.bizcard-div-dates {
+.biz-skill-card-div-dates {
   font-size: 16px;
 }
     
-.card-div {
+.skill-card-div {
   position: absolute;
   width: 106px;
   border-width: 3px;
@@ -262,19 +262,19 @@ overflow and ensures consistent sizing.
   z-index: 20; /* Minimum z-index for cards */
 }
 
-.card-div:hover,
-.bizcard-div:hover {
+.skill-card-div:hover,
+.biz-skill-card-div:hover {
   filter: brightness(150%) !important;
 }
 
-div.card-div.selected,
-div.bizcard-div.selected {
+div.skill-card-div.selected,
+div.biz-skill-card-div.selected {
   border-width: 5px !important;
   border-style: dotted !important;
   border-color: white !important;
 }
 
-div.card-div span.tag-link {
+div.skill-card-div span.tag-link {
   display: inline-block; /* or block */
   max-width: 100%; /* Adjust as needed */
   white-space: nowrap;
@@ -282,15 +282,15 @@ div.card-div span.tag-link {
   text-overflow: ellipsis;
 }
 
-.bizcard-div-header {
+.biz-skill-card-div-header {
   font-size: 20px;
 }
 
-.card-div-header {
+.skill-card-div-header {
   font-size: 12px;
 }
 
-.card-div-img {
+.skill-card-div-img {
   position: absolute;
   top: 0px;
   left: 0px;
@@ -539,7 +539,7 @@ div.card-div span.tag-link {
   cursor: crosshair;
 }
 
-.card-div-line-item {
+.skill-card-div-line-item {
   max-width: 100%;
   display:flex;
   list-style-type: none;
@@ -551,30 +551,30 @@ div.card-div span.tag-link {
   border-color: white;
   filter: brightness(100%);
 }
-.card-div-line-item.selected {
+.skill-card-div-line-item.selected {
   filter: brightness(125%);
   border-width: 5px;
 }
 
-.card-div-line-item-content {
+.skill-card-div-line-item-content {
   padding: 20px;
   flex-grow: 1;
   overflow-x: hidden;
 }
 
-.card-div-line-item-description {
+.skill-card-div-line-item-description {
   font-size: 14px;
 }
 
-.card-div-line-item-right-column {
+.skill-card-div-line-item-right-column {
   width: 15px;
   display: flex;
   flex-direction: column;
   justify-content: space-between;
 }
 
-.card-div-line-item-delete-button,
-.card-div-line-item-follow-button {
+.skill-card-div-line-item-delete-button,
+.skill-card-div-line-item-follow-button {
   width: 15px;
   height: 15px;
   border: 0;            /* for flat appearence */
@@ -582,13 +582,13 @@ div.card-div span.tag-link {
   border-radius: 0px;
 }
 
-.card-div-line-item-right-column .card-div-line-item-delete-button {
+.skill-card-div-line-item-right-column .skill-card-div-line-item-delete-button {
   background-color: red;
   background: url("./static_content/icons/big-red-x.gif");
   cursor: pointer;
 }
 
-.card-div-line-item-right-column .card-div-line-item-follow-button {
+.skill-card-div-line-item-right-column .skill-card-div-line-item-follow-button {
   background-color: green;
   background: url("./static_content/icons/green-next.gif");
   cursor: pointer;
@@ -633,7 +633,7 @@ div.card-div span.tag-link {
   float: right;
 }
 
-.card-div > .tag-link {
+.skill-card-div > .tag-link {
   display: flex;
   flex-wrap: wrap;
   align-items: center; /* for vertical alignment */

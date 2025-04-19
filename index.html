@@ -15,8 +15,7 @@
 </head>
 
 <body>
-  <script type="text/javascript" src="static_content/jobs/jobs.mjs"></script>
-  <!-- <script type="text/javascript" src="static_content/media/img_paths.mjs"></script> -->
+  <!-- jobs.mjs is imported by main.mjs -->
   <script type="module" src="./main.mjs" ></script>
   <script type="module" src="./modules/alerts.mjs" ></script>
   <script type="module" src="./modules/css_colors.mjs" ></script>
@@ -83,11 +82,11 @@
   <script>
     // Initialization is now handled in main.mjs
 
-    // For card-div elements
-    const cardDivs = document.getElementsByClassName("card-div");
+    // For skill-card-div elements
+    const cardDivs = document.getElementsByClassName("skill-card-div");
 
-    // For bizcard-div elements
-    const bizcardDivs = document.getElementsByClassName("bizcard-div");
+    // For biz-skill-card-div elements
+    const bizCardDivs = document.getElementsByClassName("biz-skill-card-div");
   </script>
 
 </body>

@@ -627,36 +627,36 @@ export function validateIsLineItemElement(obj) {
     }
 }
 export function isCardDiv(obj) {
-    return isDivElement(obj) && obj.classList.contains('card-div');
+    return isDivElement(obj) && obj.classList.contains('skill-card-div');
 }
 
 export function validateIsCardDiv(obj) {
     if (!isCardDiv(obj)) {
-        throw new Error(`Argument does not have "card-div" class but does have ${obj.classList}.`);
+        throw new Error(`Argument does not have "skill-card-div" class but does have ${obj.classList}.`);
     }
 }
-export function isBizcardDiv(obj) {
-    return isDivElement(obj) && obj.classList.contains('bizcard-div')
+export function isbizCardDiv(obj) {
+    return isDivElement(obj) && obj.classList.contains('biz-skill-card-div')
 }
-export function validateIsBizcardDiv(obj) {
-    if (!isBizcardDiv(obj)) {
-        throw new Error(`Argument does not have "bizcard-div" class but does have ${obj.classList}.`);
+export function validateIsbizCardDiv(obj) {
+    if (!isbizCardDiv(obj)) {
+        throw new Error(`Argument does not have "biz-skill-card-div" class but does have ${obj.classList}.`);
     }
 }
-export function isCardDivOrBizcardDiv(obj) {
-    return isCardDiv(obj) || isBizcardDiv(obj);
+export function isCardDivOrbizCardDiv(obj) {
+    return isCardDiv(obj) || isbizCardDiv(obj);
 }
-export function validateIsCardDivOrBizcardDiv(obj) {
-    if (!isCardDivOrBizcardDiv(obj)) {
-        throw new Error(`Argument does not have "card-div" or "bizcard-div" class but does have ${obj.classList}.`);
+export function validateIsCardDivOrbizCardDiv(obj) {
+    if (!isCardDivOrbizCardDiv(obj)) {
+        throw new Error(`Argument does not have "skill-card-div" or "biz-skill-card-div" class but does have ${obj.classList}.`);
     }
 }
 export function isCardDivLineItem(obj) {
-    return isLineItemElement(obj) && obj.classList.contains('card-div-line-item');
+    return isLineItemElement(obj) && obj.classList.contains('skill-card-div-line-item');
 }
 export function validateIsCardDivLineItem(obj) {
     if (!isCardDivLineItem(obj)) {
-        throw new Error(`Argument does not have "card-div-line-item" class but does have ${obj.classList}.`);
+        throw new Error(`Argument does not have "skill-card-div-line-item" class but does have ${obj.classList}.`);
     }
 }
 
@@ -1016,10 +1016,10 @@ export function showElement(element, prefix="", logLevel=LogLevel.LOG) {
     const parentElementId = (element.parentElement != null) ? element.parentElement.id : "";
     let nextSiblingId = null;
     if (isCardDiv(element)) {
-        const nextSibling = utils.findNextSiblingWithClass(element, "card-div");
+        const nextSibling = utils.findNextSiblingWithClass(element, "skill-card-div");
         nextSiblingId = (nextSibling != null) ? nextSibling.id : "";
-    } else if (isBizcardDiv(element)) {
-        const nextSibling = utils.findNextSiblingWithClass(element, "bizcard-div");
+    } else if (isbizCardDiv(element)) {
+        const nextSibling = utils.findNextSiblingWithClass(element, "biz-skill-card-div");
         nextSiblingId = (nextSibling != null) ? nextSibling.id : "";
     }
     const center = {
