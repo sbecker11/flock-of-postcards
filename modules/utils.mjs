@@ -1,5 +1,5 @@
 // @ts-check
-import * as css_colors from './css_colors.mjs';
+import * as css_colors from './colors/css_colors.mjs';
 import { Logger, LogLevel } from './logger.mjs';
 const logger = new Logger("utils", LogLevel.INFO);
 
@@ -548,68 +548,68 @@ export function validateIsElement(obj) {
         throw new Error(`Argument is not an HTML element. but it is a(n) ${typeof obj} with value ${obj}`);
     }
 }
-const USABLE_STYLE_PROPS = [
-    'color','background-color','left','top', 'z-index', 'filter','translate'
-];
+// const USABLE_STYLE_PROPS = [
+//     'color','background-color','left','top', 'z-index', 'filter','translate'
+// ];
 
-// z-index and background-color are read-only from window.getComputedStyle(element).prop
-// let zIndex = element.getComputedStyle.getPropertyValue('z-index')
-const STYLE_PROPS_MAP = {
-    'z-index':'zIndex',
-    'background-color':'backgroundColor'
-};
-// zIndex and backgroundColor are used in element.style[prop] 
-// element.style.zIndex = styleProps.zIndex
-const PROPS_STYLE_MAP = {
-    'zIndex':'z-index',
-    'backgroundColor':'background-color'
-};
+// // z-index and background-color are read-only from window.getComputedStyle(element).prop
+// // let zIndex = element.getComputedStyle.getPropertyValue('z-index')
+// const STYLE_PROPS_MAP = {
+//     'z-index':'zIndex',
+//     'background-color':'backgroundColor'
+// };
+// // zIndex and backgroundColor are used in element.style[prop] 
+// // element.style.zIndex = styleProps.zIndex
+// const PROPS_STYLE_MAP = {
+//     'zIndex':'z-index',
+//     'backgroundColor':'background-color'
+// };
 
-// zIndex and backgroundColor are styleProps
-export function getStyleProps(element) {
-    validateIsElement(element);
-    let computedStyle = window.getComputedStyle(element);
-    let styleProps = {};
-    for (let prop of computedStyle) {
-        if ( USABLE_STYLE_PROPS.includes(prop) ) {
-            var dstProp = prop;
-            if (prop in STYLE_PROPS_MAP) {
-                dstProp = STYLE_PROPS_MAP[prop];
-            }
-            styleProps[dstProp] = computedStyle.getPropertyValue(prop);
-        }
-    }
-    validateIsStyleProps(styleProps);
-    return styleProps;
-}
+// // zIndex and backgroundColor are styleProps
+// export function getStyleProps(element) {
+//     validateIsElement(element);
+//     let computedStyle = window.getComputedStyle(element);
+//     let styleProps = {};
+//     for (let prop of computedStyle) {
+//         if ( USABLE_STYLE_PROPS.includes(prop) ) {
+//             var dstProp = prop;
+//             if (prop in STYLE_PROPS_MAP) {
+//                 dstProp = STYLE_PROPS_MAP[prop];
+//             }
+//             styleProps[dstProp] = computedStyle.getPropertyValue(prop);
+//         }
+//     }
+//     validateIsStyleProps(styleProps);
+//     return styleProps;
+// }
 
-export function getStylePropsString(styleProps) {
-    validateIsStyleProps(styleProps);
-    return JSON.stringify(styleProps,null,2);
-}
+// export function getStylePropsString(styleProps) {
+//     validateIsStyleProps(styleProps);
+//     return JSON.stringify(styleProps,null,2);
+// }
 
-// z-index and background-color are styleProps
-export function applyStyleProps(element, styleProps) {
-    validateIsStyleProps(styleProps);
-    for (let prop in styleProps) {
-        if (styleProps.hasOwnProperty(prop)) {
-            var dstProp = prop;
-            if (prop in PROPS_STYLE_MAP) {
-                dstProp = PROPS_STYLE_MAP[prop];
-            }
-            element.style[dstProp] = styleProps[prop];
-        }
-    }
-} 
-export function validateIsStyleProps(obj) {
-    validateIsPlainObject(obj);
-}
-export function validateIsStylePropsArray(obj) {
-    validateIsArray(obj);
-    obj.forEach(element => {
-        validateIsStyleProps(element);
-    });
-}
+// // z-index and background-color are styleProps
+// export function applyStyleProps(element, styleProps) {
+//     validateIsStyleProps(styleProps);
+//     for (let prop in styleProps) {
+//         if (styleProps.hasOwnProperty(prop)) {
+//             var dstProp = prop;
+//             if (prop in PROPS_STYLE_MAP) {
+//                 dstProp = PROPS_STYLE_MAP[prop];
+//             }
+//             element.style[dstProp] = styleProps[prop];
+//         }
+//     }
+// } 
+// export function validateIsStyleProps(obj) {
+//     validateIsPlainObject(obj);
+// }
+// export function validateIsStylePropsArray(obj) {
+//     validateIsArray(obj);
+//     obj.forEach(element => {
+//         validateIsStyleProps(element);
+//     });
+// }
 export function isDivElement(obj) {
     return (obj instanceof HTMLElement) && (obj.tagName == 'DIV');
 }
@@ -618,11 +618,11 @@ export function validateIsDivElement(obj) {
         throw new Error(`Argument is not an HTML DIV element. bit is a(n) ${typeof obj} with value ${obj}`);
     }
 }
-export function isLineItemElement(obj) {
+export function isResumeDivElement(obj) {
     return (obj instanceof HTMLElement) && (obj.tagName == 'LI')
 }
-export function validateIsLineItemElement(obj) {
-    if (!isLineItemElement(obj)){
+export function validateIsResumeDivElement(obj) {
+    if (!isResumeDivElement(obj)){
         throw new Error(`Argument is not an HTML LI element, but is a(n) ${typeof obj} with value ${obj}`);
     }
 }
@@ -636,11 +636,11 @@ export function validateIsCardDiv(obj) {
     }
 }
 export function isbizCardDiv(obj) {
-    return isDivElement(obj) && obj.classList.contains('biz-skill-card-div')
+    return isDivElement(obj) && obj.classList.contains('biz-card-div')
 }
-export function validateIsbizCardDiv(obj) {
+export function validateIsBizCardDiv(obj) {
     if (!isbizCardDiv(obj)) {
-        throw new Error(`Argument does not have "biz-skill-card-div" class but does have ${obj.classList}.`);
+        throw new Error(`Argument does not have "biz-card-div" class but does have ${obj.classList}.`);
     }
 }
 export function isCardDivOrbizCardDiv(obj) {
@@ -648,15 +648,15 @@ export function isCardDivOrbizCardDiv(obj) {
 }
 export function validateIsCardDivOrbizCardDiv(obj) {
     if (!isCardDivOrbizCardDiv(obj)) {
-        throw new Error(`Argument does not have "skill-card-div" or "biz-skill-card-div" class but does have ${obj.classList}.`);
+        throw new Error(`Argument does not have "skill-card-div" or "biz-card-div" class but does have ${obj.classList}.`);
     }
 }
-export function isCardDivLineItem(obj) {
-    return isLineItemElement(obj) && obj.classList.contains('skill-card-div-line-item');
+export function isCardDivResumeDiv(obj) {
+    return isResumeDivElement(obj) && obj.classList.contains('skill-card-div-resume-div');
 }
-export function validateIsCardDivLineItem(obj) {
-    if (!isCardDivLineItem(obj)) {
-        throw new Error(`Argument does not have "skill-card-div-line-item" class but does have ${obj.classList}.`);
+export function validateIsCardDivResumeDiv(obj) {
+    if (!isCardDivResumeDiv(obj)) {
+        throw new Error(`Argument does not have "skill-card-div-resume-div" class but does have ${obj.classList}.`);
     }
 }
 
@@ -994,7 +994,7 @@ export function findNextSiblingWithClass(element, className) {
   
 
 export function showPosition(position, prefix="") {
-    logger.log(prefix, JSON.stringify(position, utils.formatNumbersReplacer, 2));
+    logger.log(prefix, JSON.stringify(position, this.formatNumbersReplacer, 2));
 }
 
 export function showElement(element, prefix="", logLevel=LogLevel.LOG) {
@@ -1016,10 +1016,10 @@ export function showElement(element, prefix="", logLevel=LogLevel.LOG) {
     const parentElementId = (element.parentElement != null) ? element.parentElement.id : "";
     let nextSiblingId = null;
     if (isCardDiv(element)) {
-        const nextSibling = utils.findNextSiblingWithClass(element, "skill-card-div");
+        const nextSibling = this.findNextSiblingWithClass(element, "skill-card-div");
         nextSiblingId = (nextSibling != null) ? nextSibling.id : "";
     } else if (isbizCardDiv(element)) {
-        const nextSibling = utils.findNextSiblingWithClass(element, "biz-skill-card-div");
+        const nextSibling = this.findNextSiblingWithClass(element, "biz-card-div");
         nextSiblingId = (nextSibling != null) ? nextSibling.id : "";
     }
     const center = {
@@ -1041,6 +1041,16 @@ export function showElement(element, prefix="", logLevel=LogLevel.LOG) {
         filter: element.style.filter,
         classList: element.classList
     }
-    logger.logWithLevel(JSON.stringify(elementInfo, utils.formatNumbersReplacer, 2), logLevel);
+    logger.logWithLevel(JSON.stringify(elementInfo, this.formatNumbersReplacer, 2), logLevel);
+}
+
+export function isResumeDiv(div) {
+    return div && div.classList && div.classList.contains("resume-div");
+}
+
+export function validateIsResumeDiv(div) {
+    if (!isResumeDiv(div)) {
+        throw new Error(`div is not a resume-div: ${div}`);
+    }
 }
 

@@ -1,7 +1,7 @@
 // @ts-check
 
 import * as timeline from './timeline.mjs';
-import * as utils from './utils.mjs';
+import * as utils from '../utils.mjs';
   
 // --------------------------------------
 // TimeLine globals 
@@ -23,8 +23,15 @@ function initTimelineContainer(container, minYear, maxYear) {
 // the global set of all yearDivBottoms created 
 // from TIMELINE_MAX_YEAR down to TIMELINE_MIN_YEAR
 var timelineYearDivBottoms = {};
+
 function inittimelineYearDivBottoms() {
-    timelineYearDivBottoms = {}
+    timelineYearDivBottoms = {};
+    // Pre-initialize all years
+    for (let year = TIMELINE_MAX_YEAR; year >= TIMELINE_MIN_YEAR; year--) {
+        const row = TIMELINE_MAX_YEAR - year;
+        const yearDivBottom = (row + 1) * YEAR_BOTTOM_TO_BOTTOM;
+        timelineYearDivBottoms[`${year}`] = yearDivBottom;
+    }
 }
 
 // YEAR dimensions are in px
@@ -57,12 +64,11 @@ export function getTimelineHeight() {
 
 // append year-divs and year-dashes into timeline-container
 export function createTimeline(container, canvasContainer, minYear, maxYear, defaultYear) {
- 
-    if ( container == null )
+    if (container == null)
         container = document.getElementById("timeline-container");
     
     initTimelineContainer(container, minYear, maxYear);
-    inittimelineYearDivBottoms();
+    inittimelineYearDivBottoms();  // Initialize year bottoms first
 
     // console.assert(timelineContainer != null);
     var alignment = timelineContainer.classList.contains("timeline-container-left") ? "left" : "right";
@@ -80,10 +86,7 @@ export function createTimeline(container, canvasContainer, minYear, maxYear, def
             yearDiv.innerHTML = `${year}&nbsp;`;
         }
 
-        var row = TIMELINE_MAX_YEAR - year;
-        var yearDivBottom = (row + 1) * YEAR_BOTTOM_TO_BOTTOM;
-        timelineYearDivBottoms[`${year}`] = yearDivBottom;
-
+        var yearDivBottom = timelineYearDivBottoms[`${year}`];
         yearDiv.style.fontSize = `${YEARDIV_FONTSIZE}px`;
         yearDiv.style.height = `${YEARDIV_FONTSIZE}px`;
         yearDiv.style.bottom = `${yearDivBottom}px`;

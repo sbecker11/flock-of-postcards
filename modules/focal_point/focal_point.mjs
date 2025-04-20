@@ -1,6 +1,36 @@
-import * as utils from './utils.mjs';
-import { Logger, LogLevel } from "./logger.mjs";
+import * as utils from '../utils.mjs';
+import { Logger, LogLevel } from "../logger.mjs";
 const logger = new Logger("focal_point", LogLevel.INFO, LogLevel.TRACE_ON_FAILURE);
+
+// Define the aim point modes
+export const AimPointMode = {
+    RETURN_TO_BULLS_EYE: 'returnToBullsEye',
+    ALWAYS_FOLLOW_POINTER: 'alwaysFollowPointer'
+};
+
+// Add configuration for aim point mode
+let _aimPointMode = AimPointMode.RETURN_TO_BULLS_EYE; // Default mode
+
+export function toggleAimPointMode() {
+    const newMode = _aimPointMode === AimPointMode.RETURN_TO_BULLS_EYE 
+        ? AimPointMode.ALWAYS_FOLLOW_POINTER 
+        : AimPointMode.RETURN_TO_BULLS_EYE;
+    setAimPointMode(newMode);
+}
+
+export function setAimPointMode(mode) {
+    if (!Object.values(AimPointMode).includes(mode)) {
+        logger.error(`Invalid aim point mode: ${mode}`);
+        return;
+    }
+    _aimPointMode = mode;
+    logger.info(`AimPoint mode: ${mode}`);
+    saveState();
+}
+
+export function getAimPointMode() {
+    return _aimPointMode;
+}
 
 class MouseDrag {
     _mouseDragStartPosition = null;
@@ -97,9 +127,10 @@ function getDefaultState() {
     return {
         isDraggable: true,
         isLockedToBullsEye: false,
+        aimPointMode: AimPointMode.RETURN_TO_BULLS_EYE,
         lastPosition: null,
-        dividerPosition: 50, // Default 50% split
-        selectedPalette: null, // Will be set to first available palette
+        dividerPosition: 50,
+        selectedPalette: null,
         lastUpdated: new Date().toISOString(),
         version: "1.0"
     };
@@ -113,6 +144,7 @@ export function saveState() {
         const state = {
             isDraggable: _isDraggable,
             isLockedToBullsEye: _isLockedToBullsEye,
+            aimPointMode: _aimPointMode,
             lastPosition: getFocalPoint(),
             dividerPosition: parseFloat(canvasContainer.style.width) || 50,
             selectedPalette: paletteSelector ? paletteSelector.value : null,
@@ -146,6 +178,7 @@ function initializeState() {
     const state = loadState();
     _isDraggable = state.isDraggable;
     _isLockedToBullsEye = state.isLockedToBullsEye;
+    _aimPointMode = state.aimPointMode;
     
     // Apply divider position
     const canvasContainer = document.getElementById('canvas-container');
@@ -689,11 +722,27 @@ export function toggleFollowPointerOutsideContainer() {
     }
 }
 
+// Generic helper function to check if pointer is in any container
+function isPointerInContainer(container) {
+    if (!container) return false;
+    const rect = container.getBoundingClientRect();
+    const lastPointerPosition = getAimPoint();
+    if (!lastPointerPosition) return false;
+    
+    return (
+        lastPointerPosition.x >= rect.left &&
+        lastPointerPosition.x <= rect.right &&
+        lastPointerPosition.y >= rect.top &&
+        lastPointerPosition.y <= rect.bottom
+    );
+}
+
+// Modify the document mouse move handler to respect the mode
 function onDocumentMouseMove(event) {
-    if (!_followPointerOutsideContainer || _isBeingDragged) return;
     const eventPosition = getEventPosition(event);
-    setAimPoint(eventPosition, "onDocumentMouseMove");
-    startEasingToAimPoint("onDocumentMouseMove");
+    if (_aimPointMode === AimPointMode.ALWAYS_FOLLOW_POINTER || isPointerInContainer(_canvasContainer)) {
+        setAimPoint(eventPosition, "onDocumentMouseMove");
+    }
 }
 
 function onWindowMouseLeave(event) {
@@ -744,18 +793,19 @@ function initializeResizeObserver() {
     }
 }
 
-// Clean up when needed (e.g., before page unload)
-function cleanup() {
+// Export cleanup function for external use
+export function cleanup() {
     if (_resizeObserver) {
         _resizeObserver.disconnect();
         _resizeObserver = null;
     }
-    // Clean up the window event listeners
-    if (_followPointerOutsideContainer) {
-        document.removeEventListener('mousemove', onDocumentMouseMove);
-        window.removeEventListener('mouseleave', onWindowMouseLeave);
-        window.removeEventListener('mouseenter', onWindowMouseEnter);
-    }
+    // Clean up all event listeners
+    document.removeEventListener('mousemove', onDocumentMouseMove);
+    window.removeEventListener('mouseleave', onWindowMouseLeave);
+    window.removeEventListener('mouseenter', onWindowMouseEnter);
+    window.removeEventListener('load', handleOnWindowLoad);
+    window.removeEventListener('resize', handleOnWindowResize);
+    window.removeEventListener('unload', cleanup);
 }
 
 // Add cleanup listener

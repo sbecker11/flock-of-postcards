@@ -1,4 +1,4 @@
-import * as utils from './utils.mjs';
+import * as utils from '../utils.mjs';
 
 // Directory where palette files are stored
 const PALETTE_DIR = './static_content/color_palettes/';
@@ -328,7 +328,7 @@ export class PaletteSelector {
         try {
             localStorage.setItem(LOCAL_STORAGE_PALETTE_KEY, selected_value);
             // Also save to focal point state
-            const focalPoint = await import('./focal_point.mjs');
+            const focalPoint = await import('../focal_point/focal_point.mjs');
             focalPoint.saveState();
         } catch (error) {
             console.warn('Failed to save palette selection:', error);

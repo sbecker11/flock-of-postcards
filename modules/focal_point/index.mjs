@@ -1,3 +1,23 @@
+// Re-export all named exports from focal_point.mjs
+export * from './focal_point.mjs';
+
+// Export any additional functionality specific to index.mjs
+export const AimPointMode = {
+    RETURN_TO_BULLS_EYE: 'returnToBullsEye',
+    ALWAYS_FOLLOW_POINTER: 'alwaysFollowPointer'
+};
+
+// Export any index-specific functions that aren't in focal_point.mjs
+export function cleanup() {
+    if (_resizeObserver) {
+        _resizeObserver.disconnect();
+        _resizeObserver = null;
+    }
+    document.removeEventListener("mousemove", onDocumentMouseMove);
+    window.removeEventListener('mouseleave', onWindowMouseLeave);
+    window.removeEventListener('mouseenter', onWindowMouseEnter);
+}
+
 export function createFocalPoint(focalPointElement) {
     if (!focalPointElement) {
         throw new Error("focalPointElement is null");
@@ -69,12 +89,6 @@ export function createFocalPoint(focalPointElement) {
     }, 310); // Match the transition duration from CSS
 }
 
-// Define the aim point modes
-const AimPointMode = {
-    RETURN_TO_BULLS_EYE: 'returnToBullsEye',
-    ALWAYS_FOLLOW_POINTER: 'alwaysFollowPointer'
-};
-
 // Add configuration for aim point mode
 let _aimPointMode = AimPointMode.RETURN_TO_BULLS_EYE; // Default mode
 
@@ -139,16 +153,6 @@ function onCanvasContainerLeave(event) {
         setAimPoint(getBullsEye(), "onCanvasContainerLeave");
         startEasingToBullsEye("onCanvasContainerLeave");
     }
-}
-
-// Add cleanup for document event listener
-function cleanup() {
-    if (_resizeObserver) {
-        _resizeObserver.disconnect();
-        _resizeObserver = null;
-    }
-    // Remove document-level event listener
-    document.removeEventListener("mousemove", onDocumentMouseMove);
 }
 
 function getDefaultState() {

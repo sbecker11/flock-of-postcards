@@ -138,17 +138,17 @@ If the app is already running, it will re-load the `jobs.mjs` file.
 <a target="_new" href="http://spexture.com/">http://spexture.com</a>
 
 - CURRENT_DATE in job [end] replaced with first day of next month but displayed as 'working'
-- Always scroll newly selected bizCardDiv (and optionally its bizcardLineItem) into view in selectTheBizcard
+- Always scroll newly selected bizCardDiv (and optionally its bizcardResumeDiv) into view in selectTheBizcard
 - not started 
   in highlightTheDivCardBackArrow 
     unhighlightTheHighlightedDivCardBackArrow 
     update theHighlightedDivCardBackArrow
-    find the CardDivLineItemTagSpan of theHighlightedDivCardBackArrow 
-    call highlightTheCardDivLineItemTagSpan
-   in highlightTheCardDivLineItemTagSpan
-    unhighlightTheHighlightedCardDivLineItemTagSpan
-    update theHighlightedCardDivLineItemTagSpan
-    find the cardDivCardBackArrow of theHighlightedCardDivLineItemTagSpan
+    find the CardDivResumeDivTagSpan of theHighlightedDivCardBackArrow 
+    call highlightTheCardDivResumeDivTagSpan
+   in highlightTheCardDivResumeDivTagSpan
+    unhighlightTheHighlightedCardDivResumeDivTagSpan
+    update theHighlightedCardDivResumeDivTagSpan
+    find the cardDivCardBackArrow of theHighlightedCardDivResumeDivTagSpan
     call highlightTheCardDivCardBackArrow
 
 ### version 0.9:   January 4, 2024
@@ -186,21 +186,21 @@ If the app is already running, it will re-load the `jobs.mjs` file.
 - A flock of small skill postcards and larger business cards float over the left-side canvas column.
 - A timeline is displayed at ground level, to visualize the date range of employment for each business card.
 - A 3-D parallax effect on cards is controlled by the "focalPoint", which tracks the mouse while over the canvas.
-- Add line items to the right-side resume column by selecting business cards.
-- Select a postcard or resume line item by clicking it, click again to deselect it.
-- Selected postcards and line-items have a red-dashed border.
+- Add resume divs to the right-side resume column by selecting business cards.
+- Select a postcard or resume div by clicking it, click again to deselect it.
+- Selected postcards and resume-divs have a red-dashed border.
 - Once selected, a postcard or business card is temporarily moved above the flock where is not subject to motion parallax.
-- Click on a postcard to select and scroll its resume line item into view.
-- Click on a resume line item to select and scroll its postcard into view.
+- Click on a postcard to select and scroll its resume div into view.
+- Click on a resume div to select and scroll its postcard into view.
 - The canvas viewport shows "BullsEye" with a plus sign at canvas center, where parallax effect is zero.
 - FocalPoint defaults back to the viewport center BullsEye when it leaves the canvas.
 - The focalPoint starts tracking the mouse as soon as it re-enters the canvas area.
 - Canvas auto-scrolling starts when the focalPoint is in top or bottom quqrter of the canvas.
 - Autoscrolling stops when the focalPoint moves to viewport center and when the mouse leaves the canvas.
-- Click on a resume line item's top-right delete button to delete it.
-- Click on the bottom-right green next button to open and select the resume line item for the next business card.
+- Click on a resume div's top-right delete button to delete it.
+- Click on the bottom-right green next button to open and select the resume div for the next business card.
 - Skill postcards inherit the color of its parent business card.
-- Click the underlined text in a business cards resume line item to select and bring that skill postcard into view over the flock.
+- Click the underlined text in a business cards resume div to select and bring that skill postcard into view over the flock.
 
 
 ### version 0.4:   June 18, 2023
@@ -208,14 +208,14 @@ If the app is already running, it will re-load the `jobs.mjs` file.
 - scripted process to convert WordPress media dump xml file into a javascript file of img paths of resized local img files (not included in github) for html inclusion.
 - scripted process to convert excel jobs.xlsx spreadsheet file (included in github) into a javascript file of job objects for html inclusion.
 - right side now has fixed header and footer and an auto-scolling content.
-- click on a any postcard or underlying buisness card to add a new deleteble line item to the right column.
+- click on a any postcard or underlying buisness card to add a new deleteble resume div to the right column.
 
 
 ### version 0.3:   June 7, 2023
 
 - downloads bizcards from local jobs.csv file  
   - BUT only works when running local instance of http-server from the version3 folder  
-- click on a red-div to open a new pink line-item in the right-column  
+- click on a red-div to open a new pink resume-div in the right-column  
 
 
 ### version 0.2:   June 6, 2023
@@ -241,4 +241,130 @@ If the app is already running, it will re-load the `jobs.mjs` file.
 - vertical scrollbar
 - fat middle line for diagnositcs
 - right column for diagnostics
+
+
+## Resume Divs
+
+The resume divs are created dynamically when a user clicks on a card in the left panel. Each resume div contains:
+
+1. A content area that displays the card's information and description
+2. A right column with control buttons (delete, follow)
+3. Month indicators showing the duration of the position/project
+
+Resume divs can be:
+- Selected/deselected by clicking
+- Deleted using the delete button
+- Followed/unfollowed (for business cards) using the follow button
+- Scrolled into view when selected
+
+The styling and behavior of resume divs is controlled by CSS classes and JavaScript event handlers in main.js.
+
+## Features in Detail
+
+### Visual Effects
+
+#### Motion Parallax
+- Cards move in response to mouse position, creating a 3D depth effect
+- Movement speed varies based on z-index - closer cards move more than distant ones
+- Smooth easing transitions when the focal point changes
+- Automatic depth-of-field blur effect based on distance from focal point
+
+#### Dynamic Card Behavior
+- Business cards float slowly in a contained area
+- Skill cards orbit around their associated business cards
+- Cards brighten on hover to indicate interactivity
+- Selected cards animate to a prominent position above the flock
+- Smooth transitions between card states and positions
+
+#### Timeline Visualization
+- Vertical timeline shows career progression
+- Business cards align with their corresponding time periods
+- Visual indicators for current position and duration
+- Automatic scrolling when focal point nears timeline edges
+
+### Interaction Model
+
+#### Mouse Controls
+- Move mouse to control viewpoint and parallax effect
+- Hover over cards to highlight and show details
+- Click cards to select and view full information
+- Auto-scrolling when mouse approaches canvas edges
+
+#### Card Selection
+- Click any card to select it and view details
+- Selected cards move above the flock for clear viewing
+- Double-click to deselect and return card to flock
+- Visual feedback for selection state
+
+#### Resume Block Management
+- Dynamic creation of resume divs when cards are selected
+- Delete button to remove sections
+- Follow button to navigate between related cards
+- Automatic scrolling to keep selected content in view
+
+### Technical Implementation
+
+#### Data Structure
+- Excel spreadsheet for easy content management
+- Automatic conversion to JavaScript module
+- Separation of content and presentation
+- Efficient storage and retrieval of card relationships
+
+#### Performance Optimization
+- Efficient parallax calculations
+- Smooth animation transitions
+- Optimized card rendering
+- Responsive design for different screen sizes
+
+#### Markup System
+- [Square brackets] for skill references
+- (Parentheses) for web links
+- {Curly braces} for image links
+- Automatic conversion to interactive elements
+
+#### Browser Compatibility
+- Uses modern ES6 modules
+- Compatible with major browsers
+- Requires local server for development
+- Lightweight implementation with no heavy frameworks
+
+## Customization Options
+
+### Visual Styling
+- Customize card colors and gradients
+- Adjust motion sensitivity and speed
+- Modify card sizes and spacing
+- Configure timeline appearance
+
+### Content Structure
+- Define custom skill categories
+- Adjust card relationships
+- Modify timeline scale
+- Customize card layouts
+
+### Interaction Settings
+- Configure mouse sensitivity
+- Adjust auto-scroll behavior
+- Modify selection animations
+- Customize navigation controls
+
+## Development Guidelines
+
+### Code Organization
+- Modular ES6 structure
+- Clear separation of concerns
+- Consistent naming conventions
+- Comprehensive documentation
+
+### Best Practices
+- Semantic HTML structure
+- Efficient CSS selectors
+- Optimized JavaScript performance
+- Responsive design principles
+
+### Testing
+- Cross-browser compatibility
+- Performance benchmarking
+- Interaction testing
+- Content validation
 

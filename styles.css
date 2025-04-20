@@ -507,7 +507,18 @@ div.skill-card-div span.tag-link {
   font-size: 12px;
 }
 
-#right-content-div {
+#resume-div-container {
+    position: absolute;
+    top: 0;
+    right: 0;
+    width: 40%;
+    height: 100%;
+    overflow-y: auto;
+    padding: 10px;
+    box-sizing: border-box;
+}
+
+#resume-div-container {
   flex-grow: 1;
   overflow-y: auto;
   overflow-x: hidden;
@@ -518,7 +529,7 @@ div.skill-card-div span.tag-link {
   position: relative;
 }
 
-.right-content-div-child {
+.resume-div-container-child {
   max-width: 100%;
   height: auto;
   position: relative;
@@ -539,9 +550,9 @@ div.skill-card-div span.tag-link {
   cursor: crosshair;
 }
 
-.skill-card-div-line-item {
+.resume-div {
   max-width: 100%;
-  display:flex;
+  display: flex;
   list-style-type: none;
   justify-content: space-between;
   margin: 0px 0px;
@@ -551,44 +562,45 @@ div.skill-card-div span.tag-link {
   border-color: white;
   filter: brightness(100%);
 }
-.skill-card-div-line-item.selected {
+
+.resume-div.selected {
   filter: brightness(125%);
   border-width: 5px;
 }
 
-.skill-card-div-line-item-content {
+.resume-div-content {
   padding: 20px;
   flex-grow: 1;
   overflow-x: hidden;
 }
 
-.skill-card-div-line-item-description {
+.resume-div-description {
   font-size: 14px;
 }
 
-.skill-card-div-line-item-right-column {
+.resume-div-controls {
   width: 15px;
   display: flex;
   flex-direction: column;
   justify-content: space-between;
 }
 
-.skill-card-div-line-item-delete-button,
-.skill-card-div-line-item-follow-button {
+.resume-div-delete-button,
+.resume-div-follow-button {
   width: 15px;
   height: 15px;
-  border: 0;            /* for flat appearence */
+  border: 0;
   box-shadow: none;
   border-radius: 0px;
 }
 
-.skill-card-div-line-item-right-column .skill-card-div-line-item-delete-button {
+.resume-div-controls .resume-div-delete-button {
   background-color: red;
   background: url("./static_content/icons/big-red-x.gif");
   cursor: pointer;
 }
 
-.skill-card-div-line-item-right-column .skill-card-div-line-item-follow-button {
+.resume-div-controls .resume-div-follow-button {
   background-color: green;
   background: url("./static_content/icons/green-next.gif");
   cursor: pointer;
@@ -738,3 +750,6 @@ html[native-dark-active] #canvas-container,
     color: #00ff00;
 }
 
+.card-div .hidden {
+  display: none;
+}
