@@ -4,6 +4,7 @@
 
 import { clamp } from '../utils.mjs';
 import { getViewport, updateViewport } from '../layout/viewport.mjs';
+import { updateAllBizCardPositions } from '../cards/bizCard.mjs';
 
 // Constants
 const BUTTON_COLUMN_WIDTH = 20; // Width of the button column
@@ -26,7 +27,7 @@ function updatePercentageDisplay(left) {
 }
 
 /**
- * Initializes the resize handle functionality
+ * Initializes the resize handle
  * @param {HTMLElement} canvasContainer - The canvas container element
  * @param {HTMLElement} rightColumn - The right column element
  * @param {HTMLElement} resizeHandle - The resize handle element
@@ -42,6 +43,12 @@ export function initResizeHandle(canvasContainer, rightColumn, resizeHandle) {
     const collapseRightButton = document.getElementById('collapse-right');
     const percentageDisplay = resizeHandle.querySelector('.percentage-display');
 
+    // Set initial position to 50% of window width
+    const initialLeft = window.innerWidth / 2;
+    resizeHandle.style.left = `${initialLeft}px`;
+    rightColumn.style.left = `${initialLeft}px`;
+    rightColumn.style.width = `${window.innerWidth - initialLeft}px`;
+    
     // Set initial width
     const initialWidth = (window.innerWidth * DEFAULT_WIDTH_PERCENT) / 100;
     canvasContainer.style.width = `${initialWidth}px`;
@@ -79,7 +86,7 @@ export function initResizeHandle(canvasContainer, rightColumn, resizeHandle) {
             // Position handle at the right column's left edge
             resizeHandle.style.left = `${newLeft}px`;
             
-            // Keep canvas width equal to window width
+            // Keep canvas width fixed at window width
             canvasContainer.style.width = `${containerWidth}px`;
             
             // Update percentage display
@@ -87,6 +94,9 @@ export function initResizeHandle(canvasContainer, rightColumn, resizeHandle) {
 
             // Update viewport to recalculate bullseye position
             updateViewport(canvasContainer);
+
+            // Update all bizcard positions to match new bullseye center
+            updateAllBizCardPositions();
 
             // Log canvas container position
             console.log(`Canvas left: ${canvasContainer.offsetLeft}px, width: ${canvasContainer.offsetWidth}px`);
@@ -136,6 +146,9 @@ export function initResizeHandle(canvasContainer, rightColumn, resizeHandle) {
 
         // Update viewport to recalculate bullseye position
         updateViewport(canvasContainer);
+
+        // Update all bizcard positions to match new bullseye center
+        updateAllBizCardPositions();
 
         // Log canvas container position
         console.log(`Canvas left: ${canvasContainer.offsetLeft}px, width: ${canvasContainer.offsetWidth}px`);

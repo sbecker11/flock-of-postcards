@@ -19,7 +19,7 @@ import * as parallax from './modules/layout/parallax.mjs';
 import * as viewport from './modules/layout/viewport.mjs';
 import * as filters from './modules/layout/filters.mjs';
 import * as bizCard from './modules/cards/bizCard.mjs';
-import * as skillCard from './modules/cards/skillCard.mjs';
+// import * as skillCard from './modules/cards/skillCard.mjs';
 import * as cardUtils from './modules/cards/cardUtils.mjs';
 import * as cardConstants from './modules/cards/cardConstants.mjs';
 import * as autoScroll from './modules/animation/autoScroll.mjs';
@@ -99,29 +99,34 @@ document.addEventListener('mouseup', function() {
 // Initialize the application
 async function initialize() {
     try {
-        // Initialize color palette selector
+        // Initialize color palette selector and wait for it to be ready
         paletteSelector = await getPaletteSelectorInstance();
+        
+        // Ensure a palette is selected before proceeding
+        if (!paletteSelector.current_value) {
+            throw new Error("No palette selected. Cannot proceed with initialization.");
+        }
         
         // Initialize timeline
         timeline.createTimeline(timelineContainer, canvasContainer, MIN_TIMELINE_YEAR, MAX_TIMELINE_YEAR, DEFAULT_TIMELINE_YEAR);
         
-        // Create business cards
+        // Initialize viewport and bullseye first
+        viewport.updateViewport(canvasContainer);
+        viewport.updateBullseyeVerticalPosition();
+        
+        // Initialize resize handle
+        const resizeHandle = document.getElementById('resize-handle');
+        initResizeHandle(canvasContainer, rightColumn, resizeHandle);
+        
+        // Create business cards after viewport and bullseye are initialized
         const sortedJobs = [...jobs].sort((a, b) => new Date(b.start) - new Date(a.start));
+        // Create all bizcards
         sortedJobs.forEach((job, index) => {
             const bizCardDiv = bizCard.createBizCardDiv(job, index, canvas);
-            
-            // Create skill cards for this job
-            if (job['job-skills']) {
-                Object.entries(job['job-skills']).forEach(([skillId, skillName], skillIndex) => {
-                    const skill = { id: skillId, name: skillName };
-                    const skillCardDiv = skillCard.createSkillCardDiv(skill, skillIndex, canvas);
-                    skillCardDiv.setAttribute('data-biz-card-id', bizCardDiv.id);
-                });
-            }
         });
         
-        // Initialize viewport
-        viewport.updateViewport(canvasContainer);
+        // Apply the current palette to all bizcards
+        paletteSelector.applyPaletteToElements();
         
         // Initialize scrollbar controls
         initScrollbarControls(canvasContainer);
@@ -137,10 +142,6 @@ async function initialize() {
             viewport.updateBullseyeVerticalPosition();
             parallax.renderAllTranslateableDivsAtCanvasContainerCenter(canvasContainer);
         });
-        
-        // Initialize resize handle
-        const resizeHandle = document.getElementById('resize-handle');
-        initResizeHandle(canvasContainer, rightColumn, resizeHandle);
 
         // Start auto-scroll
         autoScroll.startAutoScroll(canvasContainer);
@@ -154,7 +155,7 @@ async function initialize() {
                     firstCard.click();
                     console.log('First card selected:', firstCard.id);
                     selectNextBizcardButton.disabled = false;  // Enable Next button when first card is selected
-    } else {
+                } else {
                     console.log('No cards available');
                 }
             });
@@ -175,23 +176,23 @@ async function initialize() {
                     if (nextCard) {
                         nextCard.click();
                         console.log('Next card selected:', nextCard.id);
-        } else {
+                    } else {
                         // If no next card exists, loop back to the first card (index 0)
                         const firstCard = document.getElementById('biz-card-div-0');
                         if (firstCard) {
                             firstCard.click();
                             console.log('Looped back to first card:', firstCard.id);
-        } else {
+                        } else {
                             console.log('No cards available');
                         }
                     }
-        } else {
+                } else {
                     // If no card is selected, select the first card
                     const firstCard = document.getElementById('biz-card-div-0');
                     if (firstCard) {
                         firstCard.click();
                         console.log('No card selected, selecting first card:', firstCard.id);
-    } else {
+                    } else {
                         console.log('No cards available');
                     }
                 }
@@ -225,14 +226,14 @@ async function initialize() {
         let startX = 0;
         let startLeft = 0;
 
-resizeHandle.addEventListener('mousedown', (e) => {
+        resizeHandle.addEventListener('mousedown', (e) => {
             e.preventDefault();
             isDragging = true;
             startX = e.clientX;
             startLeft = parseInt(window.getComputedStyle(resizeHandle).left);
-});
+        });
 
-document.addEventListener('mousemove', (e) => {
+        document.addEventListener('mousemove', (e) => {
             if (!isDragging) return;
             const dx = e.clientX - startX;
             const newLeft = Math.max(0, Math.min(window.innerWidth - resizeHandle.offsetWidth, startLeft + dx));

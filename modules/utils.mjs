@@ -964,7 +964,7 @@ export function updateEventListener(element, eventType, newListener, options = n
 
 export const formatNumbersReplacer = (key, value) => {
     if (typeof value === 'number') {
-        return value.toFixed(2);
+        return Number(value.toFixed(2));
     }
     return value;
 }
@@ -1001,7 +1001,7 @@ export function findNextSiblingWithClass(element, className) {
   
 
 export function showPosition(position, prefix="") {
-    logger.log(prefix, JSON.stringify(position, utils.formatNumbersReplacer, 2));
+    logger.log(prefix, JSON.stringify(position, formatNumbersReplacer, 2));
 }
 
 export function showElement(element, prefix="", logLevel=LogLevel.LOG) {
@@ -1023,10 +1023,10 @@ export function showElement(element, prefix="", logLevel=LogLevel.LOG) {
     const parentElementId = (element.parentElement != null) ? element.parentElement.id : "";
     let nextSiblingId = null;
     if (isCardDiv(element)) {
-        const nextSibling = utils.findNextSiblingWithClass(element, "skill-card-div");
+        const nextSibling = findNextSiblingWithClass(element, "skill-card-div");
         nextSiblingId = (nextSibling != null) ? nextSibling.id : "";
     } else if (isbizCardDiv(element)) {
-        const nextSibling = utils.findNextSiblingWithClass(element, "biz-card-div");
+        const nextSibling = findNextSiblingWithClass(element, "biz-card-div");
         nextSiblingId = (nextSibling != null) ? nextSibling.id : "";
     }
     const center = {
@@ -1048,6 +1048,6 @@ export function showElement(element, prefix="", logLevel=LogLevel.LOG) {
         filter: element.style.filter,
         classList: element.classList
     }
-    logger.logWithLevel(JSON.stringify(elementInfo, utils.formatNumbersReplacer, 2), logLevel);
+    logger.logWithLevel(JSON.stringify(elementInfo, formatNumbersReplacer, 2), logLevel);
 }
 

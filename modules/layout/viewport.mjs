@@ -44,7 +44,9 @@ export function updateViewport(canvasContainer) {
     viewport.height = canvasContainerHeight;
     
     // Calculate bullseye position as midpoint between window left edge (0) and resize handle center
-    viewport.bullseyeX = handleRect.left / 2;
+    // If handle is at left edge (initial state), use window width / 2 as initial position
+    const handleLeft = handleRect.left || window.innerWidth / 2;
+    viewport.bullseyeX = handleLeft / 2;
 
     // Update the bullseye element position
     const bullseye = document.getElementById('bulls-eye');
@@ -90,7 +92,7 @@ export function isCardDivWithinViewport(cardDiv) {
  */
 export function getAllTranslateableCardDivs() {
     return [
-        ...document.getElementsByClassName("skill-card-div"),
+        // ...document.getElementsByClassName("skill-card-div"),
         ...document.getElementsByClassName("biz-card-div")
     ];
 }
