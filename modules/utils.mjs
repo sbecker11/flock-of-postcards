@@ -8,6 +8,13 @@ const logger = new Logger("utils", LogLevel.INFO);
 
 const EPSILON = 1.0;
 
+export function clamp(value, min, max) {
+    if (typeof value !== 'number' || typeof min !== 'number' || typeof max !== 'number') {
+        throw new Error(`clamp: value:${value}, min:${min}, or max:${max} is not a number`);
+    }
+    return Math.max(min, Math.min(max, value));
+}
+
 export function isHexColorString(hexColorStr) {
     return (isNonEmptyString(hexColorStr) && /^#[0-9A-F]{6}$/i.test(String(hexColorStr)));
 }
@@ -636,11 +643,11 @@ export function validateIsCardDiv(obj) {
     }
 }
 export function isbizCardDiv(obj) {
-    return isDivElement(obj) && obj.classList.contains('biz-skill-card-div')
+    return isDivElement(obj) && obj.classList.contains('biz-card-div')
 }
 export function validateIsbizCardDiv(obj) {
     if (!isbizCardDiv(obj)) {
-        throw new Error(`Argument does not have "biz-skill-card-div" class but does have ${obj.classList}.`);
+        throw new Error(`Argument does not have "biz-card-div" class but does have ${obj.classList}.`);
     }
 }
 export function isCardDivOrbizCardDiv(obj) {
@@ -648,7 +655,7 @@ export function isCardDivOrbizCardDiv(obj) {
 }
 export function validateIsCardDivOrbizCardDiv(obj) {
     if (!isCardDivOrbizCardDiv(obj)) {
-        throw new Error(`Argument does not have "skill-card-div" or "biz-skill-card-div" class but does have ${obj.classList}.`);
+        throw new Error(`Argument does not have "skill-card-div" or "biz-card-div" class but does have ${obj.classList}.`);
     }
 }
 export function isCardDivLineItem(obj) {
@@ -1019,7 +1026,7 @@ export function showElement(element, prefix="", logLevel=LogLevel.LOG) {
         const nextSibling = utils.findNextSiblingWithClass(element, "skill-card-div");
         nextSiblingId = (nextSibling != null) ? nextSibling.id : "";
     } else if (isbizCardDiv(element)) {
-        const nextSibling = utils.findNextSiblingWithClass(element, "biz-skill-card-div");
+        const nextSibling = utils.findNextSiblingWithClass(element, "biz-card-div");
         nextSiblingId = (nextSibling != null) ? nextSibling.id : "";
     }
     const center = {

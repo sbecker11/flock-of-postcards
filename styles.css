@@ -30,9 +30,8 @@ Make #main-container take the full height of the viewport using 100vh
 regardless of the window size.
 */
 #main-container {
-  display: flex;
   width: 100%; /* Full width */
-  height: auto; /* resize to fit content */
+  height: 100vh; /* Full viewport height */
   position: relative; /* For absolute positioning of resize handle */
   margin: 0;
   padding: 0;
@@ -152,7 +151,7 @@ overflow and ensures consistent sizing.
 
 #canvas-container {
   width: 50%; /* Initial width */
-  height: auto; /* to fit size of its content */
+  height: 100vh; /* Full viewport height */
   overflow-y: scroll; 
   overscroll-behavior: contain;
   -ms-overflow-style: none; /* Hide scrollbar for IE and Edge */
@@ -167,10 +166,6 @@ overflow and ensures consistent sizing.
   padding: 0;
 }
 
-#canvas-container.collapsed {
-    width: 0 !important; /* Style for collapsed left column */
-}
-
 #canvas-container::-webkit-scrollbar {
   display: none; /* Hide scrollbar for Chrome, Safari, and Opera */
 }
@@ -179,7 +174,7 @@ overflow and ensures consistent sizing.
   position: relative;
   background-color: var(--background-dark);
   width: 100%;
-  height: fit-content;
+  min-height: 200vh; /* Ensure content is taller than viewport */
   scroll-behavior: smooth;
   z-index: 1;
   isolation: isolate;
@@ -219,7 +214,7 @@ overflow and ensures consistent sizing.
 }
 
 
-.biz-skill-card-div {
+.biz-card-div {
   position: absolute;
   border-width: 5px;
   border-style: solid;
@@ -235,12 +230,16 @@ overflow and ensures consistent sizing.
   z-index: 4; /* Minimum z-index for bizcards */
 }
 
-.biz-skill-card-div-role {
+.biz-card-div-role {
   font-size: 20px;
 }
 
-.biz-skill-card-div-employer {
+.biz-card-div-employer {
   font-size: 18px;
+}
+
+.biz-card-div-dates {
+  font-size: 16px;
 }
 
 .biz-skill-card-div-dates {
@@ -303,55 +302,68 @@ div.skill-card-div span.tag-link {
 
 
 #right-column {
-  width: 50%; /* Initial width */
+  position: fixed;
+  top: 0;
+  right: 20px;
   height: 100vh;
   display: flex;
-  flex-direction: column;
+  flex-direction: row;
   background-color: var(--background-dark);
-  position: relative;
   overflow-y: hidden;
-  transition: width 0.3s ease; /* Add smooth transition */
   margin: 0;
   padding: 0;
+  z-index: 1;
+  width: 50%; /* Initial width */
 }
 
-#right-column.collapsed {
-  width: 0 !important;
+.right-column-left {
+  width: 20px;
+  flex-shrink: 0;
+  position: relative;
+}
+
+.right-column-right {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
 }
 
 #resize-handle {
-  position: absolute;
-  left: 50%;
+  position: fixed;
+  left: 0px;
   top: 0;
   bottom: 0;
   width: 20px;
   background-color: rgba(128, 128, 128, 0.4);
-  cursor: col-resize;
+  pointer-events: none;
   z-index: 1000;
-  transform: translateX(-50%); /* Centers the handle on its left position */
-  transition: background-color 0.2s, left 0.3s ease;
-  display: flex !important;
-  flex-direction: column;
-  align-items: center;
-  justify-content: space-between;
   padding: 5px 0;
   overflow: visible;
   margin: 0;
 }
 
+/* Make all resize handle children pass through events */
+#resize-handle * {
+  pointer-events: none;
+}
+
+/* Make buttons still clickable */
+#resize-handle button {
+  pointer-events: auto;
+}
+
 /* Handle position when left is collapsed */
 #main-container.left-column-collapsed #resize-handle {
-    left: 0; /* Center at exactly 0% */
-    transform: translateX(-50%); /* This makes left edge at -10px and right edge at +10px */
+    left: 0px;
 }
 
 /* Handle position when right is collapsed */
 #main-container.right-column-collapsed #resize-handle {
-    left: 100%; /* Center at exactly 100% */
-    transform: translateX(-50%); /* This makes left edge at width-10px and right edge at width+10px */
+    left: 0px;
 }
 
-/* Container for the collapse buttons at the top */
+/* Container for the collapse buttons */
 .collapse-buttons-container {
   display: flex !important;
   flex-direction: column;
@@ -360,25 +372,10 @@ div.skill-card-div span.tag-link {
   z-index: 1001;
   width: 20px;
   align-items: center;
-  transition: transform 0.3s ease;
 }
 
-/* When at far left (0%), shift buttons right by 10px */
-#main-container.left-column-collapsed .collapse-buttons-container,
-#main-container.left-column-collapsed #toggle-draggable-button,
-#main-container.left-column-collapsed .percentage-display {
-    transform: translateX(10px);
-}
-
-/* When at far right (100%), shift buttons left by 10px */
-#main-container.right-column-collapsed .collapse-buttons-container,
-#main-container.right-column-collapsed #toggle-draggable-button,
-#main-container.right-column-collapsed .percentage-display {
-    transform: translateX(-10px);
-}
-
-/* Style for all buttons in the resize handle */
-#resize-handle button {
+/* Style for the toggle buttons */
+.toggle-collapse-button {
   width: 20px;
   height: 20px;
   border-radius: 50%;
@@ -386,20 +383,18 @@ div.skill-card-div span.tag-link {
   background: rgba(50, 50, 50, 0.9);
   color: white;
   cursor: pointer;
-  display: flex !important;
+  display: flex;
   align-items: center;
   justify-content: center;
   font-size: 12px;
   font-weight: bold;
   line-height: 1;
   z-index: 1001;
-  transition: all 0.2s ease;
-  padding: 0;
   margin: 2px 0;
-  position: relative;
+  padding: 0;
 }
 
-#resize-handle button:hover {
+.toggle-collapse-button:hover {
   background-color: rgba(80, 80, 80, 1);
   border-color: white;
 }
@@ -413,32 +408,6 @@ div.skill-card-div span.tag-link {
 #toggle-draggable-button.draggable-off {
   background-color: gray;
   color: white;
-}
-
-/* Style for the toggle buttons */
-.toggle-collapse-button {
-    width: 20px; 
-    height: 20px;
-    border-radius: 50%;
-    border: 1px solid gray; /* Thinner border */
-    background: rgba(50, 50, 50, 0.9); /* Darker background */
-    color: white; 
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 12px; 
-    font-weight: bold;
-    line-height: 1; /* Ensure text centers */
-    z-index: 1001; /* Ensure it's above the handle */
-    transition: all 0.2s ease;
-    margin: 2px 0; /* Space between buttons */
-    padding: 0; /* Remove default padding */
-}
-
-.toggle-collapse-button:hover {
-    background-color: rgba(80, 80, 80, 1);
-    border-color: white;
 }
 
 /* New styles for the state toggle button (like the 'd' button) */
@@ -594,37 +563,53 @@ div.skill-card-div span.tag-link {
   cursor: pointer;
 }
 
-.buttons {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 5px;
-  width: 100%;
-  padding: 5px;
+.bizcard-controls {
+    display: flex;
+    gap: 5px;
+    margin: 10px 0;
+    flex-wrap: wrap;
 }
 
-.buttons button {
-  flex: 0 0 60px; /* Fixed width of 60px */
-  padding: 8px 12px;
-  background-color: #4CAF50;
-  color: white;
-  border: none;
-  border-radius: 4px;
-  cursor: pointer;
-  text-align: center;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
+.bizcard-controls button {
+    padding: 5px 10px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    background: #f8f8f8;
+    cursor: pointer;
+    font-size: 14px;
+    min-width: 60px;
+    transition: background-color 0.2s;
 }
 
 /* When container width is greater than 60%, allow buttons to grow */
 @media (min-width: 60%) {
-  .buttons button {
-    flex: 1 1 auto;
-  }
+    .bizcard-controls button {
+        flex: 1;
+        min-width: 0;
+    }
 }
 
-.buttons button:hover {
-  background-color: #45a049;
+.bizcard-controls button:hover {
+    background: #e8e8e8;
+}
+
+/* Responsive adjustments */
+@media (min-width: 768px) {
+    .bizcard-controls {
+        max-width: calc(240px + 15px); /* 4 buttons + 3 gaps max */
+    }
+}
+
+@media (max-width: 767px) {
+    .bizcard-controls {
+        max-width: calc(180px + 10px); /* 3 buttons + 2 gaps */
+    }
+}
+
+@media (max-width: 480px) {
+    .bizcard-controls {
+        max-width: calc(120px + 5px); /* 2 buttons + 1 gap */
+    }
 }
 
 .menu-button {

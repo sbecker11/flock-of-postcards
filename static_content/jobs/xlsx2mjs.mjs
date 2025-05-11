@@ -196,13 +196,13 @@ async function processDescription(text) {
 
   // Process combined image+web markup [label]{imageUrl}(webUrl)
   newText = newText.replace(/\[([^\[\]]+)\]\{([^\{\}]+)\}\(([^\s)]+)\)/g, (match, label, imageUrl, webUrl) => {
-    references.push(`<div class="img-ref anchor-ref">[${label}]<a href="${webUrl}"><img src="${imageUrl}"/></a></div>`);
+    references.push(`<div class="anchor-ref"><a href="${webUrl}">[${label}]</a></div>`);
     return label;
   });
 
   // Process image markup [label]{imageUrl}
   newText = newText.replace(/\[([^\[\]]+)\]\{([^\{\}]+)\}/g, (match, label, imageUrl) => {
-    references.push(`<div class="img-ref">[${label}]<img src="${imageUrl}"/></div>`);
+    references.push(`<div class="anchor-ref"><a href="${imageUrl}">[${label}]</a></div>`);
     return label;
   });
 
@@ -257,7 +257,11 @@ async function convertXlsxToMjs() {
         obj[header] = value;
       });
       jobsData.push(obj);
-      if (obj['employer']) employerNames.push(obj['employer'].trim());
+      if (obj['employer']) {
+        const employer = obj['employer'].trim();
+        employerNames.push(employer);
+        logger.info(`Found employer in jobs sheet: "${employer}"`);
+      }
     });
 
     if (!jobHeaders.includes(targetColumn)) {
@@ -270,18 +274,23 @@ async function convertXlsxToMjs() {
     const skillsHeaders = skillsSheet.getRow(1).values;
     const jobSkillsMap = {};
 
-    for (let col = 3; col <= 22; col++) {
+    for (let col = 3; col <= 25; col++) {
       const jobName = skillsHeaders[col]?.toString().trim();
       if (jobName) {
         jobSkillsMap[jobName] = { column: col, skills: {} };
+        logger.info(`Found job-skills header: "${jobName}" in column ${col}`);
       }
     }
+
+    // Log all unique employers from both sheets
+    logger.info('All employers from jobs sheet:', [...new Set(employerNames)]);
+    logger.info('All employers from job-skills sheet:', Object.keys(jobSkillsMap));
 
     skillsSheet.eachRow((row, rowNumber) => {
       if (rowNumber <= 2) return;
       const skillName = row.getCell(1).value?.toString().trim();
       if (!skillName) return;
-      for (let col = 3; col <= 22; col++) {
+      for (let col = 3; col <= 25; col++) {
         const jobName = skillsHeaders[col]?.toString().trim();
         if (!jobName) continue;
         const cellValue = row.getCell(col).value;
@@ -291,7 +300,7 @@ async function convertXlsxToMjs() {
       }
     });
 
-    // Process descriptions and add skills with fuzzy matching
+    // Process descriptions and add skills with exact matching
     const counters = initCounters();
     const processedData = await Promise.all(jobsData.map(async row => {
       const { description, references } = await processDescription(row[targetColumn]);
@@ -300,14 +309,18 @@ async function convertXlsxToMjs() {
 
       const employer = row['employer']?.toString().trim();
       if (employer) {
-        const { match, distance } = findBestMatch(employer, Object.keys(jobSkillsMap));
-        if (match && distance < 10) {
+        // Find exact match in job-skills sheet headers
+        logger.info(`Trying to match employer: "${employer}"`);
+        logger.info(`Available matches: ${Object.keys(jobSkillsMap).join(', ')}`);
+        const match = Object.keys(jobSkillsMap).find(key => {
+          const matches = key === employer;
+          logger.info(`Comparing "${key}" with "${employer}": ${matches}`);
+          return matches;
+        });
+        if (match) {
           row['job-skills'] = jobSkillsMap[match].skills;
-          if (distance > 0) {
-            logger.info(`Matched "${employer}" to "${match}" (distance: ${distance})`);
-          }
         } else {
-          logger.warn(`No close match found for employer: "${employer}" (best: "${match}", distance: ${distance})`);
+          logger.warn(`No exact match found for employer: "${employer}"`);
           row['job-skills'] = {};
         }
       } else {

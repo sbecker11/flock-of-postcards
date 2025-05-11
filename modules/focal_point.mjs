@@ -1,4 +1,8 @@
-import * as utils from './utils.mjs';
+import * as typeValidators from './utils/typeValidators.mjs';
+import * as colorUtils from './utils/colorUtils.mjs';
+import * as domUtils from './utils/domUtils.mjs';
+import * as arrayUtils from './utils/arrayUtils.mjs';
+import * as typeConversions from './utils/typeConversions.mjs';
 import { Logger, LogLevel } from "./logger.mjs";
 const logger = new Logger("focal_point", LogLevel.INFO, LogLevel.TRACE_ON_FAILURE);
 

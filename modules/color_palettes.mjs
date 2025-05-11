@@ -1,4 +1,8 @@
-import * as utils from './utils.mjs';
+import * as typeValidators from './utils/typeValidators.mjs';
+import * as colorUtils from './utils/colorUtils.mjs';
+import * as domUtils from './utils/domUtils.mjs';
+import * as arrayUtils from './utils/arrayUtils.mjs';
+import * as typeConversions from './utils/typeConversions.mjs';
 
 // Directory where palette files are stored
 const PALETTE_DIR = './static_content/color_palettes/';
@@ -372,7 +376,7 @@ export class PaletteSelector {
            }
            // Ensure utils functions handle potential errors gracefully
            // const fg_hex_color_string = utils.getHighContrastCssHexColorStrSafe(bg_hex_color_string); // Assume a safe version exists
-           const fg_hex_color_string = utils.getHighContrastCssHexColorStr(bg_hex_color_string); // Revert if safe version doesn't exist
+           const fg_hex_color_string = colorUtils.getHighContrastCssHexColorStr(bg_hex_color_string); // Revert if safe version doesn't exist
            this.bg_hex_colors[index] = bg_hex_color_string || FALLBACK_WHITE_HEX;
            this.fg_hex_colors[index] = fg_hex_color_string || FALLBACK_BLACK_HEX;
        }
@@ -382,7 +386,7 @@ export class PaletteSelector {
 
      _applysCurrentPaletteToElement(element) {
        const data_color_index = element.getAttribute("data-color-index");
-       if (!utils.isNonEmptyString(data_color_index)) {
+       if (!typeValidators.isNonEmptyString(data_color_index)) {
           // Don't throw, just warn and skip? Or maybe apply a default?
           // console.warn("Element lacks 'data-color-index' attribute:", element);
           return; // Skip elements without the attribute
@@ -450,8 +454,8 @@ export class PaletteSelector {
            if (typeof bgHexColor !== 'string') continue; // Skip invalid entries
 
            try {
-                const RGB = utils.get_RGB_from_Hex(bgHexColor); // Assumes this handles errors
-                const value = utils.getEuclideanDistance(RGB, [0, 0, 0]); // Assumes this handles errors
+                const RGB = colorUtils.get_RGB_from_Hex(bgHexColor); // Assumes this handles errors
+                const value = colorUtils.getEuclideanDistance(RGB, [0, 0, 0]); // Assumes this handles errors
                 if (value < darkest_value) {
                     darkest_bgHexColor = bgHexColor;
                     darkest_value = value;
@@ -471,22 +475,22 @@ export class PaletteSelector {
        if (!darkHex) return; // Don't proceed if darkest couldn't be found
 
        try {
-           let darkRGB = utils.get_RGB_from_Hex(darkHex);
-           let darkHSV = utils.get_HSV_from_RGB(darkRGB);
+           let darkRGB = colorUtils.get_RGB_from_Hex(darkHex);
+           let darkHSV = colorUtils.get_HSV_from_RGB(darkRGB);
 
            // Calculate darker
            let darkerHSV = [...darkHSV]; // Clone
            darkerHSV[2] *= 0.75; // Reduce brightness less drastically
-           const darkerHex = utils.get_Hex_from_HSV(darkerHSV);
+           const darkerHex = colorUtils.get_Hex_from_HSV(darkerHSV);
 
            // Calculate darkest
            let darkestHSV = [...darkHSV]; // Clone
            darkestHSV[2] *= 0.35; // Reduce brightness more
-           const darkestHex = utils.get_Hex_from_HSV(darkestHSV);
-           const darkerRGB = utils.get_RGB_from_Hex(darkerHex);
-           const darkestRGB = utils.get_RGB_from_Hex(darkestHex);
-           const darkerRGBA = utils.get_RGBA_from_RGB(darkerRGB, 1.0);
-           const darkestRGBA = utils.get_RGBA_from_RGB(darkestRGB, 1.0);
+           const darkestHex = colorUtils.get_Hex_from_HSV(darkestHSV);
+           const darkerRGB = colorUtils.get_RGB_from_Hex(darkerHex);
+           const darkestRGB = colorUtils.get_RGB_from_Hex(darkestHex);
+           const darkerRGBA = colorUtils.get_RGBA_from_RGB(darkerRGB, 1.0);
+           const darkestRGBA = colorUtils.get_RGBA_from_RGB(darkestRGB, 1.0);
 
            root.style.setProperty('--background-light', darkerRGBA || FALLBACK_LIGHT_RGBA);
            root.style.setProperty('--background-dark', darkestRGBA || FALLBACK_DARK_RGBA);

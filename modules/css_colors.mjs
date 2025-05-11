@@ -1,4 +1,8 @@
-import * as utils from './utils.mjs';
+import * as typeValidators from './utils/typeValidators.mjs';
+import * as colorUtils from './utils/colorUtils.mjs';
+import * as domUtils from './utils/domUtils.mjs';
+import * as arrayUtils from './utils/arrayUtils.mjs';
+import * as typeConversions from './utils/typeConversions.mjs';
 
 const CSS_COLORS = {
     "AliceBlue": "#F0F8FF",
@@ -155,12 +159,12 @@ function _getLowerCaseCssColors()  {
 }
 
 export function get_HEX_from_CssColor(cssColor, verbose=false) {
-    if ( utils.isString(cssColor) ) {
+    if ( typeValidators.isString(cssColor) ) {
         let color = cssColor.toLowerCase();
         let colors = LOWERCASE_CSS_COLORS;
         if ( color in colors ) {
             let HEX = colors[color];
-            if ( utils.isHexColorString(HEX)) {
+            if ( typeValidators.isHexColorString(HEX)) {
                 return HEX;
             }
             if ( verbose )
@@ -177,7 +181,7 @@ export function get_HEX_from_CssColor(cssColor, verbose=false) {
 }
 
 export function get_CssColor_from_HEX(HEX, verbose=false) {
-    if ( utils.isHexColorString(HEX) ) {
+    if ( typeValidators.isHexColorString(HEX) ) {
         for (let color in LOWERCASE_CSS_COLORS) {
             if (LOWERCASE_CSS_COLORS[color] === HEX) {
                 return color;

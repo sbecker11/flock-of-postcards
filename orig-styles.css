@@ -1,0 +1,356 @@
+/*
+Set the html and body elements to a height of 100%. This establishes a 
+reference for the #main-container to occupy the full height of the viewport.
+*/
+
+:root {
+  --background-light: midnightblue; /* Define a CSS variable for the primary color */
+  --background-dark: #000066; /* Define a CSS variable for the secondary color */
+}
+
+html, body {
+  height: 100%;
+  margin: 0; /* Remove default margins */
+  padding: 0; /* Remove default paddings */
+  background-color: var(--background-dark);
+  overflow: hidden;
+}
+
+.no-select {
+  user-select: none; /* Standard syntax */
+  -webkit-user-select: none; /* Safari */
+  -moz-user-select: none; /* Firefox */
+  -ms-user-select: none; /* Internet Explorer/Edge */
+}
+
+/*
+Make #main-container take the full height of the viewport using 100vh 
+(viewport height). 100vh is equal to 100% of the height of the viewport, 
+regardless of the window size.
+*/
+#main-container {
+  display: flex;
+  width: 100%; /* Full width */
+  height: 100vh; /* Full viewport height */
+}
+
+/*
+Apply box-sizing: border-box; to all elements to ensure that padding and borders 
+are included in the width and height calculations. This prevents unintentional 
+overflow and ensures consistent sizing.
+*/
+*, *::before, *::after {
+  box-sizing: border-box;
+}
+
+
+#debugScrollingElement, 
+#debugFocalPointElement, 
+#debugBullsEyeElement, 
+#debugCanvasElement, 
+#debugCanvasContainerElement,
+#debugTheSelectedCardDivIdElement {
+  display: block;
+  font-family: Roboto, sans-serif;
+  font-size: 12px;
+}
+
+#bulls-eye {
+  position: absolute;
+  width: 50px;
+  height: 50px;
+  border-radius: 50%;
+  border: 2px solid gray;
+  z-index: 98;
+  pointer-events: none;
+  display: flex; /* or inline-flex */
+  align-items: center; 
+  justify-content: center;
+  font-size: 31px;
+  font-weight: 700;
+  color: gray;
+}
+
+#focal-point {
+  position: absolute;
+  width: 25px;
+  height: 25px;
+  border-radius: 50%;
+  border: 2px solid gray;
+  z-index: 99;
+  font-size: 31px;
+  font-weight: 700;
+  color: gray;
+  background-color: transparent; /* Add a background color for visibility */
+  display: flex; /* or inline-flex */
+  align-items: center; 
+  justify-content: center;
+}
+
+.non-draggable-focal-point {
+  pointer-events: none;
+}
+
+.draggable-focal-point {
+  pointer-events: auto;
+  cursor: grab; 
+}
+
+.column-50 {
+  /* overflow-x: hidden;  Hide horizontal overflow */
+  height: 100%;
+}
+
+#canvas-container {
+  flex: 1;
+  height: 100%;
+  overflow-y: scroll; 
+  overscroll-behavior: contain;
+  -ms-overflow-style: none; /* Hide scrollbar for IE and Edge */
+  scrollbar-width: none; /* Hide scrollbar for Firefox */
+  overflow-x: hidden; /* prevent horizontal scrolling */
+}
+
+#canvas-container::-webkit-scrollbar {
+  display: none; /* Hide scrollbar for Chrome, Safari, and Opera */
+}
+
+#canvas {
+  position: relative;
+  height: fit-content;
+  scroll-behavior: smooth;
+}
+
+#bottom-gradient {
+  position: absolute;
+  width: 100%;
+  height: 1000px;
+  bottom: 0px;
+  background: linear-gradient(to top, var(--background-light), var(--background-dark));
+  pointer-events: none;
+}
+
+#top-gradient {
+  position: absolute;
+  width: 100%;
+  height: 1000px;
+  top: 0px;
+  background: linear-gradient(to bottom, var(--background-light), var(--background-dark));
+  pointer-events: none;
+}
+
+
+.bizcard-div {
+  position: absolute;
+  border-width: 5px;
+  border-style: solid;
+  border-color: white;
+  border-radius: 25px;
+  font-family: "Roboto", sans-serif;
+  font-weight: bold;
+  font-size: 12px;
+  padding: 20px;
+  box-sizing: border-box;
+  overflow: hidden;
+  cursor: pointer;
+}
+
+.bizcard-div-role {
+  font-size: 20px;
+}
+
+.bizcard-div-employer {
+  font-size: 18px;
+}
+
+.bizcard-div-dates {
+  font-size: 16px;
+}
+    
+.card-div {
+  position: absolute;
+  width: 106px;
+  border-width: 3px;
+  border-style: solid;
+  border-color: white;
+  font-family: "Roboto", sans-serif;
+  font-weight: normal;
+  font-size: 14px;
+  padding: 0px;
+  box-sizing: border-box;
+  cursor: pointer;
+}
+
+div.card-div span.tag-link {
+  display: inline-block; /* or block */
+  max-width: 100%; /* Adjust as needed */
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.bizcard-div-header {
+  font-size: 20px;
+}
+
+.card-div-header {
+  font-size: 12px;
+}
+
+.card-div-img {
+  position: absolute;
+  top: 0px;
+  left: 0px;
+}
+
+.scrollable-div {
+  overflow-y: auto;
+  padding-bottom:20px;
+}
+
+
+#right-column {
+  flex: 1;
+  overflow: hidden;
+  position: relative;
+  background-color: #dddddd;
+  font-family: "Roboto", sans-serif;
+  display: flex;
+  flex-direction: column;
+}
+#right-header-div {
+  background-color: #444444;
+  color: white;
+  padding: 10px;
+  align-content: left;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+}
+
+.intro, .user, .footnote{
+  font-family: "Roboto", sans-serif;
+  color: white;
+  font-size: 17px;
+  font-weight: 400;
+}
+
+.user {
+  font-weight: 900;
+  font-size: 20px;
+}
+.footnote {
+  font-size: 12px;
+}
+
+#right-content-div {
+  flex-grow: 1;
+  overflow-y: auto;
+  overflow-x: hidden;
+  box-sizing: border-box; 
+  background-color: #dddddd;
+  color: black;
+  padding: 10px;
+}
+
+.right-content-div-child {
+  max-width: 100%;
+  height: auto;
+}
+
+#right-footer-div {
+  display: flex;
+  flex-direction: column;
+  background-color: #999999;
+  padding: 10px;
+}
+
+.tag-link {
+  font-weight: 900;
+  text-decoration: underline;
+  cursor: crosshair;
+}
+
+.monocolor {
+  color: black !important;
+  background-color: #dddddd !important;
+}
+
+.card-div-line-item {
+  max-width: 100%;
+  display:flex;
+  list-style-type: none;
+  justify-content: space-between;
+  margin: 0px 0px;
+  cursor: pointer;
+  border-width: 5px;
+  border-style: solid;
+  border-color: white;
+}
+
+.card-div-line-item-content {
+  padding: 20px;
+  flex-grow: 1;
+  overflow-x: hidden;
+}
+
+.card-div-line-item-description {
+  font-size: 14px;
+}
+
+.card-div-line-item-right-column {
+  width: 15px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+
+.card-div-line-item-delete-button,
+.card-div-line-item-follow-button {
+  width: 15px;
+  height: 15px;
+  border: 0;            /* for flat appearence */
+  box-shadow: none;
+  border-radius: 0px;
+}
+
+.card-div-line-item-right-column .card-div-line-item-delete-button {
+  background-color: red;
+  background: url("./static_content/icons/big-red-x.gif");
+  cursor: pointer;
+}
+
+.card-div-line-item-right-column .card-div-line-item-follow-button {
+  background-color: green;
+  background: url("./static_content/icons/green-next.gif");
+  cursor: pointer;
+}
+
+.selected {
+  border-width: 2px !important;
+  border-style: dotted !important;
+  border-color: white !important;
+}
+
+.buttons {
+  text-align:justify;
+}
+
+.menu-button {
+  background-color: green;
+  color: white;
+  float: right;
+}
+
+.card-div > .tag-link {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center; /* for vertical alignment */
+  justify-content: flex-start; /* for horizontal alignment */
+}
+
+.icon {
+  width: 16px;
+  height: 16px;
+  margin: 1px; /* Adjust as needed for spacing */
+}
