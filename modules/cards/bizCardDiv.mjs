@@ -55,9 +55,16 @@ export function createBizCardDiv(job, jobIndex) {
     // Position the scene-relative geometry of the bizCard
     setBizCardDivSceneGeometry(bizCardDiv);
 
-    // create the biz details with text
+    // create the biz details div with text
     const bizDetailsDiv = new BizDetailsDiv(bizCardDiv);
     bizCardDiv.appendChild(bizDetailsDiv.element);
+    
+    // TEMPORARY DEBUG: Force text to be visible
+    bizDetailsDiv.element.style.display = "block";
+    bizDetailsDiv.element.style.color = "black";
+    bizDetailsDiv.element.style.background = "white";
+    bizDetailsDiv.element.style.padding = "10px";
+    bizDetailsDiv.element.style.border = "1px solid red"; // Add border to see the element
     
     // Add click handler
     bizCardDiv.addEventListener("click", () => handleBizCardClick(bizCardDiv, job));

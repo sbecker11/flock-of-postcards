@@ -8,16 +8,16 @@ import * as cardUtils from './cardUtils.mjs';
 class BizDetailsDiv {
     constructor(bizCardDiv) {
         this.element = document.createElement('div');
-        this.element.classList.add('bizCard-details-div');
+        this.element.classList.add('biz-details-div');
         this.bizCardDiv = bizCardDiv;
         this.BULLET = "•";
         this.job = bizCardDiv.job;
 
-        this.innerHTML = 
+        this.element.innerHTML = 
         `
         <h2>${this.job.employer}</h2>
         <h3>${this.job.role}</h3>
-        <p class="date-range">${cardUtils.formatDateRange(this.job.start, this.job.end)}</p>
+        <p class="biz-defails-dates">${cardUtils.formatDateRange(this.job.start, this.job.end)}</p>
         <ul class="bulleted-job-description-items-ul">
             ${this.job.Description.split(this.BULLET).map(item => `<li class="bulleted-job-description-items-li">${item}</li>`).join('')}
         </ul>
@@ -26,10 +26,20 @@ class BizDetailsDiv {
         </ul>
         `; 
 
+        console.log(`bizDetailsDiv: ${this.element.id} this.element.style.left: ${this.element.style.left} `);
+        console.log(`bizDetailsDiv: ${this.element.id} this.innerHTML: ${this.element.innerHTML} `);
+        const color = this.bizCardDiv.style.color;
+        console.log(`bizDetailsDiv: ${this.element.id} color: ${color} `);
         for (const element of this.element.children) {
-            element.style.color = this.bizCardDiv.style.color;
+            element.style.color = color;
         }
     }
 }
+
+// classes used:
+
+// date-range
+
+
 
 export default BizDetailsDiv;
