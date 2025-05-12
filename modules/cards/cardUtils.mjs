@@ -3,14 +3,17 @@ import * as colorUtils from '../utils/colorUtils.mjs';
 import * as domUtils from '../utils/domUtils.mjs';
 import * as arrayUtils from '../utils/arrayUtils.mjs';
 import * as typeConversions from '../utils/typeConversions.mjs';
+import * as timeline from '../timeline.mjs';
+import * as viewport from '../layout/viewPort.mjs';
+import { isHTMLElement } from '../utils/domUtils.mjs';
 
 /**
  * Checks if a div is a business card div
  * @param {HTMLDivElement} div - The div to check
  * @returns {boolean} True if the div is a business card div
  */
-export function isBizcardDiv(div) {
-    return div && div.classList.contains('bizcard');
+export function isBizCardDiv(div) {
+    return div && div.classList.contains('biz-card-div');
 }
 
 /**
@@ -18,8 +21,8 @@ export function isBizcardDiv(div) {
  * @param {HTMLDivElement} div - The div to check
  * @returns {boolean} True if the div is a card div
  */
-export function isCardDiv(div) {
-    return div && div.classList.contains('card');
+export function isAnyCardDiv(div) {
+    return div && div.classList.contains('card-div');
 }
 
 /**
@@ -27,8 +30,8 @@ export function isCardDiv(div) {
  * @param {string} divId - The div ID to check
  * @returns {boolean} True if the div ID is a business card div ID
  */
-export function isBizcardDivId(divId) {
-    return typeValidators.isString(divId) && getBizcardDivIndex(divId) == null ? false : true;
+export function isBizCardDivId(divId) {
+    return typeValidators.isString(divId) && getBizCardDivIndex(divId) == null ? false : true;
 }
 
 /**
@@ -54,7 +57,7 @@ export function isCardDivLineItem(div) {
  * @param {HTMLDivElement} div - The business card div
  * @returns {number} The index of the business card div
  */
-export function getBizcardDivIndex(div) {
+export function getBizCardDivIndex(div) {
     return parseInt(div.id.split('-')[1]);
 }
 
@@ -72,8 +75,8 @@ export function getCardDivIndex(div) {
  * @param {number} index - The index of the business card div
  * @returns {string} The ID of the business card div
  */
-export function getBizcardDivId(index) {
-    return `bizcard-${index}`;
+export function getBizCardDivId(index) {
+    return `bizCard-${index}`;
 }
 
 /**
@@ -90,8 +93,8 @@ export function getCardDivId(index) {
  * @param {number} index - The index of the business card div
  * @returns {HTMLDivElement} The business card div
  */
-export function getBizcardDiv(index) {
-    return document.getElementById(getBizcardDivId(index));
+export function getBizCardDiv(index) {
+    return document.getElementById(getBizCardDivId(index));
 }
 
 /**
@@ -107,8 +110,8 @@ export function getCardDiv(index) {
  * Gets all business card divs
  * @returns {HTMLDivElement[]} Array of business card divs
  */
-export function getBizcardDivs() {
-    return Array.from(document.getElementsByClassName('bizcard'));
+export function getBizCardDivs() {
+    return Array.from(document.getElementsByClassName('bizCard'));
 }
 
 /**
@@ -121,21 +124,21 @@ export function getCardDivs() {
 
 /**
  * Gets all card divs within a business card div
- * @param {HTMLDivElement} bizcardDiv - The business card div
+ * @param {HTMLDivElement} bizCardDiv - The business card div
  * @returns {HTMLDivElement[]} Array of card divs
  */
-export function getCardDivsFromBizcardDiv(bizcardDiv) {
-    return Array.from(bizcardDiv.getElementsByClassName('card'));
+export function getCardDivsFromBizCardDiv(bizCardDiv) {
+    return Array.from(bizCardDiv.getElementsByClassName('card'));
 }
 
 /**
  * Gets all card divs for a specific business card index
- * @param {number} bizcardIndex - The index of the business card
+ * @param {number} bizCardIndex - The index of the business card
  * @returns {HTMLDivElement[]} Array of card divs
  */
-export function getCardDivsForBizcardIndex(bizcardIndex) {
-    const bizcardDiv = getBizcardDiv(bizcardIndex);
-    return bizcardDiv ? getCardDivsFromBizcardDiv(bizcardDiv) : [];
+export function getCardDivsForBizCardIndex(bizCardIndex) {
+    const bizCardDiv = getBizCardDiv(bizCardIndex);
+    return bizCardDiv ? getCardDivsFromBizCardDiv(bizCardDiv) : [];
 }
 
 /**
@@ -143,8 +146,8 @@ export function getCardDivsForBizcardIndex(bizcardIndex) {
  * @param {HTMLDivElement} cardDiv - The card div
  * @returns {HTMLDivElement} The business card div
  */
-export function getBizcardDivFromCardDiv(cardDiv) {
-    return cardDiv.closest('.bizcard');
+export function getBizCardDivFromCardDiv(cardDiv) {
+    return cardDiv.closest('.bizCard');
 }
 
 /**
@@ -152,9 +155,9 @@ export function getBizcardDivFromCardDiv(cardDiv) {
  * @param {HTMLDivElement} cardDiv - The card div
  * @returns {number} The index of the business card
  */
-export function getBizcardIndexFromCardDiv(cardDiv) {
-    const bizcardDiv = getBizcardDivFromCardDiv(cardDiv);
-    return bizcardDiv ? getBizcardDivIndex(bizcardDiv) : -1;
+export function getBizCardIndexFromCardDiv(cardDiv) {
+    const bizCardDiv = getBizCardDivFromCardDiv(cardDiv);
+    return bizCardDiv ? getBizCardDivIndex(bizCardDiv) : -1;
 }
 
 /**
@@ -168,12 +171,12 @@ export function getCardIndexFromCardDiv(cardDiv) {
 
 /**
  * Gets the card divs for a specific business card index
- * @param {number} bizcardIndex - The index of the business card
+ * @param {number} bizCardIndex - The index of the business card
  * @returns {HTMLDivElement[]} Array of card divs
  */
-export function getCardDivsForBizcard(bizcardIndex) {
-    const bizcardDiv = getBizcardDiv(bizcardIndex);
-    return bizcardDiv ? getCardDivsFromBizcardDiv(bizcardDiv) : [];
+export function getCardDivsForBizCard(bizCardIndex) {
+    const bizCardDiv = getBizCardDiv(bizCardIndex);
+    return bizCardDiv ? getCardDivsFromBizCardDiv(bizCardDiv) : [];
 }
 
 /**
@@ -181,9 +184,9 @@ export function getCardDivsForBizcard(bizcardIndex) {
  * @param {number} index - The index
  * @returns {HTMLElement|null} The business card div or null if not found
  */
-export function getBizcardDivFromIndex(index) {
-    var bizcardDivId = getBizcardDivId(index);
-    return bizcardDivId ? document.getElementById(bizcardDivId) : null;
+export function getBizCardDivFromIndex(index) {
+    var bizCardDivId = getBizCardDivId(index);
+    return bizCardDivId ? document.getElementById(bizCardDivId) : null;
 }
 
 /**
@@ -201,8 +204,8 @@ export function getCardDivFromIndex(index) {
  * @param {string} divId - The div ID
  * @returns {HTMLElement|null} The business card div or null if not found
  */
-export function getBizcardDivFromId(divId) {
-    return isBizcardDivId(divId) ? document.getElementById(divId) : null;
+export function getBizCardDivFromId(divId) {
+    return isBizCardDivId(divId) ? document.getElementById(divId) : null;
 }
 
 /**
@@ -219,8 +222,8 @@ export function getCardDivFromId(divId) {
  * @param {HTMLElement} div - The div
  * @returns {HTMLElement|null} The business card div or null if not found
  */
-export function getBizcardDivFromDiv(div) {
-    return isBizcardDiv(div) ? div : null;
+export function getBizCardDivFromDiv(div) {
+    return isBizCardDiv(div) ? div : null;
 }
 
 /**
@@ -229,58 +232,199 @@ export function getBizcardDivFromDiv(div) {
  * @returns {HTMLElement|null} The card div or null if not found
  */
 export function getCardDivFromDiv(div) {
-    return isCardDiv(div) ? div : null;
+    return isAnyCardDiv(div) ? div : null;
 }
 
 /**
  * Gets the business card div from a business card div
- * @param {HTMLElement} bizcardDiv - The business card div
+ * @param {HTMLElement} bizCardDiv - The business card div
  * @returns {HTMLElement|null} The business card div or null if not found
  */
-export function getBizcardDivFromBizcardDiv(bizcardDiv) {
-    if (!isBizcardDiv(bizcardDiv)) {
+export function getBizCardDivFromBizCardDiv(bizCardDiv) {
+    if (!isBizCardDiv(bizCardDiv)) {
         return null;
     }
-    var bizcardDivId = bizcardDiv.id;
+    var bizCardDivId = bizCardDiv.id;
     return Array.from(document.querySelectorAll('.card-div')).find(cardDiv => {
-        return cardDiv.getAttribute('data-bizcard-div-id') === bizcardDivId;
+        return cardDiv.getAttribute('data-bizCard-div-id') === bizCardDivId;
     });
 }
 
 /**
  * Gets the card divs from a business card div ID
- * @param {string} bizcardDivId - The business card div ID
+ * @param {string} bizCardDivId - The business card div ID
  * @returns {HTMLElement[]} Array of card divs
  */
-export function getCardDivsFromBizcardDivId(bizcardDivId) {
-    var bizcardDiv = getBizcardDivFromId(bizcardDivId);
-    return bizcardDiv ? getCardDivsFromBizcardDiv(bizcardDiv) : [];
+export function getCardDivsFromBizCardDivId(bizCardDivId) {
+    var bizCardDiv = getBizCardDivFromId(bizCardDivId);
+    return bizCardDiv ? getCardDivsFromBizCardDiv(bizCardDiv) : [];
 }
 
 /**
  * Gets the card divs from a business card div index
- * @param {number} bizcardDivIndex - The business card div index
+ * @param {number} bizCardDivIndex - The business card div index
  * @returns {HTMLElement[]} Array of card divs
  */
-export function getCardDivsFromBizcardDivIndex(bizcardDivIndex) {
-    var bizcardDiv = getBizcardDivFromIndex(bizcardDivIndex);
-    return bizcardDiv ? getCardDivsFromBizcardDiv(bizcardDiv) : [];
+export function getCardDivsFromBizCardDivIndex(bizCardDivIndex) {
+    var bizCardDiv = getBizCardDivFromIndex(bizCardDivIndex);
+    return bizCardDiv ? getCardDivsFromBizCardDiv(bizCardDiv) : [];
 }
 
 /**
- * Finds all translatable card divs within the viewport
- * @param {Object} viewportGeometry - The viewport geometry object containing { top, left, width, height }
- * @returns {Array<HTMLElement>} Array of translatable card divs within the viewport
+ * Finds all translatable card divs within the viewPort
+ * @param {Object} viewPortGeometry - The viewPort geometry object containing { top, left, width, height }
+ * @returns {Array<HTMLElement>} Array of translatable card divs within the viewPort
  */
-export function findAllTranslatableCardsInViewport(viewportGeometry) {
-    const allDivs = document.getElementsByClassName("bizcard-div");
+export function findAllTranslatableCardsInViewPort(viewPortGeometry) {
+    const allDivs = document.getElementsByClassName("bizCard-div");
     return Array.from(allDivs).filter(div => {
         const rect = div.getBoundingClientRect();
         return (
-            rect.top < viewportGeometry.top + viewportGeometry.height &&
-            rect.left < viewportGeometry.left + viewportGeometry.width &&
-            rect.bottom > viewportGeometry.top &&
-            rect.right > viewportGeometry.left
+            rect.top < viewPortGeometry.top + viewPortGeometry.height &&
+            rect.left < viewPortGeometry.left + viewPortGeometry.width &&
+            rect.bottom > viewPortGeometry.top &&
+            rect.right > viewPortGeometry.left
         );
     });
 } 
+
+/**
+ * Formats a date range for display
+ * @param {string} start - Start date in YYYY-MM-DD format
+ * @param {string} end - End date in YYYY-MM-DD format or "CURRENT_DATE"
+ * @returns {string} Formatted date range
+ */
+export function formatDateRange(start, end) {
+    const startDate = new Date(start);
+    const endDate = end === "CURRENT_DATE" ? new Date() : new Date(end);
+    
+    const formatDate = (date) => {
+        return date.toLocaleDateString('en-US', { 
+            year: 'numeric',
+            month: 'short'
+        });
+    };
+    return `${formatDate(startDate)} - ${formatDate(endDate)}`;
+}
+
+/**
+ * NOTE: in JavaScript, getFullYear() is a method of the 
+ * Date object that returns the full year (a four-digit number) 
+ * for the specified date according to local time. It 
+ * should be used instead of the deprecated getYear() 
+ * method. For example, if you call getFullYear() on a 
+ * date object representing 2024-12-25, it will return 
+ * 2024. 
+ */
+
+/**
+ * Gets the vertical position for a given date
+ * @param {Date} date - Date in YYYY-MM-DD format
+ * @returns {number} Vertical position
+ */
+export function getSceneVerticalPositionForDate(date) {
+    const yearString = date.getFullYear().toString();
+    const monthString = (date.getMonth() + 1).toString();
+    return timeline.getTimelineYearMonthBottom(yearString, monthString);
+}
+
+/**
+ * Formats returns top and bottom scene values 
+ * for a given start and end date and a minimum height
+ * @param {string} startDateString - Start date in YYYY-MM-DD format
+ * @param {string} endDateString - End date in YYYY-MM-DD format or "CURRENT_DATE"
+ * @param {number} minHeight - Minimum height if > 0
+ * @returns {Object} Object containing scendTop and sceneBottom  values
+ */
+export function getSceneVerticalPositions(startDateString, endDateString,  minHeight=0) {
+    const startDate = new Date(startDateString);
+    const endDate = endDateString === "CURRENT_DATE" ? 
+        new Date(): 
+        new Date(endDateString); 
+    const sceneTop = getSceneVerticalPositionForDate(endDate);
+    const sceneBottom = getSceneVerticalPositionForDate(startDate);
+    const sceneHeight = sceneBottom - sceneTop;
+    // Apply minHeight rule if needed
+    if (minHeight > 0) {
+        if (sceneHeight < minHeight) {
+            const diff = minHeight - sceneHeight;
+            const adjustedSceneTop = sceneTop - diff / 2;
+            const adjustedSceneHeight = sceneHeight + diff;
+            const adjustedSceneBottom = adjustedSceneTop + adjustedSceneHeight;
+            return { sceneTop: adjustedSceneTop, sceneBottom: adjustedSceneBottom };
+        }
+    }
+    return { sceneTop: sceneTop, sceneBottom: sceneBottom };
+}
+
+export function applyViewRelativeStylingToAllBizCardDivs(viewPort) {
+    const bizCardDivs = document.getElementsByClassName("biz-card-div");
+    for (const bizCardDiv of bizCardDivs) {
+        applyViewRelativeStyling(viewPort, bizCardDiv);
+    }
+}
+
+/**
+ * Initializes view-relative styling for a card div
+ * @param {Object} viewPort - The viewPort object
+ * @param {HTMLElement} cardDiv - The card div
+ */
+export function applyViewRelativeStyling(viewPort, cardDiv) {
+    if (viewPort == null) {
+        throw new Error(`ViewPort is null`);
+    }
+    if (cardDiv == null || !isAnyCardDiv(cardDiv)) {
+        throw new Error(`Card div ${cardDiv} is not any valid card div`);
+    }
+
+    const viewPortProperties = viewPort.getViewPortProperties();
+    // const viewPortWidth = viewPortProperties.width;
+    // console.log(`viewPortWidth: ${viewPortWidth}`);
+    // const viewPortCenterX = viewPortWidth / 2;
+    // console.log(`viewPortCenterX: ${viewPortCenterX}`);
+    const bullsEyeX = viewPortProperties.bullsEyeX;
+    console.log(`bullsEyeX: ${bullsEyeX}`);
+    // console.log(`bullsEyeCneterX: ${viewPort.getBullsEyeCenterX()}`);
+
+    // transform scene-relative attributes to get view-relative styling
+    const sceneLeft = parseInt(cardDiv.getAttribute("sceneLeft"));
+    const viewLeft = bullsEyeX + sceneLeft;
+    const viewWidth = parseInt(cardDiv.getAttribute("sceneWidth"));
+    const viewTop = parseInt(cardDiv.getAttribute("sceneTop"));
+    const viewHeight = parseInt(cardDiv.getAttribute("sceneHeight"));
+
+    // apply view-relative styling
+    cardDiv.style.height =  `${viewHeight}px`;
+    cardDiv.style.top =     `${viewTop}px`;
+    cardDiv.style.width =   `${viewWidth}px`;
+    cardDiv.style.left =    `${viewLeft}px`;
+
+    console.log(`cardDiv styling for ${cardDiv.id}:`, {
+        styleLeft: cardDiv.style.left,
+        offsetLeft: cardDiv.offsetLeft,
+        boundingLeft: cardDiv.getBoundingClientRect().left,
+        viewLeft,
+        bullsEyeX,
+        sceneLeft,
+        parsedSceneLeft: parseFloat(sceneLeft)
+    });
+}
+
+/**
+ * Gets a random offset within a range
+ * @param {number} maxOffset - Maximum offset in pixels
+ * @returns {number} Random offset between -maxOffset and maxOffset
+ */
+export function getRandomSignedOffset(maxOffset) {
+    return (Math.random() * 2 - 1) * maxOffset; // Random value between -maxOffset and maxOffset
+}
+
+/**
+ * Gets a random number between min and max (inclusive)
+ * @param {number} min - Minimum value
+ * @param {number} max - Maximum value
+ * @returns {number} Random number between min and max
+ */
+export function getRandomBetween(min, max) {
+    return Math.floor(Math.random() * (max - min + 1)) + min;
+}

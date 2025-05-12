@@ -119,8 +119,8 @@ If the app is already running, it will re-load the `jobs.mjs` file.
 - Need to ease focal point to BullsEye when any skillCardDiv is selected (or clicked?)
 - Need to add stamp icons to post cards
 - Click on post card to see it's full-size iomage in right-side detail panel
-- Render bizcards as 3D blocks with rounded corners
-- Rotate 3D bizcard blocks during transitions
+- Render bizCards as 3D blocks with rounded corners
+- Rotate 3D bizCard blocks during transitions
 - Toggle debug panel visiblilty with button or key
 
 
@@ -138,7 +138,7 @@ If the app is already running, it will re-load the `jobs.mjs` file.
 <a target="_new" href="http://spexture.com/">http://spexture.com</a>
 
 - CURRENT_DATE in job [end] replaced with first day of next month but displayed as 'working'
-- Always scroll newly selected bizCardDiv (and optionally its bizcardLineItem) into view in selectTheBizcard
+- Always scroll newly selected bizCardDiv (and optionally its bizCardLineItem) into view in selectTheBizCard
 - not started 
   in highlightTheDivCardBackArrow 
     unhighlightTheHighlightedDivCardBackArrow 
@@ -164,9 +164,9 @@ If the app is already running, it will re-load the `jobs.mjs` file.
 - GoLive link with port 5500 or 5501
 - applying parallax on the target for restoreSavedStyle
 - replaced addAimationEndListener with endAnimation on a timeout
-- Bizcards are now animating to the top, but not staying there
+- BizCards are now animating to the top, but not staying there
 - Bizdards return to original position after losing focus
-- fixed selectNextBizcard
+- fixed selectNextBizCard
 - added links to three.mjs examples
 - added links to Virtual Munsell Color Wheel
 - added select all skills button
@@ -176,27 +176,27 @@ If the app is already running, it will re-load the `jobs.mjs` file.
 ### version 0.6:   July 3, 2023  
 
 - Upgraded static website to use ES6 modules, thus requiring a local webserver that supports ES6.  
-- The focal point now eases towards the mouse when it enters the canvas area.  
-- The focal point now eases toward the bullsEye when it leaves the canvas areas.  
+- The focal point now eases towards the mouse when it enters the scene-div area.  
+- The focal point now eases toward the bullsEye when it leaves the scene-div areas.  
 -  <img src="static_content/graphics/version-0.6.gif">8 MB animated gif</a>
 
 
 ### version 0.5:   June 26, 2023
 
-- A flock of small skill postcards and larger business cards float over the left-side canvas column.
+- A flock of small skill postcards and larger business cards float over the left-side scene-div column.
 - A timeline is displayed at ground level, to visualize the date range of employment for each business card.
-- A 3-D parallax effect on cards is controlled by the "focalPoint", which tracks the mouse while over the canvas.
+- A 3-D parallax effect on cards is controlled by the "focalPoint", which tracks the mouse while over the scene-div.
 - Add line items to the right-side resume column by selecting business cards.
 - Select a postcard or resume line item by clicking it, click again to deselect it.
 - Selected postcards and line-items have a red-dashed border.
 - Once selected, a postcard or business card is temporarily moved above the flock where is not subject to motion parallax.
 - Click on a postcard to select and scroll its resume line item into view.
 - Click on a resume line item to select and scroll its postcard into view.
-- The canvas viewport shows "BullsEye" with a plus sign at canvas center, where parallax effect is zero.
-- FocalPoint defaults back to the viewport center BullsEye when it leaves the canvas.
-- The focalPoint starts tracking the mouse as soon as it re-enters the canvas area.
-- Canvas auto-scrolling starts when the focalPoint is in top or bottom quqrter of the canvas.
-- Autoscrolling stops when the focalPoint moves to viewport center and when the mouse leaves the canvas.
+- The scene-div viewPort shows "BullsEye" with a plus sign at scene-div center, where parallax effect is zero.
+- FocalPoint defaults back to the viewPort center BullsEye when it leaves the scene-div.
+- The focalPoint starts tracking the mouse as soon as it re-enters the scene-div area.
+- Scene-div auto-scrolling starts when the focalPoint is in top or bottom quqrter of the scene-div.
+- Autoscrolling stops when the focalPoint moves to viewPort center and when the mouse leaves the scene-div.
 - Click on a resume line item's top-right delete button to delete it.
 - Click on the bottom-right green next button to open and select the resume line item for the next business card.
 - Skill postcards inherit the color of its parent business card.
@@ -213,7 +213,7 @@ If the app is already running, it will re-load the `jobs.mjs` file.
 
 ### version 0.3:   June 7, 2023
 
-- downloads bizcards from local jobs.csv file  
+- downloads bizCards from local jobs.csv file  
   - BUT only works when running local instance of http-server from the version3 folder  
 - click on a red-div to open a new pink line-item in the right-column  
 
@@ -222,13 +222,13 @@ If the app is already running, it will re-load the `jobs.mjs` file.
 
 - faded timeline on right side
 - linear gradiens at top and bottom
-- bizcards are purple and far away from viewer
+- bizCards are purple and far away from viewer
 - cards are red and closer to viewer
 - cards turn yellow on rollover  
 - horizontal and vertical mouse motion induce motion parallax
 - parallax decreases as distance to viewer increases
 - manual vertical scrolling is supported though scrollbar is invisible
-- canvas scrolls vertically when mouse approaches top and bottom
+- scene-div scrolls vertically when mouse approaches top and bottom
 - right column for diagnostics
 
 
@@ -237,7 +237,7 @@ If the app is already running, it will re-load the `jobs.mjs` file.
 - randomized div sizes, locations, and z-index
 - z-index affects opacity and brightness
 - autogenerated imgs from web
-- vertical stack of divs moved to canvas-container center on load and resize
+- vertical stack of divs moved to scene-container center on load and resize
 - vertical scrollbar
 - fat middle line for diagnositcs
 - right column for diagnostics

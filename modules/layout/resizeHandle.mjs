@@ -3,8 +3,9 @@
  */
 
 import { clamp } from '../utils.mjs';
-import { getViewport, updateViewport } from '../layout/viewport.mjs';
-import { updateAllBizCardPositions } from '../cards/bizCard.mjs';
+import * as viewPort from './viewPort.mjs';
+import { getViewPort, updateViewPort } from './viewPort.mjs';
+import * as cardUtils from '../cards/cardUtils.mjs';
 
 // Constants
 const BUTTON_COLUMN_WIDTH = 20; // Width of the button column
@@ -28,11 +29,11 @@ function updatePercentageDisplay(left) {
 
 /**
  * Initializes the resize handle
- * @param {HTMLElement} canvasContainer - The canvas container element
+ * @param {HTMLElement} sceneContainer - The scene-div container element
  * @param {HTMLElement} rightColumn - The right column element
  * @param {HTMLElement} resizeHandle - The resize handle element
  */
-export function initResizeHandle(canvasContainer, rightColumn, resizeHandle) {
+export function initResizeHandle(sceneContainer, rightColumn, resizeHandle) {
     let isResizing = false;
     let startX;
     let startWidth;
@@ -51,7 +52,7 @@ export function initResizeHandle(canvasContainer, rightColumn, resizeHandle) {
     
     // Set initial width
     const initialWidth = (window.innerWidth * DEFAULT_WIDTH_PERCENT) / 100;
-    canvasContainer.style.width = `${initialWidth}px`;
+    sceneContainer.style.width = `${initialWidth}px`;
     rightColumn.style.width = `${window.innerWidth - initialWidth}px`;
     rightColumn.style.left = `${initialWidth}px`;
     resizeHandle.style.left = `${initialWidth}px`;
@@ -86,28 +87,27 @@ export function initResizeHandle(canvasContainer, rightColumn, resizeHandle) {
             // Position handle at the right column's left edge
             resizeHandle.style.left = `${newLeft}px`;
             
-            // Keep canvas width fixed at window width
-            canvasContainer.style.width = `${containerWidth}px`;
+            // Keep scene-div width fixed at window width
+            sceneContainer.style.width = `${containerWidth}px`;
             
             // Update percentage display
             updatePercentageDisplay(newLeft);
 
-            // Update viewport to recalculate bullseye position
-            updateViewport(canvasContainer);
+            // Update viewPort to recalculate bullsEye position
+            viewPort.updateViewPort(sceneContainer);
 
-            // Update all bizcard positions to match new bullseye center
-            updateAllBizCardPositions();
+            // Update all bizCard positions to match new bullsEye center
+            cardUtils.applyViewRelativeStylingToAllBizCardDivs(viewPort);
 
-            // Log canvas container position
-            console.log(`Canvas left: ${canvasContainer.offsetLeft}px, width: ${canvasContainer.offsetWidth}px`);
+            // Log scene-div container position
+            console.log(`Scene-div left: ${sceneContainer.offsetLeft}px, width: ${sceneContainer.offsetWidth}px`);
             
-            // Log bullseye calculations with all values
-            console.log('Bullseye calculation values:', {
+            // Log bullsEye calculations with all values
+            console.log('BullsEye calculation values:', {
                 windowWidth: containerWidth,
                 rightColumnWidth: rightColumn.offsetWidth,
-                newRightColumnWidth,
                 calculatedCenter: (containerWidth - rightColumn.offsetWidth) / 2,
-                bullseyeX: getViewport().bullseyeX
+                bullsEyeX: viewPort.getBullsEyeCenterX()
             });
         }
     });
@@ -127,38 +127,35 @@ export function initResizeHandle(canvasContainer, rightColumn, resizeHandle) {
         // If right column is at left edge (collapsed left)
         if (currentLeft === 0) {
             rightColumn.style.width = `${containerWidth}px`;
-            canvasContainer.style.width = `${containerWidth}px`;
+            sceneContainer.style.width = `${containerWidth}px`;
         }
         // If right column is collapsed to right (width is button column width)
         else if (rightColumn.offsetWidth === BUTTON_COLUMN_WIDTH) {
             rightColumn.style.width = `${BUTTON_COLUMN_WIDTH}px`;
             rightColumn.style.left = `${containerWidth - BUTTON_COLUMN_WIDTH}px`;
-            canvasContainer.style.width = `${containerWidth}px`;
+            sceneContainer.style.width = `${containerWidth}px`;
         }
         // Otherwise, maintain proportional width
         else {
             rightColumn.style.width = `${containerWidth - currentLeft}px`;
-            canvasContainer.style.width = `${containerWidth}px`;
+            sceneContainer.style.width = `${containerWidth}px`;
         }
         
         resizeHandle.style.left = `${currentLeft}px`;
         updatePercentageDisplay(currentLeft);
 
-        // Update viewport to recalculate bullseye position
-        updateViewport(canvasContainer);
+        // Update viewPort to recalculate bullsEye position
+        viewPort.updateViewPort(sceneContainer);
 
-        // Update all bizcard positions to match new bullseye center
-        updateAllBizCardPositions();
-
-        // Log canvas container position
-        console.log(`Canvas left: ${canvasContainer.offsetLeft}px, width: ${canvasContainer.offsetWidth}px`);
+        // Log scene-div container position
+        console.log(`Scene-div left: ${sceneContainer.offsetLeft}px, width: ${sceneContainer.offsetWidth}px`);
         
-        // Log bullseye calculations with all values
-        console.log('Bullseye calculation values:', {
+        // Log bullsEye calculations with all values
+        console.log('BullsEye calculation values:', {
             windowWidth: containerWidth,
             rightColumnWidth: rightColumn.offsetWidth,
             calculatedCenter: (containerWidth - rightColumn.offsetWidth) / 2,
-            bullseyeX: getViewport().bullseyeX
+            bullsEyeX: viewPort.getBullsEyeCenterX()
         });
     });
 
@@ -168,7 +165,7 @@ export function initResizeHandle(canvasContainer, rightColumn, resizeHandle) {
         rightColumn.style.width = `${window.innerWidth}px`;
         rightColumn.style.left = `0px`;
         resizeHandle.style.left = `0px`;
-        canvasContainer.style.width = '0px';
+        sceneContainer.style.width = '0px';
         updatePercentageDisplay(0);
     });
 
@@ -177,7 +174,7 @@ export function initResizeHandle(canvasContainer, rightColumn, resizeHandle) {
         rightColumn.style.width = `${BUTTON_COLUMN_WIDTH}px`;
         rightColumn.style.left = `${window.innerWidth - BUTTON_COLUMN_WIDTH}px`;
         resizeHandle.style.left = `${window.innerWidth - BUTTON_COLUMN_WIDTH}px`;
-        canvasContainer.style.width = `${window.innerWidth - BUTTON_COLUMN_WIDTH}px`;
+        sceneContainer.style.width = `${window.innerWidth - BUTTON_COLUMN_WIDTH}px`;
         updatePercentageDisplay(window.innerWidth - BUTTON_COLUMN_WIDTH);
     });
 } 

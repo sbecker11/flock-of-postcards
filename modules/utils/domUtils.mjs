@@ -60,3 +60,13 @@ export function querySelector(selector) {
 export function querySelectorAll(selector) {
     return Array.from(document.querySelectorAll(selector));
 } 
+
+/**
+ * Checks if an object is an HTMLElement
+ * @param {any} obj - The object to check
+ * @returns {boolean} True if the object is an HTMLElement
+ */
+export function isHTMLElement(obj) {
+    return obj instanceof HTMLElement;
+}
+

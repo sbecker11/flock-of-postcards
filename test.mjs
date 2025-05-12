@@ -3,7 +3,7 @@
 
 import * as zIndex from './modules/layout/zIndex.mjs';
 import * as parallax from './modules/layout/parallax.mjs';
-import * as viewport from './modules/layout/viewport.mjs';
+import * as viewPort from './modules/layout/viewPort.mjs';
 import * as filters from './modules/layout/filters.mjs';
 import * as bizCard from './modules/cards/bizCard.mjs';
 import * as skillCard from './modules/cards/skillCard.mjs';
@@ -32,20 +32,20 @@ console.assert(cardConstants.MIN_BIZCARD_HEIGHT === 200, 'MIN_BIZCARD_HEIGHT inc
 // Test card utility functions
 console.log('Testing card utility functions...');
 const testDiv = document.createElement('div');
-testDiv.className = 'bizcard-div';
-testDiv.id = 'bizcard-div-1';
+testDiv.className = 'bizCard-div';
+testDiv.id = 'bizCard-div-1';
 document.body.appendChild(testDiv);
 
-console.assert(cardUtils.isBizcardDiv(testDiv), 'isBizcardDiv failed');
-console.assert(cardUtils.getBizcardDivIndex(testDiv.id) === 1, 'getBizcardDivIndex failed');
+console.assert(cardUtils.isBizCardDiv(testDiv), 'isBizCardDiv failed');
+console.assert(cardUtils.getBizCardDivIndex(testDiv.id) === 1, 'getBizCardDivIndex failed');
 
-// Test viewport functions
-console.log('Testing viewport functions...');
-const canvasContainer = document.getElementById('canvas-container');
-if (canvasContainer) {
-    viewport.updateViewport(canvasContainer);
-    const viewportState = viewport.getViewport();
-    console.assert(viewportState.padding === viewport.VIEWPORT_PADDING, 'Viewport padding incorrect');
+// Test viewPort functions
+console.log('Testing viewPort functions...');
+const sceneContainer = document.getElementById('scene-container');
+if (sceneContainer) {
+    viewPort.updateViewPort(sceneContainer);
+    const viewPortState = viewPort.getViewPort();
+    console.assert(viewPortState.padding === viewPort.VIEWPORT_PADDING, 'ViewPort padding incorrect');
 }
 
 // Test parallax functions

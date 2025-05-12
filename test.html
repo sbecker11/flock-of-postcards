@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewPort" content="width=device-width, initial-scale=1.0">
     <title>Module Test</title>
     <style>
         body {
@@ -25,7 +25,7 @@
     <script type="module">
         import * as zIndex from './modules/layout/zIndex.mjs';
         import * as parallax from './modules/layout/parallax.mjs';
-        import * as viewport from './modules/layout/viewport.mjs';
+        import * as viewPort from './modules/layout/viewPort.mjs';
         import * as filters from './modules/layout/filters.mjs';
         import * as bizCard from './modules/cards/bizCard.mjs';
         import * as skillCard from './modules/cards/skillCard.mjs';
@@ -40,7 +40,7 @@
         results.push('Module Import Test:');
         results.push('zIndex module:', Object.keys(zIndex));
         results.push('parallax module:', Object.keys(parallax));
-        results.push('viewport module:', Object.keys(viewport));
+        results.push('viewPort module:', Object.keys(viewPort));
         results.push('filters module:', Object.keys(filters));
         results.push('bizCard module:', Object.keys(bizCard));
         results.push('skillCard module:', Object.keys(skillCard));
@@ -57,12 +57,12 @@
         // Test utility functions
         results.push('\nUtility Functions Test:');
         const testDiv = document.createElement('div');
-        testDiv.id = 'test-bizcard-0';
-        testDiv.setAttribute('data-bizcard-index', '0');
+        testDiv.id = 'test-bizCard-0';
+        testDiv.setAttribute('data-bizCard-index', '0');
         document.body.appendChild(testDiv);
 
-        results.push('isBizcardDiv:', cardUtils.isBizcardDiv(testDiv));
-        results.push('getBizcardDivIndex:', cardUtils.getBizcardDivIndex(testDiv));
+        results.push('isBizCardDiv:', cardUtils.isBizCardDiv(testDiv));
+        results.push('getBizCardDivIndex:', cardUtils.getBizCardDivIndex(testDiv));
 
         // Display results
         output.textContent = results.join('\n');

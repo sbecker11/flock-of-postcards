@@ -382,7 +382,7 @@ export class PaletteSelector {
        }
        this.darker_bg_hex_color = this.findDarkestBgHexColor();
        // this.darkest_bg_hex_color = '#000000'; // This line seems redundant if calculated below
-   }
+}
 
      _applysCurrentPaletteToElement(element) {
        const data_color_index = element.getAttribute("data-color-index");
@@ -423,19 +423,19 @@ export class PaletteSelector {
    applyPaletteToElements( elements=null ) {
        if ( elements === null ) {
            elements = document.querySelectorAll("[data-color-index]");
-           console.log("DEBUG: Found elements with data-color-index:", elements.length);
-           elements.forEach(el => {
-               console.log("DEBUG: Element:", el.id, "data-color-index:", el.getAttribute("data-color-index"));
-           });
+        //    console.log("DEBUG: Found elements with data-color-index:", elements.length);
+        //        elements.forEach(el => {
+        //            console.log("DEBUG: Element:", el.id, "data-color-index:", el.getAttribute("data-color-index"));
+        //        });
        }
-       console.log(`DEBUG: Applying palette "${this.current_value}" to ${elements.length} elements`);
+       // console.log(`DEBUG: Applying palette "${this.current_value}" to ${elements.length} elements`);
        for (const element of elements) {
            if ( element ) {
                try {
                   this._applysCurrentPaletteToElement(element);
-                  console.log("DEBUG: Applied colors to element:", element.id, 
-                      "bg:", element.style.backgroundColor,
-                      "fg:", element.style.color);
+                //   console.log("DEBUG: Applied colors to element:", element.id, 
+                //       "bg:", element.style.backgroundColor,
+                //       "fg:", element.style.color);
                } catch (error) {
                   console.error("Error applying palette to element:", element, error);
                }

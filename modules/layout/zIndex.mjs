@@ -1,8 +1,34 @@
 // Z-index constants and utility functions
 export const ROOT_Z_INDEX = 0;             // no parallax 
-export const CANVAS_Z_INDEX = 1;           // no parallax
-export const CANVAS_GRADIENTS_Z_INDEX = 2; // no parallax
+export const SCENE_Z_INDEX = 1;           // no parallax
+export const SCENE_GRADIENTS_Z_INDEX = 2; // no parallax
 export const TIMELINE_Z_INDEX = 3;         // no parallax
+export const BACKGROUND_ELEMENTS_MAX_Z_INDEX = 4;
+
+export const ALL_CARDS_Z_INDEX_MIN = 5;
+
+// biz card z-index range 5 to 10
+export const BIZCARD_Z_INDEX_MIN = 5;
+export const BIZCARD_Z_INDEX_MAX = 10;
+
+// Skill card z-index range 20 to 30
+export const SKILLCARD_Z_INDEX_MIN = 20;
+export const SKILLCARD_Z_INDEX_MAX = 30;
+
+export const ALL_CARDS_Z_INDEX_MAX = 30;
+
+export const ALL_CARDS_Z_MAX = 35;
+
+// biz card Z value range 35 tp 30
+export const BIZCARD_Z_MAX = 35;
+export const BIZCARD_Z_MIN = 30;
+
+// skill card Z value range 20 to 10
+export const SKILLCARD_Z_MAX = 20;
+export const SKILLCARD_Z_MIN = 10;
+
+export const ALL_CARDS_Z_MIN = 10;
+
 
 // Special case Z-indices
 export const BULLSEYE_Z_INDEX = 98;            // no parallax
@@ -10,42 +36,27 @@ export const SELECTED_CARD_Z_INDEX = 99;       // no parallax, higher than bulls
 export const FOCAL_POINT_Z_INDEX = 100;        // no parallax
 export const AIM_POINT_Z_INDEX = 101;          // no parallax
 
-// Card Z-index ranges
-export const MIN_BIZCARD_Z_INDEX = 1000; // Minimum z-index for business cards
-export const MAX_BIZCARD_Z_INDEX = 9;
-export const MIN_CARD_Z_INDEX = 19;
-export const MAX_CARD_Z_INDEX = 29; 
-export const MAX_ALL_CARDS_Z_INDEX = 31;
-
-// Z value ranges
-export const ALL_CARDS_MAX_Z = 35;
-export const BIZCARD_MAX_Z = 35;
-export const BIZCARD_MIN_Z = 30;
-export const SKILLCARD_MAX_Z = 20;
-export const SKILLCARD_MIN_Z = 10;
-export const ALL_CARDS_MIN_Z = 10;
-
 /**
  * Converts a z-index to a z value
  * @param {number} z_index - The z-index to convert
  * @returns {number|null} The corresponding z value or null if invalid
  */
 export function get_z_from_z_index(z_index) {
-    if (z_index > MAX_ALL_CARDS_Z_INDEX) {
-        return null;
+    if ( (z_index < ALL_CARDS_Z_INDEX_MIN) || (z_index > ALL_CARDS_Z_INDEX_MAX) ) {
+        throw new Error(`z_index:${z_index} is out of range of ${ALL_CARDS_Z_INDEX_MIN}..${ALL_CARDS_Z_INDEX_MAX}`);
     }
-    if (z_index >= MIN_BIZCARD_Z_INDEX && z_index <= MAX_BIZCARD_Z_INDEX) {
-        const z_index_range = MAX_BIZCARD_Z_INDEX - MIN_BIZCARD_Z_INDEX;
-        const z_range = BIZCARD_MAX_Z - BIZCARD_MIN_Z;
-        const z_index_offset = z_index - MIN_BIZCARD_Z_INDEX;
-        return Math.round(BIZCARD_MIN_Z + (z_index_offset * z_range / z_index_range));
-    } else if (z_index >= MIN_CARD_Z_INDEX && z_index <= MAX_CARD_Z_INDEX) {
-        const z_index_range = MAX_CARD_Z_INDEX - MIN_CARD_Z_INDEX;
-        const z_range = SKILLCARD_MAX_Z - SKILLCARD_MIN_Z;
-        const z_index_offset = z_index - MIN_CARD_Z_INDEX;
-        return Math.round(SKILLCARD_MIN_Z + (z_index_offset * z_range / z_index_range));
+    if (z_index >= BIZCARD_Z_INDEX_MIN && z_index <= BIZCARD_Z_INDEX_MAX) {
+        const z_index_range = BIZCARD_Z_INDEX_MAX - BIZCARD_Z_INDEX_MIN;
+        const z_range = BIZCARD_Z_MAX - BIZCARD_Z_MIN;
+        const z_index_offset = z_index - BIZCARD_Z_INDEX_MIN;
+        return Math.round(BIZCARD_Z_MIN + (z_index_offset * z_range / z_index_range));
+    } else if (z_index >= SKILLCARD_Z_INDEX_MIN && z_index <= SKILLCARD_Z_INDEX_MAX) {
+        const z_index_range = SKILLCARD_Z_INDEX_MAX - SKILLCARD_Z_INDEX_MIN;
+        const z_range = SKILLCARD_Z_MAX - SKILLCARD_Z_MIN;
+        const z_index_offset = z_index - SKILLCARD_Z_INDEX_MIN;
+        return Math.round(SKILLCARD_Z_MIN + (z_index_offset * z_range / z_index_range));
     } else {
-        return z_index;
+        throw new Error(`IMPOSSIBLE ERROR for z_index:${z_index}`);
     }
 }
 
@@ -64,18 +75,19 @@ export function get_z_from_zIndexStr(zIndexStr) {
  * @returns {number} The corresponding z-index
  */
 export function get_zindex_from_z(z) {
-    if (z >= BIZCARD_MIN_Z && z <= BIZCARD_MAX_Z) {
-        const z_range = BIZCARD_MAX_Z - BIZCARD_MIN_Z;
-        const z_index_range = MAX_BIZCARD_Z_INDEX - MIN_BIZCARD_Z_INDEX;
-        const z_offset = z - BIZCARD_MIN_Z;
-        return Math.round(MIN_BIZCARD_Z_INDEX + (z_offset * z_index_range / z_range));
-    } else if (z >= SKILLCARD_MIN_Z && z <= SKILLCARD_MAX_Z) {
-        const z_range = SKILLCARD_MAX_Z - SKILLCARD_MIN_Z;
-        const z_index_range = MAX_CARD_Z_INDEX - MIN_CARD_Z_INDEX;
-        const z_offset = z - SKILLCARD_MIN_Z;
-        return Math.round(MIN_CARD_Z_INDEX + (z_offset * z_index_range / z_range));
+    if ((z < ALL_CARDS_Z_MIN) || (z > ALL_CARDS_Z_MAX)) {
+        throw new Error(`z:${z} is out of range of ${ALL_CARDS_Z_MIN}..${ALL_CARDS_Z_MAX}`);
+    }
+    if (z >= BIZCARD_Z_MIN && z <= BIZCARD_Z_MAX) {
+        const z_offset = z - BIZCARD_Z_MIN;
+        const z_index = BIZCARD_Z_INDEX_MAX - z_offset;
+        return z_index;
+    } else if (z >= SKILLCARD_Z_MIN && z <= SKILLCARD_Z_MAX) {
+        const z_offset = z - SKILLCARD_Z_MIN;
+        const z_index = SKILLCARD_Z_INDEX_MAX - z_offset;
+        return z_index;
     } else {
-        return z;
+        throw new Error(`IMPOSSIBLE ERROR for z:${z}`);
     }
 }
 
@@ -92,12 +104,12 @@ export function get_zIndexStr_from_z(z) {
  * Tests the z-index conversion functions
  */
 export function test_z_functions() {
-    // Test bizcard z-index to z conversion
-    console.log("Testing bizcard z-index to z conversion...");
-    for (let z_index = MIN_BIZCARD_Z_INDEX; z_index <= MAX_BIZCARD_Z_INDEX; z_index++) {
+    // Test bizCard z-index to z conversion
+    console.log("Testing bizCard z-index to z conversion...");
+    for (let z_index = BIZCARD_Z_INDEX_MIN; z_index <= BIZCARD_Z_INDEX_MAX; z_index++) {
         const z = get_z_from_z_index(z_index);
-        if (z < BIZCARD_MIN_Z || z > BIZCARD_MAX_Z) {
-            console.error(`ERROR: z:${z} is out of bizcard_z range of ${BIZCARD_MIN_Z}..${BIZCARD_MAX_Z} for z_index:${z_index}`);
+        if (z < BIZCARD_Z_MIN || z > BIZCARD_Z_MAX) {
+            console.error(`ERROR: z:${z} is out of bizCard_z range of ${BIZCARD_Z_MIN}..${BIZCARD_Z_MAX} for z_index:${z_index}`);
         }
         const zIndexStr = get_zIndexStr_from_z(z);
         const check_z = get_z_from_zIndexStr(zIndexStr);

@@ -21,12 +21,13 @@ export const MIN_SKILLCARD_HEIGHT = 100;
  * Creates a skill card div
  * @param {Object} skill - The skill object
  * @param {number} skillIndex - The index of the skill in the array
- * @param {HTMLElement} canvas - The canvas element
+ * @param {HTMLElement} scene-div - The scene-div element
  * @returns {HTMLElement} The created skill card div
  */
-export function createSkillCardDiv(skill, skillIndex, canvas) {
+export function createSkillCardDiv(skill, skillIndex, bizCardDiv) {
     const skillCardDiv = document.createElement("div");
-    skillCardDiv.className = "skill-card-div";
+    skillCardDiv.classList.add("skill-card-div");
+    skillCardDiv.classList.add("card-div");
     skillCardDiv.id = `skill-card-div-${skillIndex}`;
     
     // Set z-index and z value
@@ -58,8 +59,8 @@ export function createSkillCardDiv(skill, skillIndex, canvas) {
     // Add click handler
     skillCardDiv.addEventListener("click", () => handleSkillCardClick(skillCardDiv, skill));
     
-    // Append to canvas
-    canvas.appendChild(skillCardDiv);
+    // Append to scene-div
+    scene-div.appendChild(skillCardDiv);
     
     return skillCardDiv;
 }

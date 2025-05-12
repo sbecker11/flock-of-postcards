@@ -16,17 +16,17 @@ let autoScrollEase = 0;
 /**
  * Updates the auto-scroll velocity based on the focal point position
  * @param {number} focalPointY - The y-coordinate of the focal point
- * @param {HTMLElement} canvasContainer - The canvas container element
+ * @param {HTMLElement} sceneContainer - The scene-div container element
  */
-export function updateAutoScrollVelocity(focalPointY, canvasContainer) {
-    const topHeight = Math.floor(canvasContainer.offsetHeight / 4);
+export function updateAutoScrollVelocity(focalPointY, sceneContainer) {
+    const topHeight = Math.floor(sceneContainer.offsetHeight / 4);
     const centerTop = topHeight;
     const centerHeight = topHeight * 2;
     const centerBottom = topHeight + centerHeight;
     const bottomHeight = topHeight;
-    const scrollHeight = canvasContainer.scrollHeight;
-    const scrollTop = canvasContainer.scrollTop;
-    const windowHeight = canvasContainer.clientHeight;
+    const scrollHeight = sceneContainer.scrollHeight;
+    const scrollTop = sceneContainer.scrollTop;
+    const windowHeight = sceneContainer.clientHeight;
     const scrollBottom = scrollHeight - scrollTop - windowHeight;
 
     if (focalPointY < centerTop) {
@@ -42,13 +42,13 @@ export function updateAutoScrollVelocity(focalPointY, canvasContainer) {
 }
 
 /**
- * Handles wheel events on the canvas container
+ * Handles wheel events on the scene-div container
  * @param {WheelEvent} wheelEvent - The wheel event
  */
-export function handleCanvasContainerWheel(wheelEvent) {
+export function handlesceneContainerWheel(wheelEvent) {
     if (AUTOSCROLL_STOPS_ON_USER_SCROLL_OR_WHEEL) {
         if (autoScrollingInterval != null) {
-            console.log("Canvas container wheel detected, stopping autoscroll.");
+            console.log("Scene-div container wheel detected, stopping autoscroll.");
             clearInterval(autoScrollingInterval);
             autoScrollingInterval = null;
             autoScrollVelocity = 0;
@@ -68,9 +68,9 @@ export function handleCanvasContainerWheel(wheelEvent) {
 
 /**
  * Starts the auto-scroll animation
- * @param {HTMLElement} canvasContainer - The canvas container element
+ * @param {HTMLElement} sceneContainer - The scene-div container element
  */
-export function startAutoScroll(canvasContainer) {
+export function startAutoScroll(sceneContainer) {
     if (!AUTOSCROLL_ENABLED || autoScrollingInterval != null) {
         return;
     }
@@ -82,9 +82,9 @@ export function startAutoScroll(canvasContainer) {
             return;
         }
 
-        const currentScroll = canvasContainer.scrollTop;
+        const currentScroll = sceneContainer.scrollTop;
         const newScroll = currentScroll + autoScrollVelocity;
-        canvasContainer.scrollTop = newScroll;
+        sceneContainer.scrollTop = newScroll;
 
         // Smoothly adjust velocity
         if (Math.abs(autoScrollVelocity - oldAutoScrollVelocity) > AUTOSCROLL_CHANGE_THRESHOLD) {

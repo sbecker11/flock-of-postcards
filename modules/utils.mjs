@@ -633,25 +633,23 @@ export function validateIsLineItemElement(obj) {
         throw new Error(`Argument is not an HTML LI element, but is a(n) ${typeof obj} with value ${obj}`);
     }
 }
-export function isCardDiv(obj) {
-    return isDivElement(obj) && obj.classList.contains('skill-card-div');
-}
 
-export function validateIsCardDiv(obj) {
-    if (!isCardDiv(obj)) {
-        throw new Error(`Argument does not have "skill-card-div" class but does have ${obj.classList}.`);
-    }
-}
-export function isbizCardDiv(obj) {
+// moved to cardUtils.mjs
+// every skill-card-div, biz-card-div, biz-resume-card-div, and skill-resume-card-div
+// is also a card-div
+// export function isAnyCardDiv(obj) {
+//     return isDivElement(obj) && obj.classList.contains('card-div');
+// }
+export function isBizCardDiv(obj) {
     return isDivElement(obj) && obj.classList.contains('biz-card-div')
 }
 export function validateIsbizCardDiv(obj) {
-    if (!isbizCardDiv(obj)) {
+    if (!isBizCardDiv(obj)) {
         throw new Error(`Argument does not have "biz-card-div" class but does have ${obj.classList}.`);
     }
 }
 export function isCardDivOrbizCardDiv(obj) {
-    return isCardDiv(obj) || isbizCardDiv(obj);
+    return isAnyCardDiv(obj) || isBizCardDiv(obj);
 }
 export function validateIsCardDivOrbizCardDiv(obj) {
     if (!isCardDivOrbizCardDiv(obj)) {
@@ -1022,10 +1020,10 @@ export function showElement(element, prefix="", logLevel=LogLevel.LOG) {
     // now construct the elementInfo object
     const parentElementId = (element.parentElement != null) ? element.parentElement.id : "";
     let nextSiblingId = null;
-    if (isCardDiv(element)) {
+    if (isAnyCardDiv(element)) {
         const nextSibling = findNextSiblingWithClass(element, "skill-card-div");
         nextSiblingId = (nextSibling != null) ? nextSibling.id : "";
-    } else if (isbizCardDiv(element)) {
+    } else if (isBizCardDiv(element)) {
         const nextSibling = findNextSiblingWithClass(element, "biz-card-div");
         nextSiblingId = (nextSibling != null) ? nextSibling.id : "";
     }

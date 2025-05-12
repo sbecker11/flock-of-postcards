@@ -15,13 +15,13 @@ const rightContentDiv = document.getElementById("right-content-div");
 // const debugScrollingElement = null; //  = document.getElementById("debugScrollingElement");
 // const debugFocalPointElement = null; //  = document.getElementById("debugFocalPointElement");
 // const debugTheSelectedCardDivIdElement = null; //  = document.getElementById("debugTheSelectedCardDivIdElement");
-const canvasContainer = document.getElementById("canvas-container");
-const canvas = document.getElementById("canvas");
+const sceneContainer = document.getElementById("scene-container");
+const scene-div = document.getElementById("scene-div");
 const bottomGradient = document.getElementById("bottom-gradient");
 const bullsEye = document.getElementById("bulls-eye");
-const selectFirstBizcardButton = document.getElementById("select-first-bizcard");
-const selectNextBizcardButton = document.getElementById("select-next-bizcard");
-const selectAllBizcardsButton = document.getElementById("select-all-bizcards");
+const selectFirstBizCardButton = document.getElementById("select-first-bizCard");
+const selectNextBizCardButton = document.getElementById("select-next-bizCard");
+const selectAllBizCardsButton = document.getElementById("select-all-bizCards");
 const clearAllLineItemsButton = document.getElementById("clear-all-line-items");
 
 // --------------------------------------
@@ -42,7 +42,7 @@ const ANIMATION_DURATION_MILLIS = 0;
 var ANIMATION_IN_PROGRESS = false;
 
 // --------------------------------------  
-// BizcardDiv globals
+// BizCardDiv globals
 
 // width decreases as zindex increases
 const BIZCARD_WIDTH = 200;
@@ -104,12 +104,12 @@ const BLUR_Z_SCALE_FACTOR = 4;
 // Default mouse behavior: prevent selections while mouse is fown
 document.addEventListener('mousedown', function() {
     document.body.classList.add('no-select');
-    document.getElementById("canvas-container").classList.add('no-select');
+    document.getElementById("scene-container").classList.add('no-select');
 });
 
 document.addEventListener('mouseup', function() {
     document.body.classList.remove('no-select');
-    document.getElementById("canvas-container").classList.remove('no-select');
+    document.getElementById("scene-container").classList.remove('no-select');
 });
 
 //--------------------------------------
@@ -154,16 +154,16 @@ function get_filterStr_from_z(z) {
 }
 
 // --------------------------------------
-// BizcardDiv and cardDiv functions
+// BizCardDiv and cardDiv functions
 
-function isBizcardDiv(div) {
-    return div != null && div.classList.contains('bizcard-div') ? true : false;
+function isBizCardDiv(div) {
+    return div != null && div.classList.contains('bizCard-div') ? true : false;
 }
-function isCardDiv(div) {
+function isAnyCardDiv(div) {
     return div != null && div.classList.contains('card-div') ? true : false;
 }
-function isBizcardDivId(divId) {
-    return utils.isString(divId) && getBizcardDivIndex(divId) == null ? false : true;
+function isBizCardDivId(divId) {
+    return utils.isString(divId) && getBizCardDivIndex(divId) == null ? false : true;
 }
 function isCardDivId(divId) {
     return utils.isString(divId) && getCardDivIndex(divId) == null ? false : true;
@@ -172,11 +172,11 @@ function isCardDivLineItem(div) {
     return div != null && div.classList.contains('card-div-line-item') ? true : false;
 }
 
-// returns 99 for bizcard-div-99' or null
-function getBizcardDivIndex(cardDivId) {
+// returns 99 for bizCard-div-99' or null
+function getBizCardDivIndex(cardDivId) {
     // console.assert(utils.isString(cardDivId));
-    if (cardDivId.startsWith("bizcard-div-")) {
-        var index = parseInt(cardDivId.replace("bizcard-div-", ""));
+    if (cardDivId.startsWith("bizCard-div-")) {
+        var index = parseInt(cardDivId.replace("bizCard-div-", ""));
         return Number.isNaN(index) ? null : index;
     }
     return null;
@@ -192,20 +192,20 @@ function getCardDivIndex(cardDivId) {
     return null;
 }
 
-// returns true if a bizcardDiv exists for the given index, else null
-function getBizcardDivIdFromIndex(index) {
+// returns true if a bizCardDiv exists for the given index, else null
+function getBizCardDivIdFromIndex(index) {
     // console.assert(utils.isNumber(index));
-    var bizcardDivId = `bizcard-div-${index}`;
-    var bizcardDiv = document.getElementById(bizcardDivId);
-    return (bizcardDiv && bizcardDiv.id == bizcardDivId) ? bizcardDivId : null;
+    var bizCardDivId = `bizCard-div-${index}`;
+    var bizCardDiv = document.getElementById(bizCardDivId);
+    return (bizCardDiv && bizCardDiv.id == bizCardDivId) ? bizCardDivId : null;
 }
 
-// .Bizcard-divs are never deleted so next id
-// is just the current number of the .Bizcard-divs
-function getNextBizcardDivId() {
-    const bizcardDivs = document.getElementsByClassName("bizcard-div");
-    const nextBizcardDivId = `bizcard-div-${bizcardDivs.length}`;
-    return nextBizcardDivId;
+// .BizCard-divs are never deleted so next id
+// is just the current number of the .BizCard-divs
+function getNextBizCardDivId() {
+    const bizCardDivs = document.getElementsByClassName("bizCard-div");
+    const nextBizCardDivId = `bizCard-div-${bizCardDivs.length}`;
+    return nextBizCardDivId;
 }
 
 // Use the "jobs" array to gather data used for
@@ -215,7 +215,7 @@ function getNextBizcardDivId() {
 // Also parse each job's description to pull out 
 // the shared "skills" from the narrative pf each.
 //  
-function createBizcardDivs() {
+function createBizCardDivs() {
     
     var sortedJobs = structuredClone(jobs);
     sortedJobs.sort((a,b) => new Date(b['end']) - new Date(a['end']));
@@ -271,90 +271,90 @@ function createBizcardDivs() {
         var indent = (zIndex - 1) * BIZCARD_INDENT;
 
         // here we go
-        var bizcardDiv = document.createElement("div");
-        // console.assert(bizcardDiv != null);
+        var bizCardDiv = document.createElement("div");
+        // console.assert(bizCardDiv != null);
         var top = endBottomPx;
         // console.assert(top > 0, "Q");
         var height = heightPx;
         var left = indent;
         var width = BIZCARD_WIDTH;
 
-        bizcardDiv.id = getNextBizcardDivId();
-        bizcardDiv.classList.add("bizcard-div");
-        bizcardDiv.style.top = `${top}px`;
-        bizcardDiv.style.height = `${height}px`;
-        bizcardDiv.style.left = `${left}px`;
-        bizcardDiv.style.width = `${width}px`;
-        bizcardDiv.style.zIndex = zIndexStr;
+        bizCardDiv.id = getNextBizCardDivId();
+        bizCardDiv.classList.add("bizCard-div");
+        bizCardDiv.style.top = `${top}px`;
+        bizCardDiv.style.height = `${height}px`;
+        bizCardDiv.style.left = `${left}px`;
+        bizCardDiv.style.width = `${width}px`;
+        bizCardDiv.style.zIndex = zIndexStr;
 
-        canvas.appendChild(bizcardDiv);
-        bizcardDiv.dataset.employer = employer;
-        bizcardDiv.dataset.cardDivIds = [];
+        scene-div.appendChild(bizCardDiv);
+        bizCardDiv.dataset.employer = employer;
+        bizCardDiv.dataset.cardDivIds = [];
         try {
             //console.log(`startDate:[${endDate}]`);
-            bizcardDiv.setAttribute("endDate", utils.getIsoDateString(endDate));
+            bizCardDiv.setAttribute("endDate", utils.getIsoDateString(endDate));
         } catch (e) {
             console.error(e);
         }
-        bizcardDiv.setAttribute("startDate", utils.getIsoDateString(startDate));
+        bizCardDiv.setAttribute("startDate", utils.getIsoDateString(startDate));
 
-        // save the bizcardDiv's original center 
+        // save the bizCardDiv's original center 
         var originalCtrX = left + width / 2;
         var originalCtrY = top + height / 2;
         var originalZ = z;
-        bizcardDiv.setAttribute("originalLeft", `${bizcardDiv.offsetLeft}`);
-        bizcardDiv.setAttribute("originalTop", `${bizcardDiv.offsetTop}`);
-        // console.assert(bizcardDiv.offsetTop > 0, 'L');
-        // console.assert(parseInt(bizcardDiv.getAttribute("originalTop")) > 0, 'M');
-        bizcardDiv.setAttribute("originalWidth", `${bizcardDiv.offsetWidth}`);
-        bizcardDiv.setAttribute("originalHeight", `${bizcardDiv.offsetHeight}`);
-        bizcardDiv.setAttribute("originalCtrX", `${originalCtrX}`);
-        bizcardDiv.setAttribute("originalCtrY", `${originalCtrY}`);
-        bizcardDiv.setAttribute("originalZ", `${originalZ}`);
+        bizCardDiv.setAttribute("originalLeft", `${bizCardDiv.offsetLeft}`);
+        bizCardDiv.setAttribute("originalTop", `${bizCardDiv.offsetTop}`);
+        // console.assert(bizCardDiv.offsetTop > 0, 'L');
+        // console.assert(parseInt(bizCardDiv.getAttribute("originalTop")) > 0, 'M');
+        bizCardDiv.setAttribute("originalWidth", `${bizCardDiv.offsetWidth}`);
+        bizCardDiv.setAttribute("originalHeight", `${bizCardDiv.offsetHeight}`);
+        bizCardDiv.setAttribute("originalCtrX", `${originalCtrX}`);
+        bizCardDiv.setAttribute("originalCtrY", `${originalCtrY}`);
+        bizCardDiv.setAttribute("originalZ", `${originalZ}`);
 
-        bizcardDiv.setAttribute("saved-background-color", css_hex_background_color_str);
-        bizcardDiv.setAttribute("saved-color", css_hex_color_str);
+        bizCardDiv.setAttribute("saved-background-color", css_hex_background_color_str);
+        bizCardDiv.setAttribute("saved-color", css_hex_color_str);
         var adjustedHexBackgroundColor = utils.adjustHexBrightness(css_hex_background_color_str, 1.7);
         utils.validateHexColorString(adjustedHexBackgroundColor);
-        bizcardDiv.setAttribute("saved-selected-background-color", adjustedHexBackgroundColor);
+        bizCardDiv.setAttribute("saved-selected-background-color", adjustedHexBackgroundColor);
         utils.validateHexColorString(css_hex_color_str);
-        bizcardDiv.setAttribute("saved-selected-color", css_hex_color_str);
+        bizCardDiv.setAttribute("saved-selected-color", css_hex_color_str);
 
-        bizcardDiv.setAttribute("saved-zIndexStr", zIndexStr);
-        bizcardDiv.setAttribute("saved-filterStr", get_filterStr_from_z(z));
+        bizCardDiv.setAttribute("saved-zIndexStr", zIndexStr);
+        bizCardDiv.setAttribute("saved-filterStr", get_filterStr_from_z(z));
 
-        bizcardDiv.style.zIndex = bizcardDiv.getAttribute("saved-zIndexStr") || "";
-        bizcardDiv.style.filter = bizcardDiv.getAttribute("saved-filterStr") || "";
-        bizcardDiv.style.backgroundColor = bizcardDiv.getAttribute("saved-background-color") || "";
-        bizcardDiv.style.color = bizcardDiv.getAttribute("saved-color") || "";
+        bizCardDiv.style.zIndex = bizCardDiv.getAttribute("saved-zIndexStr") || "";
+        bizCardDiv.style.filter = bizCardDiv.getAttribute("saved-filterStr") || "";
+        bizCardDiv.style.backgroundColor = bizCardDiv.getAttribute("saved-background-color") || "";
+        bizCardDiv.style.color = bizCardDiv.getAttribute("saved-color") || "";
 
         var description_raw = job[ "Description" ];
         if (description_raw && description_raw.length > 0) {
             // utils.validateString(description_raw);
-            const [description_HTML, bizcardTagLinks] = process_bizcard_description_HTML(bizcardDiv, description_raw);
-            bizcardDiv.setAttribute("Description", description_HTML);
-            bizcardDiv.setAttribute("TagLinks", JSON.stringify(bizcardTagLinks));
+            const [description_HTML, bizCardTagLinks] = process_bizCard_description_HTML(bizCardDiv, description_raw);
+            bizCardDiv.setAttribute("Description", description_HTML);
+            bizCardDiv.setAttribute("TagLinks", JSON.stringify(bizCardTagLinks));
         }
 
         var html = "";
-        html += `<span class="bizcard-div-role">${role}</span><br/>`;
-        html += `(${bizcardDiv.id})<br/>`;
-        html += `<span class="bizcard-div-employer">${employer}</span><br/>`;
-        html += `<span class="bizcard-div-dates">${jobStartStr} - ${jobEndStr}</span><br/>`;
-        bizcardDiv.innerHTML = html;
+        html += `<span class="bizCard-div-role">${role}</span><br/>`;
+        html += `(${bizCardDiv.id})<br/>`;
+        html += `<span class="bizCard-div-employer">${employer}</span><br/>`;
+        html += `<span class="bizCard-div-dates">${jobStartStr} - ${jobEndStr}</span><br/>`;
+        bizCardDiv.innerHTML = html;
 
-        bizcardDiv.addEventListener("mouseenter", handleCardDivMouseEnter);
-        bizcardDiv.addEventListener("mouseleave", handleCardDivMouseLeave);
+        bizCardDiv.addEventListener("mouseenter", handleCardDivMouseEnter);
+        bizCardDiv.addEventListener("mouseleave", handleCardDivMouseLeave);
 
-        utils.validateIsCardDivOrBizcardDiv(bizcardDiv);
-        addCardDivClickListener(bizcardDiv);
+        utils.validateIsCardDivOrBizCardDiv(bizCardDiv);
+        addCardDivClickListener(bizCardDiv);
         // does not select self
         // does not scroll self into view
 
     }
 
-    // Dispatch a custom event after appending all bizcards
-    const event = new Event('bizcardsAppended');
+    // Dispatch a custom event after appending all bizCards
+    const event = new Event('bizCardsAppended');
     document.dispatchEvent(event);
 }
 
@@ -362,7 +362,7 @@ function createBizcardDivs() {
 // --------------------------------------
 // tag_link globals
 
-// the global set of tagLinks created while creating all .Bizcard-divs from
+// the global set of tagLinks created while creating all .BizCard-divs from
 // the list of all `job` objects defined in "static_content/jobs.mjs"
 var allTagLinks = [];
 
@@ -371,7 +371,7 @@ function initAllTagLinks() {
 }
 
 // Use the BULLET_DELIMITER as separator to split the
-// `bizcard_description` into a list of `description_items`.
+// `bizCard_description` into a list of `description_items`.
 //
 // Parse each description_item to find the pattern `[skill_phrase](skill_img_url)(skill_url)`.
 // Finds or creates a `card-div` for each `skill_phrase` and replaces the 
@@ -384,31 +384,31 @@ function initAllTagLinks() {
 // 
 // Also returns the list of allNewTagLinks created from the description_HTML
 //
-function process_bizcard_description_HTML(bizcardDiv, description_HTML) {
-    // console.assert(bizcardDiv != null);
+function process_bizCard_description_HTML(bizCardDiv, description_HTML) {
+    // console.assert(bizCardDiv != null);
     var processed_items = [];
-    var bizcardTagLinks = [];
+    var bizCardTagLinks = [];
     var description_items = description_HTML.split(BULLET_DELIMITER);
     if (description_items.length > 0) {
         for (var i = 0; i < description_items.length; i++) {
             var description_item = description_items[ i ].trim();
             if (description_item.length > 0) {
-                var { newTagLinks, updatedString } = process_bizcard_description_item(bizcardDiv, description_item);
+                var { newTagLinks, updatedString } = process_bizCard_description_item(bizCardDiv, description_item);
                 if (updatedString && updatedString.length > 0)
                     processed_items.push(updatedString);
                 if (newTagLinks && newTagLinks.length > 0)
                     // update the global list of allTagLinks 
-                    // created from description_HTML of all .Bizcard-divs
+                    // created from description_HTML of all .BizCard-divs
                     allTagLinks = allTagLinks.concat(newTagLinks);
-                    bizcardTagLinks = bizcardTagLinks.concat(newTagLinks);
+                    bizCardTagLinks = bizCardTagLinks.concat(newTagLinks);
             }
         }
     } 
-    var processed_bizcard_description_HTML = description_HTML;
+    var processed_bizCard_description_HTML = description_HTML;
     if (processed_items.length > 0)
-        processed_bizcard_description_HTML = processed_items.join(BULLET_JOINER);
-    // console.log("bizcardTagLinks:" + bizcardTagLinks.length  + " [" + debugTagLinksToStr(bizcardTagLinks) + "]")
-    return [processed_bizcard_description_HTML, bizcardTagLinks];
+        processed_bizCard_description_HTML = processed_items.join(BULLET_JOINER);
+    // console.log("bizCardTagLinks:" + bizCardTagLinks.length  + " [" + debugTagLinksToStr(bizCardTagLinks) + "]")
+    return [processed_bizCard_description_HTML, bizCardTagLinks];
 }
 
 function createUrlAnchorTag(url, savedColor) {
@@ -425,11 +425,11 @@ function createImgAnchorTag(img, savedColor) {
     return html;
 }
 
-function createBackAnchorTag(bizcard_id, savedColor, isMonocolorSensitive=true) {
+function createBackAnchorTag(bizCard_id, savedColor, isMonocolorSensitive=true) {
     let iconColor = monoColor.getIconColor(savedColor);
     let iconType = "back";
     let monoColorSensitiveClass = isMonocolorSensitive ? "mono-color-sensitive" : '';
-    let html = `<img class="icon back-icon ${monoColorSensitiveClass}" src="static_content/icons/icons8-${iconType}-16-${iconColor}.png" data-bizcard-id="${bizcard_id}" data-saved-color="${iconColor}" data-icontype="${iconType}"/>`;
+    let html = `<img class="icon back-icon ${monoColorSensitiveClass}" src="static_content/icons/icons8-${iconType}-16-${iconColor}.png" data-bizCard-id="${bizCard_id}" data-saved-color="${iconColor}" data-icontype="${iconType}"/>`;
     return html;
 }
 
@@ -438,11 +438,11 @@ function createBackAnchorTag(bizcard_id, savedColor, isMonocolorSensitive=true) 
 // these newTagLinks in the original string with their html values. The function return 
 // both the list of newTagLinks and the updatedString with embedded HTML elements.
 
-function process_bizcard_description_item(bizcardDiv, inputString) {
-    if ( typeof bizcardDiv.id === 'undefined' || bizcardDiv.id === null || bizcardDiv.id === '')
-        throw new Error(`bizcardDiv:${bizcardDiv} must have an id attribute`);
-    if ( typeof bizcardDiv.style.color === 'undefined' || bizcardDiv.style.color === null || bizcardDiv.style.color === '')     
-        throw new Error(`bizcardDiv:${bizcardDiv.id} must have a style.color attribute`);
+function process_bizCard_description_item(bizCardDiv, inputString) {
+    if ( typeof bizCardDiv.id === 'undefined' || bizCardDiv.id === null || bizCardDiv.id === '')
+        throw new Error(`bizCardDiv:${bizCardDiv} must have an id attribute`);
+    if ( typeof bizCardDiv.style.color === 'undefined' || bizCardDiv.style.color === null || bizCardDiv.style.color === '')     
+        throw new Error(`bizCardDiv:${bizCardDiv.id} must have a style.color attribute`);
 
     // remove the ignorable placeholders
     inputString = inputString.replace(/\(url\)/g, '');
@@ -463,7 +463,7 @@ function process_bizcard_description_item(bizcardDiv, inputString) {
             text: parsed[1] || '',
             img: parsed[2] || '', 
             url: parsed[3] || '',
-            bizcardDivId: bizcardDiv.id
+            bizCardDivId: bizCardDiv.id
         };
     });
 
@@ -475,10 +475,10 @@ function process_bizcard_description_item(bizcardDiv, inputString) {
         const img = tag_link.img ? tag_link.img : '';
         const url = tag_link.url ? tag_link.url : '';
 
-        var savedColor = bizcardDiv.getAttribute('saved-color') || '';
+        var savedColor = bizCardDiv.getAttribute('saved-color') || '';
 
         if (typeof savedColor === 'undefined' || savedColor === null || savedColor === '') {
-            throw new Error(`bizcardDiv:${bizcardDiv.id} must have a saved-color attribute`);
+            throw new Error(`bizCardDiv:${bizCardDiv.id} must have a saved-color attribute`);
         } 
     
         let htmlElementStr = '';
@@ -499,7 +499,7 @@ function process_bizcard_description_item(bizcardDiv, inputString) {
             }
 
             // always add the initial backAnchorTag
-            line2 += createBackAnchorTag(bizcardDiv.id, savedColor);
+            line2 += createBackAnchorTag(bizCardDiv.id, savedColor);
 
             htmlElementStr += '<br/>' + line2;
             if ( htmlElementStr.includes('undefined')) {
@@ -509,7 +509,7 @@ function process_bizcard_description_item(bizcardDiv, inputString) {
         tag_link.html = htmlElementStr;
 
         // find or create the cardDiv that matches this tag_link and use it to set the tag_link's "cardDivId" property
-        setCardDivIdOfTagLink(bizcardDiv, tag_link);
+        setCardDivIdOfTagLink(bizCardDiv, tag_link);
         
         // create a tag_link span element with the targetCardDivId attribute and the htmlElementStr as its innerHTML
         let htmlSpanElementStr = `<span class="tag-link" data-saved-color="${savedColor}" targetCardDivId="${tag_link.cardDivId}">${htmlElementStr}</span>`;
@@ -534,15 +534,15 @@ function process_bizcard_description_item(bizcardDiv, inputString) {
 // find or create a cardDiv and use it
 // to set the tag_link's "cardDivId" property
 // otherwise create a new cardDiv
-function setCardDivIdOfTagLink(bizcardDiv, tag_link) {
-    // console.assert(bizcardDiv != null && tag_link != null);
-    var cardDiv = findCardDiv(bizcardDiv, tag_link);
+function setCardDivIdOfTagLink(bizCardDiv, tag_link) {
+    // console.assert(bizCardDiv != null && tag_link != null);
+    var cardDiv = findCardDiv(bizCardDiv, tag_link);
     if (!cardDiv) {
-        cardDiv = createCardDiv(bizcardDiv, tag_link);
+        cardDiv = createCardDiv(bizCardDiv, tag_link);
     }
     tag_link.cardDivId = cardDiv.id;
-    let comma = (bizcardDiv.dataset.cardDivIds.length > 0) ? ',' : '';
-    bizcardDiv.dataset.cardDivIds += comma + cardDiv.id;
+    let comma = (bizCardDiv.dataset.cardDivIds.length > 0) ? ',' : '';
+    bizCardDiv.dataset.cardDivIds += comma + cardDiv.id;
 }
 
 // add a click listener to the given icon element
@@ -587,19 +587,19 @@ function addIconClickListener(icon) {
                     break;
                 }
                 case 'back': {
-                    const bizcardId = iconElement.dataset.bizcardId; // from data-bizcard-id
-                    if (bizcardId) {
-                        const bizcardDiv = document.getElementById(bizcardId);
-                        if (bizcardDiv) {
-                            console.log(`iconElement click: ${bizcardId}`);
-                            selectTheCardDiv(bizcardDiv, true);
-                            // scrollElementIntoView(bizcardDiv);
+                    const bizCardId = iconElement.dataset.bizCardId; // from data-bizCard-id
+                    if (bizCardId) {
+                        const bizCardDiv = document.getElementById(bizCardId);
+                        if (bizCardDiv) {
+                            console.log(`iconElement click: ${bizCardId}`);
+                            selectTheCardDiv(bizCardDiv, true);
+                            // scrollElementIntoView(bizCardDiv);
                         } else {
-                            console.error(`iconElement iconType:${iconType} click: no bizcardDiv with id:${bizcardId}`);
+                            console.error(`iconElement iconType:${iconType} click: no bizCardDiv with id:${bizCardId}`);
                         }   
                     }
                     else {
-                        console.error(`iconElement iconType:${iconType} click: no bizcard_id`);
+                        console.error(`iconElement iconType:${iconType} click: no bizCard_id`);
                     }
                     break;
                 }
@@ -637,18 +637,18 @@ function addIconClickListener(icon) {
 
 }
 
-function getBizcardDivDays(bizcardDiv) {
-    const endMillis = getBizcardDivEndDate(bizcardDiv).getTime();
-    const startMillis = getBizcardDivStartDate(bizcardDiv).getTime();
-    const bizcardMillis = endMillis - startMillis;
-    // console.log(`bizcardDiv.id:${bizcardDiv.id} bizcardMillis:${bizcardMillis}`);
-    const bizcardDivDays = bizcardMillis / (1000 * 60 * 60 * 24);
-    // console.log(`bizcardDiv.id:${bizcardDiv.id} bizcardDivDays:${bizcardDivDays}`);
-    return parseInt(bizcardDivDays);
+function getBizCardDivDays(bizCardDiv) {
+    const endMillis = getBizCardDivEndDate(bizCardDiv).getTime();
+    const startMillis = getBizCardDivStartDate(bizCardDiv).getTime();
+    const bizCardMillis = endMillis - startMillis;
+    // console.log(`bizCardDiv.id:${bizCardDiv.id} bizCardMillis:${bizCardMillis}`);
+    const bizCardDivDays = bizCardMillis / (1000 * 60 * 60 * 24);
+    // console.log(`bizCardDiv.id:${bizCardDiv.id} bizCardDivDays:${bizCardDivDays}`);
+    return parseInt(bizCardDivDays);
 }
 
 // this is an Order(N) search that could be optimized.
-function findCardDiv(bizcardDiv, tag_link) {
+function findCardDiv(bizCardDiv, tag_link) {
     var cardDivs = document.getElementsByClassName("card-div");
     for (let cardDiv of cardDivs) {
         if (cardDivMatchesTagLink(cardDiv, tag_link)) {
@@ -657,24 +657,24 @@ function findCardDiv(bizcardDiv, tag_link) {
             var numFound = 0;
             for ( let i = 0; i < backIcons.length; i++ ) {
                 let backIcon = backIcons[i];
-                if ( backIcon.dataset.bizcardId === bizcardDiv.id ) {
+                if ( backIcon.dataset.bizCardId === bizCardDiv.id ) {
                     numFound++;
                 }
             }
-            // if no backIcon found for this bizcardDiv then add one
+            // if no backIcon found for this bizCardDiv then add one
             if ( numFound === 0 ) {
-                // default the colors from the bizcardDiv
+                // default the colors from the bizCardDiv
                 var savedColor = cardDiv.getAttribute('saved-color') || '';
-                let newBackAnchorTag = createBackAnchorTag(bizcardDiv.id, savedColor, false);
+                let newBackAnchorTag = createBackAnchorTag(bizCardDiv.id, savedColor, false);
                 let spanTagLink = cardDiv.querySelector('span.tag-link');
                 if ( spanTagLink ) {
                     spanTagLink.innerHTML += newBackAnchorTag;
                 } else {
                     throw new Error(`cardDiv:${cardDiv.id} must have a span.tag-link element`);
                 }
-                let days = parseInt(cardDiv.dataset.bizcardDivDays);
-                days += getBizcardDivDays(bizcardDiv);
-                cardDiv.dataset.bizcardDivDays = days
+                let days = parseInt(cardDiv.dataset.bizCardDivDays);
+                days += getBizCardDivDays(bizCardDiv);
+                cardDiv.dataset.bizCardDivDays = days
             }
             return cardDiv;
         }
@@ -706,7 +706,7 @@ function cardDivMatchesTagLink(cardDiv, tag_link) {
 }
 
 // takes the description_HTML stored as innerHTML
-// of a card-div (or bizcard-div) and splits it by
+// of a card-div (or bizCard-div) and splits it by
 // the BULLLET delimiter and returns the HTML of an 
 // unordered list of description items.
 function convert_description_HTML_to_line_items_HTML(description_HTML, cardDivLineItem) {
@@ -742,24 +742,24 @@ function getNextCardDivId() {
 
 var prev_z = null; // to track the previous z value 
 
-// adds a new cardDivs to #canvas
+// adds a new cardDivs to #scene-div
 // default center x to zero and center y to
 // id * TOP_TO_TOP.
 // give each random x,y offsets and random
 // z levels, and z-varied brightness and blur.
 // return the newly created cardDiv that has 
-// been appended to its parent canvas.
-function createCardDiv(bizcardDiv, tag_link) {
-    // console.assert(bizcardDiv != null && tag_link != null);
+// been appended to its parent scene-div.
+function createCardDiv(bizCardDiv, tag_link) {
+    // console.assert(bizCardDiv != null && tag_link != null);
     var cardDivId = getNextCardDivId();
     var cardDiv = document.createElement('div');
     cardDiv.classList.add("card-div");
-    utils.validateIsCardDivOrBizcardDiv(cardDiv);
+    utils.validateIsCardDivOrBizCardDiv(cardDiv);
 
     cardDiv.tag_link = tag_link;
     cardDiv.id = cardDivId; 
-    canvas.appendChild(cardDiv); 
-    cardDiv.dataset.bizcardDivDays = getBizcardDivDays(bizcardDiv);
+    scene-div.appendChild(cardDiv); 
+    cardDiv.dataset.bizCardDivDays = getBizCardDivDays(bizCardDiv);
 
     const cardDivIndex = getCardDivIndex(cardDivId) || 0;
 
@@ -792,9 +792,9 @@ function createCardDiv(bizcardDiv, tag_link) {
 
     var zIndexStr = get_zIndexStr_from_z(z);
 
-    // inherit colors of bizcardDiv
-    cardDiv.setAttribute("bizcardDivId", bizcardDiv.id);
-    copyHexColorAttributes(cardDiv, bizcardDiv, [
+    // inherit colors of bizCardDiv
+    cardDiv.setAttribute("bizCardDivId", bizCardDiv.id);
+    copyHexColorAttributes(cardDiv, bizCardDiv, [
         'saved-background-color',
         'saved-color',
         'saved-selected-background-color',
@@ -812,7 +812,7 @@ function createCardDiv(bizcardDiv, tag_link) {
     const spanId = `tag_link-${cardDivId}`;
     let savedColor = cardDiv.getAttribute("saved-color");
 
-    // define the innerHTML when cardDiv is added to #canvas
+    // define the innerHTML when cardDiv is added to #scene-div
     cardDiv.innerHTML = `<span id="${spanId}" data-saved-color="${savedColor}" class="tag-link" targetCardDivId="${cardDivId}">${tag_link.html}</span>`;
 
     const spanElement = document.getElementById(spanId);
@@ -872,7 +872,7 @@ function createCardDiv(bizcardDiv, tag_link) {
         }
     }
 
-    renderAllTranslateableDivsAtCanvasContainerCenter();
+    renderAllTranslateableDivsAtsceneContainerCenter();
 
     cardDiv.setAttribute("tagLinkText", tag_link[ "text" ]);
     cardDiv.setAttribute("tagLinkUrl", tag_link[ "url" ]);
@@ -904,18 +904,18 @@ function isWordSubstringInList(word, stringList) {
     return false;
 }
   
-// write the exmployer of each bizcardDiv and the ext of each of its cardDivs
-export function logAllBizcardDivs() {
-    let allBizcardDivs = document.getElementsByClassName("bizcard-div");
+// write the exmployer of each bizCardDiv and the ext of each of its cardDivs
+export function logAllBizCardDivs() {
+    let allBizCardDivs = document.getElementsByClassName("bizCard-div");
     let showSkips = false;
     var log = "";
     console.log('---------------------------------------------------');
-    for (let bizcardDiv of allBizcardDivs) {
-        let employer = bizcardDiv.dataset.employer;
+    for (let bizCardDiv of allBizCardDivs) {
+        let employer = bizCardDiv.dataset.employer;
         if (employer === undefined || employer === null) {
             continue;
         }
-        let cardDivIds = bizcardDiv.dataset.cardDivIds;
+        let cardDivIds = bizCardDiv.dataset.cardDivIds;
         if ( cardDivIds.length > 0 ) {
             var cardDivTuples = [];
             for (let cardDivId of cardDivIds.split(',')) {
@@ -928,7 +928,7 @@ export function logAllBizcardDivs() {
                 if ( cardDivText === undefined || cardDivText == null ) {
                     continue;
                 }
-                let months = Math.round(cardDiv.dataset.bizcardDivDays * 12 / 365.25);
+                let months = Math.round(cardDiv.dataset.bizCardDivDays * 12 / 365.25);
                 let years = Math.round(months / 12);
                 if ( cardDivText.includes('“') ) {
                     if ( showSkips ) console.log("skip", cardDivText, years);
@@ -1048,7 +1048,7 @@ function copyHexColorAttributes(dstDiv, srcDiv, attrs) {
 
 /**
  * Summary. Returns the translate string used to transform
- * any cardDiv's x,y coordinates into canvas-relative coordinates.
+ * any cardDiv's x,y coordinates into scene-div-relative coordinates.
  * this assortment of divs has only a fixed number of possible
  * z values so the results of this function are cashed for
  * speed of access.
@@ -1060,36 +1060,36 @@ function copyHexColorAttributes(dstDiv, srcDiv, attrs) {
  *                              where z ranges from 1 as max dist to viewer
  *                              to ALL_CARDS_MAX_Z being closest to viewer
  *                              with an integer value between CARD_MIN_Z and CARD_MAX_Z
- * @param {number}  canvasContainer_dx    the x value used to convert cardDiv.x to canvasContainer-relative position
- * @param {number}  canvasContainer_dy    the y value used to convert cardDiv.y to canvasContainer-relative position
+ * @param {number}  sceneContainer_dx    the x value used to convert cardDiv.x to sceneContainer-relative position
+ * @param {number}  sceneContainer_dy    the y value used to convert cardDiv.y to sceneContainer-relative position
  *
  * @return {string} Return a string with format "12.02px -156.79px"
  */
 
-function getZTranslateStr(dh, dv, z, canvasContainer_dx, canvasContainer_dy) {
+function getZTranslateStr(dh, dv, z, sceneContainer_dx, sceneContainer_dy) {
     // z ranges from 0 (closest) to viewer to MAX_Z furthest from viewer
     // zindex ranges MAX_Z (closest to viewer) to 1 furthest from viewer
     var zIndex = parseInt(get_zIndexStr_from_z(z));
     var zScale = (zIndex <= ALL_CARDS_MAX_Z) ? zIndex : 0.0;
 
-    // by definition, divs have zero mean hzCtrs so canvas translation is required
-    var dx = dh * zScale + canvasContainer_dx;
-    var dy = dv * zScale + 0; // canvasContainer_dy;
+    // by definition, divs have zero mean hzCtrs so scene-div translation is required
+    var dx = dh * zScale + sceneContainer_dx;
+    var dy = dv * zScale + 0; // sceneContainer_dy;
     var zTranslateStr = `${dx}px ${dy}px`;
 
     return zTranslateStr;
 }
 
-// return all bizcardDivs and cardDivs lazy-loaded
+// return all bizCardDivs and cardDivs lazy-loaded
 function getAllTranslateableCardDivs() {
     var allDivs = [];
     allDivs = Array.prototype.concat.apply(
         allDivs,
-        canvas.getElementsByClassName("bizcard-div")
+        scene-div.getElementsByClassName("bizCard-div")
     );
     allDivs = Array.prototype.concat.apply(
         allDivs,
-        canvas.getElementsByClassName("card-div")
+        scene-div.getElementsByClassName("card-div")
     );
     return allDivs;
 }
@@ -1097,12 +1097,12 @@ function getAllTranslateableCardDivs() {
 // uses the given newStyleProps to apply parallax to the given cardDiv
 // and returns the updated styleProps of the parallaxed cardDiv
 function applyParallaxToOneCardDivStyleProps(cardDiv, newStyleProps ) {
-    // utils.validateIsCardDivOrBizcardDiv(cardDiv);
+    // utils.validateIsCardDivOrBizCardDiv(cardDiv);
     // utils.validateIsStyleProps(newStyleProps);
 
     var { parallaxX, parallaxY } = getParallax();
-    const canvasContainerX = utils.half(canvasContainer.offsetWidth);
-    const canvasContainerY = utils.half(canvasContainer.offsetHeight);
+    const sceneContainerX = utils.half(sceneContainer.offsetWidth);
+    const sceneContainerY = utils.half(sceneContainer.offsetHeight);
 
     // constants for this parallax
     const dh = parallaxX * PARALLAX_X_EXAGGERATION_FACTOR;
@@ -1116,11 +1116,11 @@ function applyParallaxToOneCardDivStyleProps(cardDiv, newStyleProps ) {
     var cardDivX = utils.half(cardDiv.offsetWidth);
     var cardDivY = utils.half(cardDiv.offsetHeight);
 
-    // canvasContainer-relative cardDiv center
-    var canvasContainer_dx = canvasContainerX - cardDivX;
-    var canvasContainer_dy = canvasContainerY - cardDivY;
+    // sceneContainer-relative cardDiv center
+    var sceneContainer_dx = sceneContainerX - cardDivX;
+    var sceneContainer_dy = sceneContainerY - cardDivY;
 
-    var zTranslateStr = getZTranslateStr(dh, dv, z, canvasContainer_dx, canvasContainer_dy);
+    var zTranslateStr = getZTranslateStr(dh, dv, z, sceneContainer_dx, sceneContainer_dy);
 
     try {
         cardDiv.style.translate = zTranslateStr;
@@ -1132,7 +1132,7 @@ function applyParallaxToOneCardDivStyleProps(cardDiv, newStyleProps ) {
 }
 
 function applyParallaxToOneCardDiv(cardDiv) {
-    // utils.validateIsCardDivOrBizcardDiv(cardDiv);
+    // utils.validateIsCardDivOrBizCardDiv(cardDiv);
     const cardDivStyleProps = utils.getStyleProps(cardDiv);
     // utils.validateIsStyleProps(cardDivStyleProps);
     applyParallaxToOneCardDivStyleProps(cardDiv,cardDivStyleProps);
@@ -1140,14 +1140,14 @@ function applyParallaxToOneCardDiv(cardDiv) {
 
 /**
  * applyz-depth scaled parallax to all translateableDiv 
- * currently visible in the canvasContainer viewport
+ * currently visible in the sceneContainer viewPort
  */
 function applyParallax() {
     // let numVisible = 0;
     var allDivs = getAllTranslateableCardDivs();    
     for (var i = 0; i < allDivs.length; i++) {
         var cardDiv = allDivs[i];
-        if ( isCardDivWithinViewport(cardDiv) ) {
+        if ( isCardDivWithinViewPort(cardDiv) ) {
             applyParallaxToOneCardDiv(cardDiv); // Apply parallax to the cloned cardDiv
             // numVisible += 1;
         }
@@ -1158,7 +1158,7 @@ function applyParallax() {
 let mouseX;
 let mouseY;
 
-function handleCanvasContainerMouseMove(event) {
+function handlesceneContainerMouseMove(event) {
     mouseX = event.clientX;
     mouseY = event.clientY;
     focalPoint.easeFocalPointTo(mouseX, mouseY);
@@ -1177,14 +1177,14 @@ const AUTOSCROLL_CHANGE_THRESHOLD = 2.0;
 // set autoScrollVelocity based on current focalPoint 
 function updateAutoScrollVelocity() {
 
-    const topHeight = Math.floor(canvasContainer.offsetHeight / 4);
+    const topHeight = Math.floor(sceneContainer.offsetHeight / 4);
     const centerTop = topHeight;
     const centerHeight = topHeight * 2;
     const centerBottom = topHeight + centerHeight;
     const bottomHeight = topHeight;
-    const scrollHeight = canvasContainer.scrollHeight;
-    const scrollTop = canvasContainer.scrollTop;
-    const windowHeight = canvasContainer.clientHeight;
+    const scrollHeight = sceneContainer.scrollHeight;
+    const scrollTop = sceneContainer.scrollTop;
+    const windowHeight = sceneContainer.clientHeight;
     const scrollBottom = scrollHeight - scrollTop - windowHeight;
 
     if (focalPointY < centerTop) {
@@ -1223,22 +1223,22 @@ function handleFocalPointMove() {
                 autoScrollingInterval = setInterval(function () {
 
                     // apply the velocity
-                    var currentScrollTop = canvasContainer.scrollTop;
+                    var currentScrollTop = sceneContainer.scrollTop;
                     var newScrollTop = currentScrollTop + autoScrollVelocity;
 
                     // clamp newScrollTop to the boundaries
                     var minScrollTop = 0;
 
-                    var maxScrollTop = canvasContainer.scrollHeight - canvasContainer.clientHeight;
+                    var maxScrollTop = sceneContainer.scrollHeight - sceneContainer.clientHeight;
 
                     newScrollTop = utils.clamp(newScrollTop, minScrollTop, maxScrollTop);
 
                     // if there is room to scroll 
 
-                    if (Math.abs(canvasContainer.scrollTop - newScrollTop) > 0) {
+                    if (Math.abs(sceneContainer.scrollTop - newScrollTop) > 0) {
                         // go ahead and scroll
 
-                        canvasContainer.scrollTop = newScrollTop;
+                        sceneContainer.scrollTop = newScrollTop;
                     } else {
                         //  we've reached a boundary so 
                         // stop the auto-scroll
@@ -1275,16 +1275,16 @@ function handleFocalPointMove() {
 
 // Display mouse position and delta coordinates in the right-message-div  
 
-var isMouseOverCanvasContainer = false;
+var isMouseOversceneContainer = false;
 
-function handleMouseEnterCanvasContainer(event) {
-    isMouseOverCanvasContainer = true;
+function handleMouseEntersceneContainer(event) {
+    isMouseOversceneContainer = true;
     focalPoint.easeFocalPointTo(event.clientX, event.clientY);
     // debugFocalPoint();
 }
 
-function handleMouseLeaveCanvasContainer(event) {
-    isMouseOverCanvasContainer = false;
+function handleMouseLeavesceneContainer(event) {
+    isMouseOversceneContainer = false;
     easeFocalPointToBullsEye();
     // debugFocalPoint();
 }
@@ -1292,23 +1292,23 @@ function handleMouseLeaveCanvasContainer(event) {
 var lastScrollTop = null;
 var lastScrollTime = null;
 
-function handleCanvasContainerScroll(scrollEvent) {
+function handlesceneContainerScroll(scrollEvent) {
     var thisTime = (new Date()).getTime();
-    var thisScrollTop = canvasContainer.scrollTop;
+    var thisScrollTop = sceneContainer.scrollTop;
     var deltaTime = (lastScrollTime != null) ? (thisTime - lastScrollTime) : null;
     var deltaTop = (lastScrollTop != null) ? (thisScrollTop - lastScrollTop) : null;
     var scrollVelocity = (deltaTime && deltaTop) ? (deltaTop) / (deltaTime) : "?";
-    // debugScrolling("scroll", canvasContainer, "scrollVelocity", `${deltaTop}/${deltaTime}`);
+    // debugScrolling("scroll", sceneContainer, "scrollVelocity", `${deltaTop}/${deltaTime}`);
     lastScrollTime = thisTime;
     lastScrollTop = thisScrollTop;
 }
 
-function handleCanvasContainerWheel(wheelEvent) {
+function handlesceneContainerWheel(wheelEvent) {
     focalPoint.easeFocalPointTo(wheelEvent.clientX, wheelEvent.clientY);
 }
 
 // handle mouse enter event for any div element with
-// cardClass "card-div" or "bizcard-div"
+// cardClass "card-div" or "bizCard-div"
 function handleCardDivMouseEnter(event, cardClass) {
     var targetCardDiv = event.target.closest('.' + cardClass);
     if (targetCardDiv) {
@@ -1316,14 +1316,14 @@ function handleCardDivMouseEnter(event, cardClass) {
     }
 }
 
-function handleCanvasContainerMouseClick() {
+function handlesceneContainerMouseClick() {
     deselectTheSelectedCardDiv();
     deselectTheSelectedCardDivLineItem();
     handleFocalPointMove();
 }
 
 // handle mouse leave event for any div element with
-// cardClass "card-div" or "bizcard-div"
+// cardClass "card-div" or "bizCard-div"
 function handleCardDivMouseLeave(event, cardClass) {
     var targetCardDiv = event.target.closest('.' + cardClass);
     if (targetCardDiv) {
@@ -1387,7 +1387,7 @@ function endAnimation(div, targetStyleFrame) {
     ANIMATION_IN_PROGRESS = false;
 }
 
-// works for card-div, bizcard-div, and card-div-line-item
+// works for card-div, bizCard-div, and card-div-line-item
 // currentProps describes current styling
 // targetProps describes target styling
 function setSelectedStyle(obj) {
@@ -1431,7 +1431,7 @@ function setSelectedStyle(obj) {
 
     if ( notLineItem && NUM_ANIMATION_FRAMES > 0) { // xxx
         var styleFrameArray = [];
-        for( let frame=0; frame<validateIsBizcardDiv; frame++ ) {
+        for( let frame=0; frame<validateIsBizCardDiv; frame++ ) {
             var t = frame / (NUM_ANIMATION_FRAMES-1);
             const interpStyleArray = utils.linearInterpArray(t, currentStyleArray, targetStyleArray);
             // utils.validateIsStyleArray(interpStyleArray);
@@ -1456,7 +1456,7 @@ function setSelectedStyle(obj) {
 }
 
 
-// works for card-div, bizcard-div, and card-div-line-item
+// works for card-div, bizCard-div, and card-div-line-item
 // currentProps describes current styling
 // targetProps describes target styling
 function restoreSavedStyle(obj) {
@@ -1597,9 +1597,9 @@ function scrollElementIntoView(element) {
         throw new Error("null element");
     else if ( element.id == null )
         throw new Error("null element.id");
-    else if (isBizcardDiv(element) || isCardDivLineItem(element))
+    else if (isBizCardDiv(element) || isCardDivLineItem(element))
         scrollElementToTop(element);
-    else if (isCardDiv(element) )
+    else if (isAnyCardDiv(element) )
         scrollElementToCenter(element);
     else if (isCardDivLineItem(element) )
         scrollElementToTop(element);
@@ -1637,7 +1637,7 @@ function findNearestAncestorWithClassName(element, className) {
 function selectTheCardDiv(cardDiv, selectTheCardDivLineItemFlag=false) {
     if ( cardDiv == null )
         return;
-    if( !utils.isCardDivOrBizcardDiv(cardDiv) ) {
+    if( !utils.isCardDivOrBizCardDiv(cardDiv) ) {
         console.warn(`selectTheCardDiv ignoring invalid argument: ${cardDiv}`);
         return;
     }
@@ -1683,7 +1683,7 @@ function getTheSelectedCardDivId() {
 function deselectTheSelectedCardDiv(deselectTheSelectedCardDivLineItemFlag=false) {
     // if theSelectedCardDiv is defined
     if (theSelectedCardDiv != null) {
-        // utils.validateIsCardDivOrBizcardDiv(theSelectedCardDiv);
+        // utils.validateIsCardDivOrBizCardDiv(theSelectedCardDiv);
         // styles self as saved
         restoreSavedStyle(theSelectedCardDiv);
 
@@ -1698,20 +1698,20 @@ function deselectTheSelectedCardDiv(deselectTheSelectedCardDivLineItemFlag=false
 }
 
 // add the mouse click event handler to any div element with
-// class card-div or bizcard-div or to any child
-// element that has a cardDiv or bizcard-div ancestor
+// class card-div or bizCard-div or to any child
+// element that has a cardDiv or bizCard-div ancestor
 function addCardDivClickListener(cardDiv) {
     cardDiv.addEventListener("click", cardDivClickListener);
 }
 
 // handle mouse click event for any div element with
-// cardClass "card-div" or "bizcard-div" or any child
-// element that has a cardDiv or bizcard-div ancestor.
+// cardClass "card-div" or "bizCard-div" or any child
+// element that has a cardDiv or bizCard-div ancestor.
 function cardDivClickListener(event) {
     let element = event.target;
     let cardDiv = element;
-    if ( !utils.isCardDivOrBizcardDiv(cardDiv) ) {
-        cardDiv = cardDiv.closest('.card-div, .bizcard-div');
+    if ( !utils.isCardDivOrBizCardDiv(cardDiv) ) {
+        cardDiv = cardDiv.closest('.card-div, .bizCard-div');
     }
     if ( cardDiv && !element.classList.contains('icon') ) {
         selectTheCardDiv(cardDiv, true);
@@ -1873,15 +1873,15 @@ function addCardDivLineItem(targetCardDivId) {
         });
         cardDivLineItemRightColumn.appendChild(cardDivLineItemDeleteButton);
 
-        // add cardDivLineItem "following" button if the targetCardDiv is a bizcardDiv
-        if (isBizcardDiv(targetCardDiv)) {
+        // add cardDivLineItem "following" button if the targetCardDiv is a bizCardDiv
+        if (isBizCardDiv(targetCardDiv)) {
             var cardDivLineItemFollowingButton = document.createElement("button");
             cardDivLineItemFollowingButton.classList.add("card-div-line-item-follow-button");
             addCardDivLineItemFollowingButtonClickHandler(cardDivLineItemFollowingButton);
             cardDivLineItemRightColumn.appendChild(cardDivLineItemFollowingButton);
         }
 
-        if (isCardDiv(targetCardDiv)) {
+        if (isAnyCardDiv(targetCardDiv)) {
             addCardDivMonths(targetCardDiv, cardDivLineItemContent);
         }
 
@@ -1900,12 +1900,12 @@ function addCardDivLineItem(targetCardDivId) {
         // find all iconElemens of this cardDivLineItemContent and make 
         // each mono-color-sensitive and give each an onclick listeners.
         //
-        // However, delete any back-icons if the targetCardDiv is a bizcardDiv
+        // However, delete any back-icons if the targetCardDiv is a bizCardDiv
         //
         // visit the iconElements in reverse order so that 
         // the removal of the back iconElement does not affect the
         // index of the remaining iconElements.
-        let deleteBackIcons = isBizcardDivId(targetCardDivId);
+        let deleteBackIcons = isBizCardDivId(targetCardDivId);
         let iconElements = cardDivLineItemContent.getElementsByClassName("icon");
         for (let i = iconElements.length - 1; i >= 0; i--) {
             let iconElement = iconElements[i];
@@ -1943,11 +1943,11 @@ function getCardDivLineItem(cardDivId) {
     if (!utils.isString(cardDivId))
         return null;
     var cardDivLineItems = document.getElementsByClassName("card-div-line-item");
-    var isABizcardDivId = isBizcardDivId(cardDivId);
+    var isABizCardDivId = isBizCardDivId(cardDivId);
     for (var i = 0; i < cardDivLineItems.length; i++) {
         var cardDivLineItem = cardDivLineItems[ i ];
-        var isABizCarddivLineItemId = utils.isString(cardDivLineItem.id) && cardDivLineItem.id.includes("bizcard-div-");
-        if( String(cardDivLineItem.id).includes(cardDivId) && isABizcardDivId == isABizCarddivLineItemId ) {
+        var isABizCarddivLineItemId = utils.isString(cardDivLineItem.id) && cardDivLineItem.id.includes("bizCard-div-");
+        if( String(cardDivLineItem.id).includes(cardDivId) && isABizCardDivId == isABizCarddivLineItemId ) {
             // console.log(`getCardDivId:${cardDivId} found cardDivLineItem:${cardDivLineItem.id}`);
             return cardDivLineItem;
         }
@@ -1965,65 +1965,65 @@ function addCardDivLineItemFollowingButtonClickHandler(cardDivLineItemFollowingB
         var cardDivLineItem = event.target.parentElement.parentElement;
         // console.assert(cardDivLineItem != null && cardDivLineItem.classList.contains("card-div-line-item"));
 
-        // only bizcardDivs have this cardDivLineItemFollowingButton
+        // only bizCardDivs have this cardDivLineItemFollowingButton
         var cardDiv = getCardDivOfCardDivLineItem(cardDivLineItem);
-        // console.assert(isBizcardDivId(cardDiv));
+        // console.assert(isBizCardDivId(cardDiv));
 
-        var followingBizcardDivId = getFollowingBizcardDivId(cardDiv.id);
-        // console.assert(isBizcardDivId(followingBizcardDivId));
+        var followingBizCardDivId = getFollowingBizCardDivId(cardDiv.id);
+        // console.assert(isBizCardDivId(followingBizCardDivId));
 
-        var followingBizcardDiv = document.getElementById(followingBizcardDivId);
-        // console.assert(isBizcardDiv(followingBizcardDiv));
+        var followingBizCardDiv = document.getElementById(followingBizCardDivId);
+        // console.assert(isBizCardDiv(followingBizCardDiv));
 
-        // select the followingBizcardDiv and its cardDivLineItem
-        selectTheCardDiv(followingBizcardDiv, true);
+        // select the followingBizCardDiv and its cardDivLineItem
+        selectTheCardDiv(followingBizCardDiv, true);
 
         event.stopPropagation();
     });
 }
 
-function getLatestBizcardDivId() {
-    var dateSortedIds = getDateSortedBizcardIds();
+function getLatestBizCardDivId() {
+    var dateSortedIds = getDateSortedBizCardIds();
     if (dateSortedIds != null) {
         return dateSortedIds[ 0 ].id;
     }
-    // there are zero bizcardDivsId
+    // there are zero bizCardDivsId
     return null;
 }
 
-// get the id of the bizcard that should be
+// get the id of the bizCard that should be
 // next (added if needed and) selected
-function getFollowingBizcardDivId(bizcardDivId) {
+function getFollowingBizCardDivId(bizCardDivId) {
 
-    // find the id of the bizcardDiv with 
-    // the latest bizcardDivLineItem or null
-    if (!utils.isString(bizcardDivId)) {
-        var bizcardDiv = getLastBizcardDivWithLineItem();
-        // no bizcardDivs have line items
-        // so return the Id of the first bizcardDiv
-        if (!bizcardDiv) {
-            var allBizcardDivs = document.getElementsByClassName("bizcard-div");
-            // console.assert(allBizcardDivs != null && allBizcardDivs.length > 0);
-            bizcardDiv = allBizcardDivs[ 0 ];
-            return bizcardDiv.id;
+    // find the id of the bizCardDiv with 
+    // the latest bizCardDivLineItem or null
+    if (!utils.isString(bizCardDivId)) {
+        var bizCardDiv = getLastBizCardDivWithLineItem();
+        // no bizCardDivs have line items
+        // so return the Id of the first bizCardDiv
+        if (!bizCardDiv) {
+            var allBizCardDivs = document.getElementsByClassName("bizCard-div");
+            // console.assert(allBizCardDivs != null && allBizCardDivs.length > 0);
+            bizCardDiv = allBizCardDivs[ 0 ];
+            return bizCardDiv.id;
         } else {
             // otherwise we continue with the latest
-            bizcardDivId = bizcardDiv.id;
+            bizCardDivId = bizCardDiv.id;
         }
     }
 
-    // console.assert(utils.isString(bizcardDivId));
-    var index = getBizcardDivIndex(bizcardDivId);
+    // console.assert(utils.isString(bizCardDivId));
+    var index = getBizCardDivIndex(bizCardDivId);
     // console.assert(index != null);
 
-    var followingBizcardDivId = getBizcardDivIdFromIndex(index + 1);
-    // if we've reached the end of all bizcardDivs
+    var followingBizCardDivId = getBizCardDivIdFromIndex(index + 1);
+    // if we've reached the end of all bizCardDivs
     // then start over at index 0
-    if (followingBizcardDivId == null)
-        followingBizcardDivId = getBizcardDivIdFromIndex(0);
+    if (followingBizCardDivId == null)
+        followingBizCardDivId = getBizCardDivIdFromIndex(0);
 
-    // console.assert(isBizcardDivId(followingBizcardDivId));
-    return followingBizcardDivId;
+    // console.assert(isBizCardDivId(followingBizCardDivId));
+    return followingBizCardDivId;
 }
 
 // remove multiple img tags from the given html string
@@ -2059,19 +2059,19 @@ function addTagLinkClickListener(tag_link) {
 
 /**
  * applies current depth-based translation to all divs 
- * that are visible in the current viewport
+ * that are visible in the current viewPort
  */
-function renderAllTranslateableDivsAtCanvasContainerCenter() {
+function renderAllTranslateableDivsAtsceneContainerCenter() {
 
-    updateViewport();
+    updateViewPort();
 
-    const canvasContainerX = utils.half(canvasContainer.offsetWidth);
-    const canvasContainerY = utils.half(canvasContainer.offsetHeight);
+    const sceneContainerX = utils.half(sceneContainer.offsetWidth);
+    const sceneContainerY = utils.half(sceneContainer.offsetHeight);
     const translateableDivs = getAllTranslateableCardDivs();
     for (const div of translateableDivs) {
-        if ( isCardDivWithinViewport(div) ) {
+        if ( isCardDivWithinViewPort(div) ) {
             const divWidth = div.offsetWidth;
-            const trans_dx = canvasContainerX - utils.half(divWidth);
+            const trans_dx = sceneContainerX - utils.half(divWidth);
             const trans_dy = 0;
             const translateStr = `${trans_dx}px ${trans_dy}px`;
             try {
@@ -2085,7 +2085,7 @@ function renderAllTranslateableDivsAtCanvasContainerCenter() {
 }
 
 function positionGradients() {
-    const canvasHeight = canvas.scrollHeight;
+    const canvasHeight = scene-div.scrollHeight;
     const bottomGradientHeight = bottomGradient.offsetHeight;
     bottomGradient.style.top = `${canvasHeight - bottomGradientHeight}px`;
 }
@@ -2096,21 +2096,21 @@ function rightContentScrollToBottom() {
 }
 
 
-function canvasContainerScrollToTop() {
-    canvasContainer.scrollTo({ top: 0, behavior: 'smooth' });
+function sceneContainerScrollToTop() {
+    sceneContainer.scrollTo({ top: 0, behavior: 'smooth' });
 }
 
-function canvasContainerScrollToBottom() {
-    canvasContainer.scrollTo({ top: canvasContainer.scrollHeight, behavior: 'smooth' });
+function sceneContainerScrollToBottom() {
+    sceneContainer.scrollTo({ top: sceneContainer.scrollHeight, behavior: 'smooth' });
 }
 
 var bullsEyeX;
 var bullsEyeY;
 
-// center bullsEye at canvasContainerCenter
+// center bullsEye at sceneContainerCenter
 function centerBullsEye() {
-    bullsEyeX = utils.half(canvasContainer.offsetWidth);
-    bullsEyeY = utils.half(canvasContainer.offsetHeight);
+    bullsEyeX = utils.half(sceneContainer.offsetWidth);
+    bullsEyeY = utils.half(sceneContainer.offsetHeight);
     var newLeft = bullsEyeX - utils.half(bullsEye.offsetWidth);
     var newTop = bullsEyeY - utils.half(bullsEye.offsetHeight);
     bullsEye.style.left = `${newLeft}px`;
@@ -2180,10 +2180,10 @@ function handleWindowLoad() {
     const [MIN_TIMELINE_YEAR, MAX_TIMELINE_YEAR] = getMinMaxTimelineYears(jobs);
     const DEFAULT_TIMELINE_YEAR = MAX_TIMELINE_YEAR;
 
-    timeline.createTimeline(timelineContainer, canvasContainer, MIN_TIMELINE_YEAR, MAX_TIMELINE_YEAR, DEFAULT_TIMELINE_YEAR);
+    timeline.createTimeline(timelineContainer, sceneContainer, MIN_TIMELINE_YEAR, MAX_TIMELINE_YEAR, DEFAULT_TIMELINE_YEAR);
 
-    createBizcardDivs();
-    renderAllTranslateableDivsAtCanvasContainerCenter();
+    createBizCardDivs();
+    renderAllTranslateableDivsAtsceneContainerCenter();
     positionGradients();
     centerBullsEye();
     easeFocalPointToBullsEye();
@@ -2215,63 +2215,63 @@ function drawFrame() {
     focalPoint.drawFocalPointAnimationFrame();
 }
 
-const viewport = {};
+const viewPort = {};
 const VIEWPORT_PADDING = 1000;
 
 /**
- * updates the canvas-constainer-relative 
+ * updates the scene-div-constainer-relative 
  * geometry of the viewPort, which is used
  * to clip out cardDivs that are not visible.
  */
-function updateViewport() {
-    const canvasContainer = document.getElementById("canvas-container");
-    const canvasContainerRect = canvasContainer.getBoundingClientRect();
-    const canvasContainerWidth = canvasContainerRect.right - canvasContainerRect.left;
-    const canvasContainerHeight = canvasContainerRect.bottom - canvasContainerRect.top;
-    viewport.padding = VIEWPORT_PADDING;
-    viewport.top = canvasContainerRect.top - viewport.padding;
-    viewport.left = canvasContainerRect.left - viewport.padding;
-    viewport.right = canvasContainerRect.right + viewport.padding;
-    viewport.bottom = canvasContainerRect.bottom + viewport.padding;
-    viewport.centerX = canvasContainerRect.left + canvasContainerWidth / 2;
-    viewport.centerY = canvasContainerRect.top + canvasContainerHeight / 2;
+function updateViewPort() {
+    const sceneContainer = document.getElementById("scene-container");
+    const sceneContainerRect = sceneContainer.getBoundingClientRect();
+    const sceneContainerWidth = sceneContainerRect.right - sceneContainerRect.left;
+    const sceneContainerHeight = sceneContainerRect.bottom - sceneContainerRect.top;
+    viewPort.padding = VIEWPORT_PADDING;
+    viewPort.top = sceneContainerRect.top - viewPort.padding;
+    viewPort.left = sceneContainerRect.left - viewPort.padding;
+    viewPort.right = sceneContainerRect.right + viewPort.padding;
+    viewPort.bottom = sceneContainerRect.bottom + viewPort.padding;
+    viewPort.centerX = sceneContainerRect.left + sceneContainerWidth / 2;
+    viewPort.centerY = sceneContainerRect.top + sceneContainerHeight / 2;
 }
 
 /**
- * @returns the canvas-container relative position of the viewpoint center
+ * @returns the scene-container relative position of the viewpoint center
  */
 function getViewpointCenter() {
     return {
-        x: viewport.centerX,
-        y: viewport.centerY
+        x: viewPort.centerX,
+        y: viewPort.centerY
     }
 }
 
 /**
  * Checks if any part of the given cardDiv is visible within the 
- * viewport, which is derived from the canvasContainer element.
+ * viewPort, which is derived from the sceneContainer element.
  * @param {HTMLElement} cardDiv - The cardDiv element to check.
- * @returns {boolean} - True if the cardDiv is within the viewport, false otherwise.
+ * @returns {boolean} - True if the cardDiv is within the viewPort, false otherwise.
  */
-function isRectWithinViewport(rect) {
-    const intersects = !(rect.right < viewport.left || 
-                         rect.left > viewport.right || 
-                         rect.bottom < viewport.top || 
-                         rect.top > viewport.bottom);
+function isRectWithinViewPort(rect) {
+    const intersects = !(rect.right < viewPort.left || 
+                         rect.left > viewPort.right || 
+                         rect.bottom < viewPort.top || 
+                         rect.top > viewPort.bottom);
     return intersects;
 }
-function isCardDivWithinViewport(cardDiv) {
-    return isRectWithinViewport(cardDiv.getBoundingClientRect());
+function isCardDivWithinViewPort(cardDiv) {
+    return isRectWithinViewPort(cardDiv.getBoundingClientRect());
 }
 
 function handleWindowResize() {
-    // resize the canvas-container and the canvas since they don't do it themselves?
-    var canvasContainerWidth = window.innerWidth/2;
-    var canvasContainerHeight = window.innerHeight;
-    console.log("windowResize width:", canvasContainerWidth, "height:", canvasContainerHeight);
-    canvasContainer.style.width = canvasContainerWidth + "px";
-    canvas.style.width = canvasContainerWidth + "px";
-    renderAllTranslateableDivsAtCanvasContainerCenter();
+    // resize the scene-container and the scene-div since they don't do it themselves?
+    var sceneContainerWidth = window.innerWidth/2;
+    var sceneContainerHeight = window.innerHeight;
+    console.log("windowResize width:", sceneContainerWidth, "height:", sceneContainerHeight);
+    sceneContainer.style.width = sceneContainerWidth + "px";
+    scene-div.style.width = sceneContainerWidth + "px";
+    renderAllTranslateableDivsAtsceneContainerCenter();
     positionGradients();
     centerBullsEye();
     easeFocalPointToBullsEye();
@@ -2281,57 +2281,57 @@ function handleWindowResize() {
 window.addEventListener("load", handleWindowLoad);
 window.addEventListener("resize", handleWindowResize);
 
-var canvasContainerEventListeners = [];
+var sceneContainerEventListeners = [];
 
-function addCanvasContainerEventListener(eventType, listener, options) {
-    canvasContainerEventListeners.push({ eventType, listener, options });
-    canvasContainer.addEventListener(eventType, listener, options);
+function addsceneContainerEventListener(eventType, listener, options) {
+    sceneContainerEventListeners.push({ eventType, listener, options });
+    sceneContainer.addEventListener(eventType, listener, options);
 }
 
-function removeCanvasContainerEventListeners() {
-    for (let i = 0; i < canvasContainerEventListeners.length; i++) {
-        let listener = canvasContainerEventListeners[ i ];
+function removesceneContainerEventListeners() {
+    for (let i = 0; i < sceneContainerEventListeners.length; i++) {
+        let listener = sceneContainerEventListeners[ i ];
         if (listener.options != null)
-            canvasContainer.removeEventListener(listener.eventType, listener.listener, listener.options);
+            sceneContainer.removeEventListener(listener.eventType, listener.listener, listener.options);
         else
-            canvasContainer.removeEventListener(listener.eventType, listener.listener);
+            sceneContainer.removeEventListener(listener.eventType, listener.listener);
     }
 }
 
-function restoreCanvasContainerEventListeners() {
-    for (let i = 0; i < canvasContainerEventListeners.length; i++) {
-        let listener = canvasContainerEventListeners[ i ];
+function restoresceneContainerEventListeners() {
+    for (let i = 0; i < sceneContainerEventListeners.length; i++) {
+        let listener = sceneContainerEventListeners[ i ];
         if (listener.options != null)
-            canvasContainer.addEventListener(listener.eventType, listener.listener, listener.options);
+            sceneContainer.addEventListener(listener.eventType, listener.listener, listener.options);
         else
-            canvasContainer.addEventListener(listener.eventType, listener.listener);
+            sceneContainer.addEventListener(listener.eventType, listener.listener);
     }
 }
 
 //---------------------------------------
-// selectAllButton - adds a cardDivLineItem for all bizcardDivs
+// selectAllButton - adds a cardDivLineItem for all bizCardDivs
 //
-export function selectAllBizcards() {
+export function selectAllBizCards() {
     // delete all cardDivLineItems in reverse order
     clearAllDivCardLineItems();
 
-    var allBizcardDivs = document.getElementsByClassName("bizcard-div");
-    if ( allBizcardDivs.length == 0 ) {
-        console.error("selectAllBizcards() found zero bizCardDivs.");
+    var allBizCardDivs = document.getElementsByClassName("bizCard-div");
+    if ( allBizCardDivs.length == 0 ) {
+        console.error("selectAllBizCards() found zero bizCardDivs.");
         return;
     }
-    for (let i = 0; i < allBizcardDivs.length; i++) {
-        var bizcardDiv = allBizcardDivs[ i ];
+    for (let i = 0; i < allBizCardDivs.length; i++) {
+        var bizCardDiv = allBizCardDivs[ i ];
 
-        // select the bizcardDiv and its cardDivLineItem
-        selectTheCardDiv(bizcardDiv, true);
+        // select the bizCardDiv and its cardDivLineItem
+        selectTheCardDiv(bizCardDiv, true);
     }
 
-    // select and scroll to the first bizcardDiv and its line item
-    selectAndScrollToCardDiv(allBizcardDivs[0]);
+    // select and scroll to the first bizCardDiv and its line item
+    selectAndScrollToCardDiv(allBizCardDivs[0]);
 }
 
-selectAllBizcardsButton.addEventListener("click", selectAllBizcards);
+selectAllBizCardsButton.addEventListener("click", selectAllBizCards);
 
 // delete all cardDivLineItems in reverse order
 function clearAllDivCardLineItems() {
@@ -2345,7 +2345,7 @@ function clearAllDivCardLineItems() {
 // select the given cardDiv and its line item 
 // and scroll each into view
 function selectAndScrollToCardDiv(cardDiv) {
-    // utils.validateIsCardDivOrBizcardDiv(cardDiv);
+    // utils.validateIsCardDivOrBizCardDiv(cardDiv);
     if ( !cardDiv ) {
         console.log("Ignoring undefined cardDiv");
         return;
@@ -2365,115 +2365,115 @@ clearAllLineItemsButton.addEventListener("click", function (event) {
 });
 
 //---------------------------------------
-// selectNextBizcardButton dateSortedBizcardIds
+// selectNextBizCardButton dateSortedBizCardIds
 
-var dateSortedBizcardIds = null;
+var dateSortedBizCardIds = null;
 
-function getDateSortedBizcardIds() {
-    if (dateSortedBizcardIds == null) {
-        dateSortedBizcardIds = [];
-        let bizcardDivs = document.getElementsByClassName("bizcard-div");
-        for (let i = 0; i < bizcardDivs.length; i++) {
+function getDateSortedBizCardIds() {
+    if (dateSortedBizCardIds == null) {
+        dateSortedBizCardIds = [];
+        let bizCardDivs = document.getElementsByClassName("bizCard-div");
+        for (let i = 0; i < bizCardDivs.length; i++) {
             var datedDivIdId = {
-                id: bizcardDivs[ i ].id,
-                endDate: getBizcardDivEndDate(bizcardDivs[ i ])
+                id: bizCardDivs[ i ].id,
+                endDate: getBizCardDivEndDate(bizCardDivs[ i ])
             };
-            dateSortedBizcardIds.push(datedDivIdId);
+            dateSortedBizCardIds.push(datedDivIdId);
         }
         // sort in decending order
-        dateSortedBizcardIds.sort((a, b) => b.endDate - a.endDate);
+        dateSortedBizCardIds.sort((a, b) => b.endDate - a.endDate);
     }
-    return dateSortedBizcardIds;
+    return dateSortedBizCardIds;
 }
 
-function getDateSortedBizcards() {
-    var dateSortedBizcards = [];
-    var dateSortedBizcardIds = getDateSortedBizcardIds();
-    for (let bizcardId of dateSortedBizcardIds ) {
-        dateSortedBizcards.push(document.getElementById(bizcardId));
+function getDateSortedBizCards() {
+    var dateSortedBizCards = [];
+    var dateSortedBizCardIds = getDateSortedBizCardIds();
+    for (let bizCardId of dateSortedBizCardIds ) {
+        dateSortedBizCards.push(document.getElementById(bizCardId));
     }
-    return dateSortedBizcards;
+    return dateSortedBizCards;
 }
 
-function getFirstBizcardDivId() {
-    var sorted = getDateSortedBizcardIds();
+function getFirstBizCardDivId() {
+    var sorted = getDateSortedBizCardIds();
     if ( sorted )
         return sorted[0].id;
     return null;
 }
 
-function getBizcardDivEndDate(bizcardDiv) {
-    // utils.validateIsBizcardDiv(bizcardDiv);
-    var endDateStr = bizcardDiv.getAttribute("endDate");
+function getBizCardDivEndDate(bizCardDiv) {
+    // utils.validateIsBizCardDiv(bizCardDiv);
+    var endDateStr = bizCardDiv.getAttribute("endDate");
     var endDate = new Date(endDateStr);
     return endDate;
 }
 
-function getBizcardDivStartDate(bizcardDiv) {
-    // utils.validateIsBizcardDiv(bizcardDiv);
-    var startDateStr = bizcardDiv.getAttribute("startDate");
+function getBizCardDivStartDate(bizCardDiv) {
+    // utils.validateIsBizCardDiv(bizCardDiv);
+    var startDateStr = bizCardDiv.getAttribute("startDate");
     var startDate = new Date(startDateStr);
     return startDate;
 }
 
 
-// find bizcardDivId of the last bizcardDivLineItem and
-// get the next bizcardDivId that should be selected
-// if no bizcardDivLineItems exist then use the 
-// newest bizcardDivId that should be selected.
+// find bizCardDivId of the last bizCardDivLineItem and
+// get the next bizCardDivId that should be selected
+// if no bizCardDivLineItems exist then use the 
+// newest bizCardDivId that should be selected.
 //
-// This assumes that when a bizcardDiv is selected
+// This assumes that when a bizCardDiv is selected
 // The existing line item is created if needed and then
 // selected and the container slides it into view. 
 // 
 // Related note, the "selectNextButton" must always be 
 // moved to be after the last lineItem.
 //
-function selectNextBizcard() {
-    var nextBizcardDivId = null;
-    var theSelectedBizcardDivId = getTheSelectedCardDivId();
-    if ( theSelectedBizcardDivId == null )
-        nextBizcardDivId = getFirstBizcardDivId();
+function selectNextBizCard() {
+    var nextBizCardDivId = null;
+    var theSelectedBizCardDivId = getTheSelectedCardDivId();
+    if ( theSelectedBizCardDivId == null )
+        nextBizCardDivId = getFirstBizCardDivId();
     else
-        nextBizcardDivId = getFollowingBizcardDivId(theSelectedBizcardDivId);
-    // console.assert(nextBizcardDivId !== null);
-    var nextBizcardDiv = document.getElementById(nextBizcardDivId);
-    // console.assert(nextBizcardDiv !== null);
+        nextBizCardDivId = getFollowingBizCardDivId(theSelectedBizCardDivId);
+    // console.assert(nextBizCardDivId !== null);
+    var nextBizCardDiv = document.getElementById(nextBizCardDivId);
+    // console.assert(nextBizCardDiv !== null);
 
-    // select the nextBizcardDiv and its cardDivItem
-    selectTheCardDiv(nextBizcardDiv, true);
+    // select the nextBizCardDiv and its cardDivItem
+    selectTheCardDiv(nextBizCardDiv, true);
 }
 
-export function selectFirstBizcard() {
-    var firstDivId = getFirstBizcardDivId();
+export function selectFirstBizCard() {
+    var firstDivId = getFirstBizCardDivId();
     var firstDiv = document.getElementById(firstDivId);
-    // utils.validateIsBizcardDiv(firstDiv);
+    // utils.validateIsBizCardDiv(firstDiv);
 
     // select the cardDiv and its cardDivLineItem
     selectTheCardDiv(firstDiv, true);
 }
 
-// return the list of all bizcardDivLineItems or null
-function getAllBizcardDivLineItems() {
+// return the list of all bizCardDivLineItems or null
+function getAllBizCardDivLineItems() {
     const allCardDivLineItems = [ ...document.getElementsByClassName("card-div-line-item") ];
-    const allBizcardLineItems = allCardDivLineItems.filter(cardDivLineItem => String(cardDivLineItem.id).includes("bizcard-div"));
-    if (allBizcardLineItems.length == 0)
+    const allBizCardLineItems = allCardDivLineItems.filter(cardDivLineItem => String(cardDivLineItem.id).includes("bizCard-div"));
+    if (allBizCardLineItems.length == 0)
         return null;
-    return allBizcardLineItems;
+    return allBizCardLineItems;
 }
 
-// return the Id of the last bizcardDiv that has a
-// bizcardDivLineItem, otherwise return null
-function getLastBizcardDivWithLineItem() {
-    var allBizcardDivLineItems = getAllBizcardDivLineItems();
-    if (allBizcardDivLineItems && allBizcardDivLineItems.length > 0) {
-        var numBizcardDivLineItems = allBizcardDivLineItems.length;
-        var lastBizcardDivLineItem = allBizcardDivLineItems[ numBizcardDivLineItems - 1 ];
-        var lastBizcardDivId = lastBizcardDivLineItem.getAttribute("targetCardDivId");
-        // console.assert(isBizcardDivId(lastBizcardDivId));
-        var lastBizcardDiv = document.getElementById(lastBizcardDivId);
-        validateIsBizcardDiv(lastBizcardDiv);
-        return lastBizcardDiv;
+// return the Id of the last bizCardDiv that has a
+// bizCardDivLineItem, otherwise return null
+function getLastBizCardDivWithLineItem() {
+    var allBizCardDivLineItems = getAllBizCardDivLineItems();
+    if (allBizCardDivLineItems && allBizCardDivLineItems.length > 0) {
+        var numBizCardDivLineItems = allBizCardDivLineItems.length;
+        var lastBizCardDivLineItem = allBizCardDivLineItems[ numBizCardDivLineItems - 1 ];
+        var lastBizCardDivId = lastBizCardDivLineItem.getAttribute("targetCardDivId");
+        // console.assert(isBizCardDivId(lastBizCardDivId));
+        var lastBizCardDiv = document.getElementById(lastBizCardDivId);
+        validateIsBizCardDiv(lastBizCardDiv);
+        return lastBizCardDiv;
     }
     return null;
 }
@@ -2490,17 +2490,17 @@ export function addAllIconClickListeners() {
     }
     let allCardDivElements = document.getElementsByClassName("card-div");
     console.log(`addAllIconClickListeners found ${allCardDivElements.length} allCardDivElements`);
-    let allDateSortedBizcardDivElements = getDateSortedBizcards();
-    console.log(`addAllIconClickListeners found ${allDateSortedBizcardDivElements.length} allDateSortedBizcardDivElements`);
+    let allDateSortedBizCardDivElements = getDateSortedBizCards();
+    console.log(`addAllIconClickListeners found ${allDateSortedBizCardDivElements.length} allDateSortedBizCardDivElements`);
     let allCardDivLineItemElements = document.getElementsByClassName("card-div-line-item");
     console.log(`addAllIconClickListeners found ${allCardDivLineItemElements.length} allCardDivLineItemElements`); 
 }
 
 export function addCardDivMonths(cardDiv, cardDivLineItemContent) {
-    const days = cardDiv.dataset.bizcardDivDays;
+    const days = cardDiv.dataset.bizCardDivDays;
     const months = Math.round(days * 12.0 / 365.25);
-    cardDiv.dataset.bizcardDivMonths = months;
-    cardDiv.dataset.bizcardDivYears = 0;
+    cardDiv.dataset.bizCardDivMonths = months;
+    cardDiv.dataset.bizCardDivYears = 0;
     let spanElement = cardDivLineItemContent.querySelector("span.tag-link");
     if( spanElement ) {
         if ( months <= 12 ) {
@@ -2510,34 +2510,34 @@ export function addCardDivMonths(cardDiv, cardDivLineItemContent) {
             const years = Math.round(months / 12.0);
             const units = years == 1 ? "year" : "years";
             spanElement.innerHTML += `<br/>(${years} ${units} experience)`;
-            cardDiv.dataset.bizcardDivYears = years;
+            cardDiv.dataset.bizCardDivYears = years;
         }
     } else {
         console.error(`no spanElement found for cardDiv:${cardDiv.id}`);
     }
 }
 
-selectNextBizcardButton.addEventListener("click", function (event) {
-    selectNextBizcard();
+selectNextBizCardButton.addEventListener("click", function (event) {
+    selectNextBizCard();
 });
-selectFirstBizcardButton.addEventListener("click", function (event) {
-    selectFirstBizcard();
+selectFirstBizCardButton.addEventListener("click", function (event) {
+    selectFirstBizCard();
 });
 
 //---------------------------------------
-// canvas container event listeners
+// scene-div container event listeners
 
 
 
-addCanvasContainerEventListener("mousemove", handleCanvasContainerMouseMove);
+addsceneContainerEventListener("mousemove", handlesceneContainerMouseMove);
 
-addCanvasContainerEventListener("wheel", handleCanvasContainerWheel, { passive: true });
+addsceneContainerEventListener("wheel", handlesceneContainerWheel, { passive: true });
 
-addCanvasContainerEventListener('mouseenter', handleMouseEnterCanvasContainer);
+addsceneContainerEventListener('mouseenter', handleMouseEntersceneContainer);
 
-addCanvasContainerEventListener('mouseleave', handleMouseLeaveCanvasContainer);
+addsceneContainerEventListener('mouseleave', handleMouseLeavesceneContainer);
 
-addCanvasContainerEventListener('scroll', handleCanvasContainerScroll);
+addsceneContainerEventListener('scroll', handlesceneContainerScroll);
 
-addCanvasContainerEventListener('click', handleCanvasContainerMouseClick);
+addsceneContainerEventListener('click', handlesceneContainerMouseClick);
 

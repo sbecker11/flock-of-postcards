@@ -74,3 +74,7 @@ export function confirmOpenNewBrowserWindow(title, url) {
         }
     }
 }
+
+export function showError(message) {
+    console.error(message);
+}

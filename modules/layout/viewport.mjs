@@ -1,115 +1,133 @@
 /**
- * Module for handling viewport calculations and updates
+ * Module for handling viewPortProperties calculations and updates
  */
+
+import { isHTMLElement } from '../utils/domUtils.mjs';
 
 // Constants
-const VIEWPORT_PADDING = 20; // Padding around the viewport
+const VIEWPORT_PADDING = 20; // Padding around the viewPortProperties
 
-// Viewport state
-const viewport = {
+// ViewPort state
+const viewPortProperties = {
     padding: VIEWPORT_PADDING,
-    top: 0,
-    left: 0,
-    right: 0,
-    bottom: 0,
-    centerX: 0,
-    centerY: 0,
-    width: 0,
-    height: 0,
-    bullseyeX: 0,
-    bullseyeY: 0
+    top: null,
+    left: null,
+    right: null,
+    bottom: null,
+    centerX: null,
+    centerY: null,
+    width: null,
+    height: null,
+    bullsEyeX: null,
+    bullsEyeY: null
 };
 
+export function createViewPort(sceneContainer) {
+    updateViewPort(sceneContainer);
+}
+
+export function viewPortIsInitialized() {
+    return viewPortProperties.bullsEyeX != null && viewPortProperties.bullsEyeY != null;
+}
+
+export function getViewPortProperties() {
+    return viewPortProperties;
+}
+
 /**
- * Updates the viewport geometry relative to the canvas container
- * @param {HTMLElement} canvasContainer - The canvas container element
+ * Updates the viewPortProperties geometry relative to the scene-div container
+ * and the resize handle and the bullsEye
+ * @param {HTMLElement} sceneContainer - The scene-div container element
  */
-export function updateViewport(canvasContainer) {
-    const canvasContainerRect = canvasContainer.getBoundingClientRect();
-    const canvasContainerWidth = canvasContainerRect.right - canvasContainerRect.left;
-    const canvasContainerHeight = canvasContainerRect.bottom - canvasContainerRect.top;
+export function updateViewPort(sceneContainer) {
+    if ( (sceneContainer == null) || !isHTMLElement(sceneContainer) ) {
+        throw new Error("sceneContainer is null ornot an HTMLElement");
+    }
+
+    const sceneContainerRect = sceneContainer.getBoundingClientRect();
+    const sceneContainerWidth = sceneContainerRect.right - sceneContainerRect.left;
+    const sceneContainerHeight = sceneContainerRect.bottom - sceneContainerRect.top;
     
     // Get the resize handle position
     const resizeHandle = document.getElementById('resize-handle');
     const handleRect = resizeHandle.getBoundingClientRect();
     
-    viewport.padding = VIEWPORT_PADDING;
-    viewport.top = canvasContainerRect.top - viewport.padding;
-    viewport.left = canvasContainerRect.left - viewport.padding;
-    viewport.right = canvasContainerRect.right + viewport.padding;
-    viewport.bottom = canvasContainerRect.bottom + viewport.padding;
-    viewport.centerX = canvasContainerRect.left + canvasContainerWidth / 2;
-    viewport.centerY = canvasContainerRect.top + canvasContainerHeight / 2;
-    viewport.width = canvasContainerWidth;
-    viewport.height = canvasContainerHeight;
+    viewPortProperties.padding = VIEWPORT_PADDING;
+    viewPortProperties.top = sceneContainerRect.top - viewPortProperties.padding;
+    viewPortProperties.left = sceneContainerRect.left - viewPortProperties.padding;
+    viewPortProperties.right = sceneContainerRect.right + viewPortProperties.padding;
+    viewPortProperties.bottom = sceneContainerRect.bottom + viewPortProperties.padding;
+    viewPortProperties.centerX = sceneContainerRect.left + sceneContainerWidth / 2;
+    viewPortProperties.centerY = sceneContainerRect.top + sceneContainerHeight / 2;
+    viewPortProperties.width = sceneContainerWidth;
+    viewPortProperties.height = sceneContainerHeight;
     
-    // Calculate bullseye position as midpoint between window left edge (0) and resize handle center
+    // Calculate bullsEye position as midpoint between window left edge (0) and resize handle center
     // If handle is at left edge (initial state), use window width / 2 as initial position
     const handleLeft = handleRect.left || window.innerWidth / 2;
-    viewport.bullseyeX = handleLeft / 2;
+    viewPortProperties.bullsEyeX = handleLeft / 2;
 
-    // Update the bullseye element position
-    const bullseye = document.getElementById('bulls-eye');
-    if (bullseye) {
-        bullseye.style.left = `${viewport.bullseyeX}px`;
+    // Update the bullsEye element position
+    const bullsEye = document.getElementById('bulls-eye');
+    if (bullsEye) {
+        bullsEye.style.left = `${viewPortProperties.bullsEyeX}px`;
         // Only update vertical position if it hasn't been set yet
-        if (!viewport.bullseyeY) {
-            viewport.bullseyeY = window.innerHeight / 2;
-            bullseye.style.top = `${viewport.bullseyeY}px`;
+        if (!viewPortProperties.bullsEyeY) {
+            viewPortProperties.bullsEyeY = window.innerHeight / 2;
+            bullsEye.style.top = `${viewPortProperties.bullsEyeY}px`;
         }
     }
 }
 
 /**
- * Updates the bullseye vertical position when window is resized
+ * Updates the bullsEye vertical position when window is resized
  */
-export function updateBullseyeVerticalPosition() {
-    const bullseye = document.getElementById('bulls-eye');
-    if (bullseye) {
-        viewport.bullseyeY = window.innerHeight / 2;
-        bullseye.style.top = `${viewport.bullseyeY}px`;
+export function updateBullsEyeVerticalPosition() {
+    const bullsEye = document.getElementById('bulls-eye');
+    if (bullsEye) {
+        viewPortProperties.bullsEyeY = window.innerHeight / 2;
+        bullsEye.style.top = `${viewPortProperties.bullsEyeY}px`;
     }
 }
 
 /**
- * Checks if a card div is within the viewport
+ * Checks if a card div is within the viewPortProperties
  * @param {HTMLElement} cardDiv - The card div to check
- * @returns {boolean} True if the card div is within the viewport
+ * @returns {boolean} True if the card div is within the viewPortProperties
  */
-export function isCardDivWithinViewport(cardDiv) {
+export function isCardDivWithinViewPort(cardDiv) {
     const rect = cardDiv.getBoundingClientRect();
     return (
-        rect.right >= viewport.left &&
-        rect.left <= viewport.right &&
-        rect.bottom >= viewport.top &&
-        rect.top <= viewport.bottom
+        rect.right >= viewPortProperties.left &&
+        rect.left <= viewPortProperties.right &&
+        rect.bottom >= viewPortProperties.top &&
+        rect.top <= viewPortProperties.bottom
     );
 }
 
 /**
- * Gets all card divs that can be translated
- * @returns {HTMLElement[]} Array of card divs that can be translated
+ * Gets the current viewPortProperties state
+ * @returns {Object} The current viewPortProperties state
  */
-export function getAllTranslateableCardDivs() {
-    return [
-        // ...document.getElementsByClassName("skill-card-div"),
-        ...document.getElementsByClassName("biz-card-div")
-    ];
+export function getViewPort() {
+    if (!viewPortProperties.bullsEyeX || !viewPortProperties.bullsEyeY) {
+        throw new Error("ViewPort not properly initialized");
+    }
+    return { ...viewPortProperties };
+}
+
+export function getBullsEyeCenterX() {
+    if ( !viewPortIsInitialized() ) {
+        throw new Error("viewPortProperties is not initialized");
+    }
+    return viewPortProperties.centerX;
 }
 
 /**
- * Gets the current viewport state
- * @returns {Object} The current viewport state
+ * Updates the percentage display based on viewPortProperties visibility
+ * @param {HTMLElement} sceneContainer - The scene-div container element
  */
-export function getViewport() {
-    return { ...viewport };
-}
-
-/**
- * Updates the percentage display based on viewport visibility
- * @param {HTMLElement} canvasContainer - The canvas container element
- */
-export function updateScrollPercentage(canvasContainer) {
+export function updateScrollPercentage(sceneContainer) {
     const percentageDisplay = document.querySelector('.percentage-display');
     if (!percentageDisplay) return;
 
@@ -126,14 +144,14 @@ export function updateScrollPercentage(canvasContainer) {
 
 /**
  * Initializes the scrollbar controls
- * @param {HTMLElement} canvasContainer - The canvas container element
+ * @param {HTMLElement} sceneContainer - The scene-div container element
  */
-export function initScrollbarControls(canvasContainer) {
+export function initScrollbarControls(sceneContainer) {
     // Add scroll event listener to update percentage
-    canvasContainer.addEventListener('scroll', () => {
-        updateScrollPercentage(canvasContainer);
+    sceneContainer.addEventListener('scroll', () => {
+        updateScrollPercentage(sceneContainer);
     });
 
     // Initial percentage update
-    updateScrollPercentage(canvasContainer);
+    updateScrollPercentage(sceneContainer);
 }

@@ -4,7 +4,7 @@ import * as colorUtils from '../utils/colorUtils.mjs';
 import * as domUtils from '../utils/domUtils.mjs';
 import * as arrayUtils from '../utils/arrayUtils.mjs';
 import * as typeConversions from '../utils/typeConversions.mjs';
-import { findAllTranslatableCardsInViewport } from '../cards/cardUtils.mjs';
+import { findAllTranslatableCardsInViewPort } from '../cards/cardUtils.mjs';
 
 // Parallax constants
 export const PARALLAX_X_EXAGGERATION_FACTOR = 0.05;
@@ -26,11 +26,11 @@ export function getParallax() {
  * @param {number} dh - Horizontal parallax factor
  * @param {number} dv - Vertical parallax factor
  * @param {number} zValue - Z value
- * @param {number} canvasContainer_dx - X offset from canvas container
- * @param {number} canvasContainer_dy - Y offset from canvas container
+ * @param {number} sceneContainer_dx - X offset from scene-div container
+ * @param {number} sceneContainer_dy - Y offset from scene-div container
  * @returns {string} The z-translate string
  */
-export function getZTranslateStr(dh, dv, zValue, canvasContainer_dx, canvasContainer_dy) {
+export function getZTranslateStr(dh, dv, zValue, sceneContainer_dx, sceneContainer_dy) {
     const dx = dh * zValue;
     const dy = dv * zValue;
     return `${dx}px ${dy}px`;
@@ -54,8 +54,8 @@ export function applyParallaxToOneCardDiv(skillCardDiv) {
     }
 
     const { parallaxX, parallaxY } = getParallax();
-    const canvasContainerX = domUtils.half(canvasContainer.offsetWidth);
-    const canvasContainerY = domUtils.half(canvasContainer.offsetHeight);
+    const sceneContainerX = domUtils.half(sceneContainer.offsetWidth);
+    const sceneContainerY = domUtils.half(sceneContainer.offsetHeight);
 
     const dh = parallaxX * PARALLAX_X_EXAGGERATION_FACTOR;
     const dv = parallaxY * PARALLAX_Y_EXAGGERATION_FACTOR;
@@ -65,10 +65,10 @@ export function applyParallaxToOneCardDiv(skillCardDiv) {
     const cardDivX = domUtils.half(skillCardDiv.offsetWidth);
     const cardDivY = domUtils.half(skillCardDiv.offsetHeight);
 
-    const canvasContainer_dx = canvasContainerX - cardDivX;
-    const canvasContainer_dy = canvasContainerY - cardDivY;
+    const sceneContainer_dx = sceneContainerX - cardDivX;
+    const sceneContainer_dy = sceneContainerY - cardDivY;
 
-    const zTranslateStr = getZTranslateStr(dh, dv, zValue, canvasContainer_dx, canvasContainer_dy);
+    const zTranslateStr = getZTranslateStr(dh, dv, zValue, sceneContainer_dx, sceneContainer_dy);
 
     try {
         skillCardDiv.style.translate = zTranslateStr;
@@ -79,23 +79,23 @@ export function applyParallaxToOneCardDiv(skillCardDiv) {
 }
 
 /**
- * Applies parallax effect to all card divs in the viewport
- * @param {HTMLElement} canvasContainer - The canvas container element
+ * Applies parallax effect to all card divs in the viewPort
+ * @param {HTMLElement} sceneContainer - The scene-div container element
  */
-export function renderAllTranslateableDivsAtCanvasContainerCenter(canvasContainer) {
-    const canvasContainerX = domUtils.half(canvasContainer.offsetWidth);
-    const canvasContainerY = domUtils.half(canvasContainer.offsetHeight);
-    const viewportGeometry = {
-        top: canvasContainer.getBoundingClientRect().top,
-        left: canvasContainer.getBoundingClientRect().left,
-        width: canvasContainer.offsetWidth,
-        height: canvasContainer.offsetHeight
+export function renderAllTranslateableDivsAtsceneContainerCenter(sceneContainer) {
+    const sceneContainerX = domUtils.half(sceneContainer.offsetWidth);
+    const sceneContainerY = domUtils.half(sceneContainer.offsetHeight);
+    const viewPortGeometry = {
+        top: sceneContainer.getBoundingClientRect().top,
+        left: sceneContainer.getBoundingClientRect().left,
+        width: sceneContainer.offsetWidth,
+        height: sceneContainer.offsetHeight
     };
-    const translateableDivs = findAllTranslatableCardsInViewport(viewportGeometry);
+    const translateableDivs = findAllTranslatableCardsInViewPort(viewPortGeometry);
     
     for (const div of translateableDivs) {
         const divWidth = div.offsetWidth;
-        const trans_dx = canvasContainerX - domUtils.half(divWidth);
+        const trans_dx = sceneContainerX - domUtils.half(divWidth);
         const trans_dy = 0;
         const translateStr = `${trans_dx}px ${trans_dy}px`;
         try {

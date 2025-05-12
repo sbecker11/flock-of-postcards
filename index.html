@@ -3,7 +3,7 @@
 
 <head>
   <meta charset="UTF-8"/>
-  <meta name="viewport"
+  <meta name="viewPort"
         content="width=device-width,
         initial-scale=1.0"/>
   <meta http-equiv= "X-UA-Compatible"
@@ -12,6 +12,7 @@
   <link rel="stylesheet" href="./styles.css">
   <link rel="stylesheet" href="./modules/timeline.css">
   <link rel="stylesheet" href="./modules/alerts.css">
+  <link rel="stylesheet" href="./modules/cards/cards.css">
 </head>
 
 <body>
@@ -23,10 +24,10 @@
   
   <div id="main-container">
 
-    <div id="canvas-container" class="scrollable-container">
-      <div id="canvas">
-        <div id="canvas-top-gradient"></div>
-        <div id="canvas-btm-gradient"></div>
+    <div id="scene-container" class="scrollable-container">
+      <div id="scene-div">
+        <div id="scene-div-top-gradient"></div>
+        <div id="scene-div-btm-gradient"></div>
         <div id="timeline-container" class="timeline-container-left"></div>
         <div style="height: 100vh; background: lightgrey;">temporary content</div>
       </div>
@@ -47,9 +48,9 @@
       <div class="right-column-right">
         <div id="right-header-div" style="display: flex; flex-direction: column; align-items: flex-start;">
           <p class="intro" style="padding-left: 5px;">Welcome to your flock-of-postcards!</p>
-          <div class="bizcard-controls">
-            <button id="select-first-bizcard">First</button>
-            <button id="select-next-bizcard">Next</button>
+          <div class="bizCard-controls">
+            <button id="select-first-bizCard">First</button>
+            <button id="select-next-bizCard">Next</button>
           </div>
           <div id="color-palette-container" tabindex="-1">
               <select id="color-palette-selector" tabindex="0"></select>
@@ -69,7 +70,7 @@
           </div>
           <!--
           <div id="debugScrollingElement"></div>
-          <div id="debugFocalPointElement">mouse not in canvas<br>bullsEye:[303,452]<br>focalPoint:[303,452]<br>parallax:[0,0]<br>time:1702688539746<br></div>
+          <div id="debugFocalPointElement">mouse not in scene-div<br>bullsEye:[303,452]<br>focalPoint:[303,452]<br>parallax:[0,0]<br>time:1702688539746<br></div>
           <div id="debugTheSelectedCardDivIdElement">theSelectedCardDivIdStr:null<br>theSelectedCardDivLineItemIdStr:null<br></div> 
           -->
         </div>
@@ -88,9 +89,9 @@
   </script>
 
   <style>
-    #canvas-container {
+    #scene-container {
       width: 50%; /* Initial width */
-      height: 100vh; /* Full viewport height */
+      height: 100vh; /* Full viewPort height */
       overflow-y: scroll; 
       overscroll-behavior: contain;
       -ms-overflow-style: none; /* Hide scrollbar for IE and Edge */
@@ -100,12 +101,12 @@
       isolation: isolate;
       background-color: var(--background-dark);
       z-index: 0;
-      transition: width 0.3s ease; /* Add matching transition */
+      /* transition: width 0.3s ease; Add matching transition */
       margin: 0;
       padding: 0;
     }
 
-    #canvas-container::-webkit-scrollbar {
+    #scene-container::-webkit-scrollbar {
       display: none; /* Hide scrollbar for Chrome, Safari, and Opera */
     }
 

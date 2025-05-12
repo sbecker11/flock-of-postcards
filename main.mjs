@@ -16,15 +16,15 @@ import { jobs } from './static_content/jobs/jobs.mjs';
 // Import new modules
 import * as zIndex from './modules/layout/zIndex.mjs';
 import * as parallax from './modules/layout/parallax.mjs';
-import * as viewport from './modules/layout/viewport.mjs';
+import * as viewPort from './modules/layout/viewPort.mjs';
 import * as filters from './modules/layout/filters.mjs';
-import * as bizCard from './modules/cards/bizCard.mjs';
+import * as bizCard from './modules/cards/bizCardDiv.mjs';
 // import * as skillCard from './modules/cards/skillCard.mjs';
 import * as cardUtils from './modules/cards/cardUtils.mjs';
 import * as cardConstants from './modules/cards/cardConstants.mjs';
 import * as autoScroll from './modules/animation/autoScroll.mjs';
 import { initResizeHandle } from './modules/layout/resizeHandle.mjs';
-import { initScrollbarControls } from './modules/layout/viewport.mjs';
+import { initScrollbarControls } from './modules/layout/viewPort.mjs';
 
 const logger = new Logger("main", LogLevel.DEBUG);
 
@@ -33,14 +33,14 @@ const logger = new Logger("main", LogLevel.DEBUG);
 
 const rightContentDiv = document.getElementById("right-content-div");
 const rightColumn = document.getElementById("right-column");
-const canvasContainer = document.getElementById("canvas-container");
-const canvas = document.getElementById("canvas");
+const sceneContainer = document.getElementById("scene-container");
+const sceneDiv = document.getElementById("scene-div");
 const bottomGradient = document.getElementById("bottom-gradient");
 const focalPointElement = document.getElementById("focal-point");
 const bullsEye = document.getElementById("bulls-eye");
-const selectFirstBizcardButton = document.getElementById("select-first-bizcard");
-const selectNextBizcardButton = document.getElementById("select-next-bizcard");
-const selectAllBizcardsButton = document.getElementById("select-all-bizcards");
+const selectFirstBizCardButton = document.getElementById("select-first-bizCard");
+const selectNextBizCardButton = document.getElementById("select-next-bizCard");
+const selectAllBizCardsButton = document.getElementById("select-all-bizCards");
 const clearAllLineItemsButton = document.getElementById("clear-all-line-items");
 const timelineContainer = document.getElementById("timeline-container");
 let paletteSelector = null;
@@ -69,9 +69,6 @@ function getMinMaxTimelineYears(jobs) {
     return [minYear, maxYear];
 }
 
-const [MIN_TIMELINE_YEAR, MAX_TIMELINE_YEAR] = getMinMaxTimelineYears(jobs);
-const DEFAULT_TIMELINE_YEAR = MAX_TIMELINE_YEAR;
-
 // --------------------------------------
 // Miscellaneous globals
 
@@ -88,12 +85,12 @@ var ANIMATION_IN_PROGRESS = false;
 // Default mouse behavior: prevent selections while mouse is down
 document.addEventListener('mousedown', function() {
     document.body.classList.add('no-select');
-    document.getElementById("canvas-container").classList.add('no-select');
+    document.getElementById("scene-container").classList.add('no-select');
 });
 
 document.addEventListener('mouseup', function() {
     document.body.classList.remove('no-select');
-    document.getElementById("canvas-container").classList.remove('no-select');
+    document.getElementById("scene-container").classList.remove('no-select');
 });
 
 // Initialize the application
@@ -106,63 +103,74 @@ async function initialize() {
         if (!paletteSelector.current_value) {
             throw new Error("No palette selected. Cannot proceed with initialization.");
         }
-        
+
+        const [minTimelineYear, maxTimelineYear] = getMinMaxTimelineYears(jobs);
+        const defaultTimelineYear = maxTimelineYear;
+
         // Initialize timeline
-        timeline.createTimeline(timelineContainer, canvasContainer, MIN_TIMELINE_YEAR, MAX_TIMELINE_YEAR, DEFAULT_TIMELINE_YEAR);
+        timeline.createTimeline(timelineContainer, sceneContainer, minTimelineYear, maxTimelineYear, defaultTimelineYear);
         
-        // Initialize viewport and bullseye first
-        viewport.updateViewport(canvasContainer);
-        viewport.updateBullseyeVerticalPosition();
+        // Initialize viewPort and bullsEye first
+        viewPort.createViewPort(sceneContainer);
+        viewPort.updateViewPort(sceneContainer);
+        viewPort.updateBullsEyeVerticalPosition();
         
         // Initialize resize handle
         const resizeHandle = document.getElementById('resize-handle');
-        initResizeHandle(canvasContainer, rightColumn, resizeHandle);
+        initResizeHandle(sceneContainer, rightColumn, resizeHandle);
         
-        // Create business cards after viewport and bullseye are initialized
+        // sanity check for z and z_index functions
+        zIndex.test_z_functions();
+
+        // Create business cards after viewPort and bullsEye are initialized
         const sortedJobs = [...jobs].sort((a, b) => new Date(b.start) - new Date(a.start));
-        // Create all bizcards
+        // Create all bizCards
         sortedJobs.forEach((job, index) => {
-            const bizCardDiv = bizCard.createBizCardDiv(job, index, canvas);
+            // Create the bizCard div
+            const bizCardDiv = bizCard.createBizCardDiv(job, index);
+
+            // Append the bizCard div to the sceneDiv
+            sceneDiv.appendChild(bizCardDiv);
         });
         
-        // Apply the current palette to all bizcards
+        // Apply the current palette to all bizCards
         paletteSelector.applyPaletteToElements();
         
         // Initialize scrollbar controls
-        initScrollbarControls(canvasContainer);
+        initScrollbarControls(sceneContainer);
         
         // Add event listeners
-        canvasContainer.addEventListener('wheel', autoScroll.handleCanvasContainerWheel, { passive: true });
-        canvasContainer.addEventListener('scroll', () => {
+        sceneContainer.addEventListener('wheel', autoScroll.handlesceneContainerWheel, { passive: true });
+        sceneContainer.addEventListener('scroll', () => {
             // Update parallax effects when scrolling
-            parallax.renderAllTranslateableDivsAtCanvasContainerCenter(canvasContainer);
+            parallax.renderAllTranslateableDivsAtsceneContainerCenter(sceneContainer);
         });
         window.addEventListener('resize', () => {
-            viewport.updateViewport(canvasContainer);
-            viewport.updateBullseyeVerticalPosition();
-            parallax.renderAllTranslateableDivsAtCanvasContainerCenter(canvasContainer);
+            viewPort.updateViewPort(sceneContainer);
+            viewPort.updateBullsEyeVerticalPosition();
+            parallax.renderAllTranslateableDivsAtsceneContainerCenter(sceneContainer);
         });
 
         // Start auto-scroll
-        autoScroll.startAutoScroll(canvasContainer);
+        autoScroll.startAutoScroll(sceneContainer);
 
         // Add button event listeners
-        if (selectFirstBizcardButton) {
-            selectFirstBizcardButton.addEventListener('click', () => {
+        if (selectFirstBizCardButton) {
+            selectFirstBizCardButton.addEventListener('click', () => {
                 console.log('First button clicked');
                 const firstCard = document.getElementById('biz-card-div-0');
                 if (firstCard) {
                     firstCard.click();
                     console.log('First card selected:', firstCard.id);
-                    selectNextBizcardButton.disabled = false;  // Enable Next button when first card is selected
+                    selectNextBizCardButton.disabled = false;  // Enable Next button when first card is selected
                 } else {
                     console.log('No cards available');
                 }
             });
         }
 
-        if (selectNextBizcardButton) {
-            selectNextBizcardButton.addEventListener('click', () => {
+        if (selectNextBizCardButton) {
+            selectNextBizCardButton.addEventListener('click', () => {
                 console.log('Next button clicked');
                 const selectedCard = document.querySelector('.biz-card-div.selected');
                 if (selectedCard) {
@@ -206,9 +214,9 @@ async function initialize() {
             }
         });
 
-        if (selectAllBizcardsButton) {
-            selectAllBizcardsButton.addEventListener('click', () => {
-                document.querySelectorAll('.bizcard-div').forEach(card => {
+        if (selectAllBizCardsButton) {
+            selectAllBizCardsButton.addEventListener('click', () => {
+                document.querySelectorAll('.bizCard-div').forEach(card => {
                     card.classList.add('selected');
                 });
             });
@@ -238,10 +246,10 @@ async function initialize() {
             const dx = e.clientX - startX;
             const newLeft = Math.max(0, Math.min(window.innerWidth - resizeHandle.offsetWidth, startLeft + dx));
             resizeHandle.style.left = `${newLeft}px`;
-            // Update viewport and bullseye position when handle is moved
-            viewport.updateViewport(canvasContainer);
-            viewport.updateBullseyeVerticalPosition();
-            parallax.renderAllTranslateableDivsAtCanvasContainerCenter(canvasContainer);
+            // Update viewPort and bullsEye position when handle is moved
+            viewPort.updateViewPort(sceneContainer);
+            viewPort.updateBullsEyeVerticalPosition();
+            parallax.renderAllTranslateableDivsAtsceneContainerCenter(sceneContainer);
         });
 
     } catch (error) {

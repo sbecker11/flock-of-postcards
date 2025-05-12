@@ -19,17 +19,17 @@ export function createFocalPoint(focalPointElement) {
         _focalPointElement.classList.add('focal-point-is-draggable');
     }
     
-    if (!_canvasContainer) {
-        throw new Error("canvasContainer not initialized");
+    if (!_sceneContainer) {
+        throw new Error("sceneContainer not initialized");
     }
 
     // Initialize resize observer before any other operations
     initializeResizeObserver();
     
-    logger.log("Canvas container initialized:", {
-        exists: !!_canvasContainer,
-        width: _canvasContainer.offsetWidth,
-        left: _canvasContainer.offsetLeft,
+    logger.log("Scene-div container initialized:", {
+        exists: !!_sceneContainer,
+        width: _sceneContainer.offsetWidth,
+        left: _sceneContainer.offsetLeft,
         state: state
     });
 
@@ -41,8 +41,8 @@ export function createFocalPoint(focalPointElement) {
     document.addEventListener("mousemove", onDocumentMouseMove);
     
     // Keep container enter/leave events for state management
-    _canvasContainer.addEventListener("mouseenter", onCanvasContainerEnter);
-    _canvasContainer.addEventListener("mouseleave", onCanvasContainerLeave);
+    _sceneContainer.addEventListener("mouseenter", onsceneContainerEnter);
+    _sceneContainer.addEventListener("mouseleave", onsceneContainerLeave);
 
     // Add hover listeners to the focal-point element
     _focalPointElement.addEventListener('mouseenter', () => {
@@ -118,26 +118,26 @@ function isPointerInContainer(container) {
 // Modify the document mouse move handler to respect the mode
 function onDocumentMouseMove(event) {
     const eventPosition = getEventPosition(event);
-    if (_aimPointMode === AimPointMode.ALWAYS_FOLLOW_POINTER || isPointerInContainer(_canvasContainer)) {
+    if (_aimPointMode === AimPointMode.ALWAYS_FOLLOW_POINTER || isPointerInContainer(_sceneContainer)) {
         setAimPoint(eventPosition, "onDocumentMouseMove");
     }
 }
 
 // Update container event handlers to focus on state changes
-function onCanvasContainerEnter(event) {
+function onsceneContainerEnter(event) {
     const eventPosition = getEventPosition(event);
-    setStatus("startEasingToAimPoint", "onCanvasContainerEnter", LogLevel.LOG);
+    setStatus("startEasingToAimPoint", "onsceneContainerEnter", LogLevel.LOG);
     awaken(eventPosition);
-    startEasingToAimPoint("onCanvasContainerEnter");
+    startEasingToAimPoint("onsceneContainerEnter");
 }
 
 // Update container leave handler to focus on aim point
-function onCanvasContainerLeave(event) {
+function onsceneContainerLeave(event) {
     const eventPosition = getEventPosition(event);
-    setStatus("leaveContainer", "onCanvasContainerLeave", LogLevel.LOG);
+    setStatus("leaveContainer", "onsceneContainerLeave", LogLevel.LOG);
     if (_aimPointMode === AimPointMode.RETURN_TO_BULLS_EYE) {
-        setAimPoint(getBullsEye(), "onCanvasContainerLeave");
-        startEasingToBullsEye("onCanvasContainerLeave");
+        setAimPoint(getBullsEye(), "onsceneContainerLeave");
+        startEasingToBullsEye("onsceneContainerLeave");
     }
 }
 
@@ -167,14 +167,14 @@ function getDefaultState() {
 export function saveState() {
     try {
         const paletteSelector = document.getElementById('color-palette-selector');
-        const canvasContainer = document.getElementById('canvas-container');
+        const sceneContainer = document.getElementById('scene-container');
         
         const state = {
             isDraggable: _isDraggable,
             isLockedToBullsEye: _isLockedToBullsEye,
             aimPointMode: _aimPointMode,
             lastPosition: getFocalPoint(),
-            dividerPosition: parseFloat(canvasContainer.style.width) || 50,
+            dividerPosition: parseFloat(sceneContainer.style.width) || 50,
             selectedPalette: paletteSelector ? paletteSelector.value : null,
             lastUpdated: new Date().toISOString(),
             version: "1.0"
@@ -193,12 +193,12 @@ export function initializeState() {
     _aimPointMode = state.aimPointMode ?? AimPointMode.RETURN_TO_BULLS_EYE;
     
     // Apply divider position
-    const canvasContainer = document.getElementById('canvas-container');
+    const sceneContainer = document.getElementById('scene-container');
     const rightColumn = document.getElementById('right-column');
-    if (canvasContainer && rightColumn) {
+    if (sceneContainer && rightColumn) {
         const leftPercent = state.dividerPosition;
         const rightPercent = 100 - leftPercent;
-        canvasContainer.style.width = `${leftPercent}%`;
+        sceneContainer.style.width = `${leftPercent}%`;
         rightColumn.style.width = `${rightPercent}%`;
         const resizeHandle = document.getElementById('resize-handle');
         if (resizeHandle) {

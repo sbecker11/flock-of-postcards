@@ -1,0 +1,113 @@
+.biz-card-div {
+    position: absolute;
+    border-width: 5px;
+    border-style: solid;
+    border-color: white;
+    border-radius: 25px;
+    font-family: "Roboto", sans-serif;
+    font-weight: bold;
+    font-size: 12px;
+    padding: 20px;
+    box-sizing: border-box;
+    overflow: hidden;
+    cursor: pointer;
+    z-index: 4;
+    /* transition: filter 0.2s ease; */
+}
+
+.biz-details-div {
+    margin-top: 15px;
+    padding-top: 15px;
+    border-top: 1px solid rgba(255, 255, 255, 0.3);
+    background-color: transparent;
+    color: inherit;
+    font-family: inherit;
+    font-weight: inherit;
+    font-size: inherit;
+}
+
+.biz-card-div:hover,
+.biz-card-div.highlighted {
+    filter: brightness(150%) blur(0px);
+}
+
+.biz-card-div-role {
+    font-size: 20px;
+}
+
+.biz-card-div-employer {
+    font-size: 18px;
+}
+
+.biz-card-div-dates {
+    font-size: 16px;
+}
+
+.biz-skill-card-div-dates {
+    font-size: 16px;
+}
+
+.skill-card-div {
+    position: absolute;
+    border-width: 5px;
+    border-style: solid;
+    border-color: white;
+    border-radius: 25px;
+    font-family: "Roboto", sans-serif;
+    font-weight: bold;
+    font-size: 12px;
+    padding: 20px;
+    box-sizing: border-box;
+    overflow: hidden;
+    cursor: pointer;
+    transition: filter 0.2s ease;
+}
+
+.skill-card-div:hover,
+.skill-card-div.highlighted {
+    filter: brightness(150%) blur(0px);
+}
+
+.bulleted-job-description-items-ul {
+    list-style: none;
+    padding-left: 1.5rem;
+    margin: 1rem 0;
+}
+
+.bulleted-job-description-items-li {
+    position: relative;
+    margin-bottom: 0.5rem;
+    line-height: 1.4;
+    display: block;
+}
+
+.bulleted-job-description-items-li::before {
+    content: "•";
+    position: absolute;
+    left: -1.5rem;
+    color: var(--text-color);
+}
+
+.bulleted-job-skills-ul {
+    list-style: none;
+    padding-left: 0;
+    margin: 1rem 0;
+    display: flex;
+    flex-wrap: nowrap;
+    gap: 0.5rem;
+    overflow-x: auto;
+}
+
+.bulleted-job-skills-li {
+    position: relative;
+    padding: 0.25rem 0.75rem;
+    background-color: var(--bg-color-secondary);
+    border-radius: 1rem;
+    font-size: 0.9rem;
+    white-space: nowrap;
+}
+
+.bulleted-job-skills-li::before {
+    content: "•";
+    margin-right: 0.25rem;
+} 

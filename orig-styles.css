@@ -1,6 +1,6 @@
 /*
 Set the html and body elements to a height of 100%. This establishes a 
-reference for the #main-container to occupy the full height of the viewport.
+reference for the #main-container to occupy the full height of the viewPort.
 */
 
 :root {
@@ -24,14 +24,14 @@ html, body {
 }
 
 /*
-Make #main-container take the full height of the viewport using 100vh 
-(viewport height). 100vh is equal to 100% of the height of the viewport, 
+Make #main-container take the full height of the viewPort using 100vh 
+(viewPort height). 100vh is equal to 100% of the height of the viewPort, 
 regardless of the window size.
 */
 #main-container {
   display: flex;
   width: 100%; /* Full width */
-  height: 100vh; /* Full viewport height */
+  height: 100vh; /* Full viewPort height */
 }
 
 /*
@@ -48,7 +48,7 @@ overflow and ensures consistent sizing.
 #debugFocalPointElement, 
 #debugBullsEyeElement, 
 #debugCanvasElement, 
-#debugCanvasContainerElement,
+#debugsceneContainerElement,
 #debugTheSelectedCardDivIdElement {
   display: block;
   font-family: Roboto, sans-serif;
@@ -101,7 +101,7 @@ overflow and ensures consistent sizing.
   height: 100%;
 }
 
-#canvas-container {
+#scene-container {
   flex: 1;
   height: 100%;
   overflow-y: scroll; 
@@ -111,11 +111,11 @@ overflow and ensures consistent sizing.
   overflow-x: hidden; /* prevent horizontal scrolling */
 }
 
-#canvas-container::-webkit-scrollbar {
+#scene-container::-webkit-scrollbar {
   display: none; /* Hide scrollbar for Chrome, Safari, and Opera */
 }
 
-#canvas {
+#scene-div {
   position: relative;
   height: fit-content;
   scroll-behavior: smooth;
@@ -140,7 +140,7 @@ overflow and ensures consistent sizing.
 }
 
 
-.bizcard-div {
+.bizCard-div {
   position: absolute;
   border-width: 5px;
   border-style: solid;
@@ -155,15 +155,15 @@ overflow and ensures consistent sizing.
   cursor: pointer;
 }
 
-.bizcard-div-role {
+.bizCard-div-role {
   font-size: 20px;
 }
 
-.bizcard-div-employer {
+.bizCard-div-employer {
   font-size: 18px;
 }
 
-.bizcard-div-dates {
+.bizCard-div-dates {
   font-size: 16px;
 }
     
@@ -189,7 +189,7 @@ div.card-div span.tag-link {
   text-overflow: ellipsis;
 }
 
-.bizcard-div-header {
+.bizCard-div-header {
   font-size: 20px;
 }
 

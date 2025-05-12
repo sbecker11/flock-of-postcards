@@ -39,7 +39,7 @@ const EASE_FACTOR = 0.15;
 const EPSILON = EASE_FACTOR / 2.0;
 const MAX_NEAR_DISTANCE = 0.5;
 
-var _canvasContainer = document.getElementById("canvas-container")
+var _sceneContainer = document.getElementById("scene-container")
 var _focalPointElement = document.getElementById("focal-point");
 var _aimPointDotElement = document.getElementById("aim-point-dot");
 var _bullsEyeElement = document.getElementById("bulls-eye");
@@ -112,13 +112,13 @@ function getDefaultState() {
 export function saveState() {
     try {
         const paletteSelector = document.getElementById('color-palette-selector');
-        const canvasContainer = document.getElementById('canvas-container');
+        const sceneContainer = document.getElementById('scene-container');
         
         const state = {
             isDraggable: _isDraggable,
             isLockedToBullsEye: _isLockedToBullsEye,
             lastPosition: getFocalPoint(),
-            dividerPosition: parseFloat(canvasContainer.style.width) || 50,
+            dividerPosition: parseFloat(sceneContainer.style.width) || 50,
             selectedPalette: paletteSelector ? paletteSelector.value : null,
             lastUpdated: new Date().toISOString(),
             version: "1.0"
@@ -152,12 +152,12 @@ function initializeState() {
     _isLockedToBullsEye = state.isLockedToBullsEye;
     
     // Apply divider position
-    const canvasContainer = document.getElementById('canvas-container');
+    const sceneContainer = document.getElementById('scene-container');
     const rightColumn = document.getElementById('right-column');
-    if (canvasContainer && rightColumn) {
+    if (sceneContainer && rightColumn) {
         const leftPercent = state.dividerPosition;
         const rightPercent = 100 - leftPercent;
-        canvasContainer.style.width = `${leftPercent}%`;
+        sceneContainer.style.width = `${leftPercent}%`;
         rightColumn.style.width = `${rightPercent}%`;
         const resizeHandle = document.getElementById('resize-handle');
         if (resizeHandle) {
@@ -220,12 +220,12 @@ export function handleOnWindowResize() {
 
 // on window resize
 function updateBullsEyeCenter() {
-    if (!_canvasContainer || !_bullsEyeElement) {
+    if (!_sceneContainer || !_bullsEyeElement) {
         logger.error("Cannot update bulls-eye: missing elements");
         return;
     }
 
-    const containerRect = _canvasContainer.getBoundingClientRect();
+    const containerRect = _sceneContainer.getBoundingClientRect();
     const centerX = containerRect.left + (containerRect.width / 2);
     const centerY = containerRect.top + (containerRect.height / 2);
 
@@ -236,15 +236,15 @@ function updateBullsEyeCenter() {
     _bullsEyeElement.style.left = `${centerX}px`;
     _bullsEyeElement.style.top = `${centerY}px`;
 
-    logger.log("Bulls-eye position updated:", _bullsEyeCenter);
+    logger.log("BullsEye position updated:", _bullsEyeCenter);
 }
 
 export function getBullsEye() {
-    // Convert bulls-eye center to viewport coordinates
-    const containerRect = _canvasContainer.getBoundingClientRect();
+    // Convert bulls-eye center to viewPort coordinates
+    const containerRect = _sceneContainer.getBoundingClientRect();
     return {
-        x: containerRect.left + (_canvasContainer.offsetWidth / 2),
-        y: containerRect.top + (_canvasContainer.offsetHeight / 2)
+        x: containerRect.left + (_sceneContainer.offsetWidth / 2),
+        y: containerRect.top + (_sceneContainer.offsetHeight / 2)
     };
 }
 
@@ -270,7 +270,7 @@ export function getFocalPoint() {
 }
 
 function getEventPosition(event) {
-    // Always use viewport coordinates since FP is position: fixed
+    // Always use viewPort coordinates since FP is position: fixed
     return {
         x: event.clientX,
         y: event.clientY
@@ -278,11 +278,11 @@ function getEventPosition(event) {
 }
 
 export function moveFocalPointTo(position, prefix="") {
-    if (_isLockedToBullsEye && prefix !== "locked-to-bullseye") {
+    if (_isLockedToBullsEye && prefix !== "locked-to-bullsEye") {
         return; // Don't move if locked to bulls-eye
     }
     
-    // Use viewport coordinates directly
+    // Use viewPort coordinates directly
     _focalPointElement.style.left = `${position.x}px`;
     _focalPointElement.style.top = `${position.y}px`;
 
@@ -291,7 +291,7 @@ export function moveFocalPointTo(position, prefix="") {
 }
 
 // -----------------------------------------------------
-// save the caller's _canvasContainer and _focalPointElement.
+// save the caller's _sceneContainer and _focalPointElement.
 //
 export function createFocalPoint(focalPointElement) {
     if (!focalPointElement) {
@@ -314,17 +314,17 @@ export function createFocalPoint(focalPointElement) {
         _focalPointElement.classList.add('focal-point-is-draggable');
     }
     
-    if (!_canvasContainer) {
-        throw new Error("canvasContainer not initialized");
+    if (!_sceneContainer) {
+        throw new Error("sceneContainer not initialized");
     }
 
     // Initialize resize observer before any other operations
     initializeResizeObserver();
     
-    logger.log("Canvas container initialized:", {
-        exists: !!_canvasContainer,
-        width: _canvasContainer.offsetWidth,
-        left: _canvasContainer.offsetLeft,
+    logger.log("Scene-div container initialized:", {
+        exists: !!_sceneContainer,
+        width: _sceneContainer.offsetWidth,
+        left: _sceneContainer.offsetLeft,
         state: state
     });
 
@@ -332,10 +332,10 @@ export function createFocalPoint(focalPointElement) {
     updateBullsEyeCenter();
     checkFixtureParents();
 
-    // Add canvas container event listeners
-    _canvasContainer.addEventListener("mouseenter", onCanvasContainerEnter);
-    _canvasContainer.addEventListener("mousemove", onCanvasContainerMove);
-    _canvasContainer.addEventListener("mouseleave", onCanvasContainerLeave);
+    // Add scene-div container event listeners
+    _sceneContainer.addEventListener("mouseenter", onsceneContainerEnter);
+    _sceneContainer.addEventListener("mousemove", onsceneContainerMove);
+    _sceneContainer.addEventListener("mouseleave", onsceneContainerLeave);
 
     // Add hover listeners to the focal-point element
     _focalPointElement.addEventListener('mouseenter', () => {
@@ -384,41 +384,41 @@ export function addFocalPointPositionListener(listener) {
 
 
 function checkFixtureParents() {
-    if ( _bullsEyeElement.parentElement != _canvasContainer ) {
-        throw new Error("bullsEyeParent is not the canvas container");
+    if ( _bullsEyeElement.parentElement != _sceneContainer ) {
+        throw new Error("bullsEyeParent is not the scene-div container");
     }
-    _bullsEyeElement['saved-parent'] = _canvasContainer;
+    _bullsEyeElement['saved-parent'] = _sceneContainer;
 
-    if ( _aimPointDotElement.parentElement != _canvasContainer ) {
-        throw new Error("aimPointParent is not the canvas container");
+    if ( _aimPointDotElement.parentElement != _sceneContainer ) {
+        throw new Error("aimPointParent is not the scene-div container");
     }
-    _aimPointDotElement['saved-parent'] = _canvasContainer;
+    _aimPointDotElement['saved-parent'] = _sceneContainer;
 
-    if ( _focalPointElement.parentElement != _canvasContainer ) {
-        throw new Error("focalPointParent is not the canvas container");
+    if ( _focalPointElement.parentElement != _sceneContainer ) {
+        throw new Error("focalPointParent is not the scene-div container");
     }
-    _focalPointElement['saved-parent'] = _canvasContainer;
+    _focalPointElement['saved-parent'] = _sceneContainer;
 }
 
 
-function onCanvasContainerEnter(event) {
+function onsceneContainerEnter(event) {
     const eventPosition = getEventPosition(event);
-    setStatus("startEasingToAimPoint", "onCanvasContainerEnter", LogLevel.LOG);
+    setStatus("startEasingToAimPoint", "onsceneContainerEnter", LogLevel.LOG);
     awaken(eventPosition);
-    startEasingToAimPoint("onCanvasContainerEnter");
+    startEasingToAimPoint("onsceneContainerEnter");
 }
 
-function onCanvasContainerMove(event) {
+function onsceneContainerMove(event) {
     const eventPosition = getEventPosition(event);
-    setAimPoint(eventPosition, "onCanvasContainerMove");
+    setAimPoint(eventPosition, "onsceneContainerMove");
 }
 
-function onCanvasContainerLeave(event) {
+function onsceneContainerLeave(event) {
     const eventPosition = getEventPosition(event);
-    setStatus("leaveContainer", "onCanvasContainerLeave", LogLevel.LOG);        
+    setStatus("leaveContainer", "onsceneContainerLeave", LogLevel.LOG);        
     if (!_followPointerOutsideContainer && !_isBeingDragged) {
-        setAimPoint(getBullsEye(), "onCanvasContainerLeave");
-        startEasingToBullsEye("onCanvasContainerLeave");
+        setAimPoint(getBullsEye(), "onsceneContainerLeave");
+        startEasingToBullsEye("onsceneContainerLeave");
     }
 }
 
@@ -454,7 +454,7 @@ export function startEasingToBullsEye(prefix="") {
 
 export function setAimPoint(position, prefix="") {
     _aimPoint = position;
-    // Use viewport coordinates for aim point dot too
+    // Use viewPort coordinates for aim point dot too
     _aimPointDotElement.style.left = `${position.x}px`;
     _aimPointDotElement.style.top = `${position.y}px`;
     if (_aimPointDotElement.classList.contains('hidden')) {
@@ -602,7 +602,7 @@ function onMouseDown_startDraggingFocalPoint(event) {
     }
     const eventPosition = getEventPosition(event);
     event.preventDefault(); // prevent default browser behavior
-    event.stopPropagation(); // Stop the event from reaching the canvas
+    event.stopPropagation(); // Stop the event from reaching the scene-div
 
     // Update subpixel precision to match current position
     _focalPointNowSubpixelPrecision = eventPosition;
@@ -610,7 +610,7 @@ function onMouseDown_startDraggingFocalPoint(event) {
     set_isBeingDragged_true(eventPosition);
     moveFocalPointTo(eventPosition);
 
-    // Don't disable pointer events on canvas container to allow scrolling
+    // Don't disable pointer events on scene-div container to allow scrolling
     document.body.style.userSelect = 'none';
     _focalPointElement.classList.add('focal-point-is-being-dragged');
     // Ensure pointer events stay enabled during drag
@@ -660,7 +660,7 @@ export function handleKeyDown(event) {
         _isLockedToBullsEye = !_isLockedToBullsEye;
         if (_isLockedToBullsEye) {
             logger.info("Aim point mode: Locked to bulls-eye");
-            moveFocalPointTo(getBullsEye(), "locked-to-bullseye");
+            moveFocalPointTo(getBullsEye(), "locked-to-bullsEye");
             if (_isDraggable) {
                 toggleDraggable();
             }
@@ -732,7 +732,7 @@ function initializeResizeObserver() {
 
     _resizeObserver = new ResizeObserver((entries) => {
         for (const entry of entries) {
-            if (entry.target === _canvasContainer) {
+            if (entry.target === _sceneContainer) {
                 updateBullsEyeCenter();
                 // If focal point is locked to bulls-eye, update its position too
                 if (_isLockedToBullsEye) {
@@ -742,9 +742,9 @@ function initializeResizeObserver() {
         }
     });
 
-    if (_canvasContainer) {
-        _resizeObserver.observe(_canvasContainer);
-        logger.log("ResizeObserver initialized for canvas container");
+    if (_sceneContainer) {
+        _resizeObserver.observe(_sceneContainer);
+        logger.log("ResizeObserver initialized for scene-div container");
     }
 }
 

@@ -1,6 +1,6 @@
 /*
 Set the html and body elements to a height of 100%. This establishes a 
-reference for the #main-container to occupy the full height of the viewport.
+reference for the #main-container to occupy the full height of the viewPort.
 */
 
 :root {
@@ -25,13 +25,13 @@ html, body {
 }
 
 /*
-Make #main-container take the full height of the viewport using 100vh 
-(viewport height). 100vh is equal to 100% of the height of the viewport, 
+Make #main-container take the full height of the viewPort using 100vh 
+(viewPort height). 100vh is equal to 100% of the height of the viewPort, 
 regardless of the window size.
 */
 #main-container {
   width: 100%; /* Full width */
-  height: 100vh; /* Full viewport height */
+  height: 100vh; /* Full viewPort height */
   position: relative; /* For absolute positioning of resize handle */
   margin: 0;
   padding: 0;
@@ -52,7 +52,7 @@ overflow and ensures consistent sizing.
 #debugFocalPointElement, 
 #debugBullsEyeElement, 
 #debugCanvasElement, 
-#debugCanvasContainerElement,
+#debugsceneContainerElement,
 #debugTheSelectedCardDivIdElement {
   display: block;
   font-family: Roboto, sans-serif;
@@ -70,7 +70,7 @@ overflow and ensures consistent sizing.
   pointer-events: none;
   top: 0;
   left: 0;
-  transform: translate(-50%, -50%); /* Match bullseye's centering */
+  transform: translate(-50%, -50%); /* Match bullsEye's centering */
 }
 #aim-ooint .hidden {
   display: none;
@@ -80,7 +80,7 @@ overflow and ensures consistent sizing.
   position: fixed;
   top: 50%;
   left: 25%;
-  transform: translate(-50%, -50%); /* Center the bullseye */
+  transform: translate(-50%, -50%); /* Center the bullsEye */
   width: 50px;
   height: 50px;
   border-radius: 50%;
@@ -96,7 +96,7 @@ overflow and ensures consistent sizing.
 }
 
 #focal-point {
-  position: fixed;  /* Keep fixed to position relative to viewport */
+  position: fixed;  /* Keep fixed to position relative to viewPort */
   top: 50%;        /* Position at vertical center */
   left: 50%;       /* Position at horizontal center */
   transform: translate(-50%, -50%);  /* Center the element itself */
@@ -149,9 +149,9 @@ overflow and ensures consistent sizing.
   height: 100%;
 }
 
-#canvas-container {
+#scene-container {
   width: 50%; /* Initial width */
-  height: 100vh; /* Full viewport height */
+  height: 100vh; /* Full viewPort height */
   overflow-y: scroll; 
   overscroll-behavior: contain;
   -ms-overflow-style: none; /* Hide scrollbar for IE and Edge */
@@ -161,26 +161,26 @@ overflow and ensures consistent sizing.
   isolation: isolate;
   background-color: var(--background-dark);
   z-index: 0;
-  transition: width 0.3s ease; /* Add matching transition */
+  /* transition: width 0.3s ease; Add matching transition */
   margin: 0;
   padding: 0;
 }
 
-#canvas-container::-webkit-scrollbar {
+#scene-container::-webkit-scrollbar {
   display: none; /* Hide scrollbar for Chrome, Safari, and Opera */
 }
 
-#canvas {
+#scene-div {
   position: relative;
   background-color: var(--background-dark);
   width: 100%;
-  min-height: 200vh; /* Ensure content is taller than viewport */
+  min-height: 200vh; /* Ensure content is taller than viewPort */
   scroll-behavior: smooth;
   z-index: 1;
   isolation: isolate;
 }
 
-#diagonal-canvas {
+#diagonal-scene-div {
   position: absolute;
   top: 0;
   left: 0;
@@ -189,7 +189,7 @@ overflow and ensures consistent sizing.
   pointer-events: none;  /* lets clicks pass through */
 }
 
-#canvas-btm-gradient {
+#scene-div-btm-gradient {
   position: absolute;
   width: 100%;
   height: 1000px;
@@ -201,7 +201,7 @@ overflow and ensures consistent sizing.
   z-index: 2;
 }
 
-#canvas-top-gradient {
+#scene-div-top-gradient {
   position: absolute;
   width: 100%;
   height: 1000px;
@@ -213,87 +213,7 @@ overflow and ensures consistent sizing.
   z-index: 2;
 }
 
-
-.biz-card-div {
-  position: absolute;
-  border-width: 5px;
-  border-style: solid;
-  border-color: white;
-  border-radius: 25px;
-  font-family: "Roboto", sans-serif;
-  font-weight: bold;
-  font-size: 12px;
-  padding: 20px;
-  box-sizing: border-box;
-  overflow: hidden;
-  cursor: pointer;
-  z-index: 4; /* Minimum z-index for bizcards */
-}
-
-.biz-card-div-role {
-  font-size: 20px;
-}
-
-.biz-card-div-employer {
-  font-size: 18px;
-}
-
-.biz-card-div-dates {
-  font-size: 16px;
-}
-
-.biz-skill-card-div-dates {
-  font-size: 16px;
-}
-    
-.skill-card-div {
-  position: absolute;
-  width: 106px;
-  border-width: 3px;
-  border-style: solid;
-  border-color: white;
-  font-family: "Roboto", sans-serif;
-  font-weight: normal;
-  font-size: 14px;
-  padding: 0px;
-  box-sizing: border-box;
-  cursor: pointer;
-  z-index: 20; /* Minimum z-index for cards */
-}
-
-.skill-card-div:hover,
-.biz-skill-card-div:hover {
-  filter: brightness(150%) !important;
-}
-
-div.skill-card-div.selected,
-div.biz-skill-card-div.selected {
-  border-width: 5px !important;
-  border-style: dotted !important;
-  border-color: white !important;
-}
-
-div.skill-card-div span.tag-link {
-  display: inline-block; /* or block */
-  max-width: 100%; /* Adjust as needed */
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
-.biz-skill-card-div-header {
-  font-size: 20px;
-}
-
-.skill-card-div-header {
-  font-size: 12px;
-}
-
-.skill-card-div-img {
-  position: absolute;
-  top: 0px;
-  left: 0px;
-}
+/* Card styles moved to modules/cards/cards.css */
 
 .scrollable-div {
   overflow-y: auto;
@@ -563,14 +483,14 @@ div.skill-card-div span.tag-link {
   cursor: pointer;
 }
 
-.bizcard-controls {
+.bizCard-controls {
     display: flex;
     gap: 5px;
     margin: 10px 0;
     flex-wrap: wrap;
 }
 
-.bizcard-controls button {
+.bizCard-controls button {
     padding: 5px 10px;
     border: 1px solid #ccc;
     border-radius: 4px;
@@ -578,36 +498,36 @@ div.skill-card-div span.tag-link {
     cursor: pointer;
     font-size: 14px;
     min-width: 60px;
-    transition: background-color 0.2s;
+    /* transition: background-color 0.2s; */
 }
 
 /* When container width is greater than 60%, allow buttons to grow */
 @media (min-width: 60%) {
-    .bizcard-controls button {
+    .bizCard-controls button {
         flex: 1;
         min-width: 0;
     }
 }
 
-.bizcard-controls button:hover {
+.bizCard-controls button:hover {
     background: #e8e8e8;
 }
 
 /* Responsive adjustments */
 @media (min-width: 768px) {
-    .bizcard-controls {
+    .bizCard-controls {
         max-width: calc(240px + 15px); /* 4 buttons + 3 gaps max */
     }
 }
 
 @media (max-width: 767px) {
-    .bizcard-controls {
+    .bizCard-controls {
         max-width: calc(180px + 10px); /* 3 buttons + 2 gaps */
     }
 }
 
 @media (max-width: 480px) {
-    .bizcard-controls {
+    .bizCard-controls {
         max-width: calc(120px + 5px); /* 2 buttons + 1 gap */
     }
 }
@@ -632,9 +552,9 @@ div.skill-card-div span.tag-link {
 }
 
 /* Override all native dark mode styles with maximum specificity */
-html[native-dark-active][native-dark-active] #canvas-container,
-html[native-dark-active] #canvas-container,
-#canvas-container {
+html[native-dark-active][native-dark-active] #scene-container,
+html[native-dark-active] #scene-container,
+#scene-container {
   background-color: var(--background-dark) !important;
 }
 
