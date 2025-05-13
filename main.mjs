@@ -18,7 +18,7 @@ import * as zIndex from './modules/layout/zIndex.mjs';
 import * as parallax from './modules/layout/parallax.mjs';
 import * as viewPort from './modules/layout/viewPort.mjs';
 import * as filters from './modules/layout/filters.mjs';
-import * as bizCard from './modules/cards/bizCardDiv.mjs';
+import * as bizCardDivModule from './modules/cards/bizCardDivModule.mjs';
 // import * as skillCard from './modules/cards/skillCard.mjs';
 import * as cardUtils from './modules/cards/cardUtils.mjs';
 import * as cardConstants from './modules/cards/cardConstants.mjs';
@@ -127,7 +127,7 @@ async function initialize() {
         // Create all bizCards
         sortedJobs.forEach((job, index) => {
             // Create the bizCard div
-            const bizCardDiv = bizCard.createBizCardDiv(job, index);
+            const bizCardDiv = bizCardDivModule.createBizCardDiv(job, index);
 
             // Append the bizCard div to the sceneDiv
             sceneDiv.appendChild(bizCardDiv);

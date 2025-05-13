@@ -5,8 +5,9 @@
   "main": "main.mjs",
   "type": "module",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
-    "start": "node server.mjs"
+      "start": "concurrently \"npm run server\" \"npm run open-chrome\"",
+      "server": "node server.mjs",
+      "open-chrome": "open-cli http://localhost:3000"
   },
   "repository": {
     "type": "git",
@@ -33,5 +34,9 @@
     "openai": "^4.86.1",
     "sanitize-filename": "^1.6.3",
     "sheetjs": "latest"
+  },
+  "devDependencies": {
+    "concurrently": "^9.1.2",
+    "open-cli": "^8.0.0"
   }
 }

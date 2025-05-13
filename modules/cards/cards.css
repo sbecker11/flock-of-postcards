@@ -1,24 +1,31 @@
+.biz-card-div,
+.biz-resume-div {
+    padding: 0px;
+    box-sizing: border-box;
+    cursor: pointer;
+    z-index: 4;
+}
+
 .biz-card-div {
     position: absolute;
     border-width: 5px;
     border-style: solid;
     border-color: white;
     border-radius: 25px;
-    font-family: "Roboto", sans-serif;
-    font-weight: bold;
-    font-size: 12px;
-    padding: 0px;
-    box-sizing: border-box;
+}
+
+.biz-resume-div {
+    width: 100%;
+    margin: 10px;
+    padding: 10px;
+    background-color: transparent;
     overflow: hidden;
-    cursor: pointer;
-    z-index: 4;
-    /* transition: filter 0.2s ease; */
 }
 
 .biz-details-div {
-    margin: 20px;
-    padding: 20px;
-    background-color: white;
+    margin: 10px;
+    padding: 10px;
+    background-color: transparent;
     font-family: Arial, Helvetica, sans-serif;
     font-weight: bold;
     font-size: 12px;

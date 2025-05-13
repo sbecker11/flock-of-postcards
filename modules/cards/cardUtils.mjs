@@ -358,8 +358,9 @@ export function getSceneVerticalPositions(startDateString, endDateString,  minHe
 }
 
 export function applyViewRelativeStylingToAllBizCardDivs(viewPort) {
-    const bizCardDivs = document.getElementsByClassName("biz-card-div");
-    for (const bizCardDiv of bizCardDivs) {
+    const bizCardDivElements = document.getElementsByClassName("biz-card-div");
+    for (const bizCardDivElement of bizCardDivElements) {
+        const bizCardDiv = new BizCardDiv(bizCardDivElement);
         applyViewRelativeStyling(viewPort, bizCardDiv);
     }
 }
@@ -383,7 +384,7 @@ export function applyViewRelativeStyling(viewPort, cardDiv) {
     // const viewPortCenterX = viewPortWidth / 2;
     // console.log(`viewPortCenterX: ${viewPortCenterX}`);
     const bullsEyeX = viewPortProperties.bullsEyeX;
-    console.log(`bullsEyeX: ${bullsEyeX}`);
+    // console.log(`bullsEyeX: ${bullsEyeX} on applyViewRelativeStyling`);
     // console.log(`bullsEyeCneterX: ${viewPort.getBullsEyeCenterX()}`);
 
     // transform scene-relative attributes to get view-relative styling
@@ -399,15 +400,15 @@ export function applyViewRelativeStyling(viewPort, cardDiv) {
     cardDiv.style.width =   `${viewWidth}px`;
     cardDiv.style.left =    `${viewLeft}px`;
 
-    console.log(`cardDiv styling for ${cardDiv.id}:`, {
-        styleLeft: cardDiv.style.left,
-        offsetLeft: cardDiv.offsetLeft,
-        boundingLeft: cardDiv.getBoundingClientRect().left,
-        viewLeft,
-        bullsEyeX,
-        sceneLeft,
-        parsedSceneLeft: parseFloat(sceneLeft)
-    });
+    // console.log(`cardDiv view-relativestyling for ${cardDiv.id}:`, {
+    //     styleLeft: cardDiv.style.left,
+    //     offsetLeft: cardDiv.offsetLeft,
+    //     boundingLeft: cardDiv.getBoundingClientRect().left,
+    //     viewLeft,
+    //     bullsEyeX,
+    //     sceneLeft,
+    //     parsedSceneLeft: parseFloat(sceneLeft)
+    // });
 }
 
 /**

@@ -100,15 +100,15 @@ export function initResizeHandle(sceneContainer, rightColumn, resizeHandle) {
             cardUtils.applyViewRelativeStylingToAllBizCardDivs(viewPort);
 
             // Log scene-div container position
-            console.log(`Scene-div left: ${sceneContainer.offsetLeft}px, width: ${sceneContainer.offsetWidth}px`);
+            // console.log(`onMouseMove:Scene-div left: ${sceneContainer.offsetLeft}px, width: ${sceneContainer.offsetWidth}px`);
             
-            // Log bullsEye calculations with all values
-            console.log('BullsEye calculation values:', {
-                windowWidth: containerWidth,
-                rightColumnWidth: rightColumn.offsetWidth,
-                calculatedCenter: (containerWidth - rightColumn.offsetWidth) / 2,
-                bullsEyeX: viewPort.getBullsEyeCenterX()
-            });
+            // // Log bullsEye calculations with all values
+            // console.log('BullsEye calculation values:', {
+            //     windowWidth: containerWidth,
+            //     rightColumnWidth: rightColumn.offsetWidth,
+            //     calculatedCenter: (containerWidth - rightColumn.offsetWidth) / 2,
+            //     bullsEyeX: viewPort.getBullsEyeCenterX()
+            // });
         }
     });
 
@@ -148,15 +148,15 @@ export function initResizeHandle(sceneContainer, rightColumn, resizeHandle) {
         viewPort.updateViewPort(sceneContainer);
 
         // Log scene-div container position
-        console.log(`Scene-div left: ${sceneContainer.offsetLeft}px, width: ${sceneContainer.offsetWidth}px`);
+        // console.log(`onWindowResize: scene-div left: ${sceneContainer.offsetLeft}px, width: ${sceneContainer.offsetWidth}px`);
         
         // Log bullsEye calculations with all values
-        console.log('BullsEye calculation values:', {
-            windowWidth: containerWidth,
-            rightColumnWidth: rightColumn.offsetWidth,
-            calculatedCenter: (containerWidth - rightColumn.offsetWidth) / 2,
-            bullsEyeX: viewPort.getBullsEyeCenterX()
-        });
+        // console.log('BullsEye calculation values:', {
+        //     windowWidth: containerWidth,
+        //     rightColumnWidth: rightColumn.offsetWidth,
+        //     calculatedCenter: (containerWidth - rightColumn.offsetWidth) / 2,
+        //     bullsEyeX: viewPort.getBullsEyeCenterX()
+        // });
     });
 
     // Add event listeners for collapse buttons

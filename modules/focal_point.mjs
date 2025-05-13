@@ -84,15 +84,15 @@ function saveDraggableState(state) {
     }
 }
 
-function loadDraggableState() {
-    try {
-        const saved = localStorage.getItem('focalPoint_isDraggable');
-        return saved !== null ? JSON.parse(saved) : true;  // Default to true if not set
-    } catch (e) {
-        logger.error('Failed to load draggable state:', e);
-        return true;  // Default to true on error
-    }
-}
+// function loadDraggableState() {
+//     try {
+//         const saved = localStorage.getItem('focalPoint_isDraggable');
+//         return saved !== null ? JSON.parse(saved) : true;  // Default to true if not set
+//     } catch (e) {
+//         logger.error('Failed to load draggable state:', e);
+//         return true;  // Default to true on error
+//     }
+// }
 
 // Add state management functions after the imports
 const STORAGE_KEY = 'focalPoint_state';

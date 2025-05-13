@@ -1,7 +1,7 @@
 import * as viewPort from '../layout/viewPort.mjs';
-import BizDetailsDiv from './bizDetailsDiv.mjs';
+import * as BizDetailsDivModule from './bizDetailsDivModule.mjs';
 import * as cardUtils from './cardUtils.mjs';
-import BizResumeDiv from './bizResumeDiv.mjs';
+import * as BizResumeDivModule from './bizResumeDivModule.mjs';
 
 // Business card constants
 export const BIZCARD_MEAN_WIDTH = 200;
@@ -28,6 +28,7 @@ export const BIZCARD_MAX_Z = 10;
 export function getBizCardDivId(bizCardDiv, jobIndex) {
     bizCardDiv.id = `biz-card-div-${jobIndex}`;
 }
+
 export function isBizCardDivId(id) {
     return id.startsWith("biz-card-div-");
 }
@@ -40,14 +41,15 @@ export function isBizCardDivId(id) {
  * @param {number} jobIndex - The index of the job in the sorted array
  * @returns {HTMLElement} The created business card div
  */
+
 export function createBizCardDiv(job, jobIndex) {
     const bizCardDiv = document.createElement("div");
     bizCardDiv.classList.add("biz-card-div");
     bizCardDiv.classList.add("card-div");
     bizCardDiv.id = cardUtils.getBizCardDivId(jobIndex);
-    bizCardDiv['job'] = job;
-
-    bizCardDiv.setAttribute("job-index", jobIndex.toString());
+    console.log(`bizCardDiv.id: ${bizCardDiv.id}`);
+    bizCardDiv.job = job;
+    bizCardDiv.jobIndex = jobIndex;
 
     // Set color index (can be different from jobIndex in the future)
     bizCardDiv.setAttribute("data-color-index", jobIndex.toString());
@@ -56,18 +58,11 @@ export function createBizCardDiv(job, jobIndex) {
     setBizCardDivSceneGeometry(bizCardDiv);
 
     // create the biz details div with text
-    const bizDetailsDiv = new BizDetailsDiv(bizCardDiv);
-    bizCardDiv.appendChild(bizDetailsDiv.element);
-    
-    // TEMPORARY DEBUG: Force text to be visible
-    bizDetailsDiv.element.style.display = "block";
-    bizDetailsDiv.element.style.color = "black";
-    bizDetailsDiv.element.style.background = "white";
-    bizDetailsDiv.element.style.padding = "10px";
-    bizDetailsDiv.element.style.border = "1px solid red"; // Add border to see the element
-    
+    const bizDetailsDiv = BizDetailsDivModule.createBizDetailsDiv(bizCardDiv);
+    bizCardDiv.appendChild(bizDetailsDiv);
+        
     // Add click handler
-    bizCardDiv.addEventListener("click", () => handleBizCardClick(bizCardDiv, job));
+    bizCardDiv.addEventListener("click", (event) => handleBizCardDivClick(event, bizCardDiv));
     
     // Initialize view-relative styling based on 
     // the scene-relative geometry and focalPoint 
@@ -76,7 +71,7 @@ export function createBizCardDiv(job, jobIndex) {
         throw new Error("ViewPort not initialized");
     }
     cardUtils.applyViewRelativeStyling(viewPort, bizCardDiv);
-        
+
     return bizCardDiv;
 }
 
@@ -86,7 +81,10 @@ export function createBizCardDiv(job, jobIndex) {
  */
 function setBizCardDivSceneGeometry(bizCardDiv) {
 
-    const job = bizCardDiv['job'];
+    const job = bizCardDiv.job;
+    if ( !job ) {
+        throw new Error(`job not found for bizCardDiv ${bizCardDiv.id}`);
+    }
 
     // Get vertical positions - based on job start and end dates
     const { sceneTop, sceneBottom } = cardUtils.getSceneVerticalPositions(job.start, job.end, MIN_BIZCARD_HEIGHT);
@@ -108,38 +106,42 @@ function setBizCardDivSceneGeometry(bizCardDiv) {
 /**
  * Handles click events on business cards
  * @param {HTMLElement} bizCardDiv - The clicked business card div
+ * @param {Event} event - The click event
  * @param {Object} job - The job object associated with the card
  */
-function handleBizCardClick(clickEvent, bizCardDiv) {
-    // do not consume the click event if its
-    // not a valid biz card div
-    if (! cardUtils.isBizCardDiv(bizCardDiv)) {
-        console.info("Biz card div letting click through");
-        return;
+export function handleBizCardDivClick(event, bizCardDiv) {
+
+    if ( !bizCardDiv ) {
+        throw new Error(`bizCardDiv not found`);
+    }
+    if ( !bizCardDiv.classList.contains('biz-card-div') ) {
+        throw new Error(`bizCardDiv is not a biz-card-div`);
     }
 
     // Remove selected class from all card divs
-    // this includes bizCardDivs, skillCardDivs and 
-    // and resumeDivs
-    document.querySelectorAll('.card-div').forEach(div => {
-        div.classList.remove('selected');
-    });
+    // includeing bizCardDivs, skillCardDivs and 
+    // and bizResumeDivs
+    for (const cardDiv of document.querySelectorAll('.card-div')) {
+        cardDiv.classList.remove('selected');
+    }
     
     // Add selected class to clicked card
     bizCardDiv.classList.add('selected');
 
     // Find or add the bizResumeDiv in the right content div
     const rightContentDiv = document.getElementById('right-content-div');
-    var bizResumeDiv = findBizResumeDiv(rightContentDiv, bizCardDiv);
-    if (!bizResumeDiv) {
-        bizResumeDiv = new BizResumeDiv(bizCardDiv);
-        rightContentDiv.appendChild(bizResumeDiv.element);
+    var bizResumeDiv = BizResumeDivModule.findBizResumeDiv(rightContentDiv, bizCardDiv);
+    if ( ! bizResumeDiv ) {
+        console.log(`bizResumeDiv for ${bizCardDiv.id} not found`);
+        bizResumeDiv = BizResumeDivModule.addBizResumeDiv(rightContentDiv, bizCardDiv);
+        console.log(`bizResumeDiv for ${bizCardDiv.id} added`);
     }
-
+    if ( !bizResumeDiv ) {
+        throw new Error(`bizResumeDiv for ${bizCardDiv.id} not found`);
+    }
     // select the biz resume card of the clicked biz card
     bizResumeDiv.classList.add('selected');
 
     // and scroll it into view
     bizResumeDiv.scrollIntoView({ behavior: 'smooth' });
-
 }

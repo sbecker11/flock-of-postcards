@@ -247,6 +247,7 @@ overflow and ensures consistent sizing.
   display: flex;
   flex-direction: column;
   overflow: hidden;
+  width: 100%;
 }
 
 #resize-handle {
@@ -400,6 +401,7 @@ overflow and ensures consistent sizing.
   flex-grow: 1;
   overflow-y: auto;
   overflow-x: hidden;
+  width: 100%;
   box-sizing: border-box; 
   background-color: var(--background-middle);
   color: black;
