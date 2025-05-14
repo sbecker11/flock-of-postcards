@@ -5,9 +5,10 @@
   "main": "main.mjs",
   "type": "module",
   "scripts": {
-      "start": "concurrently \"npm run server\" \"npm run open-chrome\"",
-      "server": "node server.mjs",
-      "open-chrome": "open-cli http://localhost:3000"
+    "start": "npm run kill-listeners &&concurrently \"npm run node-server\" \"npm run open-chrome\"",
+    "node-server": "nodemon server.mjs",
+    "open-chrome": "open-cli http://localhost:3000 --incognito",
+    "kill-listeners": "lsof -i :3000 | awk 'NR>1 {print $2}' | xargs -r kill -9 || true"
   },
   "repository": {
     "type": "git",
@@ -37,6 +38,7 @@
   },
   "devDependencies": {
     "concurrently": "^9.1.2",
-    "open-cli": "^8.0.0"
+    "open-cli": "^8.0.0",
+    "nodemon": "^3.1.10"
   }
 }

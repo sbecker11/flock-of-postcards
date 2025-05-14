@@ -358,9 +358,8 @@ export function getSceneVerticalPositions(startDateString, endDateString,  minHe
 }
 
 export function applyViewRelativeStylingToAllBizCardDivs(viewPort) {
-    const bizCardDivElements = document.getElementsByClassName("biz-card-div");
-    for (const bizCardDivElement of bizCardDivElements) {
-        const bizCardDiv = new BizCardDiv(bizCardDivElement);
+    const bizCardDivs = document.getElementsByClassName("biz-card-div");
+    for (const bizCardDiv of bizCardDivs) {
         applyViewRelativeStyling(viewPort, bizCardDiv);
     }
 }

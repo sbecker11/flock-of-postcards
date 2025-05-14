@@ -23,6 +23,7 @@ let _color_palettes = {};
 let _palettesLoadedPromise = null; // Promise to track loading state
 let _orderedPaletteNames = []; // Store the ordered names here
 let _filenameToNameMap = {}; // Store mapping from filename to internal name
+let _selectorInstance = null; // Cache for the resolved selector instance
 
 // *** Helper to get clean palette name from filename ***
 function getCleanPaletteName(filename) {
@@ -213,16 +214,34 @@ async function initialPaletteLoad() {
 
 // Function to ensure palettes are loaded and get the selector
 export function getPaletteSelectorInstance() {
+   if (_selectorInstance) {
+       return _selectorInstance; // Return cached instance if available
+   }
+   
    if (!_palettesLoadedPromise) {
        _palettesLoadedPromise = initialPaletteLoad()
          .then(() => {
              // Create instance only after load attempt (even if failed, uses fallbacks)
              const selector = new PaletteSelector();
+             _selectorInstance = selector; // Cache the instance
              return selector;
          });
          // No catch here, let errors propagate if initial load truly fails fatally
    }
    return _palettesLoadedPromise;
+}
+
+export function applyCurrentPaletteToElements(elements) {
+    const selector = getPaletteSelectorInstance();
+    if (selector instanceof PaletteSelector) {
+        // If we have the cached instance, use it directly
+        selector.applyPaletteToElements(elements);
+    } else {
+        // If we got a promise, wait for it
+        selector.then(selector => {
+            selector.applyPaletteToElements(elements);
+        });
+    }
 }
 
 export class PaletteSelector {
@@ -382,7 +401,7 @@ export class PaletteSelector {
        }
        this.darker_bg_hex_color = this.findDarkestBgHexColor();
        // this.darkest_bg_hex_color = '#000000'; // This line seems redundant if calculated below
-}
+    }
 
      _applysCurrentPaletteToElement(element) {
        const data_color_index = element.getAttribute("data-color-index");
@@ -418,9 +437,9 @@ export class PaletteSelector {
        // Ensure colors are valid before applying
        if (bgHexColor) element.style.backgroundColor = bgHexColor;
        if (fgHexColor) element.style.color = fgHexColor;
-   }
+    }
 
-   applyPaletteToElements( elements=null ) {
+    applyPaletteToElements(elements=null ) {
        if ( elements === null ) {
            elements = document.querySelectorAll("[data-color-index]");
         //    console.log("DEBUG: Found elements with data-color-index:", elements.length);
@@ -441,7 +460,7 @@ export class PaletteSelector {
                }
            }
        }
-   }
+    }
 
     findDarkestBgHexColor() {
        if (!this.current_color_palette || this.current_color_palette.length === 0) {
@@ -551,6 +570,10 @@ export class PaletteSelector {
             option.disabled = true;
             this.paletteSelector.appendChild(option);
         }
+    }
+
+    getCurrentPalette() {
+        return this.current_color_palette;
     }
 
 } // End PaletteSelector class

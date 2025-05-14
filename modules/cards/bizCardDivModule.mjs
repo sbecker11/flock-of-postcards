@@ -2,7 +2,7 @@ import * as viewPort from '../layout/viewPort.mjs';
 import * as BizDetailsDivModule from './bizDetailsDivModule.mjs';
 import * as cardUtils from './cardUtils.mjs';
 import * as BizResumeDivModule from './bizResumeDivModule.mjs';
-
+import * as bizCardSortingModule from './bizCardSortingModule.mjs';
 // Business card constants
 export const BIZCARD_MEAN_WIDTH = 200;
 export const BIZCARD_INDENT = 29;
@@ -47,9 +47,15 @@ export function createBizCardDiv(job, jobIndex) {
     bizCardDiv.classList.add("biz-card-div");
     bizCardDiv.classList.add("card-div");
     bizCardDiv.id = cardUtils.getBizCardDivId(jobIndex);
-    console.log(`bizCardDiv.id: ${bizCardDiv.id}`);
+    // console.log(`bizCardDiv.id: ${bizCardDiv.id}`);
     bizCardDiv.job = job;
     bizCardDiv.jobIndex = jobIndex;
+    bizCardDiv.setAttribute('sort-key-start', job.start);
+    bizCardDiv.setAttribute('sort-key-end', job.end);
+    bizCardDiv.setAttribute('sort-key-employer', job.employer);
+    bizCardDiv.setAttribute('sort-key-title', job.title);
+    bizCardDiv.setAttribute('sort-key-job-index', jobIndex);
+
 
     // Set color index (can be different from jobIndex in the future)
     bizCardDiv.setAttribute("data-color-index", jobIndex.toString());
@@ -62,7 +68,13 @@ export function createBizCardDiv(job, jobIndex) {
     bizCardDiv.appendChild(bizDetailsDiv);
         
     // Add click handler
-    bizCardDiv.addEventListener("click", (event) => handleBizCardDivClick(event, bizCardDiv));
+    bizCardDiv.addEventListener("click", (event) => {
+        try {
+            handleBizCardDivClick(event, bizCardDiv);
+        } catch (error) {
+            console.error("Error handling biz card click:", error);
+        }
+    });
     
     // Initialize view-relative styling based on 
     // the scene-relative geometry and focalPoint 
@@ -110,7 +122,6 @@ function setBizCardDivSceneGeometry(bizCardDiv) {
  * @param {Object} job - The job object associated with the card
  */
 export function handleBizCardDivClick(event, bizCardDiv) {
-
     if ( !bizCardDiv ) {
         throw new Error(`bizCardDiv not found`);
     }
@@ -144,4 +155,107 @@ export function handleBizCardDivClick(event, bizCardDiv) {
 
     // and scroll it into view
     bizResumeDiv.scrollIntoView({ behavior: 'smooth' });
+}
+
+export function addBizCardDivManagementButtonEventListeners(
+    selectFirstBizCardButton,
+    selectNextBizCardButton,
+    selectPrevBizCardButton,
+    selectAllBizCardsButton) {
+
+    // Add bizCardDiv managementbutton event listeners
+    if (selectFirstBizCardButton) {
+        selectFirstBizCardButton.addEventListener('click', () => {
+            console.log('First button clicked');
+            const sortedBizCardDivs = getSortedBizCardDivs();
+            if ( !sortedBizCardDivs ) {
+                console.log('No bizCardDivs available');
+                return;
+            }
+            const firstBizCardDiv = sortedBizCardDivs[0];
+            firstBizCardDiv.click();
+        });
+    }
+
+    if (selectNextBizCardButton) {
+        selectNextBizCardButton.addEventListener('click', () => {
+            console.log('Next button clicked');
+            const sortedBizCardDivs = getSortedBizCardDivs();
+            const selectedBizCardDiv = document.querySelector('.biz-card-div.selected');
+            var nextIndex = 0;
+            if ( selectedBizCardDiv ) {
+                const selectedIndex = sortedBizCardDivs.indeOf(selectedBizCardDiv);
+                if ( selectedIndex >= 0 ) {
+                    nextIndex = (selectedIndex + 1) % sortedBizCardDivs.length;
+                }
+            } 
+            const nextBizCardDiv = sortedBizCardDivs[nextIndex];
+            nextBizCardDiv.click();
+        });
+    }
+
+    if (selectPrevBizCardButton) {
+        selectPrevBizCardButton.addEventListener('click', () => {
+            console.log('Prev button clicked');
+            const sortedBizCardDivs = getSortedBizCardDivs();
+            const selectedBizCardDiv = document.querySelector('.biz-card-div.selected');
+            var prevIndex = 0;
+            if ( selectedBizCardDiv ) {
+                const selectedIndex = sortedBizCardDivs.indeOf(selectedBizCardDiv);
+                if ( selectedIndex >= 0 ) {
+                    prevIndex = (selectedIndex - 1 + sortedBizCardDivs.length) % sortedBizCardDivs.length;
+                }
+            } 
+            const prevBizCardDiv = sortedBizCardDivs[prevIndex];
+            prevBizCardDiv.click();
+        });
+    }
+
+
+    if (selectAllBizCardsButton) {
+        // select all bizCardDivs and their bizResumeDivs in the sorted list
+        selectAllBizCardsButton.addEventListener('click', () => {
+            document.querySelectorAll('.bizCard-div').forEach(bizCardDiv => {
+                bizCardDiv.click();
+            });
+        });
+    }
+}
+
+function getSortedBizCardDivs() {
+    const bizCardDivs = document.querySelectorAll('.biz-card-div');
+    const sortingRule = bizCardSortingModule.getCurrentBizCardDivSortingRule();
+    if ( !sortingRule ) {
+        console.log('No sorting rule found');
+        return null;
+    }
+    const sortKey = sortingRule.sort_key;
+    const sortOrder = sortingRule.sort_order;
+    if ( !sortKey ) {
+        console.log('No sort key found');
+        return null;
+    }
+    if ( !sortOrder ) {
+        sortOrder = bizCardSortingModule.DEFAULT_SORT_ORDER;
+        console.log(`No sort order found for so using default sort order: ${sortOrder}`);
+    }
+    const sortKeyAttribute = `sort-key-${sortKey}`;
+    const sortedBizCardDivs = Array.from(bizCardDivs).sort((a, b) => {
+        const aValue = a.getAttribute(sortKeyAttribute);
+        if ( !aValue ) {
+            console.log(`No value found for sort key: ${sortKey} for bizCardDiv: ${a.id}`);
+            return 0;
+        }
+        const bValue = b.getAttribute(sortKeyAttribute);
+        if ( !bValue ) {
+            console.log(`No value found for sort key: ${sortKey} for bizCardDiv: ${b.id}`);
+            return 0;
+        }
+        if (sortOrder == 'asc') {
+            return aValue.localeCompare(bValue);
+        } else {
+            return bValue.localeCompare(aValue);
+        }
+    });
+    return sortedBizCardDivs;
 }

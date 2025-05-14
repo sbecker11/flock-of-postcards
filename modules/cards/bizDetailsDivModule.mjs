@@ -28,7 +28,7 @@ export function createBizDetailsDiv(bizCardDiv) {
     `; 
 
     const color = bizCardDiv.style.color;
-    console.log(`bizDetailsDiv: ${bizDetailsDiv.id} color: ${color} `);
+    // console.log(`bizDetailsDiv: ${bizDetailsDiv.id} color: ${color} `);
 
     return bizDetailsDiv;
 }

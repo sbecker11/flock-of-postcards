@@ -12,6 +12,7 @@ import * as alerts from './modules/alerts.mjs';
 import { getPaletteSelectorInstance } from './modules/color_palettes.mjs';
 import { Logger, LogLevel } from "./modules/logger.mjs";
 import { jobs } from './static_content/jobs/jobs.mjs';
+import * as bizCardSortingModule from './modules/cards/bizCardSortingModule.mjs';
 
 // Import new modules
 import * as zIndex from './modules/layout/zIndex.mjs';
@@ -38,11 +39,13 @@ const sceneDiv = document.getElementById("scene-div");
 const bottomGradient = document.getElementById("bottom-gradient");
 const focalPointElement = document.getElementById("focal-point");
 const bullsEye = document.getElementById("bulls-eye");
-const selectFirstBizCardButton = document.getElementById("select-first-bizCard");
+const selectFirstBizCardButton = document.getElementById("select-first-biz-card");
 const selectNextBizCardButton = document.getElementById("select-next-bizCard");
+const selectPrevBizCardButton = document.getElementById("select-prev-bizCard");
 const selectAllBizCardsButton = document.getElementById("select-all-bizCards");
 const clearAllLineItemsButton = document.getElementById("clear-all-line-items");
 const timelineContainer = document.getElementById("timeline-container");
+const bizCardSortingSelector = document.getElementById("biz-card-sorting-selector");
 let paletteSelector = null;
 
 // --------------------------------------
@@ -154,81 +157,14 @@ async function initialize() {
         // Start auto-scroll
         autoScroll.startAutoScroll(sceneContainer);
 
-        // Add button event listeners
-        if (selectFirstBizCardButton) {
-            selectFirstBizCardButton.addEventListener('click', () => {
-                console.log('First button clicked');
-                const firstCard = document.getElementById('biz-card-div-0');
-                if (firstCard) {
-                    firstCard.click();
-                    console.log('First card selected:', firstCard.id);
-                    selectNextBizCardButton.disabled = false;  // Enable Next button when first card is selected
-                } else {
-                    console.log('No cards available');
-                }
-            });
-        }
+        bizCardDivModule.addBizCardDivManagementButtonEventListeners(
+            selectFirstBizCardButton,
+            selectNextBizCardButton,
+            selectPrevBizCardButton,
+            selectAllBizCardsButton
+        );
 
-        if (selectNextBizCardButton) {
-            selectNextBizCardButton.addEventListener('click', () => {
-                console.log('Next button clicked');
-                const selectedCard = document.querySelector('.biz-card-div.selected');
-                if (selectedCard) {
-                    // Get the current card's index from its ID
-                    const currentIndex = parseInt(selectedCard.id.replace('biz-card-div-', ''));
-                    console.log('Current card index:', currentIndex);
-                    
-                    // Find the next card by its ID, or loop back to 0 if at the end
-                    const nextIndex = currentIndex + 1;
-                    const nextCard = document.getElementById(`biz-card-div-${nextIndex}`);
-                    if (nextCard) {
-                        nextCard.click();
-                        console.log('Next card selected:', nextCard.id);
-                    } else {
-                        // If no next card exists, loop back to the first card (index 0)
-                        const firstCard = document.getElementById('biz-card-div-0');
-                        if (firstCard) {
-                            firstCard.click();
-                            console.log('Looped back to first card:', firstCard.id);
-                        } else {
-                            console.log('No cards available');
-                        }
-                    }
-                } else {
-                    // If no card is selected, select the first card
-                    const firstCard = document.getElementById('biz-card-div-0');
-                    if (firstCard) {
-                        firstCard.click();
-                        console.log('No card selected, selecting first card:', firstCard.id);
-                    } else {
-                        console.log('No cards available');
-                    }
-                }
-            });
-        }
-
-        // Remove the click handler that manages Next button state since it's no longer needed
-        document.removeEventListener('click', (e) => {
-            if (e.target.classList.contains('biz-card-div')) {
-                console.log('Card clicked:', e.target.id);
-            }
-        });
-
-        if (selectAllBizCardsButton) {
-            selectAllBizCardsButton.addEventListener('click', () => {
-                document.querySelectorAll('.bizCard-div').forEach(card => {
-                    card.classList.add('selected');
-                });
-            });
-        }
-
-        if (clearAllLineItemsButton) {
-            clearAllLineItemsButton.addEventListener('click', () => {
-                document.querySelectorAll('.card-div-line-item').forEach(item => {
-                    item.remove();
-                });
-            });
-        }
+        bizCardSortingModule.initializeBizCardSortingSelector(bizCardSortingSelector);
 
         let isDragging = false;
         let startX = 0;
@@ -263,3 +199,53 @@ initialize().catch(error => {
     console.error('Failed to initialize application:', error);
     alerts.showError('Failed to initialize application. Please refresh the page.');
 });
+
+function getSortedBizCardDivs() {
+    const bizCardDivs = document.querySelectorAll('.biz-card-div');
+    const sortingRules = getCurrentBizCardDivSortingRules();
+    if ( !sortingRules ) {
+        console.log('No sorting rules found');
+        return null;
+    }
+    const sortedBizCardDivs = Array.from(bizCardDivs).sort((a, b) => {
+        const aValue = a[sortingRules.sort_key];
+        const bValue = b[sortingRules.sort_key];
+        if ( sortingRules.sort_order == "asc" ) {
+            return aValue - bValue;
+        } else {
+            return bValue - aValue;
+        }
+    });
+    return sortedBizCardDivs;
+}
+
+function getSelectedBizCardDiv() {
+    const selectedBizCardDiv = document.querySelector('.biz-card-div.selected');
+    if ( !selectedBizCardDiv ) {
+        console.log('No selected bizCardDiv found');
+        return null;
+    }
+    return selectedBizCardDiv;
+}
+
+function getNextBizCardDiv(selectedBizCardDiv) {
+    const sortedBizCardDivs = getSortedBizCardDivs();
+    const selectedIndex = sortedBizCardDivs.indexOf(selectedBizCardDiv);
+    if ( selectedIndex == -1 ) {
+        console.log('Selected bizCardDiv not found in sortedBizCardDivs');
+        return null;
+    }
+    const nextIndex = (selectedIndex + 1) % sortedBizCardDivs.length;
+    return sortedBizCardDivs[nextIndex];
+}
+
+function getPreviousBizCardDiv(selectedBizCardDiv) {
+    const sortedBizCardDivs = getSortedBizCardDivs();
+    const selectedIndex = sortedBizCardDivs.indexOf(selectedBizCardDiv);
+    if ( selectedIndex == -1 ) {
+        console.log('Selected bizCardDiv not found in sortedBizCardDivs');
+        return null;
+    }
+    const previousIndex = (selectedIndex - 1 + sortedBizCardDivs.length) % sortedBizCardDivs.length;
+    return sortedBizCardDivs[previousIndex];
+}

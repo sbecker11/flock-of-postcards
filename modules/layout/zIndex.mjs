@@ -16,7 +16,6 @@ export const SKILLCARD_Z_INDEX_MIN = 20;
 export const SKILLCARD_Z_INDEX_MAX = 30;
 
 export const ALL_CARDS_Z_INDEX_MAX = 30;
-
 export const ALL_CARDS_Z_MAX = 35;
 
 // biz card Z value range 35 tp 30
@@ -28,6 +27,16 @@ export const SKILLCARD_Z_MAX = 20;
 export const SKILLCARD_Z_MIN = 10;
 
 export const ALL_CARDS_Z_MIN = 10;
+
+const Z_INDEX_RANGE = ALL_CARDS_Z_INDEX_MAX - ALL_CARDS_Z_INDEX_MIN;
+const Z_RANGE = ALL_CARDS_Z_MAX - ALL_CARDS_Z_MIN;
+
+if (Z_RANGE != Z_INDEX_RANGE) {
+    throw new Error(`Z_RANGE:${Z_RANGE} != Z_INDEX_RANGE:${Z_INDEX_RANGE}`);
+}
+
+export const z_from_z_index = (z_index) => z_index + Z_RANGE;
+export const z_index_from_z = (z) => z - Z_RANGE;
 
 
 // Special case Z-indices
@@ -45,19 +54,14 @@ export function get_z_from_z_index(z_index) {
     if ( (z_index < ALL_CARDS_Z_INDEX_MIN) || (z_index > ALL_CARDS_Z_INDEX_MAX) ) {
         throw new Error(`z_index:${z_index} is out of range of ${ALL_CARDS_Z_INDEX_MIN}..${ALL_CARDS_Z_INDEX_MAX}`);
     }
-    if (z_index >= BIZCARD_Z_INDEX_MIN && z_index <= BIZCARD_Z_INDEX_MAX) {
-        const z_index_range = BIZCARD_Z_INDEX_MAX - BIZCARD_Z_INDEX_MIN;
-        const z_range = BIZCARD_Z_MAX - BIZCARD_Z_MIN;
-        const z_index_offset = z_index - BIZCARD_Z_INDEX_MIN;
-        return Math.round(BIZCARD_Z_MIN + (z_index_offset * z_range / z_index_range));
-    } else if (z_index >= SKILLCARD_Z_INDEX_MIN && z_index <= SKILLCARD_Z_INDEX_MAX) {
-        const z_index_range = SKILLCARD_Z_INDEX_MAX - SKILLCARD_Z_INDEX_MIN;
-        const z_range = SKILLCARD_Z_MAX - SKILLCARD_Z_MIN;
-        const z_index_offset = z_index - SKILLCARD_Z_INDEX_MIN;
-        return Math.round(SKILLCARD_Z_MIN + (z_index_offset * z_range / z_index_range));
-    } else {
-        throw new Error(`IMPOSSIBLE ERROR for z_index:${z_index}`);
+    return z_from_z_index(z_index);
+}
+
+export function get_z_index_from_z(z) {
+    if ( (z < ALL_CARDS_Z_MIN) || (z > ALL_CARDS_Z_MAX) ) {
+        throw new Error(`z:${z} is out of range of ${ALL_CARDS_Z_MIN}..${ALL_CARDS_Z_MAX}`);
     }
+    return z_index_from_z(z);
 }
 
 /**
@@ -70,34 +74,17 @@ export function get_z_from_zIndexStr(zIndexStr) {
 }
 
 /**
- * Converts a z value to a z-index
- * @param {number} z - The z value to convert
- * @returns {number} The corresponding z-index
- */
-export function get_zindex_from_z(z) {
-    if ((z < ALL_CARDS_Z_MIN) || (z > ALL_CARDS_Z_MAX)) {
-        throw new Error(`z:${z} is out of range of ${ALL_CARDS_Z_MIN}..${ALL_CARDS_Z_MAX}`);
-    }
-    if (z >= BIZCARD_Z_MIN && z <= BIZCARD_Z_MAX) {
-        const z_offset = z - BIZCARD_Z_MIN;
-        const z_index = BIZCARD_Z_INDEX_MAX - z_offset;
-        return z_index;
-    } else if (z >= SKILLCARD_Z_MIN && z <= SKILLCARD_Z_MAX) {
-        const z_offset = z - SKILLCARD_Z_MIN;
-        const z_index = SKILLCARD_Z_INDEX_MAX - z_offset;
-        return z_index;
-    } else {
-        throw new Error(`IMPOSSIBLE ERROR for z:${z}`);
-    }
-}
-
-/**
  * Converts a z value to a z-index string
  * @param {number} z - The z value to convert
  * @returns {string} The corresponding z-index string
  */
 export function get_zIndexStr_from_z(z) {
-    return `${get_zindex_from_z(z)}`;
+    if ((z < ALL_CARDS_Z_MIN) || (z > ALL_CARDS_Z_MAX)) {
+        throw new Error(`z:${z} is out of range of ${ALL_CARDS_Z_MIN}..${ALL_CARDS_Z_MAX}`);
+    }
+    const z_index = get_z_index_from_z(z);
+    const zIndexStr = `${z_index}`;
+    return zIndexStr;
 }
 
 /**

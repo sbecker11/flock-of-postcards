@@ -406,6 +406,8 @@ overflow and ensures consistent sizing.
   background-color: var(--background-middle);
   color: black;
   padding: 10px;
+  padding-left: 0px;
+  padding-right: 20px;
   position: relative;
 }
 
@@ -485,14 +487,14 @@ overflow and ensures consistent sizing.
   cursor: pointer;
 }
 
-.bizCard-controls {
+.biz-card-controls {
     display: flex;
     gap: 5px;
     margin: 10px 0;
     flex-wrap: wrap;
 }
 
-.bizCard-controls button {
+.biz-card-controls button {
     padding: 5px 10px;
     border: 1px solid #ccc;
     border-radius: 4px;
@@ -505,31 +507,31 @@ overflow and ensures consistent sizing.
 
 /* When container width is greater than 60%, allow buttons to grow */
 @media (min-width: 60%) {
-    .bizCard-controls button {
+    .biz-card-controls button {
         flex: 1;
         min-width: 0;
     }
 }
 
-.bizCard-controls button:hover {
+.biz-card-controls button:hover {
     background: #e8e8e8;
 }
 
 /* Responsive adjustments */
 @media (min-width: 768px) {
-    .bizCard-controls {
+    .biz-card-controls {
         max-width: calc(240px + 15px); /* 4 buttons + 3 gaps max */
     }
 }
 
 @media (max-width: 767px) {
-    .bizCard-controls {
+    .biz-card-controls {
         max-width: calc(180px + 10px); /* 3 buttons + 2 gaps */
     }
 }
 
 @media (max-width: 480px) {
-    .bizCard-controls {
+    .biz-card-controls {
         max-width: calc(120px + 5px); /* 2 buttons + 1 gap */
     }
 }

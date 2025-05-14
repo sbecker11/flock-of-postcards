@@ -1,4 +1,5 @@
 import * as BizDetailsDiv from './bizDetailsDivModule.mjs';
+import { applyCurrentPaletteToElements } from '../color_palettes.mjs';
 
 // BizResumeDiv is the div that contains the resume of the job
 // and will be added to the right-content-div. 
@@ -13,6 +14,7 @@ export function createBizResumeDiv(bizCardDiv) {
     bizResumeDiv.appendChild(bizCardDetailsDiv);
     bizResumeDiv.setAttribute('data-color-index', bizCardDiv.getAttribute('data-color-index'));
     bizResumeDiv.style.color = bizCardDiv.style.color;
+    applyCurrentPaletteToElements([bizResumeDiv]);
     return bizResumeDiv;
 }
 
