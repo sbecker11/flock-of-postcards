@@ -194,7 +194,7 @@ export function initializeState() {
     
     // Apply divider position
     const sceneContainer = document.getElementById('scene-container');
-    const rightColumn = document.getElementById('right-column');
+    const rightColumn = document.getElementById('resume-column');
     if (sceneContainer && rightColumn) {
         const leftPercent = state.dividerPosition;
         const rightPercent = 100 - leftPercent;

@@ -26,14 +26,15 @@ import * as cardConstants from './modules/cards/cardConstants.mjs';
 import * as autoScroll from './modules/animation/autoScroll.mjs';
 import { initResizeHandle } from './modules/layout/resizeHandle.mjs';
 import { initScrollbarControls } from './modules/layout/viewPort.mjs';
+import { setupHoverSync } from './modules/cards/initHover.mjs';
 
 const logger = new Logger("main", LogLevel.DEBUG);
 
 // --------------------------------------
 // Element reference globals
 
-const rightContentDiv = document.getElementById("right-content-div");
-const rightColumn = document.getElementById("right-column");
+const rightContentDiv = document.getElementById("resume-content-div");
+const rightColumn = document.getElementById("resume-column");
 const sceneContainer = document.getElementById("scene-container");
 const sceneDiv = document.getElementById("scene-div");
 const bottomGradient = document.getElementById("bottom-gradient");
@@ -141,6 +142,9 @@ async function initialize() {
         
         // Initialize scrollbar controls
         initScrollbarControls(sceneContainer);
+        
+        // Initialize hover sync
+        setupHoverSync();
         
         // Add event listeners
         sceneContainer.addEventListener('wheel', autoScroll.handlesceneContainerWheel, { passive: true });

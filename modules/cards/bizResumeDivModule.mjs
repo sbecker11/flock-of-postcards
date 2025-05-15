@@ -2,13 +2,17 @@ import * as BizDetailsDiv from './bizDetailsDivModule.mjs';
 import { applyCurrentPaletteToElements } from '../color_palettes.mjs';
 
 // BizResumeDiv is the div that contains the resume of the job
-// and will be added to the right-content-div. 
+// and will be added to the resume-content-div. 
 export function createBizResumeDiv(bizCardDiv) {
     const bizResumeDiv = document.createElement('div');
     bizResumeDiv.classList.add('biz-resume-div');
     bizResumeDiv.classList.add('card-div');
     bizResumeDiv.classList.add('resume-div');
     bizResumeDiv.bizCardDivId = bizCardDiv.id;
+    
+    // Add the job index for hover sync
+    bizResumeDiv.setAttribute('sort-key-job-index', bizCardDiv.getAttribute('sort-key-job-index'));
+    
     const bizDetailsDiv = BizDetailsDiv.createBizDetailsDiv(bizCardDiv);
     bizResumeDiv.appendChild(bizDetailsDiv);
     bizResumeDiv.setAttribute('data-color-index', bizCardDiv.getAttribute('data-color-index'));

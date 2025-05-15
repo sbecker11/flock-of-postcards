@@ -215,7 +215,7 @@ If the app is already running, it will re-load the `jobs.mjs` file.
 
 - downloads bizCards from local jobs.csv file  
   - BUT only works when running local instance of http-server from the version3 folder  
-- click on a red-div to open a new pink line-item in the right-column  
+- click on a red-div to open a new pink line-item in the resume-column  
 
 
 ### version 0.2:   June 6, 2023

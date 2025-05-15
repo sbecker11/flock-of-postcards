@@ -11,7 +11,7 @@ import * as alerts from './modules/alerts.mjs';
 // --------------------------------------
 // Element reference globals
 
-const rightContentDiv = document.getElementById("right-content-div");
+const rightContentDiv = document.getElementById("resume-content-div");
 // const debugScrollingElement = null; //  = document.getElementById("debugScrollingElement");
 // const debugFocalPointElement = null; //  = document.getElementById("debugFocalPointElement");
 // const debugTheSelectedCardDivIdElement = null; //  = document.getElementById("debugTheSelectedCardDivIdElement");
@@ -1782,7 +1782,7 @@ function addCardDivLineItemClickListener(cardDivLineItem, cardDiv) {
     })
 }
 
-// add a new card-div-line-item to right-column-content
+// add a new card-div-line-item to resume-column-content
 // if one doesn't aleady exist
 // returns the newly addedCardDivLineItem or null
 function addCardDivLineItem(targetCardDivId) {
@@ -1808,7 +1808,7 @@ function addCardDivLineItem(targetCardDivId) {
         var cardDivLineItem = document.createElement("li");
         // console.log(`created cardDivLineItem:${cardDivLineItem.id}`);
         cardDivLineItem.classList.add("card-div-line-item");
-        //cardDivLineItem.classList.add("right-column-div-child");
+        //cardDivLineItem.classList.add("resume-column-div-child");
         cardDivLineItem.id = "card-div-line-item-" + targetCardDivId;
         cardDivLineItem.setAttribute("targetCardDivId", targetCardDivId);
 
@@ -1836,7 +1836,7 @@ function addCardDivLineItem(targetCardDivId) {
 
         // set right column
         var cardDivLineItemRightColumn = document.createElement('div')
-        cardDivLineItemRightColumn.classList.add("card-div-line-item-right-column");
+        cardDivLineItemRightColumn.classList.add("card-div-line-item-resume-column");
         cardDivLineItemRightColumn.classList.add("mono-color-sensitive");
         cardDivLineItemRightColumn.style.backgroundColor = 'transparent';
         cardDivLineItemRightColumn.style.color = targetCardDiv.getAttribute("saved-color") || "";

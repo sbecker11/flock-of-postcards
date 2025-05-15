@@ -4,6 +4,7 @@
     box-sizing: border-box;
     cursor: pointer;
     z-index: 4;
+    transition: all 0s;
 }
 
 .biz-card-div {
@@ -14,27 +15,42 @@
     border-radius: 25px;
 }
 
+/* In card view, hide all text elements in biz-details-div by default */
+.biz-card-div .biz-details-div > * {
+    display: none;
+}
+
+/* Show specific header elements in card view */
+.biz-card-div .biz-details-div > h2,
+.biz-card-div .biz-details-div > h3,
+.biz-card-div .biz-details-div > .biz-defails-dates,
+.biz-card-div .biz-details-div > .header-text {
+    display: block;
+    font-weight: bold;
+}
+
+/* In resume view, show all text elements */
+.biz-resume-div .biz-details-div > * {
+    display: block;
+}
+
 .biz-resume-div {
     width: 100%;
     margin: 10px;
     padding: 10px;
     background-color: transparent;
     overflow: hidden;
+    border-radius: 25px;
 }
 
 .biz-details-div {
     margin: 0px;
-    padding: 0px;
+    padding: 10px;
     background-color: transparent;
     font-family: Arial, Helvetica, sans-serif;
-    font-weight: bold;
+    font-weight: normal;
     font-size: 12px;
     display: block !important;
-}
-
-.biz-card-div:hover,
-.biz-card-div.highlighted {
-    filter: brightness(150%) blur(0px);
 }
 
 .biz-card-div-role {
@@ -66,11 +82,6 @@
     box-sizing: border-box;
     overflow: hidden;
     cursor: pointer;
-}
-
-.skill-card-div:hover,
-.skill-card-div.highlighted {
-    filter: brightness(150%) blur(0px);
 }
 
 .bulleted-job-description-items-ul {

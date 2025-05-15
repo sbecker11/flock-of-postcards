@@ -80,7 +80,7 @@ function handleSkillCardClick(skillCardDiv, skill) {
     skillCardDiv.classList.add('selected');
     
     // Update right content with skill details
-    const rightContentDiv = document.getElementById('right-content-div');
+    const rightContentDiv = document.getElementById('resume-content-div');
     rightContentDiv.innerHTML = `
         <div class="skill-details">
             <h2>${skill.name}</h2>

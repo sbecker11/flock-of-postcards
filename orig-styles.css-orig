@@ -209,7 +209,7 @@ div.card-div span.tag-link {
 }
 
 
-#right-column {
+#resume-column {
   flex: 1;
   overflow: hidden;
   position: relative;
@@ -218,7 +218,7 @@ div.card-div span.tag-link {
   display: flex;
   flex-direction: column;
 }
-#right-header-div {
+#resume-column-header-div {
   background-color: #444444;
   color: white;
   padding: 10px;
@@ -243,7 +243,7 @@ div.card-div span.tag-link {
   font-size: 12px;
 }
 
-#right-content-div {
+#resume-content-div {
   flex-grow: 1;
   overflow-y: auto;
   overflow-x: hidden;
@@ -253,12 +253,12 @@ div.card-div span.tag-link {
   padding: 10px;
 }
 
-.right-content-div-child {
+.resume-content-div-child {
   max-width: 100%;
   height: auto;
 }
 
-#right-footer-div {
+#resume-column-footer-div {
   display: flex;
   flex-direction: column;
   background-color: #999999;
@@ -298,7 +298,7 @@ div.card-div span.tag-link {
   font-size: 14px;
 }
 
-.card-div-line-item-right-column {
+.card-div-line-item-resume-column {
   width: 15px;
   display: flex;
   flex-direction: column;
@@ -314,13 +314,13 @@ div.card-div span.tag-link {
   border-radius: 0px;
 }
 
-.card-div-line-item-right-column .card-div-line-item-delete-button {
+.card-div-line-item-resume-column .card-div-line-item-delete-button {
   background-color: red;
   background: url("./static_content/icons/big-red-x.gif");
   cursor: pointer;
 }
 
-.card-div-line-item-right-column .card-div-line-item-follow-button {
+.card-div-line-item-resume-column .card-div-line-item-follow-button {
   background-color: green;
   background: url("./static_content/icons/green-next.gif");
   cursor: pointer;

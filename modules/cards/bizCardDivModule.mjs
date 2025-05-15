@@ -128,7 +128,7 @@ export function handleBizCardDivClick(event, bizCardDiv) {
     }
 
     // Find or add the bizResumeDiv in the right content div
-    const rightContentDiv = document.getElementById('right-content-div');
+    const rightContentDiv = document.getElementById('resume-content-div');
     var bizResumeDiv = BizResumeDivModule.findBizResumeDiv(rightContentDiv, bizCardDiv);
     if ( ! bizResumeDiv ) {
         console.log(`bizResumeDiv for ${bizCardDiv.id} not found`);

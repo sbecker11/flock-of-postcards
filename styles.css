@@ -221,7 +221,7 @@ overflow and ensures consistent sizing.
 }
 
 
-#right-column {
+#resume-column {
   position: fixed;
   top: 0;
   right: 20px;
@@ -236,13 +236,13 @@ overflow and ensures consistent sizing.
   width: 50%; /* Initial width */
 }
 
-.right-column-left {
+.resume-column-left {
   width: 20px;
   flex-shrink: 0;
   position: relative;
 }
 
-.right-column-right {
+.resume-column-right {
   flex: 1;
   display: flex;
   flex-direction: column;
@@ -280,7 +280,7 @@ overflow and ensures consistent sizing.
 }
 
 /* Handle position when right is collapsed */
-#main-container.right-column-collapsed #resize-handle {
+#main-container.resume-column-collapsed #resize-handle {
     left: 0px;
 }
 
@@ -370,7 +370,7 @@ overflow and ensures consistent sizing.
     color: white;
 }
 
-#right-header-div {
+#resume-column-header-div {
   background-color: #444444;
   color: white;
   padding: 10px;
@@ -397,7 +397,7 @@ overflow and ensures consistent sizing.
   font-size: 12px;
 }
 
-#right-content-div {
+#resume-content-div {
   flex-grow: 1;
   overflow-y: auto;
   overflow-x: hidden;
@@ -411,13 +411,13 @@ overflow and ensures consistent sizing.
   position: relative;
 }
 
-.right-content-div-child {
+.resume-content-div-child {
   max-width: 100%;
   height: auto;
   position: relative;
 }
 
-#right-footer-div {
+#resume-column-footer-div {
   display: flex;
   flex-direction: column;
   background-color: #999999;
@@ -459,7 +459,7 @@ overflow and ensures consistent sizing.
   font-size: 14px;
 }
 
-.skill-card-div-line-item-right-column {
+.skill-card-div-line-item-resume-column {
   width: 15px;
   display: flex;
   flex-direction: column;
@@ -475,13 +475,13 @@ overflow and ensures consistent sizing.
   border-radius: 0px;
 }
 
-.skill-card-div-line-item-right-column .skill-card-div-line-item-delete-button {
+.skill-card-div-line-item-resume-column .skill-card-div-line-item-delete-button {
   background-color: red;
   background: url("./static_content/icons/big-red-x.gif");
   cursor: pointer;
 }
 
-.skill-card-div-line-item-right-column .skill-card-div-line-item-follow-button {
+.skill-card-div-line-item-resume-column .skill-card-div-line-item-follow-button {
   background-color: green;
   background: url("./static_content/icons/green-next.gif");
   cursor: pointer;
