@@ -6,12 +6,16 @@ import cors from 'cors';
 // Assume server is run from the project root directory
 const PROJECT_ROOT = process.cwd();
 const PALETTE_DIR_PATH = path.resolve(PROJECT_ROOT, 'static_content', 'color_palettes');
+const CSS_FILE_PATH = path.resolve(PROJECT_ROOT, 'static_content', 'css', 'palette-styles.css');
 
 const app = express();
 
 // --- Middleware ---
 // Enable CORS for all origins (adjust for production if needed)
 app.use(cors());
+
+// Parse text bodies for the CSS endpoint
+app.use(express.text());
 
 // Serve static files (HTML, JS, CSS, and the palette JSON files)
 // Make sure client-side fetch paths match how files are served.
@@ -71,6 +75,27 @@ app.get('/api/palette-manifest', async (req, res) => {
         } else {
              res.status(500).json({ error: 'Failed to read palette directory.', details: error.message });
         }
+    }
+});
+
+// --- API Endpoint for Writing CSS ---
+app.post('/api/write-css', async (req, res) => {
+    console.log('Received request to write CSS file');
+    try {
+        // Ensure the CSS directory exists
+        const cssDir = path.dirname(CSS_FILE_PATH);
+        await fs.mkdir(cssDir, { recursive: true });
+
+        // Write the CSS content
+        await fs.writeFile(CSS_FILE_PATH, req.body);
+        console.log(`Successfully wrote CSS to ${CSS_FILE_PATH}`);
+        res.json({ success: true });
+    } catch (error) {
+        console.error('Error writing CSS file:', error);
+        res.status(500).json({ 
+            error: 'Failed to write CSS file',
+            details: error.message 
+        });
     }
 });
 

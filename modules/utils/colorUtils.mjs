@@ -1,6 +1,7 @@
 // Color Utilities
 import { clampInt } from './arrayUtils.mjs';
 import { isNonEmptyString } from './typeValidators.mjs';
+import { validateFloat, validateIntArrayLength, validateFloatInRange } from '../utils.mjs';
 
 export function isHexColorString(hexColorStr) {
     return (isNonEmptyString(hexColorStr) && /^#[0-9A-F]{6}$/i.test(String(hexColorStr)));
@@ -235,35 +236,43 @@ export function getEuclideanDistance(rgb1, rgb2) {
 }
 
 /**
- * Validates that an array contains integers and has the specified length
- * @param {number[]} arr - The array to validate
- * @param {number} length - The expected length of the array
- * @throws {Error} If the array is invalid or has the wrong length
+ * Checks if a string is a valid hex color
+ * @param {string} hexColor - The hex color string to validate
+ * @returns {boolean} True if the string is a valid hex color
  */
-export function validateIntArrayLength(arr, length) {
-    if (!Array.isArray(arr)) {
-        throw new Error('Input must be an array');
-    }
-    if (arr.length !== length) {
-        throw new Error(`Array must have length ${length}, got ${arr.length}`);
-    }
-    if (!arr.every(item => Number.isInteger(item))) {
-        throw new Error('All array elements must be integers');
-    }
+export function isValidHexColor(hexColor) {
+    return typeof hexColor === 'string' && /^#[0-9A-F]{6}$/i.test(hexColor);
 }
 
 /**
- * Validates that a number is a float within a specific range
- * @param {number} num - The number to validate
- * @param {number} min - The minimum allowed value
- * @param {number} max - The maximum allowed value
- * @throws {Error} If the number is invalid or out of range
+ * Gets a contrasting color (black or white) for text on the given background color
+ * @param {string} backgroundColor - The background color in hex format
+ * @returns {string} Either black or white hex color
  */
-export function validateFloatInRange(num, min, max) {
-    if (typeof num !== 'number' || isNaN(num) || !isFinite(num)) {
-        throw new Error(`Invalid number: ${num}`);
+export function getContrastingColor(backgroundColor) {
+    if (!isValidHexColor(backgroundColor)) {
+        throw new Error('Invalid hex color format');
     }
-    if (num < min || num > max) {
-        throw new Error(`Number ${num} is out of range [${min}, ${max}]`);
+    const rgb = get_RGB_from_Hex(backgroundColor);
+    // Calculate relative luminance
+    const luminance = (0.299 * rgb[0] + 0.587 * rgb[1] + 0.114 * rgb[2]) / 255;
+    // Use white text for dark backgrounds (luminance < 0.4) and black text for light backgrounds
+    return luminance > 0.4 ? '#000000' : '#FFFFFF';
+}
+
+/**
+ * Adjusts the brightness of a hex color
+ * @param {string} hexColor - The hex color to adjust
+ * @param {number} factor - The brightness factor (1 = no change, >1 brighter, <1 darker)
+ * @returns {string} The adjusted hex color
+ */
+export function adjustBrightness(hexColor, factor) {
+    if (!isValidHexColor(hexColor)) {
+        throw new Error('Invalid hex color format');
     }
+    const rgb = get_RGB_from_Hex(hexColor);
+    const adjustedRgb = rgb.map(channel => 
+        clampInt(Math.round(channel * factor), 0, 255)
+    );
+    return get_Hex_from_RGB(adjustedRgb);
 } 

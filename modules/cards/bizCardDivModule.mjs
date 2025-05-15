@@ -3,6 +3,7 @@ import * as BizDetailsDivModule from './bizDetailsDivModule.mjs';
 import * as cardUtils from './cardUtils.mjs';
 import * as BizResumeDivModule from './bizResumeDivModule.mjs';
 import * as bizCardSortingModule from './bizCardSortingModule.mjs';
+import { assignColorIndex } from '../color_palettes.mjs';
 // Business card constants
 export const BIZCARD_MEAN_WIDTH = 200;
 export const BIZCARD_INDENT = 29;
@@ -47,7 +48,6 @@ export function createBizCardDiv(job, jobIndex) {
     bizCardDiv.classList.add("biz-card-div");
     bizCardDiv.classList.add("card-div");
     bizCardDiv.id = cardUtils.getBizCardDivId(jobIndex);
-    // console.log(`bizCardDiv.id: ${bizCardDiv.id}`);
     bizCardDiv.job = job;
     bizCardDiv.jobIndex = jobIndex;
     bizCardDiv.setAttribute('sort-key-start', job.start);
@@ -55,19 +55,11 @@ export function createBizCardDiv(job, jobIndex) {
     bizCardDiv.setAttribute('sort-key-employer', job.employer);
     bizCardDiv.setAttribute('sort-key-title', job.title);
     bizCardDiv.setAttribute('sort-key-job-index', jobIndex);
-
-
-    // Set color index (can be different from jobIndex in the future)
-    bizCardDiv.setAttribute("data-color-index", jobIndex.toString());
     
-    // Position the scene-relative geometry of the bizCard
-    setBizCardDivSceneGeometry(bizCardDiv);
-
-    // create the biz details div with text
-    const bizDetailsDiv = BizDetailsDivModule.createBizDetailsDiv(bizCardDiv);
-    bizCardDiv.appendChild(bizDetailsDiv);
-        
-    // Add click handler
+    // Assign color index and apply palette
+    assignColorIndex(bizCardDiv, jobIndex);
+    
+    // Add click handler for selection
     bizCardDiv.addEventListener("click", (event) => {
         try {
             handleBizCardDivClick(event, bizCardDiv);
@@ -76,6 +68,13 @@ export function createBizCardDiv(job, jobIndex) {
         }
     });
     
+    // Position the scene-relative geometry of the bizCard
+    setBizCardDivSceneGeometry(bizCardDiv);
+
+    // create the biz details div with text
+    const bizDetailsDiv = BizDetailsDivModule.createBizDetailsDiv(bizCardDiv);
+    bizCardDiv.appendChild(bizDetailsDiv);
+
     // Initialize view-relative styling based on 
     // the scene-relative geometry and focalPoint 
     // at viewPort center which is marked by the bullsEye
@@ -114,7 +113,6 @@ function setBizCardDivSceneGeometry(bizCardDiv) {
     bizCardDiv.setAttribute("sceneZ", sceneZ);
 }
 
-
 /**
  * Handles click events on business cards
  * @param {HTMLElement} bizCardDiv - The clicked business card div
@@ -128,16 +126,6 @@ export function handleBizCardDivClick(event, bizCardDiv) {
     if ( !bizCardDiv.classList.contains('biz-card-div') ) {
         throw new Error(`bizCardDiv is not a biz-card-div`);
     }
-
-    // Remove selected class from all card divs
-    // includeing bizCardDivs, skillCardDivs and 
-    // and bizResumeDivs
-    for (const cardDiv of document.querySelectorAll('.card-div')) {
-        cardDiv.classList.remove('selected');
-    }
-    
-    // Add selected class to clicked card
-    bizCardDiv.classList.add('selected');
 
     // Find or add the bizResumeDiv in the right content div
     const rightContentDiv = document.getElementById('right-content-div');

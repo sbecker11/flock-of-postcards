@@ -30,8 +30,6 @@
     font-weight: bold;
     font-size: 12px;
     display: block !important;
-    color: black !important;
-    /* height: 90%; */
 }
 
 .biz-card-div:hover,
@@ -68,7 +66,6 @@
     box-sizing: border-box;
     overflow: hidden;
     cursor: pointer;
-    transition: filter 0.2s ease;
 }
 
 .skill-card-div:hover,

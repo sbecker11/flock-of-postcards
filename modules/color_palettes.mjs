@@ -7,6 +7,7 @@ import * as typeConversions from './utils/typeConversions.mjs';
 // Directory where palette files are stored
 const PALETTE_DIR = './static_content/color_palettes/';
 const MANIFEST_ENDPOINT = '/api/palette-manifest';
+const CSS_FILE_PATH = './static_content/css/palette-styles.css';
 const FALLBACK_LIGHT_RGBA = 'rgba(100,100,100,1.0)';
 const FALLBACK_DARK_RGBA = 'rgba(64,64,64,1.0)';
 const FALLBACK_LIGHT_HEX = '#CCCCCC';
@@ -14,9 +15,32 @@ const FALLBACK_DARK_HEX = '#666666';
 const FALLBACK_WHITE_HEX = '#FFFFFF';
 const FALLBACK_GREY_HEX = '#888888';
 const FALLBACK_BLACK_HEX = '#000000';
+const BLACK_HEX = '#000000';
+const WHITE_HEX = '#FFFFFF';
+const BRIGHTNESS_THRESHOLD = 0.4; // 40% threshold for switching between black and white text
 
 // Add localStorage key constant
 const LOCAL_STORAGE_PALETTE_KEY = 'lastSelectedPalette';
+
+// Add these constants at the top with other constants
+const HOVER_CLASS = 'color-hover';
+const SELECTED_CLASS = 'color-selected';
+
+// Constants for CSS class names and selectors
+const CSS_CLASS = {
+    PALETTE_PREFIX: 'palette',
+    COLOR_PREFIX: 'color',
+    SELECTED: 'selected',
+    BASE_STYLES: 'palette-styles',
+    HOVER_STYLES: 'palette-hover-styles'
+};
+
+// Helper to generate sanitized class names
+function generateClassName(paletteName, colorIndex, state = '') {
+    const sanitizedName = paletteName.replace(/[^a-zA-Z0-9-]/g, '-');
+    const base = `${CSS_CLASS.PALETTE_PREFIX}-${sanitizedName}-${CSS_CLASS.COLOR_PREFIX}-${colorIndex}`;
+    return state ? `${base}-${state}` : base;
+}
 
 // Object to hold loaded palettes
 let _color_palettes = {};
@@ -25,21 +49,28 @@ let _orderedPaletteNames = []; // Store the ordered names here
 let _filenameToNameMap = {}; // Store mapping from filename to internal name
 let _selectorInstance = null; // Cache for the resolved selector instance
 
-// *** Helper to get clean palette name from filename ***
-function getCleanPaletteName(filename) {
-    if (typeof filename !== 'string') return null;
-    // Remove .json extension
-    let name = filename.replace(/\.json$/, '');
-    // Remove optional NN- prefix
-    name = name.replace(/^\d+-/, '');
-    return name.trim(); // Trim any extra spaces
+// Add a ColorSet class to manage the four colors for each palette entry
+class ColorSet {
+    constructor(normalBg, normalFg, selectedBg, selectedFg) {
+        this.normalBg = normalBg;
+        this.normalFg = normalFg;
+        this.selectedBg = selectedBg;
+        this.selectedFg = selectedFg;
+    }
 }
 
 async function loadOrRefreshPalettes(isRefresh = false) {
     const functionName = isRefresh ? "Refreshing" : "Loading";
     console.log(`${functionName} color palettes using dynamic manifest from:`, MANIFEST_ENDPOINT);
 
-    let newPaletteFiles = []; // Sorted filenames from server
+    // Force clean state for refresh
+    if (isRefresh) {
+        _color_palettes = {};
+        _orderedPaletteNames = [];
+        _filenameToNameMap = {};
+    }
+
+    let newPaletteFiles = [];
     let attempt = 1;
     try {
         // --- Attempt 1 --- 
@@ -48,7 +79,7 @@ async function loadOrRefreshPalettes(isRefresh = false) {
         if (!manifestResponse.ok) { throw new Error(`Manifest fetch failed: ${manifestResponse.status}`); }
         const manifestData = await manifestResponse.json();
         if (!Array.isArray(manifestData)) { throw new Error("Invalid manifest format"); }
-        newPaletteFiles = manifestData; // Server sorted this list
+        newPaletteFiles = manifestData;
         console.log(`Manifest fetch attempt ${attempt} successful.`);
 
     } catch (error1) {
@@ -63,7 +94,7 @@ async function loadOrRefreshPalettes(isRefresh = false) {
             if (!manifestResponse.ok) { throw new Error(`Manifest fetch failed: ${manifestResponse.status}`); }
             const manifestData = await manifestResponse.json();
             if (!Array.isArray(manifestData)) { throw new Error("Invalid manifest format"); }
-            newPaletteFiles = manifestData; // Server sorted this list
+            newPaletteFiles = manifestData;
             console.log(`Manifest fetch attempt ${attempt} successful.`);
         } catch (error2) {
              // If second attempt also fails, log critical and apply fallBack/rethrow
@@ -101,10 +132,30 @@ async function loadOrRefreshPalettes(isRefresh = false) {
     }
     // --- End Optimization Check ---
 
-    // --- Fetch all listed palette files --- 
+    // --- Process palette files and generate CSS ---
     const tempLoadedPalettes = {};
     const tempFilenameToNameMap = {};
-    const fetchPromises = [];
+    const cssRules = [
+        '/* Palette Styles - Dynamically updated by color_palettes.mjs */',
+        '',
+        '/* Default fallback styles */',
+        '.palette-default-color-0 {',
+        '    background-color: #CCCCCC;',
+        '    color: #000000;',
+        '}',
+        '',
+        '.palette-default-color-0.selected {',
+        '    background-color: #FFFFFF;',
+        '    color: #000000;',
+        '}',
+        '',
+        '.palette-default-color-0:hover:not(.selected) {',
+        '    background-color: #FFFFFF;',
+        '    color: #000000;',
+        '}',
+        '',
+        '/* Dynamic palette styles */'
+    ];
 
     for (const filename of newPaletteFiles) {
         if (typeof filename !== 'string' || !filename.endsWith('.json')) {
@@ -113,98 +164,122 @@ async function loadOrRefreshPalettes(isRefresh = false) {
         }
 
         const filePath = PALETTE_DIR + filename;
-        const promise = fetch(filePath)
-            // *** Step 1: Fetch as text first ***
-            .then(response => {
-                if (!response.ok) {
-                    throw new Error(`HTTP error ${response.status} for ${filename}`);
-                }
-                return response.text(); // Get raw text content
-            })
-            .then(rawText => {
-                let paletteData = null;
-                try {
-                    // *** Step 2 & 3: Find boundaries and extract ***
-                    // Trim whitespace first
-                    const trimmedText = rawText.trim();
-                    let jsonText = trimmedText;
+        try {
+            const response = await fetch(filePath);
+            const rawText = await response.text();
+            let paletteData = JSON.parse(rawText.trim());
 
-                    // Basic attempt to handle trailing non-JSON characters after the main object/array
-                    if (trimmedText.startsWith('{') && trimmedText.endsWith('}')) {
-                         // Assume it's an object, find the matching closing brace
-                         // This simple lastIndexOf is NOT robust for nested structures if junk is *inside*
-                         const lastBraceIndex = trimmedText.lastIndexOf('}');
-                         if (lastBraceIndex > 0) {
-                             jsonText = trimmedText.substring(0, lastBraceIndex + 1);
-                         }
-                    } else if (trimmedText.startsWith('[') && trimmedText.endsWith(']')) {
-                         // Handle if root is an array (though our format expects object)
-                         const lastBracketIndex = trimmedText.lastIndexOf(']');
-                         if (lastBracketIndex > 0) {
-                              jsonText = trimmedText.substring(0, lastBracketIndex + 1);
-                         }
-                    }
-                    // If jsonText still differs significantly from trimmedText after basic cleanup, log it
-                    if (jsonText.length < trimmedText.length - 2) { // Allow for 1-2 trailing chars
-                         console.warn(`Potentially cleaned trailing characters from ${filename}. Original length: ${trimmedText.length}, Cleaned length: ${jsonText.length}`);
-                    }
+            if (paletteData && paletteData.name && Array.isArray(paletteData.colors)) {
+                const paletteName = paletteData.name;
+                const colors = paletteData.colors;
+                
+                // Store palette data
+                tempLoadedPalettes[paletteName] = colors;
+                tempFilenameToNameMap[filename] = paletteName;
 
+                // Generate CSS rules for this palette
+                colors.forEach((color, index) => {
+                    const baseClass = generateClassName(paletteName, index);
+                    
+                    // Calculate colors
+                    const normalBg = color;
+                    const normalFg = colorUtils.getContrastingColor(normalBg);
+                    const selectedBg = colorUtils.adjustBrightness(normalBg, 1.5);
+                    const selectedFg = colorUtils.getContrastingColor(selectedBg);
 
-                    // *** Step 4: Parse the potentially cleaned text ***
-                    paletteData = JSON.parse(jsonText);
-
-                } catch (parseError) {
-                    // Throw error if parsing fails even after potential cleanup
-                    console.error(`Failed to parse JSON from ${filename} even after potential cleanup. Content:\n${rawText.substring(0, 200)}...`); // Log snippet
-                    throw parseError; // Re-throw to be caught by the outer .catch
-                }
-
-                // *** Step 5: Validate and store (same as before) ***
-                if (paletteData && paletteData.name && Array.isArray(paletteData.colors)) {
-                    // Use the name *from the file* as the key
-                    tempLoadedPalettes[paletteData.name] = paletteData.colors;
-                    tempFilenameToNameMap[filename] = paletteData.name;
-                    // console.log(`  - Processed palette: ${paletteData.name} from ${filename}`);
-                } else {
-                    console.warn(`Skipping invalid/incomplete palette data structure in file: ${filename}.`);
-                }
-            })
-            .catch(error => {
-                // Log error but continue fetching others
-                console.error(`Failed to load or parse palette file: ${filePath}`, error);
-            });
-        fetchPromises.push(promise);
+                    // Add CSS rules with proper formatting
+                    cssRules.push(
+                        `/* Palette: ${paletteName}, Color: ${index} */`,
+                        `.${baseClass} {`,
+                        `    background-color: ${normalBg};`,
+                        `    color: ${normalFg};`,
+                        `}`,
+                        '',
+                        `.${baseClass}.selected {`,
+                        `    background-color: ${selectedBg};`,
+                        `    color: ${selectedFg};`,
+                        `}`,
+                        '',
+                        `.${baseClass}:hover:not(.selected) {`,
+                        `    background-color: ${selectedBg};`,
+                        `    color: ${selectedFg};`,
+                        `}`,
+                        ''
+                    );
+                });
+            }
+        } catch (error) {
+            console.error(`Failed to process palette file: ${filePath}`, error);
+        }
     }
 
-    await Promise.all(fetchPromises); // Wait for all fetches
-
-    // --- Update module state --- 
+    // --- Update module state ---
     _color_palettes = tempLoadedPalettes;
     _filenameToNameMap = tempFilenameToNameMap;
-
-    // Build the final ordered list of *internal names* based on the *server's file order*
     _orderedPaletteNames = newPaletteFiles
-        .map(filename => _filenameToNameMap[filename]) // Map filename to internal name
-        .filter(name => name && _color_palettes.hasOwnProperty(name)); // Filter out failures/missing
+        .map(filename => _filenameToNameMap[filename])
+        .filter(name => name && _color_palettes.hasOwnProperty(name));
 
-    console.log(`${functionName} complete. Final palette order:`, _orderedPaletteNames);
+    // --- Write CSS file ---
+    try {
+        const cssContent = cssRules.join('\n');
+        const response = await fetch('/api/write-css', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'text/plain'
+            },
+            body: cssContent
+        });
+        
+        if (!response.ok) {
+            throw new Error(`Failed to write CSS file: ${response.status}`);
+        }
+        
+        // Force browser to reload CSS file by adding/updating query parameter
+        const linkEl = document.querySelector('link[href*="palette-styles.css"]');
+        if (linkEl) {
+            const href = linkEl.href.split('?')[0];
+            linkEl.href = `${href}?v=${Date.now()}`;
+        }
+
+        console.log(`${functionName} complete. Generated CSS rules for ${_orderedPaletteNames.length} palettes.`);
+    } catch (error) {
+        console.error('Failed to update CSS file:', error);
+        // Fall back to injecting styles directly if file write fails
+        const styleEl = document.getElementById(CSS_CLASS.BASE_STYLES) || document.createElement('style');
+        styleEl.id = CSS_CLASS.BASE_STYLES;
+        styleEl.textContent = cssRules.join('\n');
+        if (!styleEl.parentNode) {
+            document.head.appendChild(styleEl);
+        }
+    }
 
     if (_orderedPaletteNames.length === 0) {
-         console.error("CRITICAL: No valid color palettes were loaded. Check manifest and JSON files.");
-         // Set fallBack state
-         _color_palettes = { "Default": ["#CCCCCC", "#AAAAAA", "#888888"] };
-         _orderedPaletteNames = ["Default"];
-         _filenameToNameMap = {};
-         if (!isRefresh) throw new Error("Initial palette load resulted in zero palettes.");
+        console.error("CRITICAL: No valid color palettes were loaded. Check manifest and JSON files.");
+        // Set fallBack state with basic CSS
+        _color_palettes = { "Default": ["#CCCCCC", "#AAAAAA", "#888888"] };
+        _orderedPaletteNames = ["Default"];
+        _filenameToNameMap = {};
+        styleEl.textContent = `
+            .${CSS_CLASS.PALETTE_PREFIX}-default-${CSS_CLASS.COLOR_PREFIX}-0 {
+                background-color: #CCCCCC;
+                color: #000000;
+            }
+        `;
+        if (!isRefresh) throw new Error("Initial palette load resulted in zero palettes.");
     }
     
-    return true; // Indicate an update occurred (or initial load completed)
+    return true;
 }
 
 // Initial load wrapper (kept separate for clarity)
 async function initialPaletteLoad() {
     try {
         await loadOrRefreshPalettes(false);
+        // Force an immediate refresh to ensure new contrast calculations
+        if (_selectorInstance) {
+            await _selectorInstance.refreshPalettes();
+        }
     } catch (error) {
         console.error("Initial palette loading failed.");
         // Error already logged, fallbacks set in loadOrRefreshPalettes
@@ -213,7 +288,7 @@ async function initialPaletteLoad() {
 }
 
 // Function to ensure palettes are loaded and get the selector
-export function getPaletteSelectorInstance() {
+function getPaletteSelectorInstance() {
    if (_selectorInstance) {
        return _selectorInstance; // Return cached instance if available
    }
@@ -244,7 +319,7 @@ export function applyCurrentPaletteToElements(elements) {
     }
 }
 
-export class PaletteSelector {
+class PaletteSelector {
     #instance = null; // Keep singleton pattern if desired
 
     constructor() {
@@ -330,44 +405,193 @@ export class PaletteSelector {
         // Apply the initial palette to both elements and document
         this.applyPaletteToElements();
         this.applyPaletteToDocument();
+
+        // Initialize the CSS styles for the current palette
+        this.updatePaletteStyles();
     }
 
-    async selectPalette(selected_value) {
-        console.log("selectPalette selected_value:", selected_value);
-        // Ensure the selected value exists in the loaded palettes
-        if (selected_value === null || !this.color_palettes[selected_value]) {
-            console.error(`Selected palette "${selected_value}" not found in loaded palettes. Available:`, Object.keys(this.color_palettes));
-            // fallBack to first available palette if selection is invalid
-            selected_value = this.getFirstPalette();
-            if (!selected_value) {
-                 console.error("CRITICAL: No palettes available to select.");
-                 return; // Cannot proceed
+    /**
+     * Updates the CSS styles for the current palette
+     */
+    updatePaletteStyles() {
+        const cssRules = [
+            '/* Palette Styles - Dynamically updated */',
+            '',
+            '/* Reset any existing styles */',
+            '[data-color-index] {',
+            '    background-color: inherit;',
+            '    color: inherit;',
+            '    transition: none !important;',
+            '}',
+            ''
+        ];
+
+        // Add rules for each color in the current palette
+        for (let colorIndex = 0; colorIndex < this.current_num_colors; colorIndex++) {
+            const baseClass = generateClassName(this.current_value, colorIndex);
+            const normalBg = this.current_color_palette[colorIndex];
+            const normalFg = this.getContrastingColor(normalBg);
+            const selectedBg = this.adjustBrightness(normalBg, 1.5);
+            const selectedFg = this.getContrastingColor(selectedBg);
+
+            cssRules.push(
+                `/* Color ${colorIndex} */`,
+                `body [data-color-index].${baseClass} {`,
+                `    background-color: ${normalBg} !important;`,
+                `    color: ${normalFg} !important;`,
+                `}`,
+                '',
+                `body [data-color-index].${baseClass}.selected {`,
+                `    background-color: ${selectedBg} !important;`,
+                `    color: ${selectedFg} !important;`,
+                `}`,
+                '',
+                `body [data-color-index].${baseClass}:hover:not(.selected) {`,
+                `    background-color: ${selectedBg} !important;`,
+                `    color: ${selectedFg} !important;`,
+                `}`,
+                ''
+            );
+        }
+
+        // Update the CSS file via the server endpoint
+        fetch('/api/write-css', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'text/plain'
+            },
+            body: cssRules.join('\n')
+        }).catch(error => {
+            console.error('Failed to update CSS file:', error);
+            // Fallback: inject styles directly if server update fails
+            let styleEl = document.getElementById('dynamic-palette-styles');
+            if (!styleEl) {
+                styleEl = document.createElement('style');
+                styleEl.id = 'dynamic-palette-styles';
+                document.head.appendChild(styleEl);
             }
-            console.warn(`Falling back to first palette: ${selected_value}`);
+            styleEl.textContent = cssRules.join('\n');
+        });
+    }
+
+    /**
+     * Applies the appropriate CSS classes to an element
+     * @param {HTMLElement} element - The element to update
+     */
+    applyPaletteToElement(element) {
+        if (!element) return;
+
+        const colorIndex = this.getColorIndex(element);
+        if (colorIndex === null) return;
+
+        // Get the colors for this index
+        const normalBg = this.current_color_palette[colorIndex];
+        const normalFg = this.getContrastingColor(normalBg);
+
+        // Apply colors directly as inline styles
+        element.style.setProperty('background-color', normalBg, 'important');
+        element.style.setProperty('color', normalFg, 'important');
+
+        // Remove any existing palette classes
+        element.className = element.className
+            .split(' ')
+            .filter(cls => !cls.startsWith(CSS_CLASS.PALETTE_PREFIX))
+            .join(' ');
+
+        // Add new palette class
+        const baseClass = generateClassName(this.current_value, colorIndex);
+        element.classList.add(baseClass);
+
+        // Log for debugging
+        console.log(`Applied colors to element:`, {
+            element: element,
+            colorIndex: colorIndex,
+            backgroundColor: normalBg,
+            color: normalFg,
+            class: baseClass
+        });
+    }
+
+    /**
+     * Gets the normalized color index for an element
+     * @param {HTMLElement} element - The element to check
+     * @returns {number|null} The normalized color index or null if invalid
+     */
+    getColorIndex(element) {
+        const data_color_index = element.getAttribute("data-color-index");
+        console.log('Getting color index for element:', {
+            element: element,
+            'data-color-index': data_color_index,
+            'current_num_colors': this.current_num_colors
+        });
+
+        if (!typeValidators.isNonEmptyString(data_color_index)) {
+            console.warn('Invalid data-color-index:', data_color_index);
+            return null;
+        }
+
+        const number_string = this.extractDigitsString(data_color_index);
+        const data_color_int = parseInt(number_string, 10);
+        const final_index = data_color_int % this.current_num_colors;
+
+        console.log('Color index calculation:', {
+            number_string,
+            data_color_int,
+            final_index,
+            'palette_colors': this.current_color_palette
+        });
+
+        return final_index;
+    }
+
+    /**
+     * Updates all elements when palette changes
+     */
+    async selectPalette(selected_value) {
+        if (!_color_palettes[selected_value]) {
+            console.error(`Invalid palette: ${selected_value}`);
+            return;
         }
 
         this.current_value = selected_value;
-        // Save the selected palette to localStorage
+        this.current_color_palette = _color_palettes[selected_value];
+        this.current_num_colors = this.current_color_palette.length;
+
+        // Update all elements with new palette classes and colors
+        console.log(`Applying palette ${selected_value} to all elements...`);
+        const elements = document.querySelectorAll('[data-color-index]');
+        console.log(`Found ${elements.length} elements to update`);
+        elements.forEach(element => this.applyPaletteToElement(element));
+
+        // Save selection and notify
         try {
             localStorage.setItem(LOCAL_STORAGE_PALETTE_KEY, selected_value);
-            // Also save to focal point state
-            const focalPoint = await import('./focal_point.mjs');
-            focalPoint.saveState();
+            window.dispatchEvent(new CustomEvent('paletteChangeComplete', {
+                detail: { palette: selected_value }
+            }));
         } catch (error) {
             console.warn('Failed to save palette selection:', error);
         }
+    }
 
-        // Update the <select> element UI to match the programmatically selected value
-        for( let option of this.paletteSelector.options ) { // Use .options collection
-            option.selected = (option.value === this.current_value);
+    /**
+     * Toggles selection state of an element
+     */
+    toggleSelection(element, forceState) {
+        if (!element) return false;
+        
+        const currentlySelected = element.classList.contains(CSS_CLASS.SELECTED);
+        const newState = (forceState !== undefined) ? forceState : !currentlySelected;
+
+        if (newState !== currentlySelected) {
+            element.classList.toggle(CSS_CLASS.SELECTED, newState);
+            element.dispatchEvent(new CustomEvent('selectionChanged', {
+                detail: { isSelected: newState },
+                bubbles: true
+            }));
         }
 
-        this.current_color_palette = this.color_palettes[this.current_value];
-        this.current_num_colors = this.current_color_palette.length;
-
-        this.initializePaletteDivColors();
-        this.applyPaletteToElements(); // Apply immediately to all elements
-        this.applyPaletteToDocument();
+        return newState;
     }
 
     getFirstPalette() {
@@ -380,150 +604,144 @@ export class PaletteSelector {
        return String(data_color_index).replace(/\D/g, '');
     }
 
+    /**
+     * Gets a contrasting color (black or white) for text on the given background color
+     * @param {string} backgroundColor - The background color in hex format
+     * @returns {string} Either black or white hex color
+     */
+    getContrastingColor(backgroundColor) {
+        return colorUtils.getContrastingColor(backgroundColor);
+    }
+
     initializePaletteDivColors() {
-       // Correctly size arrays based on current palette length
-       this.bg_hex_colors = new Array(this.current_num_colors);
-       this.fg_hex_colors = new Array(this.current_num_colors);
+        // Replace arrays with a single array of ColorSet objects
+        this.colorSets = new Array(this.current_num_colors);
 
-       for (let index = 0; index < this.current_num_colors; index++) {
-           const bg_hex_color_string = this.current_color_palette[index];
-           if (typeof bg_hex_color_string !== 'string') {
-              console.warn(`Invalid color at index ${index} in palette ${this.current_value}:`, bg_hex_color_string);
-              this.bg_hex_colors[index] = FALLBACK_LIGHT_HEX;
-              this.fg_hex_colors[index] = FALLBACK_DARK_HEX;
-              continue;
-           }
-           // Ensure utils functions handle potential errors gracefully
-           // const fg_hex_color_string = utils.getHighContrastCssHexColorStrSafe(bg_hex_color_string); // Assume a safe version exists
-           const fg_hex_color_string = colorUtils.getHighContrastCssHexColorStr(bg_hex_color_string); // Revert if safe version doesn't exist
-           this.bg_hex_colors[index] = bg_hex_color_string || FALLBACK_WHITE_HEX;
-           this.fg_hex_colors[index] = fg_hex_color_string || FALLBACK_BLACK_HEX;
-       }
-       this.darker_bg_hex_color = this.findDarkestBgHexColor();
-       // this.darkest_bg_hex_color = '#000000'; // This line seems redundant if calculated below
-    }
+        let hasInvalidColors = false;
+        for (let index = 0; index < this.current_num_colors; index++) {
+            const bg_hex_color_string = this.current_color_palette[index];
+            
+            // Validate background color format and convert if needed
+            let normalBg = null;
+            if (typeof bg_hex_color_string === 'string' && colorUtils.isValidHexColor(bg_hex_color_string)) {
+                normalBg = bg_hex_color_string;
+            } else {
+                console.warn(`Invalid color at index ${index} in palette ${this.current_value}:`, bg_hex_color_string);
+                normalBg = FALLBACK_LIGHT_HEX;
+                hasInvalidColors = true;
+            }
 
-     _applysCurrentPaletteToElement(element) {
-       const data_color_index = element.getAttribute("data-color-index");
-       if (!typeValidators.isNonEmptyString(data_color_index)) {
-          // Don't throw, just warn and skip? Or maybe apply a default?
-          // console.warn("Element lacks 'data-color-index' attribute:", element);
-          return; // Skip elements without the attribute
-       }
+            try {
+                // Calculate normal colors
+                const normalFg = this.getContrastingColor(normalBg);
 
-       // If color arrays are missing, use fallback colors instead of trying to reinitialize
-       if (!this.bg_hex_colors || !this.fg_hex_colors) {
-           console.warn('Color arrays not initialized, using fallback colors');
-           element.style.backgroundColor = FALLBACK_GREY_HEX;
-           element.style.color = FALLBACK_BLACK_HEX;
-           return;
-       }
+                // Calculate selected colors
+                const bgRGB = colorUtils.get_RGB_from_Hex(normalBg);
+                const bgHSV = colorUtils.get_HSV_from_RGB(bgRGB);
+                bgHSV[2] = Math.min(bgHSV[2] * 1.5, 1.0); // Brighten by 50%, cap at 100%
+                const selectedBg = colorUtils.get_Hex_from_HSV(bgHSV);
+                const selectedFg = this.getContrastingColor(selectedBg);
 
-       const number_string = this.extractDigitsString(data_color_index);
-       const data_color_int = parseInt(number_string, 10);
+                // Store all four colors in a ColorSet
+                this.colorSets[index] = new ColorSet(normalBg, normalFg, selectedBg, selectedFg);
 
-       // Handle potential NaN from parseInt or invalid index
-       if (isNaN(data_color_int) || this.current_num_colors === 0) {
-           console.warn(`Invalid data-color-index value "${data_color_index}" or no colors in palette for element:`, element);
-           element.style.backgroundColor = FALLBACK_GREY_HEX; 
-           element.style.color = FALLBACK_BLACK_HEX;
-           return;
-       }
+            } catch (error) {
+                console.warn(`Error calculating colors for index ${index}:`, error);
+                this.colorSets[index] = new ColorSet(
+                    FALLBACK_LIGHT_HEX,
+                    FALLBACK_DARK_HEX,
+                    FALLBACK_WHITE_HEX,
+                    FALLBACK_BLACK_HEX
+                );
+                hasInvalidColors = true;
+            }
+        }
 
-       const color_index = data_color_int % this.current_num_colors;
-       const bgHexColor = this.bg_hex_colors[color_index];
-       const fgHexColor = this.fg_hex_colors[color_index];
+        if (hasInvalidColors) {
+            console.warn(`Palette "${this.current_value}" had some invalid colors that were replaced with fallbacks`);
+        }
 
-       // Ensure colors are valid before applying
-       if (bgHexColor) element.style.backgroundColor = bgHexColor;
-       if (fgHexColor) element.style.color = fgHexColor;
-    }
-
-    applyPaletteToElements(elements=null ) {
-       if ( elements === null ) {
-           elements = document.querySelectorAll("[data-color-index]");
-        //    console.log("DEBUG: Found elements with data-color-index:", elements.length);
-        //        elements.forEach(el => {
-        //            console.log("DEBUG: Element:", el.id, "data-color-index:", el.getAttribute("data-color-index"));
-        //        });
-       }
-       // console.log(`DEBUG: Applying palette "${this.current_value}" to ${elements.length} elements`);
-       for (const element of elements) {
-           if ( element ) {
-               try {
-                  this._applysCurrentPaletteToElement(element);
-                //   console.log("DEBUG: Applied colors to element:", element.id, 
-                //       "bg:", element.style.backgroundColor,
-                //       "fg:", element.style.color);
-               } catch (error) {
-                  console.error("Error applying palette to element:", element, error);
-               }
-           }
-       }
+        this.darker_bg_hex_color = this.findDarkestBgHexColor();
     }
 
     findDarkestBgHexColor() {
-       if (!this.current_color_palette || this.current_color_palette.length === 0) {
-          return FALLBACK_GREY_HEX; // Default dark if no palette
-       }
+        if (!this.colorSets || this.colorSets.length === 0) {
+            return FALLBACK_GREY_HEX;
+        }
 
-       let darkest_value = Infinity; // Start high
-       let darkest_bgHexColor = this.current_color_palette[0];
+        let darkest_value = Infinity;
+        let darkest_bgHexColor = this.colorSets[0].normalBg;
 
-       for (const bgHexColor of this.current_color_palette) {
-           if (typeof bgHexColor !== 'string') continue; // Skip invalid entries
-
-           try {
-                const RGB = colorUtils.get_RGB_from_Hex(bgHexColor); // Assumes this handles errors
-                const value = colorUtils.getEuclideanDistance(RGB, [0, 0, 0]); // Assumes this handles errors
+        for (const colorSet of this.colorSets) {
+            try {
+                const RGB = colorUtils.get_RGB_from_Hex(colorSet.normalBg);
+                const value = colorUtils.getEuclideanDistance(RGB, [0, 0, 0]);
                 if (value < darkest_value) {
-                    darkest_bgHexColor = bgHexColor;
+                    darkest_bgHexColor = colorSet.normalBg;
                     darkest_value = value;
                 }
-           } catch (error) {
-               console.warn(`Error processing color ${bgHexColor} for darkest calculation:`, error);
-           }
-       }
-       return darkest_bgHexColor || FALLBACK_DARKEST_HEX; // Return default if loop failed somehow
-   }
+            } catch (error) {
+                console.warn(`Error processing color ${colorSet.normalBg} for darkest calculation:`, error);
+            }
+        }
+        return darkest_bgHexColor;
+    }
 
-   applyPaletteToDocument() {
-       const root = document.documentElement;
-       const darkHex = this.findDarkestBgHexColor();
-       const fallbackLightRGBA = FALLBACK_LIGHT_RGBA;
-       const fallbackDarkRGBA = FALLBACK_DARK_RGBA;
-       if (!darkHex) return; // Don't proceed if darkest couldn't be found
+    applyPaletteToElements(elements = null, selectedElements = new Set()) {
+        if (elements === null) {
+            elements = document.querySelectorAll("[data-color-index]");
+        }
 
-       try {
-           let darkRGB = colorUtils.get_RGB_from_Hex(darkHex);
-           let darkHSV = colorUtils.get_HSV_from_RGB(darkRGB);
+        // Apply colors to all elements immediately
+        for (const element of elements) {
+            if (element) {
+                try {
+                    const isSelected = selectedElements.has(element);
+                    this.applyPaletteToElement(element);
+                } catch (error) {
+                    console.error("Error applying palette to element:", element, error);
+                }
+            }
+        }
+    }
 
-           // Calculate darker
-           let darkerHSV = [...darkHSV]; // Clone
-           darkerHSV[2] *= 0.75; // Reduce brightness less drastically
-           const darkerHex = colorUtils.get_Hex_from_HSV(darkerHSV);
+    applyPaletteToDocument() {
+        const root = document.documentElement;
+        const darkHex = this.findDarkestBgHexColor();
+        const fallbackLightRGBA = FALLBACK_LIGHT_RGBA;
+        const fallbackDarkRGBA = FALLBACK_DARK_RGBA;
+        if (!darkHex) return; // Don't proceed if darkest couldn't be found
 
-           // Calculate darkest
-           let darkestHSV = [...darkHSV]; // Clone
-           darkestHSV[2] *= 0.35; // Reduce brightness more
-           const darkestHex = colorUtils.get_Hex_from_HSV(darkestHSV);
-           const darkerRGB = colorUtils.get_RGB_from_Hex(darkerHex);
-           const darkestRGB = colorUtils.get_RGB_from_Hex(darkestHex);
-           const darkerRGBA = colorUtils.get_RGBA_from_RGB(darkerRGB, 1.0);
-           const darkestRGBA = colorUtils.get_RGBA_from_RGB(darkestRGB, 1.0);
+        try {
+            let darkRGB = colorUtils.get_RGB_from_Hex(darkHex);
+            let darkHSV = colorUtils.get_HSV_from_RGB(darkRGB);
 
-           root.style.setProperty('--background-light', darkerRGBA || FALLBACK_LIGHT_RGBA);
-           root.style.setProperty('--background-dark', darkestRGBA || FALLBACK_DARK_RGBA);
+            // Calculate darker
+            let darkerHSV = [...darkHSV]; // Clone
+            darkerHSV[2] *= 0.75; // Reduce brightness less drastically
+            const darkerHex = colorUtils.get_Hex_from_HSV(darkerHSV);
 
-           console.log(`Applied document background: light=${darkerRGBA}, dark=${darkestRGBA}`);
+            // Calculate darkest
+            let darkestHSV = [...darkHSV]; // Clone
+            darkestHSV[2] *= 0.35; // Reduce brightness more
+            const darkestHex = colorUtils.get_Hex_from_HSV(darkestHSV);
+            const darkerRGB = colorUtils.get_RGB_from_Hex(darkerHex);
+            const darkestRGB = colorUtils.get_RGB_from_Hex(darkestHex);
+            const darkerRGBA = colorUtils.get_RGBA_from_RGB(darkerRGB, 1.0);
+            const darkestRGBA = colorUtils.get_RGBA_from_RGB(darkestRGB, 1.0);
 
-       } catch (error) {
-           console.error("Error applying palette to document background:", error);
-           // Apply fallBack defaults directly
-           root.style.setProperty('--background-light', FALLBACK_LIGHT_RGBA);
-           root.style.setProperty('--background-dark', FALLBACK_DARK_RGBA);
-       }
-   }
+            root.style.setProperty('--background-light', darkerRGBA || FALLBACK_LIGHT_RGBA);
+            root.style.setProperty('--background-dark', darkestRGBA || FALLBACK_DARK_RGBA);
+
+            console.log(`Applied document background: light=${darkerRGBA}, dark=${darkestRGBA}`);
+
+        } catch (error) {
+            console.error("Error applying palette to document background:", error);
+            // Apply fallBack defaults directly
+            root.style.setProperty('--background-light', FALLBACK_LIGHT_RGBA);
+            root.style.setProperty('--background-dark', FALLBACK_DARK_RGBA);
+        }
+    }
 
     async refreshPalettes() {
         try {
@@ -531,12 +749,21 @@ export class PaletteSelector {
             if (updated) { 
                 // If updates occurred, rebuild the dropdown and reapply selection
                 this.rebuildDropdown(); 
-                this.selectPalette(this.paletteSelector.value || this.getFirstPalette()); // Reselect current or first
-                console.log("Palette dropdown refreshed.");
-            } // else: Optimization check determined no changes needed
+                await this.selectPalette(this.paletteSelector.value || this.getFirstPalette()); // Reselect current or first
+                
+                // Force CSS regeneration
+                this.updatePaletteStyles();
+                
+                // Force reload of CSS file
+                const linkEl = document.querySelector('link[href*="palette-styles.css"]');
+                if (linkEl) {
+                    linkEl.href = linkEl.href.split('?')[0] + '?v=' + Date.now();
+                }
+                
+                console.log("Palette dropdown and styles refreshed.");
+            }
         } catch (error) {
              console.error("Error during palette refresh process:", error);
-             // Notify user?
         }
     }
 
@@ -576,4 +803,315 @@ export class PaletteSelector {
         return this.current_color_palette;
     }
 
-} // End PaletteSelector class
+    // Method to add hover and selection handlers to an element
+    addElementStateHandlers(element) {
+        if (!element || !element.colorSet) return;
+
+        // Remove existing listeners to prevent duplicates
+        element.removeEventListener('mouseenter', element._hoverHandler);
+        element.removeEventListener('mouseleave', element._hoverHandler);
+        element.removeEventListener('click', element._clickHandler);
+
+        // Create hover handler using new showHoverState method
+        element._hoverHandler = (event) => {
+            this.showHoverState(element, event.type === 'mouseenter');
+        };
+
+        // Create click handler using new toggleSelection method
+        element._clickHandler = () => {
+            this.toggleSelection(element);
+        };
+
+        // Add the listeners
+        element.addEventListener('mouseenter', element._hoverHandler);
+        element.addEventListener('mouseleave', element._hoverHandler);
+        element.addEventListener('click', element._clickHandler);
+    }
+
+    // Method to set selection state without triggering events
+    setElementSelected(element, isSelected) {
+        if (!element || !element.colorSet) return;
+        
+        if (isSelected) {
+            element.classList.remove(HOVER_CLASS);
+            element.classList.add(SELECTED_CLASS);
+        } else {
+            element.classList.remove(SELECTED_CLASS);
+            // Check if we should keep hover state
+            if (element.matches(':hover')) {
+                element.classList.add(HOVER_CLASS);
+            }
+        }
+        this.toggleElementState(element, isSelected);
+    }
+
+    // Method to get all selected elements - now using classList
+    getSelectedElements() {
+        return document.getElementsByClassName(SELECTED_CLASS);
+    }
+
+    // Method to clear all selections - now using classList
+    clearAllSelections() {
+        const selectedElements = this.getSelectedElements();
+        // Convert to array since we're modifying the live HTMLCollection
+        Array.from(selectedElements).forEach(element => {
+            this.setElementSelected(element, false);
+        });
+    }
+
+    // Method to get all hovered elements - if needed
+    getHoveredElements() {
+        return document.getElementsByClassName(HOVER_CLASS);
+    }
+
+    // Add these utility methods to the PaletteSelector class
+
+    /**
+     * Unselects all elements of a given class that are descendants of a container element
+     * @param {HTMLElement} containerElement - The container to search within
+     * @param {string} className - The class to search for
+     */
+    unselectDescendants(containerElement, className) {
+        if (!containerElement) return;
+        
+        // Fast query for selected elements of the given class within the container
+        const selector = `${className}.${SELECTED_CLASS}`;
+        const selectedElements = containerElement.getElementsByClassName(SELECTED_CLASS);
+        
+        // Convert to array since we're modifying the live HTMLCollection
+        Array.from(selectedElements).forEach(element => {
+            if (element.classList.contains(className)) {
+                this.setElementSelected(element, false);
+            }
+        });
+    }
+
+    /**
+     * Shows/hides hover state without changing selection
+     * @param {HTMLElement} element - The element to show/hide hover on
+     * @param {boolean} showHover - Whether to show or hide hover state
+     */
+    showHoverState(element, showHover) {
+        if (!element || !element.colorSet) return;
+
+        // Don't modify actual selection state
+        const isSelected = element.classList.contains(SELECTED_CLASS);
+        
+        if (showHover && !isSelected) {
+            element.classList.add(HOVER_CLASS);
+            this.toggleElementState(element, true);
+        } else if (!showHover && !isSelected) {
+            element.classList.remove(HOVER_CLASS);
+            this.toggleElementState(element, false);
+        }
+        // If selected, do nothing to preserve selection state
+    }
+
+    /**
+     * Toggles selection state of an element
+     * @param {HTMLElement} element - The element to toggle
+     * @param {boolean} [forceState] - Optional state to force (true=selected, false=unselected)
+     * @returns {boolean} The new selection state
+     */
+    toggleSelection(element, forceState) {
+        if (!element || !element.colorSet) return false;
+
+        const currentlySelected = element.classList.contains(SELECTED_CLASS);
+        const newState = (forceState !== undefined) ? forceState : !currentlySelected;
+
+        if (newState !== currentlySelected) {
+            this.setElementSelected(element, newState);
+            
+            // Dispatch event for other components
+            element.dispatchEvent(new CustomEvent('selectionChanged', {
+                detail: { 
+                    isSelected: newState,
+                    element: element
+                },
+                bubbles: true
+            }));
+        }
+
+        return newState;
+    }
+
+    /**
+     * Gets all selected elements of a given class within a container
+     * @param {HTMLElement} containerElement - The container to search within
+     * @param {string} className - The class to filter by
+     * @returns {Array<HTMLElement>} Array of selected elements
+     */
+    getSelectedElementsByClass(containerElement, className) {
+        if (!containerElement) return [];
+        
+        // Get all selected elements within container
+        const selectedElements = containerElement.getElementsByClassName(SELECTED_CLASS);
+        
+        // Filter for those that also have the target class
+        return Array.from(selectedElements).filter(el => el.classList.contains(className));
+    }
+
+    /**
+     * Utility to check if an element is selected
+     * @param {HTMLElement} element - The element to check
+     * @returns {boolean} Whether the element is selected
+     */
+    isElementSelected(element) {
+        return element && element.classList.contains(SELECTED_CLASS);
+    }
+
+    /**
+     * Utility to check if an element is being hovered
+     * @param {HTMLElement} element - The element to check
+     * @returns {boolean} Whether the element is being hovered
+     */
+    isElementHovered(element) {
+        return element && element.classList.contains(HOVER_CLASS);
+    }
+
+    /**
+     * Creates a color manager for a new element
+     */
+    createElementColorManager(element) {
+        const data_color_index = element.getAttribute("data-color-index");
+        if (!typeValidators.isNonEmptyString(data_color_index)) {
+            return null;
+        }
+
+        const number_string = this.extractDigitsString(data_color_index);
+        const data_color_int = parseInt(number_string, 10);
+        
+        if (!this.colorSets || this.current_num_colors === 0) {
+            return null;
+        }
+
+        const color_index = data_color_int % this.current_num_colors;
+        const colorSet = this.colorSets[color_index];
+        const manager = new ElementColorManager(element, colorSet);
+        
+        // Apply initial colors immediately
+        manager.applyInitialColors();
+        
+        return manager;
+    }
+
+    /**
+     * Updates all element colors when palette changes
+     */
+    updateElementManagers(elementManagers) {
+        for (const [element, manager] of elementManagers) {
+            const data_color_index = element.getAttribute("data-color-index");
+            if (!data_color_index) continue;
+
+            const number_string = this.extractDigitsString(data_color_index);
+            const data_color_int = parseInt(number_string, 10);
+            const color_index = data_color_int % this.current_num_colors;
+            
+            manager.updateColorSet(this.colorSets[color_index]);
+        }
+    }
+
+    /**
+     * Gets the current palette's color set for an index
+     * @param {number} index - The color index
+     * @returns {ColorSet} The color set for this index
+     */
+    getColorSetForIndex(index) {
+        if (!this.colorSets || this.current_num_colors === 0) return null;
+        return this.colorSets[index % this.current_num_colors];
+    }
+
+    // Add these example methods to demonstrate hover usage
+
+    /**
+     * Example of how to add hover handlers to an element
+     * @param {HTMLElement} element - The element to add hover to
+     */
+    addHoverHandlers(element) {
+        // Removed - hover is now handled entirely by CSS
+        console.warn('addHoverHandlers is deprecated - hover is now handled by CSS');
+    }
+
+    /**
+     * Get the CSS rules needed for an element's hover state
+     * @param {HTMLElement} element - The element to get hover colors for
+     * @returns {string} CSS rules for the element
+     */
+    getElementHoverCSS(element) {
+        if (!element || !element.colorSet) return '';
+        
+        const colorIndex = element.getAttribute('data-color-index');
+        return `
+            [data-color-index="${colorIndex}"]:not(.color-selected):hover {
+                background-color: ${element.colorSet.selectedBg} !important;
+                color: ${element.colorSet.selectedFg} !important;
+            }
+        `;
+    }
+
+    /**
+     * Add hover styles to the document for all color-managed elements
+     */
+    addHoverStyles() {
+        // Create or get the style element for our hover rules
+        let styleEl = document.getElementById('color-hover-styles');
+        if (!styleEl) {
+            styleEl = document.createElement('style');
+            styleEl.id = 'color-hover-styles';
+            document.head.appendChild(styleEl);
+        }
+
+        // Build all hover rules
+        const rules = [];
+        document.querySelectorAll('[data-color-index]').forEach(element => {
+            if (element.colorSet) {
+                rules.push(this.getElementHoverCSS(element));
+            }
+        });
+
+        // Apply all hover rules at once
+        styleEl.textContent = rules.join('\n');
+    }
+
+    /**
+     * Adjusts the brightness of a hex color
+     * @param {string} hexColor - The hex color to adjust
+     * @param {number} factor - The brightness factor (1 = no change, >1 brighter, <1 darker)
+     * @returns {string} The adjusted hex color
+     */
+    adjustBrightness(hexColor, factor) {
+        if (!colorUtils.isHexColorString(hexColor)) {
+            throw new Error('Invalid hex color format');
+        }
+        return colorUtils.adjustHexBrightness(hexColor, factor);
+    }
+}
+
+// Export necessary classes and utilities
+export {
+    PaletteSelector,
+    ColorSet,
+    loadOrRefreshPalettes,
+    getPaletteSelectorInstance
+};
+
+// Force an immediate refresh when the module loads
+getPaletteSelectorInstance().then(selector => {
+    selector.refreshPalettes();
+    // Force a second refresh after a short delay to ensure styles are applied
+    setTimeout(() => {
+        selector.updatePaletteStyles();
+        selector.applyPaletteToElements();
+    }, 100);
+});
+
+/**
+ * Assigns a color index to an element based on its position in the sequence
+ * @param {HTMLElement} element - The element to assign a color index to
+ * @param {number} sequenceIndex - The index in the sequence (e.g. job index)
+ */
+export function assignColorIndex(element, sequenceIndex) {
+    if (!element) return;
+    element.setAttribute('data-color-index', sequenceIndex.toString());
+    applyCurrentPaletteToElements([element]);
+}
