@@ -15,6 +15,9 @@ export const MAX_X_OFFSET = 100; // Maximum random horizontal offset in pixels
 export const BIZCARD_MIN_Z = 0;
 export const BIZCARD_MAX_Z = 10;
 
+// Add at the top of the file, after imports
+let currentlySelectedCardId = null;
+
 /**
  * Initializes view-relative styling for a any card div
  * assuming that the focal point is locatedd at viewPort
@@ -146,16 +149,45 @@ export function handleBizCardDivClick(event, bizCardDiv) {
         throw new Error(`bizResumeDiv for ${bizCardDiv.id} not found`);
     }
 
-    // Remove selected class from all cards and resumes
-    document.querySelectorAll('.biz-card-div.selected').forEach(div => div.classList.remove('selected'));
-    document.querySelectorAll('.biz-resume-div.selected').forEach(div => div.classList.remove('selected'));
+    // Check if this card is already selected
+    const wasSelected = currentlySelectedCardId === bizCardDiv.id;
+    console.log(`Card ${bizCardDiv.id} was selected: ${wasSelected}`);
+
+    // If it was selected, just deselect it
+    if (wasSelected) {
+        console.log(`Deselecting card ${bizCardDiv.id}`);
+        bizCardDiv.classList.remove('selected');
+        bizResumeDiv.classList.remove('selected');
+        currentlySelectedCardId = null;
+        return;
+    }
+
+    // Otherwise, deselect all others and select this one
+    console.log(`Selecting card ${bizCardDiv.id}`);
+    document.querySelectorAll('.biz-card-div.selected').forEach(div => {
+        console.log(`Deselecting other card ${div.id}`);
+        div.classList.remove('selected');
+    });
+    document.querySelectorAll('.biz-resume-div.selected').forEach(div => {
+        console.log(`Deselecting other resume ${div.id}`);
+        div.classList.remove('selected');
+    });
+
+    // Remove scrolled-into-view from all resumes
+    document.querySelectorAll('.biz-resume-div.scrolled-into-view').forEach(div => {
+        div.classList.remove('scrolled-into-view');
+    });
 
     // Select both the biz resume card and the biz card
     bizResumeDiv.classList.add('selected');
     bizCardDiv.classList.add('selected');
+    currentlySelectedCardId = bizCardDiv.id;
 
-    // Scroll both into view
-    bizResumeDiv.scrollIntoView({ behavior: 'smooth' });
+    // Only scroll if the resume isn't already scrolled into view
+    if (!bizResumeDiv.classList.contains('scrolled-into-view')) {
+        bizResumeDiv.scrollIntoView({ behavior: 'smooth' });
+        bizResumeDiv.classList.add('scrolled-into-view');
+    }
     bizCardDiv.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
 }
 

@@ -181,6 +181,9 @@ export function initResizeHandle(sceneContainer, rightColumn, resizeHandle) {
         resizeHandle.style.left = `${newLeft}px`;
         sceneContainer.style.width = `${newLeft}px`;
         updatePercentageDisplay(newLeft);
+        
+        // Update button states
+        updateButtonStates(nextPercentage);
     });
 
     collapseRightButton.addEventListener('click', () => {
@@ -204,5 +207,36 @@ export function initResizeHandle(sceneContainer, rightColumn, resizeHandle) {
         resizeHandle.style.left = `${newLeft}px`;
         sceneContainer.style.width = `${newLeft}px`;
         updatePercentageDisplay(newLeft);
+        
+        // Update button states
+        updateButtonStates(nextPercentage);
     });
+
+    // Function to update button states based on current percentage
+    function updateButtonStates(percentage) {
+        // Disable left button at 100%
+        if (percentage >= 100) {
+            collapseLeftButton.disabled = true;
+            collapseLeftButton.style.opacity = '0.5';
+            collapseLeftButton.style.cursor = 'not-allowed';
+        } else {
+            collapseLeftButton.disabled = false;
+            collapseLeftButton.style.opacity = '1';
+            collapseLeftButton.style.cursor = 'pointer';
+        }
+
+        // Disable right button at 0%
+        if (percentage <= 0) {
+            collapseRightButton.disabled = true;
+            collapseRightButton.style.opacity = '0.5';
+            collapseRightButton.style.cursor = 'not-allowed';
+        } else {
+            collapseRightButton.disabled = false;
+            collapseRightButton.style.opacity = '1';
+            collapseRightButton.style.cursor = 'pointer';
+        }
+    }
+
+    // Initial button state update
+    updateButtonStates(DEFAULT_WIDTH_PERCENT);
 } 

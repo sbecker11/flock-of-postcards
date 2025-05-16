@@ -37,6 +37,9 @@ export function createBizResumeDiv(bizCardDiv) {
     return bizResumeDiv;
 }
 
+// Add at the top of the file, after imports
+let currentlySelectedResumeId = null;
+
 function handleBizResumeDivClick(event, bizResumeDiv) {
     if (!bizResumeDiv) {
         throw new Error(`bizResumeDiv not found`);
@@ -52,16 +55,43 @@ function handleBizResumeDivClick(event, bizResumeDiv) {
         throw new Error(`bizCardDiv for ${bizResumeDiv.id} not found`);
     }
 
-    // Remove selected class from all cards and resumes
-    document.querySelectorAll('.biz-card-div.selected').forEach(div => div.classList.remove('selected'));
-    document.querySelectorAll('.biz-resume-div.selected').forEach(div => div.classList.remove('selected'));
+    // Check if this resume is already selected
+    const wasSelected = currentlySelectedResumeId === bizResumeDiv.id;
+    console.log(`Resume ${bizResumeDiv.id} was selected: ${wasSelected}`);
+
+    // If it was selected, just deselect it
+    if (wasSelected) {
+        console.log(`Deselecting resume ${bizResumeDiv.id}`);
+        bizResumeDiv.classList.remove('selected');
+        bizCardDiv.classList.remove('selected');
+        currentlySelectedResumeId = null;
+        return;
+    }
+
+    // Otherwise, deselect all others and select this one
+    console.log(`Selecting resume ${bizResumeDiv.id}`);
+    document.querySelectorAll('.biz-card-div.selected').forEach(div => {
+        console.log(`Deselecting other card ${div.id}`);
+        div.classList.remove('selected');
+    });
+    document.querySelectorAll('.biz-resume-div.selected').forEach(div => {
+        console.log(`Deselecting other resume ${div.id}`);
+        div.classList.remove('selected');
+    });
+
+    // Remove scrolled-into-view from all resumes
+    document.querySelectorAll('.biz-resume-div.scrolled-into-view').forEach(div => {
+        div.classList.remove('scrolled-into-view');
+    });
 
     // Select both the biz resume card and the biz card
     bizResumeDiv.classList.add('selected');
     bizCardDiv.classList.add('selected');
+    currentlySelectedResumeId = bizResumeDiv.id;
 
-    // Scroll both into view
+    // Scroll to the resume and mark it as scrolled
     bizResumeDiv.scrollIntoView({ behavior: 'smooth' });
+    bizResumeDiv.classList.add('scrolled-into-view');
     bizCardDiv.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
 }
 
