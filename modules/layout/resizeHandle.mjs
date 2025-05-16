@@ -70,6 +70,21 @@ export function initResizeHandle(sceneContainer, rightColumn, resizeHandle) {
         }
     });
 
+/*
+SCB
+onsolidateResizeHendle logic workf ro
+hardPageRefresh and onLoad
+mouseDrag (change cursor to left/right arrow)  w-resize, e-resize
+collapseLeftButtons (use left pointing cursor or finger) col-resize
+collapseRightButton (use right pointing cursor or finger)
+viewPortResiizing
+resizeHandle by mouseDrag
+window.resizing 
+viewPort should trigger bullsEye
+viewport and/or bullseye should trigger parallax 
+parallax change should trigger view re-rendering
+*/
+
     document.addEventListener('mousemove', (e) => {
         if (!isResizing) return;
         const deltaX = e.clientX - startX;
@@ -184,6 +199,10 @@ export function initResizeHandle(sceneContainer, rightColumn, resizeHandle) {
         
         // Update button states
         updateButtonStates(nextPercentage);
+        updateViewPort(sceneContainer);
+        updateBullsEyePosition(sceneContainer);
+        cardUtils.applyViewRelativeStylingToAllBizCardDivs(viewPort);
+        parallax.updateParallax(sceneContainer);
     });
 
     collapseRightButton.addEventListener('click', () => {

@@ -185,10 +185,24 @@ export function handleBizCardDivClick(event, bizCardDiv) {
 
     // Only scroll if the resume isn't already scrolled into view
     if (!bizResumeDiv.classList.contains('scrolled-into-view')) {
-        bizResumeDiv.scrollIntoView({ behavior: 'smooth' });
+        scrollBizCarDivIntoView(bizResumeDiv);
         bizResumeDiv.classList.add('scrolled-into-view');
     }
-    bizCardDiv.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+}
+
+/**
+ * Scrolls the top part of abusiness card div into view
+ * @param {HTMLElement} bizCardDiv - The business card div to scroll into view
+ */
+export function scrollBizCarDivIntoView(bizCardDiv) {
+    // actually scroll the bizDetailsRole to 
+    // half the distance the the bullsEyeCenterY
+    // SCB
+    const bizDetailsRole = bizCardDiv.findElement('.biz-details-div.biz-details-role');
+    if (!bizDetailsRole) {
+        throw new Error(`bizDetailsRole not found for bizCardDiv ${bizCardDiv.id}`);
+    }
+    bizDetailsRole.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
 }
 
 export function addBizCardDivManagementButtonEventListeners(
