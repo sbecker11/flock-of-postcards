@@ -17,6 +17,16 @@ app.use(cors());
 // Parse text bodies for the CSS endpoint
 app.use(express.text());
 
+// Add cache control headers for static files
+app.use((req, res, next) => {
+    if (req.path.endsWith('.css')) {
+        res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
+        res.setHeader('Pragma', 'no-cache');
+        res.setHeader('Expires', '0');
+    }
+    next();
+});
+
 // Serve static files (HTML, JS, CSS, and the palette JSON files)
 // Make sure client-side fetch paths match how files are served.
 // Serving the whole project root might be needed if index.html is there.

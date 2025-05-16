@@ -492,47 +492,53 @@ overflow and ensures consistent sizing.
     gap: 5px;
     margin: 10px 0;
     flex-wrap: wrap;
+    width: 100%;
 }
 
 .biz-card-controls button {
-    padding: 5px 10px;
-    border: 1px solid #ccc;
-    border-radius: 4px;
-    background: #f8f8f8;
-    cursor: pointer;
-    font-size: 14px;
+    flex: 1 1 auto;
     min-width: 60px;
-    /* transition: background-color 0.2s; */
-}
-
-/* When container width is greater than 60%, allow buttons to grow */
-@media (min-width: 60%) {
-    .biz-card-controls button {
-        flex: 1;
-        min-width: 0;
-    }
+    max-width: calc(240px + 15px); /* 4 buttons + 3 gaps max */
+    padding: 8px 12px;
+    margin: 0;
+    background-color: #2196F3; /* Blue color */
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-weight: bold;
+    outline: none;
+    transition: background-color 0.2s ease, box-shadow 0.2s ease;
+    text-shadow: 1px 1px 1px rgba(0, 0, 0, 0.8);
 }
 
 .biz-card-controls button:hover {
-    background: #e8e8e8;
+    background-color: #1976D2; /* Darker blue on hover */
 }
 
-/* Responsive adjustments */
-@media (min-width: 768px) {
-    .biz-card-controls {
-        max-width: calc(240px + 15px); /* 4 buttons + 3 gaps max */
-    }
+.biz-card-controls button:focus {
+    outline: none;
+    box-shadow: 0 0 5px rgba(255, 255, 255, 0.5);
 }
 
-@media (max-width: 767px) {
-    .biz-card-controls {
+/* When container width is less than 90%, adjust max-width */
+@media (max-width: 90%) {
+    .biz-card-controls button {
         max-width: calc(180px + 10px); /* 3 buttons + 2 gaps */
     }
 }
 
-@media (max-width: 480px) {
-    .biz-card-controls {
+/* When container width is less than 70%, adjust max-width */
+@media (max-width: 70%) {
+    .biz-card-controls button {
         max-width: calc(120px + 5px); /* 2 buttons + 1 gap */
+    }
+}
+
+/* When container width is less than 50%, adjust max-width */
+@media (max-width: 50%) {
+    .biz-card-controls button {
+        max-width: 60px; /* 1 button */
     }
 }
 
@@ -566,14 +572,14 @@ html[native-dark-active] #scene-container,
     position: relative;
     display: flex;
     outline: none;
-    padding: 5px;
+    padding: 5px 0; /* Remove horizontal padding */
     width: 100%;
 }
 
 #color-palette-selector {
     flex: 1 1 auto;
     min-width: 60px;
-    max-width: calc(240px + 15px); /* 4 buttons + 3 gaps max */
+    max-width: calc(240px + 23px);
     padding: 8px 12px;
     margin: 0;
     background-color: #4CAF50;
@@ -583,6 +589,30 @@ html[native-dark-active] #scene-container,
     cursor: pointer;
     font-weight: bold;
     outline: none;
+    transition: background-color 0.2s ease, box-shadow 0.2s ease;
+    width: 100%;
+    text-shadow: 1px 1px 1px rgba(0, 0, 0, 0.8);
+    position: relative;
+    padding-right: 30px;
+}
+
+#color-palette-selector::after {
+    content: '▶';
+    position: absolute;
+    right: 12px;
+    top: 50%;
+    transform: translateY(-50%);
+    font-size: 12px;
+    line-height: 1;
+    font-family: monospace;
+    pointer-events: none;
+    color: #4CAF50;
+    z-index: 1;
+}
+
+#color-palette-selector:focus::after {
+    content: '◀';
+    transform: translateY(-50%) rotate(90deg);
 }
 
 /* When container width is less than 90%, adjust max-width */
@@ -610,6 +640,7 @@ html[native-dark-active] #scene-container,
     background-color: #4CAF50;
     color: white;
     font-weight: bold;
+    text-shadow: 1px 1px 1px rgba(0, 0, 0, 0.8);
 }
 
 #color-palette-selector:hover {
@@ -645,5 +676,198 @@ html[native-dark-active] #scene-container,
 
 .percentage-display:hover {
     color: #00ff00;
+}
+
+#biz-card-sorting-container {
+    position: relative;
+    display: flex;
+    outline: none;
+    padding: 5px 0; /* Remove horizontal padding */
+    width: 100%;
+}
+
+#biz-card-sorting-selector {
+    flex: 1 1 auto;
+    min-width: 60px;
+    max-width: calc(240px + 23px);
+    padding: 8px 12px;
+    margin: 0;
+    background-color: #4CAF50;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-weight: bold;
+    outline: none;
+    transition: background-color 0.2s ease, box-shadow 0.2s ease;
+    width: 100%;
+    text-shadow: 1px 1px 1px rgba(0, 0, 0, 0.8);
+    position: relative;
+    padding-right: 30px;
+}
+
+#biz-card-sorting-selector::after {
+    content: '▶';
+    position: absolute;
+    right: 12px;
+    top: 50%;
+    transform: translateY(-50%);
+    font-size: 12px;
+    line-height: 1;
+    font-family: monospace;
+    pointer-events: none;
+    color: #4CAF50;
+    z-index: 1;
+}
+
+#biz-card-sorting-selector:focus::after {
+    content: '◀';
+    transform: translateY(-50%) rotate(90deg);
+}
+
+/* When container width is less than 90%, adjust max-width */
+@media (max-width: 90%) {
+    #biz-card-sorting-selector {
+        max-width: calc(180px + 10px); /* 3 buttons + 2 gaps */
+    }
+}
+
+/* When container width is less than 70%, adjust max-width */
+@media (max-width: 70%) {
+    #biz-card-sorting-selector {
+        max-width: calc(120px + 5px); /* 2 buttons + 1 gap */
+    }
+}
+
+/* When container width is less than 50%, adjust max-width */
+@media (max-width: 50%) {
+    #biz-card-sorting-selector {
+        max-width: 60px; /* 1 button */
+    }
+}
+
+#biz-card-sorting-selector option {
+    background-color: #4CAF50;
+    color: white;
+    font-weight: bold;
+    text-shadow: 1px 1px 1px rgba(0, 0, 0, 0.8);
+}
+
+#biz-card-sorting-selector:hover {
+    background-color: #45a049;
+}
+
+#biz-card-sorting-selector:focus {
+    outline: none;
+    box-shadow: 0 0 5px rgba(255, 255, 255, 0.5);
+}
+
+#biz-card-sorting-selector:not(:focus) {
+    pointer-events: none;
+}
+
+#biz-card-sorting-container:hover #biz-card-sorting-selector {
+    pointer-events: auto;
+}
+
+/* Custom Mac-style Dropdown */
+.custom-dropdown-button {
+    flex: 1 1 auto;
+    min-width: 60px;
+    max-width: calc(240px + 23px);
+    padding: 8px 12px;
+    margin: 0;
+    background-color: #4CAF50;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-weight: bold;
+    outline: none;
+    transition: background-color 0.2s ease, box-shadow 0.2s ease;
+    width: 100%;
+    text-shadow: 1px 1px 1px rgba(0, 0, 0, 0.8);
+    position: relative;
+    text-align: left;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.button-text {
+    flex: 1;
+    text-align: left;
+}
+
+.dropdown-arrow {
+    font-size: 12px;
+    line-height: 1;
+    font-family: monospace;
+    margin-left: 8px;
+    transition: transform 0.2s ease;
+    display: inline-block;
+    transform-origin: center;
+}
+
+.custom-dropdown-content {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    right: 0;
+    background-color: #4CAF50;
+    border-radius: 4px;
+    margin-top: 4px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+    opacity: 0;
+    visibility: hidden;
+    transform: translateY(-10px);
+    transition: opacity 0.2s ease, transform 0.2s ease, visibility 0.2s;
+    z-index: 1000;
+    max-height: 300px;
+    overflow-y: auto;
+}
+
+.custom-dropdown-content.open {
+    opacity: 1;
+    visibility: visible;
+    transform: translateY(0);
+}
+
+.custom-dropdown-option {
+    padding: 8px 12px;
+    color: white;
+    cursor: pointer;
+    transition: background-color 0.2s ease;
+    text-shadow: 1px 1px 1px rgba(0, 0, 0, 0.8);
+}
+
+.custom-dropdown-option:hover {
+    background-color: #45a049;
+}
+
+.custom-dropdown-option.selected {
+    background-color: #45a049;
+    font-weight: bold;
+}
+
+/* When container width is less than 90%, adjust max-width */
+@media (max-width: 90%) {
+    .custom-dropdown-button {
+        max-width: calc(180px + 10px);
+    }
+}
+
+/* When container width is less than 70%, adjust max-width */
+@media (max-width: 70%) {
+    .custom-dropdown-button {
+        max-width: calc(120px + 5px);
+    }
+}
+
+/* When container width is less than 50%, adjust max-width */
+@media (max-width: 50%) {
+    .custom-dropdown-button {
+        max-width: 60px;
+    }
 }
 

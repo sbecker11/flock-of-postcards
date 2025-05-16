@@ -83,6 +83,13 @@ export function createBizCardDiv(job, jobIndex) {
     }
     cardUtils.applyViewRelativeStyling(viewPort, bizCardDiv);
 
+    // Create and append the resume div immediately
+    const resumeDiv = BizResumeDivModule.createBizResumeDiv(bizCardDiv);
+    const resumeContentDiv = document.getElementById('resume-content-div');
+    if (resumeContentDiv) {
+        resumeContentDiv.appendChild(resumeDiv);
+    }
+
     return bizCardDiv;
 }
 
@@ -120,43 +127,50 @@ function setBizCardDivSceneGeometry(bizCardDiv) {
  * @param {Object} job - The job object associated with the card
  */
 export function handleBizCardDivClick(event, bizCardDiv) {
-    if ( !bizCardDiv ) {
+    if (!bizCardDiv) {
         throw new Error(`bizCardDiv not found`);
     }
-    if ( !bizCardDiv.classList.contains('biz-card-div') ) {
+    if (!bizCardDiv.classList.contains('biz-card-div')) {
         throw new Error(`bizCardDiv is not a biz-card-div`);
     }
 
     // Find or add the bizResumeDiv in the right content div
     const rightContentDiv = document.getElementById('resume-content-div');
     var bizResumeDiv = BizResumeDivModule.findBizResumeDiv(rightContentDiv, bizCardDiv);
-    if ( ! bizResumeDiv ) {
+    if (!bizResumeDiv) {
         console.log(`bizResumeDiv for ${bizCardDiv.id} not found`);
         bizResumeDiv = BizResumeDivModule.addBizResumeDiv(rightContentDiv, bizCardDiv);
         console.log(`bizResumeDiv for ${bizCardDiv.id} added`);
     }
-    if ( !bizResumeDiv ) {
+    if (!bizResumeDiv) {
         throw new Error(`bizResumeDiv for ${bizCardDiv.id} not found`);
     }
-    // select the biz resume card of the clicked biz card
-    bizResumeDiv.classList.add('selected');
 
-    // and scroll it into view
+    // Remove selected class from all cards and resumes
+    document.querySelectorAll('.biz-card-div.selected').forEach(div => div.classList.remove('selected'));
+    document.querySelectorAll('.biz-resume-div.selected').forEach(div => div.classList.remove('selected'));
+
+    // Select both the biz resume card and the biz card
+    bizResumeDiv.classList.add('selected');
+    bizCardDiv.classList.add('selected');
+
+    // Scroll both into view
     bizResumeDiv.scrollIntoView({ behavior: 'smooth' });
+    bizCardDiv.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
 }
 
 export function addBizCardDivManagementButtonEventListeners(
     selectFirstBizCardButton,
     selectNextBizCardButton,
     selectPrevBizCardButton,
-    selectAllBizCardsButton) {
+    selectLastBizCardButton) {
 
-    // Add bizCardDiv managementbutton event listeners
+    // Add bizCardDiv management button event listeners
     if (selectFirstBizCardButton) {
         selectFirstBizCardButton.addEventListener('click', () => {
             console.log('First button clicked');
-            const sortedBizCardDivs = getSortedBizCardDivs();
-            if ( !sortedBizCardDivs ) {
+            const sortedBizCardDivs = bizCardSortingModule.getSortedBizCardDivs();
+            if (!sortedBizCardDivs || sortedBizCardDivs.length === 0) {
                 console.log('No bizCardDivs available');
                 return;
             }
@@ -168,15 +182,19 @@ export function addBizCardDivManagementButtonEventListeners(
     if (selectNextBizCardButton) {
         selectNextBizCardButton.addEventListener('click', () => {
             console.log('Next button clicked');
-            const sortedBizCardDivs = getSortedBizCardDivs();
+            const sortedBizCardDivs = bizCardSortingModule.getSortedBizCardDivs();
+            if (!sortedBizCardDivs || sortedBizCardDivs.length === 0) {
+                console.log('No bizCardDivs available');
+                return;
+            }
             const selectedBizCardDiv = document.querySelector('.biz-card-div.selected');
-            var nextIndex = 0;
-            if ( selectedBizCardDiv ) {
-                const selectedIndex = sortedBizCardDivs.indeOf(selectedBizCardDiv);
-                if ( selectedIndex >= 0 ) {
+            let nextIndex = 0;
+            if (selectedBizCardDiv) {
+                const selectedIndex = sortedBizCardDivs.indexOf(selectedBizCardDiv);
+                if (selectedIndex >= 0) {
                     nextIndex = (selectedIndex + 1) % sortedBizCardDivs.length;
                 }
-            } 
+            }
             const nextBizCardDiv = sortedBizCardDivs[nextIndex];
             nextBizCardDiv.click();
         });
@@ -185,65 +203,34 @@ export function addBizCardDivManagementButtonEventListeners(
     if (selectPrevBizCardButton) {
         selectPrevBizCardButton.addEventListener('click', () => {
             console.log('Prev button clicked');
-            const sortedBizCardDivs = getSortedBizCardDivs();
+            const sortedBizCardDivs = bizCardSortingModule.getSortedBizCardDivs();
+            if (!sortedBizCardDivs || sortedBizCardDivs.length === 0) {
+                console.log('No bizCardDivs available');
+                return;
+            }
             const selectedBizCardDiv = document.querySelector('.biz-card-div.selected');
-            var prevIndex = 0;
-            if ( selectedBizCardDiv ) {
-                const selectedIndex = sortedBizCardDivs.indeOf(selectedBizCardDiv);
-                if ( selectedIndex >= 0 ) {
+            let prevIndex = 0;
+            if (selectedBizCardDiv) {
+                const selectedIndex = sortedBizCardDivs.indexOf(selectedBizCardDiv);
+                if (selectedIndex >= 0) {
                     prevIndex = (selectedIndex - 1 + sortedBizCardDivs.length) % sortedBizCardDivs.length;
                 }
-            } 
+            }
             const prevBizCardDiv = sortedBizCardDivs[prevIndex];
             prevBizCardDiv.click();
         });
     }
 
-
-    if (selectAllBizCardsButton) {
-        // select all bizCardDivs and their bizResumeDivs in the sorted list
-        selectAllBizCardsButton.addEventListener('click', () => {
-            document.querySelectorAll('.bizCard-div').forEach(bizCardDiv => {
-                bizCardDiv.click();
-            });
+    if (selectLastBizCardButton) {
+        selectLastBizCardButton.addEventListener('click', () => {
+            console.log('Last button clicked');
+            const sortedBizCardDivs = bizCardSortingModule.getSortedBizCardDivs();
+            if (!sortedBizCardDivs || sortedBizCardDivs.length === 0) {
+                console.log('No bizCardDivs available');
+                return;
+            }
+            const lastBizCardDiv = sortedBizCardDivs[sortedBizCardDivs.length - 1];
+            lastBizCardDiv.click();
         });
     }
-}
-
-function getSortedBizCardDivs() {
-    const bizCardDivs = document.querySelectorAll('.biz-card-div');
-    const sortingRule = bizCardSortingModule.getCurrentBizCardDivSortingRule();
-    if ( !sortingRule ) {
-        console.log('No sorting rule found');
-        return null;
-    }
-    const sortKey = sortingRule.sort_key;
-    const sortOrder = sortingRule.sort_order;
-    if ( !sortKey ) {
-        console.log('No sort key found');
-        return null;
-    }
-    if ( !sortOrder ) {
-        sortOrder = bizCardSortingModule.DEFAULT_SORT_ORDER;
-        console.log(`No sort order found for so using default sort order: ${sortOrder}`);
-    }
-    const sortKeyAttribute = `sort-key-${sortKey}`;
-    const sortedBizCardDivs = Array.from(bizCardDivs).sort((a, b) => {
-        const aValue = a.getAttribute(sortKeyAttribute);
-        if ( !aValue ) {
-            console.log(`No value found for sort key: ${sortKey} for bizCardDiv: ${a.id}`);
-            return 0;
-        }
-        const bValue = b.getAttribute(sortKeyAttribute);
-        if ( !bValue ) {
-            console.log(`No value found for sort key: ${sortKey} for bizCardDiv: ${b.id}`);
-            return 0;
-        }
-        if (sortOrder == 'asc') {
-            return aValue.localeCompare(bValue);
-        } else {
-            return bValue.localeCompare(aValue);
-        }
-    });
-    return sortedBizCardDivs;
 }

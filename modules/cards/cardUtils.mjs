@@ -428,3 +428,12 @@ export function getRandomSignedOffset(maxOffset) {
 export function getRandomBetween(min, max) {
     return Math.floor(Math.random() * (max - min + 1)) + min;
 }
+
+/**
+ * Gets the ID of a business resume div
+ * @param {number} index - The index of the business resume div
+ * @returns {string} The ID of the business resume div
+ */
+export function getBizResumeDivId(index) {
+    return `biz-resume-div-${index}`;
+}

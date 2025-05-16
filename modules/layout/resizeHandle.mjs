@@ -161,20 +161,48 @@ export function initResizeHandle(sceneContainer, rightColumn, resizeHandle) {
 
     // Add event listeners for collapse buttons
     collapseLeftButton.addEventListener('click', () => {
-        // Collapse to left edge with full window width
-        rightColumn.style.width = `${window.innerWidth}px`;
-        rightColumn.style.left = `0px`;
-        resizeHandle.style.left = `0px`;
-        sceneContainer.style.width = '0px';
-        updatePercentageDisplay(0);
+        const currentLeft = rightColumn.offsetLeft;
+        const windowWidth = window.innerWidth;
+        const maxWidth = windowWidth - BUTTON_COLUMN_WIDTH;
+        
+        // Calculate current percentage and round to nearest 25%
+        const currentPercentage = Math.round(100 * (maxWidth - currentLeft) / maxWidth);
+        const currentIncrement = Math.round(currentPercentage / 25) * 25;
+        
+        // Find next higher 25% increment
+        const nextPercentage = Math.min(100, currentIncrement + 25);
+        
+        // Calculate new left position
+        const newLeft = Math.round(maxWidth - (maxWidth * nextPercentage / 100));
+        
+        // Apply new position
+        rightColumn.style.width = `${windowWidth - newLeft}px`;
+        rightColumn.style.left = `${newLeft}px`;
+        resizeHandle.style.left = `${newLeft}px`;
+        sceneContainer.style.width = `${newLeft}px`;
+        updatePercentageDisplay(newLeft);
     });
 
     collapseRightButton.addEventListener('click', () => {
-        // Collapse to right edge with button column width
-        rightColumn.style.width = `${BUTTON_COLUMN_WIDTH}px`;
-        rightColumn.style.left = `${window.innerWidth - BUTTON_COLUMN_WIDTH}px`;
-        resizeHandle.style.left = `${window.innerWidth - BUTTON_COLUMN_WIDTH}px`;
-        sceneContainer.style.width = `${window.innerWidth - BUTTON_COLUMN_WIDTH}px`;
-        updatePercentageDisplay(window.innerWidth - BUTTON_COLUMN_WIDTH);
+        const currentLeft = rightColumn.offsetLeft;
+        const windowWidth = window.innerWidth;
+        const maxWidth = windowWidth - BUTTON_COLUMN_WIDTH;
+        
+        // Calculate current percentage and round to nearest 25%
+        const currentPercentage = Math.round(100 * (maxWidth - currentLeft) / maxWidth);
+        const currentIncrement = Math.round(currentPercentage / 25) * 25;
+        
+        // Find next lower 25% increment
+        const nextPercentage = Math.max(0, currentIncrement - 25);
+        
+        // Calculate new left position
+        const newLeft = Math.round(maxWidth - (maxWidth * nextPercentage / 100));
+        
+        // Apply new position
+        rightColumn.style.width = `${windowWidth - newLeft}px`;
+        rightColumn.style.left = `${newLeft}px`;
+        resizeHandle.style.left = `${newLeft}px`;
+        sceneContainer.style.width = `${newLeft}px`;
+        updatePercentageDisplay(newLeft);
     });
 } 
