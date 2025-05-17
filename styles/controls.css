@@ -1,0 +1,41 @@
+/* Styles for UI controls */
+.toggle-collapse-button {
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  border: 1px solid gray;
+  background: rgba(50, 50, 50, 0.9);
+  color: white;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 12px;
+  font-weight: bold;
+  line-height: 1;
+  z-index: 1001;
+  margin: 2px 0;
+  padding: 0;
+}
+
+.toggle-collapse-button:hover {
+  background-color: rgba(80, 80, 80, 1);
+  border-color: white;
+}
+
+.percentage-display {
+  color: white;
+  font-size: 10px;
+  font-family: monospace;
+  text-align: center;
+  margin-top: 5px;
+  cursor: pointer;
+  background: none;
+  border: none;
+  padding: 2px;
+  width: 100%;
+}
+
+.percentage-display:hover {
+  color: #00ff00;
+} 

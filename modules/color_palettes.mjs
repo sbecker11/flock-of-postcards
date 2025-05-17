@@ -61,7 +61,6 @@ class ColorSet {
 
 async function loadOrRefreshPalettes(isRefresh = false) {
     const functionName = isRefresh ? "Refreshing" : "Loading";
-    console.log(`${functionName} color palettes using dynamic manifest from:`, MANIFEST_ENDPOINT);
 
     // Force clean state for refresh
     if (isRefresh) {
@@ -74,20 +73,17 @@ async function loadOrRefreshPalettes(isRefresh = false) {
     let attempt = 1;
     try {
         // --- Attempt 1 --- 
-        console.log(`Manifest fetch attempt ${attempt}...`);
         const manifestResponse = await fetch(MANIFEST_ENDPOINT);
         if (!manifestResponse.ok) { throw new Error(`Manifest fetch failed: ${manifestResponse.status}`); }
         const manifestData = await manifestResponse.json();
         if (!Array.isArray(manifestData)) { throw new Error("Invalid manifest format"); }
         newPaletteFiles = manifestData;
-        console.log(`Manifest fetch attempt ${attempt} successful.`);
 
     } catch (error1) {
         console.warn(`Manifest fetch attempt ${attempt} failed:`, error1.message);
         attempt++;
         // Wait 1 second before retrying
         await new Promise(resolve => setTimeout(resolve, 1000)); 
-        console.log(`Manifest fetch attempt ${attempt}...`);
         try {
             // --- Attempt 2 --- 
             const manifestResponse = await fetch(MANIFEST_ENDPOINT);
@@ -95,7 +91,6 @@ async function loadOrRefreshPalettes(isRefresh = false) {
             const manifestData = await manifestResponse.json();
             if (!Array.isArray(manifestData)) { throw new Error("Invalid manifest format"); }
             newPaletteFiles = manifestData;
-            console.log(`Manifest fetch attempt ${attempt} successful.`);
         } catch (error2) {
              // If second attempt also fails, log critical and apply fallBack/rethrow
             console.error(`CRITICAL: Manifest fetch attempt ${attempt} also failed:`, error2.message);
@@ -109,8 +104,6 @@ async function loadOrRefreshPalettes(isRefresh = false) {
         }
     }
 
-    console.log(`Final manifest list received: ${newPaletteFiles.length} files.`);
-    
     // --- Optimization Check (only for refresh) ---
     if (isRefresh) {
         const currentFilenames = Object.keys(_filenameToNameMap); // Get current filenames
@@ -125,10 +118,8 @@ async function loadOrRefreshPalettes(isRefresh = false) {
                                 currentFilenames.every((value, index) => value === newPaletteFiles[index]);
         
         if (listsAreIdentical) {
-            console.log("Palette file list (names and order) hasn't changed. No refresh needed.");
             return false; // Indicate no update occurred
         }
-        console.log("Palette file list has changed, proceeding with refresh...");
     }
     // --- End Optimization Check ---
 
@@ -502,14 +493,14 @@ class PaletteSelector {
         const baseClass = generateClassName(this.current_value, colorIndex);
         element.classList.add(baseClass);
 
-        // Log for debugging
-        console.log(`Applied colors to element:`, {
-            element: element,
-            colorIndex: colorIndex,
-            backgroundColor: normalBg,
-            color: normalFg,
-            class: baseClass
-        });
+        // Log for debugging removed to reduce noise
+        // console.log(`Applied colors to element:`, {
+        //     element: element,
+        //     colorIndex: colorIndex,
+        //     backgroundColor: normalBg,
+        //     color: normalFg,
+        //     class: baseClass
+        // });
     }
 
     /**
@@ -519,11 +510,12 @@ class PaletteSelector {
      */
     getColorIndex(element) {
         const data_color_index = element.getAttribute("data-color-index");
-        console.log('Getting color index for element:', {
-            element: element,
-            'data-color-index': data_color_index,
-            'current_num_colors': this.current_num_colors
-        });
+        // Removed debug log to reduce noise
+        // console.log('Getting color index for element:', {
+        //     element: element,
+        //     'data-color-index': data_color_index,
+        //     'current_num_colors': this.current_num_colors
+        // });
 
         if (!typeValidators.isNonEmptyString(data_color_index)) {
             console.warn('Invalid data-color-index:', data_color_index);
@@ -534,12 +526,13 @@ class PaletteSelector {
         const data_color_int = parseInt(number_string, 10);
         const final_index = data_color_int % this.current_num_colors;
 
-        console.log('Color index calculation:', {
-            number_string,
-            data_color_int,
-            final_index,
-            'palette_colors': this.current_color_palette
-        });
+        // Removed debug log to reduce noise
+        // console.log('Color index calculation:', {
+        //     number_string,
+        //     data_color_int,
+        //     final_index,
+        //     'palette_colors': this.current_color_palette
+        // });
 
         return final_index;
     }
@@ -754,10 +747,24 @@ class PaletteSelector {
                 // Force CSS regeneration
                 this.updatePaletteStyles();
                 
-                // Force reload of CSS file
+                // Force reload of CSS file with error handling
                 const linkEl = document.querySelector('link[href*="palette-styles.css"]');
                 if (linkEl) {
-                    linkEl.href = linkEl.href.split('?')[0] + '?v=' + Date.now();
+                    const originalHref = linkEl.href.split('?')[0];
+                    const newHref = originalHref + '?v=' + Date.now();
+                    linkEl.href = newHref;
+                    // Add an error handler to catch loading issues
+                    linkEl.onerror = (error) => {
+                        console.error('Failed to load CSS file:', error);
+                        console.error('CSS URL:', newHref);
+                        // Retry loading once more after a delay
+                        setTimeout(() => {
+                            console.log('Retrying CSS file load...');
+                            linkEl.href = originalHref + '?v=' + (Date.now() + 1);
+                        }, 1000);
+                    };
+                } else {
+                    console.warn('CSS link element for palette-styles.css not found.');
                 }
                 
                 console.log("Palette dropdown and styles refreshed.");

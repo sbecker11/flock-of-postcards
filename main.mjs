@@ -121,7 +121,24 @@ async function initialize() {
         
         // Initialize resize handle
         const resizeHandle = document.getElementById('resize-handle');
-        initResizeHandle(sceneContainer, rightColumn, resizeHandle);
+        const resumeColumnLeft = document.querySelector('.resume-column-left');
+
+        function updateResizeHandlePosition() {
+            const rect = resumeColumnLeft.getBoundingClientRect();
+            resizeHandle.style.left = `${rect.left}px`;
+        }
+
+        // Update position on load
+        updateResizeHandlePosition();
+
+        // Update position on window resize
+        window.addEventListener('resize', updateResizeHandlePosition);
+
+        const resizeManager = initResizeHandle(sceneContainer, rightColumn, resizeHandle);
+        
+        // Initialize collapse buttons
+        const collapseLeftButton = document.getElementById('collapse-left');
+        const collapseRightButton = document.getElementById('collapse-right');
         
         // sanity check for z and z_index functions
         zIndex.test_z_functions();
@@ -149,13 +166,13 @@ async function initialize() {
         // Add event listeners
         sceneContainer.addEventListener('wheel', autoScroll.handlesceneContainerWheel, { passive: true });
         sceneContainer.addEventListener('scroll', () => {
-            // Update parallax effects when scrolling
-            parallax.renderAllTranslateableDivsAtsceneContainerCenter(sceneContainer);
+            // Update parallax effects when scrolling (commented out as parallax module is not available)
+            // parallax.renderAllTranslateableDivsAtsceneContainerCenter(sceneContainer);
         });
         window.addEventListener('resize', () => {
             viewPort.updateViewPort(sceneContainer);
             viewPort.updateBullsEyeVerticalPosition();
-            parallax.renderAllTranslateableDivsAtsceneContainerCenter(sceneContainer);
+            // parallax.renderAllTranslateableDivsAtsceneContainerCenter(sceneContainer); (commented out as parallax module is not available)
         });
 
         // Start auto-scroll
@@ -181,15 +198,12 @@ async function initialize() {
             startLeft = parseInt(window.getComputedStyle(resizeHandle).left);
         });
 
-        document.addEventListener('mousemove', (e) => {
-            if (!isDragging) return;
-            const dx = e.clientX - startX;
-            const newLeft = Math.max(0, Math.min(window.innerWidth - resizeHandle.offsetWidth, startLeft + dx));
-            resizeHandle.style.left = `${newLeft}px`;
-            // Update viewPort and bullsEye position when handle is moved
-            viewPort.updateViewPort(sceneContainer);
-            viewPort.updateBullsEyeVerticalPosition();
-            parallax.renderAllTranslateableDivsAtsceneContainerCenter(sceneContainer);
+        collapseLeftButton.addEventListener('click', () => {
+            resizeManager.collapseLeft();
+        });
+
+        collapseRightButton.addEventListener('click', () => {
+            resizeManager.collapseRight();
         });
 
     } catch (error) {
@@ -199,9 +213,11 @@ async function initialize() {
 }
 
 // Start the application
-initialize().catch(error => {
-    console.error('Failed to initialize application:', error);
-    alerts.showError('Failed to initialize application. Please refresh the page.');
+document.addEventListener('DOMContentLoaded', function() {
+    initialize().catch(error => {
+        console.error('Failed to initialize application:', error);
+        alerts.showError('Failed to initialize application. Please refresh the page.');
+    });
 });
 
 function getSortedBizCardDivs() {

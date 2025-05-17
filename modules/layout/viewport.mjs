@@ -49,7 +49,7 @@ export function updateViewPort(sceneContainer) {
     const sceneContainerHeight = sceneContainerRect.bottom - sceneContainerRect.top;
     
     // Get the resize handle position
-    const resizeHandle = document.getElementById('resize-handle');
+    const resizeHandle = document.querySelector('.resize-handle');
     const handleRect = resizeHandle.getBoundingClientRect();
     
     viewPortProperties.padding = VIEWPORT_PADDING;
@@ -131,7 +131,7 @@ export function updateScrollPercentage(sceneContainer) {
     const percentageDisplay = document.querySelector('.percentage-display');
     if (!percentageDisplay) return;
 
-    const resizeHandle = document.getElementById('resize-handle');
+    const resizeHandle = document.querySelector('.resize-handle');
     if (!resizeHandle) return;
 
     const handleRect = resizeHandle.getBoundingClientRect();

@@ -1,0 +1,217 @@
+/* Styles for resume column and related elements */
+#resume-column-header-div {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+}
+
+.intro {
+  padding-left: 5px;
+}
+
+#resume-column-footer-div {
+  display: flex;
+  flex-direction: column;
+}
+
+#resume-column-footer-div > div {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.footnote {
+  margin: 0;
+  padding-left: 5px;
+}
+
+/* Ensure resume-column-left has position relative for absolute positioning context */
+.resume-column-left {
+  position: relative;
+  height: 100%;
+}
+
+/* Style for resize-handle as part of resume-column */
+.resize-handle {
+  position: fixed;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 20px;
+  display: flex !important;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-start; /* Top to bottom alignment */
+  pointer-events: auto; /* Allow interactions */
+  cursor: col-resize; /* Column resize cursor */
+  z-index: 60; /* High z-index for visibility */
+  gap: 2px;
+}
+
+/* Styles for children of resize-handle */
+.toggle-collapse-button#collapse-left {
+  cursor: w-resize; /* West cursor */
+  z-index: 61; /* Above container */
+  pointer-events: auto;
+  margin-top: 20px; /* Spacing from top */
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  border: 1px solid gray;
+  background: rgba(50, 50, 50, 0.9);
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 12px;
+  font-weight: bold;
+  line-height: 1;
+  margin: 2px 0;
+  padding: 0;
+}
+
+.toggle-collapse-button#collapse-right {
+  cursor: e-resize; /* East cursor */
+  z-index: 62; /* Above left button */
+  pointer-events: auto;
+  margin-top: 10px; /* Spacing from left button */
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  border: 1px solid gray;
+  background: rgba(50, 50, 50, 0.9);
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 12px;
+  font-weight: bold;
+  line-height: 1;
+  margin: 2px 0;
+  padding: 0;
+}
+
+.toggle-collapse-button:hover {
+  background-color: rgba(80, 80, 80, 1);
+  border-color: white;
+}
+
+.toggle-state-button#toggle-draggable-button {
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  border: 1px solid gray;
+  background: rgba(50, 50, 50, 0.9);
+  color: white;
+  cursor: pointer;
+  display: flex !important;
+  align-items: center;
+  justify-content: center;
+  font-size: 12px;
+  font-weight: bold;
+  line-height: 1;
+  z-index: 63; /* Above collapse buttons */
+  transition: all 0.2s ease;
+  margin: 2px 0;
+  padding: 0;
+  font-family: monospace;
+  position: relative; /* Ensure proper stacking context */
+  margin-top: calc(50vh - 60px); /* Position at vertical midpoint, accounting for other elements */
+}
+
+.toggle-state-button#toggle-draggable-button:hover {
+  background-color: rgba(80, 80, 80, 1);
+  border-color: white;
+}
+
+.toggle-state-button#toggle-draggable-button.draggable-on {
+  background-color: white; /* ON state */
+  color: gray;
+}
+
+.toggle-state-button#toggle-draggable-button.draggable-off {
+  background-color: gray; /* OFF state */
+  color: white;
+}
+
+.percentage-display {
+  pointer-events: none; /* No interactions */
+  z-index: 63; /* Above right button */
+  margin-top: 10px; /* Spacing from right button */
+  color: white;
+  font-size: 10px;
+  font-family: monospace;
+  text-align: center;
+  cursor: pointer;
+  background: none;
+  border: none;
+  padding: 2px;
+  width: 100%;
+}
+
+.percentage-display:hover {
+  color: #00ff00;
+}
+
+/* Animation for sliding in from the top (next) */
+.slide-in-from-right {
+    animation: slideInFromTop 0.5s ease-out forwards;
+}
+
+@keyframes slideInFromTop {
+    from {
+        transform: translateY(-100%);
+        opacity: 0;
+    }
+    to {
+        transform: translateY(0);
+        opacity: 1;
+    }
+}
+
+/* Animation for sliding in from the bottom (prev) */
+.slide-in-from-left {
+    animation: slideInFromBottom 0.5s ease-out forwards;
+}
+
+@keyframes slideInFromBottom {
+    from {
+        transform: translateY(100%);
+        opacity: 0;
+    }
+    to {
+        transform: translateY(0);
+        opacity: 1;
+    }
+}
+
+/* Vertical slide animations for bizResumeDiv scrolling */
+@keyframes slide-in-from-bottom {
+    from {
+        transform: translateY(100%);
+        opacity: 0;
+    }
+    to {
+        transform: translateY(0);
+        opacity: 1;
+    }
+}
+
+@keyframes slide-in-from-top {
+    from {
+        transform: translateY(-100%);
+        opacity: 0;
+    }
+    to {
+        transform: translateY(0);
+        opacity: 1;
+    }
+}
+
+.biz-resume-div.slide-in-from-bottom {
+    animation: slide-in-from-bottom 0.5s ease-out forwards;
+}
+
+.biz-resume-div.slide-in-from-top {
+    animation: slide-in-from-top 0.5s ease-out forwards;
+} 
