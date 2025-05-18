@@ -8,81 +8,97 @@
 }
 
 /* Color 0 */
-body [data-color-index].palette-purpley-color-0 {
-    background-color: #532961 !important;
+body [data-color-index].palette-mitzibushi-red-color-0 {
+    background-color: #5a0924 !important;
     color: #FFFFFF !important;
 }
 
-body [data-color-index].palette-purpley-color-0.selected {
-    background-color: #7D3E92 !important;
+body [data-color-index].palette-mitzibushi-red-color-0.selected {
+    background-color: #870E36 !important;
     color: #FFFFFF !important;
 }
 
-body [data-color-index].palette-purpley-color-0:hover:not(.selected) {
-    background-color: #7D3E92 !important;
+body [data-color-index].palette-mitzibushi-red-color-0:hover:not(.selected) {
+    background-color: #870E36 !important;
     color: #FFFFFF !important;
 }
 
 /* Color 1 */
-body [data-color-index].palette-purpley-color-1 {
-    background-color: #a93ec1 !important;
+body [data-color-index].palette-mitzibushi-red-color-1 {
+    background-color: #9d2a59 !important;
+    color: #FFFFFF !important;
+}
+
+body [data-color-index].palette-mitzibushi-red-color-1.selected {
+    background-color: #EC3F86 !important;
     color: #000000 !important;
 }
 
-body [data-color-index].palette-purpley-color-1.selected {
-    background-color: #FE5DFF !important;
-    color: #000000 !important;
-}
-
-body [data-color-index].palette-purpley-color-1:hover:not(.selected) {
-    background-color: #FE5DFF !important;
+body [data-color-index].palette-mitzibushi-red-color-1:hover:not(.selected) {
+    background-color: #EC3F86 !important;
     color: #000000 !important;
 }
 
 /* Color 2 */
-body [data-color-index].palette-purpley-color-2 {
-    background-color: #2865d2 !important;
+body [data-color-index].palette-mitzibushi-red-color-2 {
+    background-color: #2a0411 !important;
     color: #FFFFFF !important;
 }
 
-body [data-color-index].palette-purpley-color-2.selected {
-    background-color: #3C98FF !important;
-    color: #000000 !important;
+body [data-color-index].palette-mitzibushi-red-color-2.selected {
+    background-color: #3F061A !important;
+    color: #FFFFFF !important;
 }
 
-body [data-color-index].palette-purpley-color-2:hover:not(.selected) {
-    background-color: #3C98FF !important;
-    color: #000000 !important;
+body [data-color-index].palette-mitzibushi-red-color-2:hover:not(.selected) {
+    background-color: #3F061A !important;
+    color: #FFFFFF !important;
 }
 
 /* Color 3 */
-body [data-color-index].palette-purpley-color-3 {
-    background-color: #816190 !important;
-    color: #000000 !important;
+body [data-color-index].palette-mitzibushi-red-color-3 {
+    background-color: #2d0714 !important;
+    color: #FFFFFF !important;
 }
 
-body [data-color-index].palette-purpley-color-3.selected {
-    background-color: #C292D8 !important;
-    color: #000000 !important;
+body [data-color-index].palette-mitzibushi-red-color-3.selected {
+    background-color: #440B1E !important;
+    color: #FFFFFF !important;
 }
 
-body [data-color-index].palette-purpley-color-3:hover:not(.selected) {
-    background-color: #C292D8 !important;
-    color: #000000 !important;
+body [data-color-index].palette-mitzibushi-red-color-3:hover:not(.selected) {
+    background-color: #440B1E !important;
+    color: #FFFFFF !important;
 }
 
 /* Color 4 */
-body [data-color-index].palette-purpley-color-4 {
-    background-color: #c9b7c7 !important;
-    color: #000000 !important;
+body [data-color-index].palette-mitzibushi-red-color-4 {
+    background-color: #5f011c !important;
+    color: #FFFFFF !important;
 }
 
-body [data-color-index].palette-purpley-color-4.selected {
-    background-color: #FFFFFF !important;
-    color: #000000 !important;
+body [data-color-index].palette-mitzibushi-red-color-4.selected {
+    background-color: #8F022A !important;
+    color: #FFFFFF !important;
 }
 
-body [data-color-index].palette-purpley-color-4:hover:not(.selected) {
-    background-color: #FFFFFF !important;
-    color: #000000 !important;
+body [data-color-index].palette-mitzibushi-red-color-4:hover:not(.selected) {
+    background-color: #8F022A !important;
+    color: #FFFFFF !important;
+}
+
+/* Color 5 */
+body [data-color-index].palette-mitzibushi-red-color-5 {
+    background-color: #740120 !important;
+    color: #FFFFFF !important;
+}
+
+body [data-color-index].palette-mitzibushi-red-color-5.selected {
+    background-color: #AE0230 !important;
+    color: #FFFFFF !important;
+}
+
+body [data-color-index].palette-mitzibushi-red-color-5:hover:not(.selected) {
+    background-color: #AE0230 !important;
+    color: #FFFFFF !important;
 }

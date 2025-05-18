@@ -180,6 +180,15 @@ export function createBizCardDiv(job, jobIndex) {
     bizResumeDiv.style.opacity = '0';
     bizResumeDiv.style.display = 'none';
     bizResumeDiv.setAttribute('data-initial-state', 'created-and-appended');
+
+    // Add data attributes for sorting
+    bizCardDiv.setAttribute('data-end', job.end);
+    bizCardDiv.setAttribute('data-start', job.start);
+    bizCardDiv.setAttribute('data-job-index', jobIndex);
+    
+    // Create and link resume div
+    bizCardDiv.setAttribute('data-linked-resume', bizResumeDiv.id);
+
     return bizCardDiv;
 }
 

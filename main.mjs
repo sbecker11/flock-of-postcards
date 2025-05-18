@@ -27,6 +27,13 @@ import * as autoScroll from './modules/animation/autoScroll.mjs';
 import { initResizeHandle } from './modules/layout/resizeHandle.mjs';
 import { initScrollbarControls } from './modules/layout/viewPort.mjs';
 import { setupHoverSync } from './modules/cards/initHover.mjs';
+import {
+    getSortedBizCardDivs,
+    getSortedBizResumeDivs,
+    reorderResumeDivs,
+    initializeBizCardSortingSelector,
+    initializeBizCardNavigationButtons
+} from './modules/cards/bizCardSortingModule.mjs';
 
 const logger = new Logger("main", LogLevel.DEBUG);
 
@@ -40,11 +47,14 @@ const sceneDiv = document.getElementById("scene-div");
 const bottomGradient = document.getElementById("bottom-gradient");
 const focalPointElement = document.getElementById("focal-point");
 const bullsEye = document.getElementById("bulls-eye");
+
+// move to bizCardSortingModule
 const selectFirstBizCardButton = document.getElementById("select-first-biz-card");
 const selectNextBizCardButton = document.getElementById("select-next-bizCard");
 const selectPrevBizCardButton = document.getElementById("select-prev-bizCard");
-const selectAllBizCardsButton = document.getElementById("select-all-bizCards");
-const clearAllLineItemsButton = document.getElementById("clear-all-line-items");
+const selectLastBizCardsButton = document.getElementById("select-last-bizCards");
+// move to bizCardSortingModule
+
 const timelineContainer = document.getElementById("timeline-container");
 const bizCardSortingSelector = document.getElementById("biz-card-sorting-selector");
 let paletteSelector = null;
@@ -119,24 +129,25 @@ async function initialize() {
         viewPort.updateViewPort(sceneContainer);
         viewPort.updateBullsEyeVerticalPosition();
         
-        // Initialize resize handle
+        // Initialize resize handle - move to resizeHandleManager.initialize()
         const resizeHandle = document.getElementById('resize-handle');
         const resumeColumnLeft = document.querySelector('.resume-column-left');
 
-        function updateResizeHandlePosition() {
+        function updateResizeHandlePosition() { // move to resizeHandleManager.initialize()
             const rect = resumeColumnLeft.getBoundingClientRect();
             resizeHandle.style.left = `${rect.left}px`;
         }
 
-        // Update position on load
+        // Update position on load -  move to resizeHandleManager.initialize()
         updateResizeHandlePosition();
 
-        // Update position on window resize
+        // Update position on window resize handle | move to resizeHandleManager.initialize()
         window.addEventListener('resize', updateResizeHandlePosition);
 
+        // resize handle  move to resizeHandleManager.initialize()
         const resizeManager = initResizeHandle(sceneContainer, rightColumn, resizeHandle);
         
-        // Initialize collapse buttons
+        // Initialize collapse buttons -move to resizeHandleManager.initialize()
         const collapseLeftButton = document.getElementById('collapse-left');
         const collapseRightButton = document.getElementById('collapse-right');
         
@@ -146,7 +157,7 @@ async function initialize() {
         // Create business cards after viewPort and bullsEye are initialized
         const sortedJobs = [...jobs].sort((a, b) => new Date(b.start) - new Date(a.start));
         // Create all bizCards
-        sortedJobs.forEach((job, index) => {
+        sortedJobs.forEach((job, index) => { // jobs loader
             // Create the bizCard div
             const bizCardDiv = bizCardDivModule.createBizCardDiv(job, index);
 
@@ -154,13 +165,13 @@ async function initialize() {
             sceneDiv.appendChild(bizCardDiv);
         });
         
-        // Apply the current palette to all bizCards
+        // Apply the current palette to all bizCards - color palette
         paletteSelector.applyPaletteToElements();
         
-        // Initialize scrollbar controls
+        // Initialize scrollbar controls - cards vertical scrolling
         initScrollbarControls(sceneContainer);
         
-        // Initialize hover sync
+        // Initialize hover sync - cards
         setupHoverSync();
         
         // Add event listeners
@@ -178,6 +189,7 @@ async function initialize() {
         // Start auto-scroll
         autoScroll.startAutoScroll(sceneContainer);
 
+        // move to bizCardDivModule.initialize()
         bizCardDivModule.addBizCardDivManagementButtonEventListeners(
             selectFirstBizCardButton,
             selectNextBizCardButton,
@@ -185,7 +197,8 @@ async function initialize() {
             selectAllBizCardsButton
         );
 
-        bizCardSortingModule.initializeBizCardSortingSelector(bizCardSortingSelector);
+        initializeBizCardSortingSelector(bizCardSortingSelector);
+        initializeBizCardNavigationButtons();
 
         let isDragging = false;
         let startX = 0;
@@ -220,52 +233,20 @@ document.addEventListener('DOMContentLoaded', function() {
     });
 });
 
-function getSortedBizCardDivs() {
-    const bizCardDivs = document.querySelectorAll('.biz-card-div');
-    const sortingRules = getCurrentBizCardDivSortingRules();
-    if ( !sortingRules ) {
-        console.log('No sorting rules found');
-        return null;
-    }
-    const sortedBizCardDivs = Array.from(bizCardDivs).sort((a, b) => {
-        const aValue = a[sortingRules.sort_key];
-        const bValue = b[sortingRules.sort_key];
-        if ( sortingRules.sort_order == "asc" ) {
-            return aValue - bValue;
-        } else {
-            return bValue - aValue;
-        }
-    });
-    return sortedBizCardDivs;
-}
+// Ensure the navigation buttons are initialized:
+document.addEventListener('DOMContentLoaded', () => {
+    initializeBizCardNavigationButtons();
+});
 
-function getSelectedBizCardDiv() {
-    const selectedBizCardDiv = document.querySelector('.biz-card-div.selected');
-    if ( !selectedBizCardDiv ) {
-        console.log('No selected bizCardDiv found');
-        return null;
+// Add after DOMContentLoaded event
+document.addEventListener('DOMContentLoaded', () => {
+    console.log("[Debug] DOM loaded - initializing sorting selector");
+    const selector = document.getElementById('biz-card-sorting-selector');
+    if (selector) {
+        initializeBizCardSortingSelector(selector);
+    } else {
+        console.error('[Debug] biz-card-sorting-selector not found in DOM');
     }
-    return selectedBizCardDiv;
-}
+});
 
-function getNextBizCardDiv(selectedBizCardDiv) {
-    const sortedBizCardDivs = getSortedBizCardDivs();
-    const selectedIndex = sortedBizCardDivs.indexOf(selectedBizCardDiv);
-    if ( selectedIndex == -1 ) {
-        console.log('Selected bizCardDiv not found in sortedBizCardDivs');
-        return null;
-    }
-    const nextIndex = (selectedIndex + 1) % sortedBizCardDivs.length;
-    return sortedBizCardDivs[nextIndex];
-}
 
-function getPreviousBizCardDiv(selectedBizCardDiv) {
-    const sortedBizCardDivs = getSortedBizCardDivs();
-    const selectedIndex = sortedBizCardDivs.indexOf(selectedBizCardDiv);
-    if ( selectedIndex == -1 ) {
-        console.log('Selected bizCardDiv not found in sortedBizCardDivs');
-        return null;
-    }
-    const previousIndex = (selectedIndex - 1 + sortedBizCardDivs.length) % sortedBizCardDivs.length;
-    return sortedBizCardDivs[previousIndex];
-}
