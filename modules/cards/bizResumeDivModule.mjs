@@ -1,13 +1,15 @@
+// cards/bizResumeDivModule.mjs
+
 import * as BizDetailsDiv from './bizDetailsDivModule.mjs';
 import { applyCurrentPaletteToElements } from '../color_palettes.mjs';
 import * as cardUtils from './cardUtils.mjs';
+import * as divSyncModule from './divSyncModule.mjs';
 
 // BizResumeDiv is the div that contains the resume of the job
 // and will be added to the resume-content-div. 
 export function createBizResumeDiv(bizCardDiv) {
     const bizResumeDiv = document.createElement("div");
     bizResumeDiv.classList.add("biz-resume-div");
-    bizResumeDiv.classList.add("resume-div");
     bizResumeDiv.id = cardUtils.getBizResumeDivId(bizCardDiv.jobIndex);
     bizResumeDiv.job = bizCardDiv.job;
     bizResumeDiv.jobIndex = bizCardDiv.jobIndex;
@@ -17,105 +19,28 @@ export function createBizResumeDiv(bizCardDiv) {
     bizResumeDiv.setAttribute('sort-key-title', bizCardDiv.job.title);
     bizResumeDiv.setAttribute('sort-key-job-index', bizCardDiv.jobIndex);
 
+    bizResumeDiv.pairedElement = bizCardDiv;
+    bizCardDiv.pairedElement = bizResumeDiv;
+
+    if (!bizResumeDiv.pairedElement) {
+        throw new Error(`bizResumeDiv.pairedElement not found for ${bizResumeDiv.id}`);
+    }
+    if (!bizCardDiv.pairedElement) {
+        throw new Error(`bizCardDiv.pairedElement not found for ${bizCardDiv.id}`);
+    }
+
     // Add click handler for selection
-    bizResumeDiv.addEventListener("click", (event) => {
-        try {
-            handleBizResumeDivClick(event, bizResumeDiv);
-        } catch (error) {
-            console.error("Error handling biz resume click:", error);
-        }
-    });
+    divSyncModule.handleClickEvent(event, bizResumeDiv);
 
     // Create and append the resume details div
     const resumeDetailsDiv = BizDetailsDiv.createBizDetailsDiv(bizCardDiv);
     bizResumeDiv.appendChild(resumeDetailsDiv);
+    bizResumeDiv.resumeDetailsDiv = resumeDetailsDiv;
 
     // Apply the same color palette as the biz card
     bizResumeDiv.setAttribute('data-color-index', bizCardDiv.getAttribute('data-color-index'));
     applyCurrentPaletteToElements([bizResumeDiv]);
 
+    // will be apppended to the resume-content-div
     return bizResumeDiv;
 }
-
-// Add at the top of the file, after imports
-let currentlySelectedResumeId = null;
-
-function handleBizResumeDivClick(event, bizResumeDiv) {
-    if (!bizResumeDiv) {
-        throw new Error(`bizResumeDiv not found`);
-    }
-    if (!bizResumeDiv.classList.contains('biz-resume-div')) {
-        throw new Error(`bizResumeDiv is not a biz-resume-div`);
-    }
-
-    // Find the corresponding biz card div
-    const jobIndex = bizResumeDiv.getAttribute('sort-key-job-index');
-    const bizCardDiv = document.querySelector(`.biz-card-div[sort-key-job-index="${jobIndex}"]`);
-    if (!bizCardDiv) {
-        throw new Error(`bizCardDiv for ${bizResumeDiv.id} not found`);
-    }
-
-    // Check if this resume is already selected
-    const wasSelected = currentlySelectedResumeId === bizResumeDiv.id;
-    console.log(`Resume ${bizResumeDiv.id} was selected: ${wasSelected}`);
-
-    // If it was selected, just deselect it
-    if (wasSelected) {
-        console.log(`Deselecting resume ${bizResumeDiv.id}`);
-        bizResumeDiv.classList.remove('selected');
-        bizCardDiv.classList.remove('selected');
-        currentlySelectedResumeId = null;
-        return;
-    }
-
-    // Otherwise, deselect all others and select this one
-    console.log(`Selecting resume ${bizResumeDiv.id}`);
-    document.querySelectorAll('.biz-card-div.selected').forEach(div => {
-        console.log(`Deselecting other card ${div.id}`);
-        div.classList.remove('selected');
-    });
-    document.querySelectorAll('.biz-resume-div.selected').forEach(div => {
-        console.log(`Deselecting other resume ${div.id}`);
-        div.classList.remove('selected');
-    });
-
-    // Remove scrolled-into-view from all resumes
-    document.querySelectorAll('.biz-resume-div.scrolled-into-view').forEach(div => {
-        div.classList.remove('scrolled-into-view');
-    });
-
-    // Select both the biz resume card and the biz card
-    bizResumeDiv.classList.add('selected');
-    bizCardDiv.classList.add('selected');
-    currentlySelectedResumeId = bizResumeDiv.id;
-
-    // Scroll to the resume and mark it as scrolled
-    bizResumeDiv.scrollIntoView({ behavior: 'smooth' });
-    bizResumeDiv.classList.add('scrolled-into-view');
-    bizCardDiv.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-}
-
-// addBizResumeDiv adds a biz resume div to the right content div
-// and returns the biz resume div
-export function addBizResumeDiv(rightContentDiv, bizCardDiv) {
-    const newBizResumeDiv = createBizResumeDiv(bizCardDiv);
-    rightContentDiv.appendChild(newBizResumeDiv); 
-    return newBizResumeDiv;
-}
-
-// findBizResumeDiv finds a biz resume div by biz card div id
-// and returns the biz resume div or null if not found
-export function findBizResumeDiv(rightContentDiv, bizCardDiv) {
-    const bizResumeDivs = rightContentDiv.querySelectorAll('.biz-resume-div');
-    console.log(`#bizResumeDiv: ${bizResumeDivs.length} in rightContentDiv: ${rightContentDiv.id}`);
-    for (const resumeDiv of bizResumeDivs) {
-        if (resumeDiv.bizCardDivId === bizCardDiv.id) {
-            console.log(`bizResumeDiv for ${bizCardDiv.id} found`);
-            return resumeDiv;
-        }
-    }
-    console.log(`bizResumeDiv for ${bizCardDiv.id} not found`);
-    return null;
-}
-
-

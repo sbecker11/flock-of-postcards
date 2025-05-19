@@ -1,3 +1,5 @@
+
+/* cards/cards.css */
 .biz-card-div,
 .biz-resume-div {
     padding: 0px;
@@ -126,4 +128,23 @@
 .bulleted-job-skills-li::before {
     content: "•";
     margin-right: 0.25rem;
+}
+
+.slide-in-from-top {
+    animation: slideFromTop 0.5s ease-out forwards;
+}
+
+@keyframes slideFromTop {
+    from { transform: translateY(-100%); opacity: 0; }
+    to { transform: translateY(0); opacity: 1; }
+}
+
+.slide-in-from-bottom {
+    animation: slideFromBottom 0.5s ease-out forwards;
+}
+
+@keyframes slideFromBottom {
+    from { transform: translateY(100%); opacity: 0; }
+    to { transform: translateY(0); opacity: 1; }
 } 
+

@@ -8,7 +8,9 @@
         initial-scale=1.0"/>
   <meta http-equiv="X-UA-Compatible"
         content="ie=edge"/>
+
   <title>flock-of-cards</title>
+
   <link rel="stylesheet" href="./styles.css">
   <link rel="stylesheet" href="./modules/timeline.css">
   <link rel="stylesheet" href="./modules/alerts.css">
@@ -18,9 +20,12 @@
   <link rel="stylesheet" href="./styles/controls.css">
   <link rel="stylesheet" href="./styles/resume-column.css">
   <link rel="stylesheet" href="./styles/temporary-content.css">
+  <link rel="stylesheet" href="/modules/cards/divSync.css" media="screen, print">
+
 </head>
 
 <body>
+  
   <!-- jobs.mjs is imported by main.mjs -->
   <script type="module" src="./main.mjs" ></script>
   <script type="module" src="./modules/alerts.mjs" ></script>
@@ -56,12 +61,12 @@
             <select id="color-palette-selector" tabindex="0"></select>
           </div>
           <div id="biz-card-sorting-container" tabindex="-1">
-              <select id="biz-card-sorting-selector" tabindex="0"></select>
+              <select id="biz-resume-div-sorting-selector" tabindex="0"></select>
           </div>
           <div class="biz-card-controls">
             <button id="select-first-biz-card">First</button>
-            <button id="select-prev-bizCard">Prev</button>
-            <button id="select-next-bizCard">Next</button>
+            <button id="select-prev-resume-div">Prev</button>
+            <button id="select-next-resume-div">Next</button>
             <button id="select-last-biz-card">Last</button>
           </div>
       </div>

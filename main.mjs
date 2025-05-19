@@ -12,28 +12,23 @@ import * as alerts from './modules/alerts.mjs';
 import { getPaletteSelectorInstance } from './modules/color_palettes.mjs';
 import { Logger, LogLevel } from "./modules/logger.mjs";
 import { jobs } from './static_content/jobs/jobs.mjs';
-import * as bizCardSortingModule from './modules/cards/bizCardSortingModule.mjs';
+import * as bizResumeDivSortingModule from './modules/cards/bizResumeDivSortingModule.mjs';
+import * as bizCardDivModule from './modules/cards/bizCardDivModule.mjs';
+import { initializeDivSync } from './modules/cards/divSyncModule.mjs';
 
 // Import new modules
 import * as zIndex from './modules/layout/zIndex.mjs';
 import * as parallax from './modules/layout/parallax.mjs';
 import * as viewPort from './modules/layout/viewPort.mjs';
 import * as filters from './modules/layout/filters.mjs';
-import * as bizCardDivModule from './modules/cards/bizCardDivModule.mjs';
+import * as bizResumeDivModule from './modules/cards/bizResumeDivModule.mjs';
 // import * as skillCard from './modules/cards/skillCard.mjs';
 import * as cardUtils from './modules/cards/cardUtils.mjs';
 import * as cardConstants from './modules/cards/cardConstants.mjs';
 import * as autoScroll from './modules/animation/autoScroll.mjs';
 import { initResizeHandle } from './modules/layout/resizeHandle.mjs';
 import { initScrollbarControls } from './modules/layout/viewPort.mjs';
-import { setupHoverSync } from './modules/cards/initHover.mjs';
-import {
-    getSortedBizCardDivs,
-    getSortedBizResumeDivs,
-    reorderResumeDivs,
-    initializeBizCardSortingSelector,
-    initializeBizCardNavigationButtons
-} from './modules/cards/bizCardSortingModule.mjs';
+import * as bizResumtDivSortingModule from './modules/cards/bizResumeDivSortingModule.mjs';
 
 const logger = new Logger("main", LogLevel.DEBUG);
 
@@ -48,15 +43,7 @@ const bottomGradient = document.getElementById("bottom-gradient");
 const focalPointElement = document.getElementById("focal-point");
 const bullsEye = document.getElementById("bulls-eye");
 
-// move to bizCardSortingModule
-const selectFirstBizCardButton = document.getElementById("select-first-biz-card");
-const selectNextBizCardButton = document.getElementById("select-next-bizCard");
-const selectPrevBizCardButton = document.getElementById("select-prev-bizCard");
-const selectLastBizCardsButton = document.getElementById("select-last-bizCards");
-// move to bizCardSortingModule
-
 const timelineContainer = document.getElementById("timeline-container");
-const bizCardSortingSelector = document.getElementById("biz-card-sorting-selector");
 let paletteSelector = null;
 
 // --------------------------------------
@@ -164,16 +151,18 @@ async function initialize() {
             // Append the bizCard div to the sceneDiv
             sceneDiv.appendChild(bizCardDiv);
         });
+
+        initializeDivSync();
+
+        bizResumtDivSortingModule.initializeSortingSelector();
+        bizResumtDivSortingModule.initializeNavigationButtons();
         
         // Apply the current palette to all bizCards - color palette
         paletteSelector.applyPaletteToElements();
         
         // Initialize scrollbar controls - cards vertical scrolling
         initScrollbarControls(sceneContainer);
-        
-        // Initialize hover sync - cards
-        setupHoverSync();
-        
+                
         // Add event listeners
         sceneContainer.addEventListener('wheel', autoScroll.handlesceneContainerWheel, { passive: true });
         sceneContainer.addEventListener('scroll', () => {
@@ -187,18 +176,7 @@ async function initialize() {
         });
 
         // Start auto-scroll
-        autoScroll.startAutoScroll(sceneContainer);
-
-        // move to bizCardDivModule.initialize()
-        bizCardDivModule.addBizCardDivManagementButtonEventListeners(
-            selectFirstBizCardButton,
-            selectNextBizCardButton,
-            selectPrevBizCardButton,
-            selectAllBizCardsButton
-        );
-
-        initializeBizCardSortingSelector(bizCardSortingSelector);
-        initializeBizCardNavigationButtons();
+        autoScroll.startAutoScroll(sceneContainer); 
 
         let isDragging = false;
         let startX = 0;
@@ -233,20 +211,11 @@ document.addEventListener('DOMContentLoaded', function() {
     });
 });
 
-// Ensure the navigation buttons are initialized:
-document.addEventListener('DOMContentLoaded', () => {
-    initializeBizCardNavigationButtons();
-});
-
 // Add after DOMContentLoaded event
 document.addEventListener('DOMContentLoaded', () => {
     console.log("[Debug] DOM loaded - initializing sorting selector");
-    const selector = document.getElementById('biz-card-sorting-selector');
-    if (selector) {
-        initializeBizCardSortingSelector(selector);
-    } else {
-        console.error('[Debug] biz-card-sorting-selector not found in DOM');
-    }
+    bizResumeDivSortingModule.initializeSortingSelector();
+    bizResumeDivSortingModule.initializeNavigationButtons();
 });
 
 

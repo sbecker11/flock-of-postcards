@@ -610,7 +610,7 @@ html[native-dark-active] #scene-container,
     width: 100%;
 }
 
-#biz-card-sorting-selector {
+#biz-resume-div-sorting-selector {
     flex: 1 1 auto;
     min-width: 60px;
     max-width: calc(240px + 23px);
@@ -630,7 +630,7 @@ html[native-dark-active] #scene-container,
     padding-right: 30px;
 }
 
-#biz-card-sorting-selector::after {
+#biz-resume-div-sorting-selector::after {
     content: '▶';
     position: absolute;
     right: 12px;
@@ -644,53 +644,53 @@ html[native-dark-active] #scene-container,
     z-index: 1;
 }
 
-#biz-card-sorting-selector:focus::after {
+#biz-resume-div-sorting-selector:focus::after {
     content: '◀';
     transform: translateY(-50%) rotate(90deg);
 }
 
 /* When container width is less than 90%, adjust max-width */
 @media (max-width: 90%) {
-    #biz-card-sorting-selector {
+    #biz-resume-div-sorting-selector {
         max-width: calc(180px + 10px); /* 3 buttons + 2 gaps */
     }
 }
 
 /* When container width is less than 70%, adjust max-width */
 @media (max-width: 70%) {
-    #biz-card-sorting-selector {
+    #biz-resume-div-sorting-selector {
         max-width: calc(120px + 5px); /* 2 buttons + 1 gap */
     }
 }
 
 /* When container width is less than 50%, adjust max-width */
 @media (max-width: 50%) {
-    #biz-card-sorting-selector {
+    #biz-resume-div-sorting-selector {
         max-width: 60px; /* 1 button */
     }
 }
 
-#biz-card-sorting-selector option {
+#biz-resume-div-sorting-selector option {
     background-color: #4CAF50;
     color: white;
     font-weight: bold;
     text-shadow: 1px 1px 1px rgba(0, 0, 0, 0.8);
 }
 
-#biz-card-sorting-selector:hover {
+#biz-resume-div-sorting-selector:hover {
     background-color: #45a049;
 }
 
-#biz-card-sorting-selector:focus {
+#biz-resume-div-sorting-selector:focus {
     outline: none;
     box-shadow: 0 0 5px rgba(255, 255, 255, 0.5);
 }
 
-#biz-card-sorting-selector:not(:focus) {
+#biz-resume-div-sorting-selector:not(:focus) {
     pointer-events: none;
 }
 
-#biz-card-sorting-container:hover #biz-card-sorting-selector {
+#biz-card-sorting-container:hover #biz-resume-div-sorting-selector {
     pointer-events: auto;
 }
 

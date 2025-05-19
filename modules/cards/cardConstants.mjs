@@ -1,3 +1,5 @@
+// cards/cardConstants.mjs
+
 // Business card scene-relative constants
 export const MEAN_BIZCARD_WIDTH = 200;
 export const MAX_BIZCARD_X_OFFSET = 100;

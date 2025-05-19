@@ -857,14 +857,14 @@ class PaletteSelector {
         return document.getElementsByClassName(SELECTED_CLASS);
     }
 
-    // Method to clear all selections - now using classList
-    clearAllSelections() {
-        const selectedElements = this.getSelectedElements();
-        // Convert to array since we're modifying the live HTMLCollection
-        Array.from(selectedElements).forEach(element => {
-            this.setElementSelected(element, false);
-        });
-    }
+    // // Method to clear all selections - now using classList
+    // clearAllSelections() {
+    //     const selectedElements = this.getSelectedElements();
+    //     // Convert to array since we're modifying the live HTMLCollection
+    //     Array.from(selectedElements).forEach(element => {
+    //         this.setElementSelected(element, false);
+    //     });
+    // }
 
     // Method to get all hovered elements - if needed
     getHoveredElements() {

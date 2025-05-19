@@ -1,3 +1,5 @@
+// cards/bizDetailsDivModule.mjs
+
 import * as cardUtils from './cardUtils.mjs';
 
 // BizDetailsDiv is the div that contains the details of the job

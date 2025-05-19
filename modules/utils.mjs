@@ -637,9 +637,9 @@ export function validateIsLineItemElement(obj) {
 // moved to cardUtils.mjs
 // every skill-card-div, biz-card-div, biz-resume-card-div, and skill-resume-card-div
 // is also a card-div
-// export function isAnyCardDiv(obj) {
-//     return isDivElement(obj) && obj.classList.contains('card-div');
-// }
+export function isAnyCardDiv(obj) {
+    return isDivElement(obj) && obj.classList.contains('card-div');
+}
 export function isBizCardDiv(obj) {
     return isDivElement(obj) && obj.classList.contains('biz-card-div')
 }
