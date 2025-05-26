@@ -32,8 +32,8 @@ console.assert(cardConstants.MIN_BIZCARD_HEIGHT === 200, 'MIN_BIZCARD_HEIGHT inc
 // Test card utility functions
 console.log('Testing card utility functions...');
 const testDiv = document.createElement('div');
-testDiv.className = 'bizCard-div';
-testDiv.id = 'bizCard-div-1';
+testDiv.className = 'biz-card-div';
+testDiv.id = 'biz-card-div-1';
 document.body.appendChild(testDiv);
 
 console.assert(cardUtils.isBizCardDiv(testDiv), 'isBizCardDiv failed');

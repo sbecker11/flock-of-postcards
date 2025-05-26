@@ -1,9 +1,11 @@
-import * as typeValidators from './utils/typeValidators.mjs';
-import * as colorUtils from './utils/colorUtils.mjs';
-import * as domUtils from './utils/domUtils.mjs';
-import * as arrayUtils from './utils/arrayUtils.mjs';
-import * as typeConversions from './utils/typeConversions.mjs';
-import { Logger, LogLevel } from "./logger.mjs";
+// modules/focalPoint.mjs
+
+import * as domUtils from '../utils/domUtils.mjs';
+import * as utils from '../utils/utils.mjs';
+import { initializeViewPercent } from './resizeHandle.mjs';
+import { getBullsEyeCenter, updateBullsEyeCenter } from './bullsEye.mjs';
+import * as aimPoint from './aimPoint.mjs';
+import { Logger, LogLevel } from "../logger.mjs";
 const logger = new Logger("focal_point", LogLevel.INFO, LogLevel.TRACE_ON_FAILURE);
 
 class MouseDrag {
@@ -41,10 +43,7 @@ const MAX_NEAR_DISTANCE = 0.5;
 
 var _sceneContainer = document.getElementById("scene-container")
 var _focalPointElement = document.getElementById("focal-point");
-var _aimPointDotElement = document.getElementById("aim-point-dot");
-var _bullsEyeElement = document.getElementById("bulls-eye");
 var _focalPointNowSubpixelPrecision;
-var _aimPoint = null;
 var _isEasingToAimPoint = false;
 var _isEasingToBullsEye = false;
 var _isAwake = true;
@@ -153,16 +152,12 @@ function initializeState() {
     
     // Apply divider position
     const sceneContainer = document.getElementById('scene-container');
-    const rightColumn = document.getElementById('resume-column');
-    if (sceneContainer && rightColumn) {
-        const leftPercent = state.dividerPosition;
-        const rightPercent = 100 - leftPercent;
-        sceneContainer.style.width = `${leftPercent}%`;
-        rightColumn.style.width = `${rightPercent}%`;
-        const resizeHandle = document.getElementById('resize-handle');
-        if (resizeHandle) {
-            resizeHandle.style.left = `${leftPercent}%`;
-        }
+    const resumeColumn = document.getElementById('resume-column');
+    if (sceneContainer && resumeColumn) {
+        const viewPercent = state.dividerPosition;
+        const resumePercent = 100 - viewPercent;
+        resizeHandle.initializeViewPercent(viewPercent);
+
         // Update bulls-eye position after setting the divider
         updateBullsEyeCenter();
     }
@@ -199,7 +194,7 @@ export function set_isBeingDragged_true(eventPosition) {
     _isBeingDragged = true;
     _isEasingToAimPoint = false;
     _isEasingToBullsEye = false;
-    setAimPoint(eventPosition, "set_isBeingDragged_true");
+    aimPoint.setAimPoint(eventPosition, "set_isBeingDragged_true");
     _mouseDrag.setStartPosition(eventPosition);
     logger.log("set _isBeingDragged:", _isBeingDragged, "eventPosition:", eventPosition);
 }
@@ -207,7 +202,7 @@ export function set_isBeingDragged_false(eventPosition) {
     _isBeingDragged = false;
     _isEasingToAimPoint = false;  // Prevent animation from starting
     _isEasingToBullsEye = false;  // Prevent animation from starting
-    setAimPoint(eventPosition, "set_isBeingDragged_false");
+    aimPoint.setAimPoint(eventPosition, "set_isBeingDragged_false");
     _mouseDrag.setEndPosition(eventPosition);
     moveFocalPointTo(eventPosition);
     logger.log("set _isBeingDragged:", _isBeingDragged, "eventPosition:", eventPosition);
@@ -216,42 +211,6 @@ export function set_isBeingDragged_false(eventPosition) {
 export function handleOnWindowResize() {
     updateBullsEyeCenter();
     startEasingToBullsEye("handleOnWindowResize");
-}
-
-// on window resize
-function updateBullsEyeCenter() {
-    if (!_sceneContainer || !_bullsEyeElement) {
-        logger.error("Cannot update bulls-eye: missing elements");
-        return;
-    }
-
-    const containerRect = _sceneContainer.getBoundingClientRect();
-    const centerX = containerRect.left + (containerRect.width / 2);
-    const centerY = containerRect.top + (containerRect.height / 2);
-
-    // Update stored center position
-    _bullsEyeCenter = { x: centerX, y: centerY };
-
-    // Update bulls-eye element position
-    _bullsEyeElement.style.left = `${centerX}px`;
-    _bullsEyeElement.style.top = `${centerY}px`;
-
-    logger.log("BullsEye position updated:", _bullsEyeCenter);
-}
-
-export function getBullsEye() {
-    // Convert bulls-eye center to viewPort coordinates
-    const containerRect = _sceneContainer.getBoundingClientRect();
-    return {
-        x: containerRect.left + (_sceneContainer.offsetWidth / 2),
-        y: containerRect.top + (_sceneContainer.offsetHeight / 2)
-    };
-}
-
-export function getBullsEyeElement() {
-    if ( _bullsEyeElement == null )
-        return null;
-    return _bullsEyeElement;
 }
 
 
@@ -330,9 +289,9 @@ export function createFocalPoint(focalPointElement) {
 
     // Initial bulls-eye position update
     updateBullsEyeCenter();
-    checkFixtureParents();
+    viewPort.checkFixtureParents();
 
-    // Add scene-div container event listeners
+    // Add scene-plane container event listeners
     _sceneContainer.addEventListener("mouseenter", onsceneContainerEnter);
     _sceneContainer.addEventListener("mousemove", onsceneContainerMove);
     _sceneContainer.addEventListener("mouseleave", onsceneContainerLeave);
@@ -353,8 +312,8 @@ export function createFocalPoint(focalPointElement) {
     // Add drag event listeners to the focal-point element
     _focalPointElement.addEventListener('mousedown', onMouseDown_startDraggingFocalPoint);
 
-    setAimPoint(getBullsEye(), "createFocalPoint");
-    moveFocalPointTo(getBullsEye(), "createFocalPoint");
+    aimPoint.setAimPoint(getBullsEyeCenter(), "createFocalPoint");
+    moveFocalPointTo(getBullsEyeCenter(), "createFocalPoint");
 
     // Update bulls-eye position again after any CSS transitions complete
     setTimeout(() => {
@@ -382,25 +341,6 @@ export function addFocalPointPositionListener(listener) {
     }
 }
 
-
-function checkFixtureParents() {
-    if ( _bullsEyeElement.parentElement != _sceneContainer ) {
-        throw new Error("bullsEyeParent is not the scene-div container");
-    }
-    _bullsEyeElement['saved-parent'] = _sceneContainer;
-
-    if ( _aimPointDotElement.parentElement != _sceneContainer ) {
-        throw new Error("aimPointParent is not the scene-div container");
-    }
-    _aimPointDotElement['saved-parent'] = _sceneContainer;
-
-    if ( _focalPointElement.parentElement != _sceneContainer ) {
-        throw new Error("focalPointParent is not the scene-div container");
-    }
-    _focalPointElement['saved-parent'] = _sceneContainer;
-}
-
-
 function onsceneContainerEnter(event) {
     const eventPosition = getEventPosition(event);
     setStatus("startEasingToAimPoint", "onsceneContainerEnter", LogLevel.LOG);
@@ -410,14 +350,14 @@ function onsceneContainerEnter(event) {
 
 function onsceneContainerMove(event) {
     const eventPosition = getEventPosition(event);
-    setAimPoint(eventPosition, "onsceneContainerMove");
+    aimPoint.setAimPoint(eventPosition, "onsceneContainerMove");
 }
 
 function onsceneContainerLeave(event) {
     const eventPosition = getEventPosition(event);
     setStatus("leaveContainer", "onsceneContainerLeave", LogLevel.LOG);        
     if (!_followPointerOutsideContainer && !_isBeingDragged) {
-        setAimPoint(getBullsEye(), "onsceneContainerLeave");
+        aimPoint.setAimPoint(getBullsEyeCenter(), "onsceneContainerLeave");
         startEasingToBullsEye("onsceneContainerLeave");
     }
 }
@@ -444,39 +384,12 @@ export function startEasingToBullsEye(prefix="") {
         return;
     }
 
-    setAimPoint(getBullsEye(), `startEasingToBullsEye:${prefix}`);
+    aimPoint.setAimPoint(getBullsEyeCenter(), `startEasingToBullsEye:${prefix}`);
     _isEasingToAimPoint = true;
     _isEasingToBullsEye = true;
     _isAwake = true;
 
     setStatus("easingToBullsEye", `startEasingToBullsEye:${prefix}`);
-}
-
-export function setAimPoint(position, prefix="") {
-    _aimPoint = position;
-    // Use viewPort coordinates for aim point dot too
-    _aimPointDotElement.style.left = `${position.x}px`;
-    _aimPointDotElement.style.top = `${position.y}px`;
-    if (_aimPointDotElement.classList.contains('hidden')) {
-        _aimPointDotElement.classList.remove('hidden');
-    }
-    if (prefix != "") {
-        logger.log(`setAimPoint:${prefix}`, position);
-    }
-}
-
-export function clearAimPoint(prefix="") {
-    _aimPoint = null;
-    _aimPointDotElement.classList.add('hidden');
-    logger.log(`clearAimPoint:${prefix}`);
-}
-
-export function isAimPointNull() {
-    return _aimPoint == null;
-}
-
-export function getAimPoint() {
-    return _aimPoint;
 }
 
 export function handleArrivedAtBullsEye(eventPosition) {
@@ -494,7 +407,7 @@ export function goToSleep(position) {
 }
 
 export function awaken(position) {
-    utils.addClass(_focalPointElement, "awake");
+    domUtils.addClass(_focalPointElement, "awake");
     _isAwake = true;
     _isEasingToAimPoint = false;
     _isEasingToBullsEye = false;
@@ -526,7 +439,7 @@ export function drawFocalPointAnimationFrame() {
     }
 
     const currentPos = getFocalPoint();
-    const aimPos = getAimPoint();
+    const aimPos = aimPoint.getAimPoint();
     const dist = getPositionsDist(currentPos, aimPos);
 
     // logger.log("Animation frame:", {
@@ -564,18 +477,23 @@ export function drawFocalPointAnimationFrame() {
     }
 }
 
-function computeAStepCloserToAimSubpixelPrecision(nowPoint, aimPoint, ease_factor, epsilon) {
-    if ( (aimPoint == null) || (nowPoint == null) )
+// nowPoint is the current position of the focal point
+// aimPointElement is the aim point element
+// ease_factor is the ease factor
+// epsilon is the smallest value to move the focal point
+// returns the new position of the focal point
+function computeAStepCloserToAimSubpixelPrecision(nowPoint, aimPointElement, ease_factor, epsilon) {
+    if ( (aimPointElement == null) || (nowPoint == null) )
         return null;
     // compute velocities
-    let vx = (aimPoint.x - nowPoint.x) * ease_factor;
-    let vy = (aimPoint.y - nowPoint.y) * ease_factor;
+    let vx = (aimPointElement.x - nowPoint.x) * ease_factor;
+    let vy = (aimPointElement.y - nowPoint.y) * ease_factor;
 
     // for very small values of vx and vy, move there directly
     if (Math.abs(vx) < epsilon && Math.abs(vy) < epsilon) {
-        return aimPoint;
+        return aimPointElement;
     }
-
+    // otherwise, move the focal point towards the aim point element
     return {
         x: nowPoint.x + vx,
         y: nowPoint.y + vy,
@@ -602,7 +520,7 @@ function onMouseDown_startDraggingFocalPoint(event) {
     }
     const eventPosition = getEventPosition(event);
     event.preventDefault(); // prevent default browser behavior
-    event.stopPropagation(); // Stop the event from reaching the scene-div
+    event.stopPropagation(); // Stop the event from reaching the scene-plane
 
     // Update subpixel precision to match current position
     _focalPointNowSubpixelPrecision = eventPosition;
@@ -610,7 +528,7 @@ function onMouseDown_startDraggingFocalPoint(event) {
     set_isBeingDragged_true(eventPosition);
     moveFocalPointTo(eventPosition);
 
-    // Don't disable pointer events on scene-div container to allow scrolling
+    // Don't disable pointer events on scene-plane container to allow scrolling
     document.body.style.userSelect = 'none';
     _focalPointElement.classList.add('focal-point-is-being-dragged');
     // Ensure pointer events stay enabled during drag
@@ -630,7 +548,7 @@ function onMouseDrag_keepDraggingFocalPoint(event) {
     _focalPointNowSubpixelPrecision = eventPosition;
     
     moveFocalPointTo(eventPosition);
-    setAimPoint(eventPosition, "onMouseDrag_keepDraggingFocalPoint");
+    aimPoint.setAimPoint(eventPosition, "onMouseDrag_keepDraggingFocalPoint");
 }
 
 function onMouseUp_stopDraggingFocalPoint(event, prefix="") {
@@ -642,7 +560,7 @@ function onMouseUp_stopDraggingFocalPoint(event, prefix="") {
     
     // Move to final position first
     moveFocalPointTo(eventPosition);
-    setAimPoint(eventPosition, "onMouseUp_stopDraggingFocalPoint");
+    aimPoint.setAimPoint(eventPosition, "onMouseUp_stopDraggingFocalPoint");
     _focalPointNowSubpixelPrecision = eventPosition;  // Update subpixel position
     
     set_isBeingDragged_false(eventPosition);
@@ -659,8 +577,8 @@ export function handleKeyDown(event) {
     if (event.key === 'b') {
         _isLockedToBullsEye = !_isLockedToBullsEye;
         if (_isLockedToBullsEye) {
-            logger.info("Aim point mode: Locked to bulls-eye");
-            moveFocalPointTo(getBullsEye(), "locked-to-bullsEye");
+                logger.info("Aim point mode: Locked to bulls-eye");
+                moveFocalPointTo(getBullsEyeCenter(), "locked-to-bullsEye");
             if (_isDraggable) {
                 toggleDraggable();
             }
@@ -696,7 +614,7 @@ export function toggleFollowPointerOutsideContainer() {
 function onDocumentMouseMove(event) {
     if (!_followPointerOutsideContainer || _isBeingDragged) return;
     const eventPosition = getEventPosition(event);
-    setAimPoint(eventPosition, "onDocumentMouseMove");
+    aimPoint.setAimPoint(eventPosition, "onDocumentMouseMove");
     startEasingToAimPoint("onDocumentMouseMove");
 }
 
@@ -706,7 +624,7 @@ function onWindowMouseLeave(event) {
     const exitPosition = getEventPosition(event);
     logger.info("Pointer left window at position:", exitPosition);
     // Keep the last known position
-    setAimPoint(exitPosition, "window.mouseleave");
+    aimPoint.setAimPoint(exitPosition, "window.mouseleave");
 }
 
 function onWindowMouseEnter(event) {
@@ -714,7 +632,7 @@ function onWindowMouseEnter(event) {
     _pointerIsOutsideWindow = false;
     const entryPosition = getEventPosition(event);
     logger.info("Pointer re-entered window at position:", entryPosition);
-    setAimPoint(entryPosition, "window.mouseenter");
+    aimPoint.setAimPoint(entryPosition, "window.mouseenter");
     startEasingToAimPoint("window.mouseenter");
 }
 
@@ -736,7 +654,7 @@ function initializeResizeObserver() {
                 updateBullsEyeCenter();
                 // If focal point is locked to bulls-eye, update its position too
                 if (_isLockedToBullsEye) {
-                    moveFocalPointTo(getBullsEye(), "resize-observer");
+                    moveFocalPointTo(getBullsEyeCenter(), "resize-observer");
                 }
             }
         }
@@ -744,7 +662,7 @@ function initializeResizeObserver() {
 
     if (_sceneContainer) {
         _resizeObserver.observe(_sceneContainer);
-        logger.log("ResizeObserver initialized for scene-div container");
+        logger.log("ResizeObserver initialized for scene-plane container");
     }
 }
 

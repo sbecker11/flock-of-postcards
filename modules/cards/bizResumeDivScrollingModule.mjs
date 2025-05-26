@@ -1,67 +1,96 @@
 // modules/cards/bizResumeDivScrollingModule.mjs
 
 import * as bizResumeDivSortingModule from './bizResumeDivSortingModule.mjs';
+import { scrollBizCardDivIntoView } from './bizCardDivModule.mjs';
+import * as divSyncModule from './divSyncModule.mjs';
+
+function scrollDivPairIntoView(element) {
+    if (!element) {
+        console.warn('bizResumeDivScrollingModule: scrollDivPairIntoView: given null element');
+        return
+    }
+    const bizCardDiv = divSyncModule.getBizCardDiv(element);
+    const bizResumeDiv = divSyncModule.getBizResumeDiv(element);
+
+    scrollBizCardDivIntoView(bizCardDiv);
+    scrollBizResumeDivIntoView(bizResumeDiv);
+}
+
+const SCROLL_DIRECTIONS = {
+    'up': "slide-in-from-bottom",
+    'down': "slide-in-from-top",
+}
 
 /**
  * Scrolls the top part of a business resume div into view with directional sliding
  * @param {HTMLElement} bizResumeDiv - The business resume div to scroll into view
- * @param {string} direction - The direction of navigation ('next' or 'prev')
+ * @param {string} direction - The direction of navigation null, 'up', or 'down')
  */
-export function scrollBizResumeDivIntoView(bizResumeDiv, direction = 'next') {
-    if (!bizResumeDiv) {
-        throw new Error(`bizResumeDiv not provided`);
+export function scrollBizResumeDivIntoView(scrollingBizResumeDiv, scrollDirection=null) {
+    if (!scrollingBizResumeDiv) {
+        console.warn(`scrollingBizResumeDiv given null element`);
+        return;
     }
-    if (!bizResumeDiv.classList.contains('biz-resume-div')) {
-        throw new Error(`Element ${bizResumeDiv.id} is not a biz-resume-div`);
+    // no scrolling/sliding so no animation
+    const cssDirection = SCROLL_DIRECTIONS[scrollDirection] || null;
+    if ( cssDirection == null ) {
+        console.log('scrollBizResumeDivIntoView: null cssDirection -> no scrolling');
+        return;
     }
+    const scrollingDiv = scrollingBizResumeDiv;
+    scrollingDiv.classList.add(cssDirection);
+    console.log('scrollBizResumeDivIntoView scrollingDiv.id:', scrollingDiv.id, 'cssDirection:', cssDirection);
     
     // Ensure the element is visible before animation to prevent glitches
-    bizResumeDiv.style.opacity = '1';
-    bizResumeDiv.style.display = 'block';
+    scrollingDiv.style.opacity = '1';
+    scrollingDiv.style.display = 'block';
     
     // Remove scrolled-into-view from all other resume divs to prevent duplicates
     document.querySelectorAll('.biz-resume-div.scrolled-into-view').forEach(div => {
-        if (div !== bizResumeDiv) {
-            div.classList.remove('scrolled-into-view');
-        }
+        div.classList.remove('scrolled-into-view');
     });
     
     // Add a class for vertical animation based on direction after a small delay
     setTimeout(() => {
-        if (direction === 'next') {
-            bizResumeDiv.classList.add('slide-in-from-bottom');
-        } else if (direction === 'prev') {
-            bizResumeDiv.classList.add('slide-in-from-top');
+        if ( cssDirection === 'slide-in-from-bottom' ) {
+            scrollingDiv.classList.add('slide-in-from-bottom');
+        } else if (cssDirection === 'slide-in-from-top') {
+            scrollingDiv.classList.add('slide-in-from-top');
         }
     }, 50); // Small delay to ensure element is ready
     
     // Calculate the exact position to scroll to
-    const container = document.getElementById('resume-content-div') || bizResumeDiv.parentElement;
+    const container = document.getElementById('resume-content-div');
     const containerRect = container.getBoundingClientRect();
-    const bizResumeRect = bizResumeDiv.getBoundingClientRect();
+    const bizResumeRect =  scrollingDiv.getBoundingClientRect();
     const scrollTop = container.scrollTop + (bizResumeRect.top - containerRect.top);
     
     // Scroll directly to the calculated position with a longer delay to avoid any conflict
     setTimeout(() => {
         container.scrollTo({ top: scrollTop, behavior: 'smooth' });
-        bizResumeDiv.classList.add('scrolled-into-view');
+        // mark the div as scrolled into view
+        scrollingDiv.classList.add('scrolled-into-view');
         // Check if this is the first or last element to log loop information
-        const sortedBizResumeDivs = bizResumeDivSortingModule.getSortedBizResumeDivs();
-        const selectedBizResumeDiv = bizResumeDiv['biz-card-div'];
-        if (selectedBizResumeDiv) {
-            const selectedIndex = sortedBizResumeDivs.indexOf(selectedBizResumeDiv);
-            if (selectedIndex === 0 && direction === 'prev') {
-                console.log('Looped from first to last bizResumeDiv');
-            } else if (selectedIndex === sortedBizResumeDivs.length - 1 && direction === 'next') {
-                console.log('Looped from last to first bizResumeDiv');
-            }
+        const sortedDivs = bizResumeDivSortingModule.getSortedBizResumeDivs();
+        const index = sortedDivs.indexOf(scrollingDiv);
+        if (index == -1) {
+            throw new Error('scrollBizResumeDivIntoView: scrollingDiv not found in sortedDivs');
+        }
+        const N = sortedDivs.length();
+        const isFirst = (index == 0) ? true : false;
+        const isLast = (index == (N - 1)) ? true : false;
+       
+        if (isFirst && (cssDirection === 'slide-in-from-bottom' || cssDirection === 'slide-in-from-bottom')) {
+            console.log('Looped from first to last bizResumeDiv');
+        } else if (isLast && (cssDirection === 'slide-in-from-top' || cssDirection === 'slide-in-from-top')) {
+            console.log('Looped from last to first bizResumeDiv');
         }
     }, 200); // Increased delay to ensure no interference
     
     // Remove the animation class after the animation completes
     setTimeout(() => {
-        bizResumeDiv.classList.remove('slide-in-from-bottom');
-        bizResumeDiv.classList.remove('slide-in-from-top');
+        scrollingDiv.classList.remove('slide-in-from-bottom');
+        scrollingDiv.classList.remove('slide-in-from-top');
     }, 550); // Adjusted timing to account for initial delay
 }
 
@@ -86,6 +115,10 @@ function handleEndlessScroll(container, lastScrollTop) {
         const scrollHeight = container.scrollHeight;
         const visibleHeight = container.clientHeight;
 
+        const sortedDivs = bizResumeDivSortingModule.getSortedBizResumeDivs();
+        const index = sortedDivs.indexOf(scrollingBizResumeDiv);
+        const N = sortedDivs.length();
+
         // Check if scrolled near the bottom (scrolling down)
         if (scrollingDown && currentScrollTop >= scrollHeight - visibleHeight - 50) {
             container.scrollTop = visibleHeight * 0.1; // Offset by 10% of visible height to show a fraction of the next div
@@ -101,19 +134,18 @@ function handleEndlessScroll(container, lastScrollTop) {
         // Check if scrolled very close to the top (scrolling up)
         else if (!scrollingDown && currentScrollTop <= 10) {
             // Get the last bizResumeDiv to clone
-            const bizResumeDivs = Array.from(container.querySelectorAll('.biz-resume-div'));
-            if (bizResumeDivs.length > 0) {
+            if (N > 0) {
                 // Remove any existing clone first
                 if (cloneDiv) {
                     cloneDiv.remove();
                     console.log('Removed existing clone div before creating new one');
                 }
-                const lastDiv = bizResumeDivs[bizResumeDivs.length - 1];
+                const lastDiv = sortedDivs[N - 1];
                 cloneDiv = lastDiv.cloneNode(true);
                 cloneDiv.id = 'cloned-last-div';
                 cloneDiv.style.opacity = '1';
                 cloneDiv.style.display = 'block';
-                const firstDiv = bizResumeDivs[0];
+                const firstDiv = sortedDivs[0];
                 if (firstDiv && container.contains(firstDiv)) {
                     container.insertBefore(cloneDiv, firstDiv);
                     console.log('Cloned last div and placed above first div for transition');
@@ -140,4 +172,42 @@ function handleEndlessScroll(container, lastScrollTop) {
         }
     }, 100); // Debounce to prevent rapid reordering
 }
+
+// call this function from main.mjs::initilization
+
+export function initialization() {
+    
+    console.log('bizResumeDivScrollingModule: addDivSyncPairEventListener ->', divSyncPairEventHandler.name);
+
+    // register a listener for the divSyncPair alerts
+    divSyncModule.addDivSyncPairEventListener(divSyncPairEventHandler);
+
+    console.log('bizResumeDivScrollingModule: initialization finished');
+}
+
+// notified when a new currentDiv is selected
+function divSyncPairEventHandler(divSyncPairEvent) {
+
+    if ( !divSyncPairEvent ) {
+        console.warn('bizResumeDivSortingModule: divSyncPairEventHandler: ',
+            'given null divSyncPairEvent');
+        return;
+    }
+
+    if ( divSyncPairEvent.eventType === divSyncModule.DivSyncPairEventTypes.SELECTED ) {
+        console.log('bizResumeDivSortingModule: divSyncPairEventHandler: ', divSyncPairEvent);
+        scrollDivPairIntoView(divSyncPairEvent.element);
+        return;
+    }
+
+    const eventDataString = divSyncModule.stringifyDivSyncObject(divSyncPairEvent);
+    if ( divSyncPairEvent.eventType === divSyncModule.DivSyncPairEventTypes.SERVER_ERROR ) {
+        console.warn('bizResumeDivSortingModule: divSyncPairEventHandler: SERVER_ERROR:',  eventDataString);
+    } else {
+        console.warn('bizResumeDivSortingModule: divSyncPairEventListener: ',
+            'unhandled event type: ', divSyncPairEvent.eventType,
+            'eventDataString:', eventDataString);
+    }
+}
+
 

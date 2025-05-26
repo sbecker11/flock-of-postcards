@@ -8,81 +8,113 @@
 }
 
 /* Color 0 */
-body [data-color-index].palette-jungle-color-0 {
-    background-color: #3f0948 !important;
+body [data-color-index].palette-so-cherry-color-0 {
+    background-color: #ab0e4a !important;
     color: #FFFFFF !important;
 }
 
-body [data-color-index].palette-jungle-color-0.selected {
-    background-color: #5F0E6C !important;
+body [data-color-index].palette-so-cherry-color-0.selected {
+    background-color: #FF156F !important;
     color: #FFFFFF !important;
 }
 
-body [data-color-index].palette-jungle-color-0:hover:not(.selected) {
-    background-color: #5F0E6C !important;
+body [data-color-index].palette-so-cherry-color-0:hover:not(.selected) {
+    background-color: #FF156F !important;
     color: #FFFFFF !important;
 }
 
 /* Color 1 */
-body [data-color-index].palette-jungle-color-1 {
-    background-color: #0c2836 !important;
+body [data-color-index].palette-so-cherry-color-1 {
+    background-color: #540018 !important;
     color: #FFFFFF !important;
 }
 
-body [data-color-index].palette-jungle-color-1.selected {
-    background-color: #123C51 !important;
+body [data-color-index].palette-so-cherry-color-1.selected {
+    background-color: #7E0024 !important;
     color: #FFFFFF !important;
 }
 
-body [data-color-index].palette-jungle-color-1:hover:not(.selected) {
-    background-color: #123C51 !important;
+body [data-color-index].palette-so-cherry-color-1:hover:not(.selected) {
+    background-color: #7E0024 !important;
     color: #FFFFFF !important;
 }
 
 /* Color 2 */
-body [data-color-index].palette-jungle-color-2 {
-    background-color: #a62278 !important;
+body [data-color-index].palette-so-cherry-color-2 {
+    background-color: #37020c !important;
     color: #FFFFFF !important;
 }
 
-body [data-color-index].palette-jungle-color-2.selected {
-    background-color: #F933B4 !important;
-    color: #000000 !important;
+body [data-color-index].palette-so-cherry-color-2.selected {
+    background-color: #530312 !important;
+    color: #FFFFFF !important;
 }
 
-body [data-color-index].palette-jungle-color-2:hover:not(.selected) {
-    background-color: #F933B4 !important;
-    color: #000000 !important;
+body [data-color-index].palette-so-cherry-color-2:hover:not(.selected) {
+    background-color: #530312 !important;
+    color: #FFFFFF !important;
 }
 
 /* Color 3 */
-body [data-color-index].palette-jungle-color-3 {
-    background-color: #335418 !important;
+body [data-color-index].palette-so-cherry-color-3 {
+    background-color: #4e0016 !important;
     color: #FFFFFF !important;
 }
 
-body [data-color-index].palette-jungle-color-3.selected {
-    background-color: #4D7E24 !important;
+body [data-color-index].palette-so-cherry-color-3.selected {
+    background-color: #750021 !important;
     color: #FFFFFF !important;
 }
 
-body [data-color-index].palette-jungle-color-3:hover:not(.selected) {
-    background-color: #4D7E24 !important;
+body [data-color-index].palette-so-cherry-color-3:hover:not(.selected) {
+    background-color: #750021 !important;
     color: #FFFFFF !important;
 }
 
 /* Color 4 */
-body [data-color-index].palette-jungle-color-4 {
-    background-color: #1e6e5a !important;
+body [data-color-index].palette-so-cherry-color-4 {
+    background-color: #480016 !important;
     color: #FFFFFF !important;
 }
 
-body [data-color-index].palette-jungle-color-4.selected {
-    background-color: #2DA587 !important;
-    color: #000000 !important;
+body [data-color-index].palette-so-cherry-color-4.selected {
+    background-color: #6C0021 !important;
+    color: #FFFFFF !important;
 }
 
-body [data-color-index].palette-jungle-color-4:hover:not(.selected) {
-    background-color: #2DA587 !important;
-    color: #000000 !important;
+body [data-color-index].palette-so-cherry-color-4:hover:not(.selected) {
+    background-color: #6C0021 !important;
+    color: #FFFFFF !important;
+}
+
+/* Color 5 */
+body [data-color-index].palette-so-cherry-color-5 {
+    background-color: #a60450 !important;
+    color: #FFFFFF !important;
+}
+
+body [data-color-index].palette-so-cherry-color-5.selected {
+    background-color: #F90678 !important;
+    color: #FFFFFF !important;
+}
+
+body [data-color-index].palette-so-cherry-color-5:hover:not(.selected) {
+    background-color: #F90678 !important;
+    color: #FFFFFF !important;
+}
+
+/* Color 6 */
+body [data-color-index].palette-so-cherry-color-6 {
+    background-color: #a60040 !important;
+    color: #FFFFFF !important;
+}
+
+body [data-color-index].palette-so-cherry-color-6.selected {
+    background-color: #F90060 !important;
+    color: #FFFFFF !important;
+}
+
+body [data-color-index].palette-so-cherry-color-6:hover:not(.selected) {
+    background-color: #F90060 !important;
+    color: #FFFFFF !important;
 }

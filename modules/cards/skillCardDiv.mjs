@@ -1,7 +1,6 @@
-import * as typeValidators from '../utils/typeValidators.mjs';
 import * as colorUtils from '../utils/colorUtils.mjs';
 import * as domUtils from '../utils/domUtils.mjs';
-import * as arrayUtils from '../utils/arrayUtils.mjs';
+import * as mathUtils from '../utils/mathUtils.mjs';
 import * as typeConversions from '../utils/typeConversions.mjs';
 import { get_z_from_z_index, MIN_CARD_Z_INDEX } from '../layout/zIndex.mjs';
 
@@ -21,7 +20,7 @@ export const MIN_SKILLCARD_HEIGHT = 100;
  * Creates a skill card div
  * @param {Object} skill - The skill object
  * @param {number} skillIndex - The index of the skill in the array
- * @param {HTMLElement} scene-div - The scene-div element
+ * @param {HTMLElement} scene-plane - The scene-plane element
  * @returns {HTMLElement} The created skill card div
  */
 export function createSkillCardDiv(skill, skillIndex, bizCardDiv) {
@@ -59,8 +58,8 @@ export function createSkillCardDiv(skill, skillIndex, bizCardDiv) {
     // Add click handler
     skillCardDiv.addEventListener("click", () => handleSkillCardClick(skillCardDiv, skill));
     
-    // Append to scene-div
-    scene-div.appendChild(skillCardDiv);
+    // Append to scene-plane
+    scene-plane.appendChild(skillCardDiv);
     
     return skillCardDiv;
 }
@@ -80,7 +79,7 @@ function handleSkillCardClick(skillCardDiv, skill) {
     skillCardDiv.classList.add('selected');
     
     // Update right content with skill details
-    const rightContentDiv = document.getElementById('resume-content-div');
+    const resumeContentDiv= document.getElementById('resume-content-div');
     rightContentDiv.innerHTML = `
         <div class="skill-details">
             <h2>${skill.name}</h2>

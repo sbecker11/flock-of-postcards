@@ -1,10 +1,8 @@
+// modules/core/parallax.mjs
+
 import { get_z_from_zIndexStr } from './zIndex.mjs';
-import * as typeValidators from '../utils/typeValidators.mjs';
-import * as colorUtils from '../utils/colorUtils.mjs';
 import * as domUtils from '../utils/domUtils.mjs';
-import * as arrayUtils from '../utils/arrayUtils.mjs';
-import * as typeConversions from '../utils/typeConversions.mjs';
-import { findAllTranslatableCardsInViewPort } from '../cards/cardUtils.mjs';
+import { findAllTranslatableCardsInViewPort } from '../utils/cardUtils.mjs';
 
 // Parallax constants
 export const PARALLAX_X_EXAGGERATION_FACTOR = 0.05;
@@ -26,8 +24,8 @@ export function getParallax() {
  * @param {number} dh - Horizontal parallax factor
  * @param {number} dv - Vertical parallax factor
  * @param {number} zValue - Z value
- * @param {number} sceneContainer_dx - X offset from scene-div container
- * @param {number} sceneContainer_dy - Y offset from scene-div container
+ * @param {number} sceneContainer_dx - X offset from scene-plane container
+ * @param {number} sceneContainer_dy - Y offset from scene-plane container
  * @returns {string} The z-translate string
  */
 export function getZTranslateStr(dh, dv, zValue, sceneContainer_dx, sceneContainer_dy) {
@@ -80,7 +78,7 @@ export function applyParallaxToOneCardDiv(skillCardDiv) {
 
 /**
  * Applies parallax effect to all card divs in the viewPort
- * @param {HTMLElement} sceneContainer - The scene-div container element
+ * @param {HTMLElement} sceneContainer - The scene-plane container element
  */
 export function renderAllTranslateableDivsAtsceneContainerCenter(sceneContainer) {
     const sceneContainerX = domUtils.half(sceneContainer.offsetWidth);

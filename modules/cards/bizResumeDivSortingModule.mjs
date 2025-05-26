@@ -1,6 +1,7 @@
 // cards/bizResumeDivSortingModule.mjs
 
 import * as divSyncModule from './divSyncModule.mjs';
+import { getCurrentPalette, applyCurrentPaletteToElement } from '../color/colorPalettes.mjs';
 
 // Sorting rules (simplified to your two active choices)
 const sortingRuleChoices = {
@@ -28,55 +29,104 @@ export function getCurrentSortingRule() {
 }
 
 // Navigation functions
-export function getNextBizResumeDiv(currentBizResumeDiv) {
+export function getNextBizResumeDiv(fromBizResumeDiv) {
+    if (!fromBizResumeDiv) {
+        console.log("getNextBizResumeDiv: fromBizResumeDiv is null so defaulting to last");
+        return getLastBizResumeDiv();
+    } else if ( !divSyncModule.matchesCurrentSelected(fromBizResumeDiv) ) {
+        console.log("getNextBizResumeDiv: fromBizResumeDiv is not the currentselected");
+    }
     const sortedBizResumeDivs = getSortedBizResumeDivs();
-    const currentIndex = sortedBizResumeDivs.indexOf(currentBizResumeDiv);
-    return sortedBizResumeDivs[(currentIndex + 1) % sortedBizResumeDivs.length];
+    const fromIndex = sortedBizResumeDivs.indexOf(fromBizResumeDiv);
+    const N = sortedBizResumeDivs.length;
+    const nextIndex = (fromIndex + 1) % N;
+    console.log("getNextBizResumeDiv: fromIndex:", fromIndex, "nextIndex:", nextIndex);
+    const nextResumeDiv = sortedBizResumeDivs[nextIndex];
+    console.log("getNextBizResumeDiv: nextResumeDiv:", nextResumeDiv.id);
+    return nextResumeDiv;
 }
 
-export function getPreviousBizResumeDiv(currentBizResumeDiv) {
+export function getPreviousBizResumeDiv(fromBizResumeDiv) {
+    if (!fromBizResumeDiv) {
+        console.log("getPreviousBizResumeDiv: fromBizResumeDiv is null so defaulting to first");
+        return getFirstBizResumeDiv();
+    } else if ( !divSyncModule.matchesCurrentSelected(fromBizResumeDiv) ) {
+        console.log("getPreviousBizResumeDiv: fromBizResumeDiv is not the currentselected");
+    }
     const sortedBizResumeDivs = getSortedBizResumeDivs();
-    const currentIndex = sortedBizResumeDivs.indexOf(currentBizResumeDiv);
-    return currentIndex <= 0 ? null : sortedBizResumeDivs[currentIndex - 1];
+    const fromIndex = sortedBizResumeDivs.indexOf(fromBizResumeDiv);
+    const N = sortedBizResumeDivs.length;
+    const prevIndex = (fromIndex - 1 + N) % N;
+    console.log("getPreviousBizResumeDiv: fromIndex:", fromIndex, "prevIndex:", prevIndex);
+    const previousResumeDiv = sortedBizResumeDivs[prevIndex];
+    console.log("getPreviousBizResumeDiv: previousResumeDiv:", previousResumeDiv.id);
+    return previousResumeDiv;
 }
 
 export function getFirstBizResumeDiv() {
+    console.log('getFirstBizResumeDiv()');
+    const bizResumeDivs = document.getElementsByClassName('biz-resume-div');
     const sortedBizResumeDivs = getSortedBizResumeDivs();
+    if (sortedBizResumeDivs.length === 0) {
+        throw new Error('getFirstBizResumeDiv() No biz-resume-divs found');
+    }
     return sortedBizResumeDivs[0];
 } 
 
 export function getLastBizResumeDiv() {
+    console.log('getLastBizResumeDiv()');
     const sortedBizResumeDivs = getSortedBizResumeDivs();
+    if (sortedBizResumeDivs.length === 0) {
+        throw new Error('getLastBizResumeDiv() No biz-resume-divs found');
+    }
     return sortedBizResumeDivs[sortedBizResumeDivs.length - 1];
 }
 
 // UI-triggered navigation
 export function showNextResumeDiv() {
-    const currentBizResumeDiv = divSyncModule.getSelectedBizResumeDiv();
-    const nextBizResumeDiv = getNextBizResumeDiv(currentBizResumeDiv);
-    if (!nextBizResumeDiv) return;
+    console.log('showNextResumeDiv');
+    const fromBizResumeDiv = divSyncModule.getSelectedBizResumeDiv();
+    const nextBizResumeDiv = getNextBizResumeDiv(fromBizResumeDiv);
+    if (!nextBizResumeDiv) {
+        log.warn(`showNextResumeDiv: undefined nextBizResumeDiv`);
+        return;
+    }
     divSyncModule.addClass(nextBizResumeDiv,'slide-in-from-bottom');
-    divSyncModule.setSelectedBizResumeDiv(nextBizResumeDiv);
+    divSyncModule.setSelected(nextBizResumeDiv);
 }
 
 export function showPreviousResumeDiv() {
-    const currentBizResumeDiv = divSyncModule.getSelectedBizResumeDiv();
-    const previousBizResumeDiv = getPreviousBizResumeDiv(currentBizResumeDiv);
-    if (!previousBizResumeDiv) return;
+    console.log('showPreviousResumeDiv');
+    const fromBizResumeDiv = divSyncModule.getSelectedBizResumeDiv();
+    const previousBizResumeDiv = getPreviousBizResumeDiv(fromBizResumeDiv);
+    if (!previousBizResumeDiv) {
+        log.warn(`showPreviousResumeDiv: undefined previousBizResumeDiv`);
+        return;
+    }
     divSyncModule.addClass(previousBizResumeDiv,'slide-in-from-top');
-    divSyncModule.setSelectedBizResumeDiv(previousBizResumeDiv);
+    divSyncModule.setSelected(previousBizResumeDiv);
 }
 
 export function showFirstResumeDiv() {
+    console.log('showFirstResumeDiv');
     const firstBizResumeDiv = getFirstBizResumeDiv();
-    if (!firstBizResumeDiv) return;
-    divSyncModule,setSelectedBizResumeDiv(firstBizResumeDiv);
+    if (!firstBizResumeDiv) {
+        log.warn(`showFirstResumeDiv: undefined firstResumeDiv`);
+        return;
+    }
+    divSyncModule.addClass(firstBizResumeDiv,'no-slide');
+    divSyncModule.setSelected(firstBizResumeDiv);
 }
 
 export function showLastResumeDiv() {
+    console.log('showLastResumeDiv');
     const lastBizResumeDiv = getLastBizResumeDiv();
-    if (!lastBizResumeDiv) return;
-    divSyncModule,setSelectedBizResumeDiv(lastBizResumeDiv);
+    if (!lastBizResumeDiv) {
+        log.warn('showLastResumeDiv: undefined lastResumeDiv');
+        return;
+    }
+    divSyncModule.addClass(lastBizResumeDiv,'no-slide');
+    divSyncModule.setSelected(lastBizResumeDiv);
 }
 
 // Initialize sorting UI
@@ -128,4 +178,16 @@ export function getSortedBizResumeDivs() {
             ? aValue?.localeCompare(bValue) 
             : bValue?.localeCompare(aValue);
     });
+}
+
+export function createBizResumeDiv() {
+    const palette = getCurrentPalette();
+
+    // Verify the palette before applying it
+    if (!palette?.colors) {
+        console.error("No palette loaded. Using fallback.");
+        palette = { colors: ['#FF0000', '#00FF00'] };  // Emergency fallback
+    }
+
+    applyCurrentPaletteToElement(palette);
 }

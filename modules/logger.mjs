@@ -1,3 +1,5 @@
+// modules/logger.mjs
+// 
 // Usage:
 // import { Loggera, LogLevel } from "./logger.mjs";
 // const logger = new Logger("focal_point", LogLevel.INFO);

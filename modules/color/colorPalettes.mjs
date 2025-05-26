@@ -1,13 +1,11 @@
-import * as typeValidators from './utils/typeValidators.mjs';
-import * as colorUtils from './utils/colorUtils.mjs';
-import * as domUtils from './utils/domUtils.mjs';
-import * as arrayUtils from './utils/arrayUtils.mjs';
-import * as typeConversions from './utils/typeConversions.mjs';
+// modules/colorPalettes.mjs
+
+import * as colorUtils from './colorUtils.mjs';
+import * as utils from '../utils/utils.mjs';
 
 // Directory where palette files are stored
-const PALETTE_DIR = './static_content/color_palettes/';
+const PALETTE_DIR = './static_content/colorPalettes/';
 const MANIFEST_ENDPOINT = '/api/palette-manifest';
-const CSS_FILE_PATH = './static_content/css/palette-styles.css';
 const FALLBACK_LIGHT_RGBA = 'rgba(100,100,100,1.0)';
 const FALLBACK_DARK_RGBA = 'rgba(64,64,64,1.0)';
 const FALLBACK_LIGHT_HEX = '#CCCCCC';
@@ -15,9 +13,6 @@ const FALLBACK_DARK_HEX = '#666666';
 const FALLBACK_WHITE_HEX = '#FFFFFF';
 const FALLBACK_GREY_HEX = '#888888';
 const FALLBACK_BLACK_HEX = '#000000';
-const BLACK_HEX = '#000000';
-const WHITE_HEX = '#FFFFFF';
-const BRIGHTNESS_THRESHOLD = 0.4; // 40% threshold for switching between black and white text
 
 // Add localStorage key constant
 const LOCAL_STORAGE_PALETTE_KEY = 'lastSelectedPalette';
@@ -127,7 +122,7 @@ async function loadOrRefreshPalettes(isRefresh = false) {
     const tempLoadedPalettes = {};
     const tempFilenameToNameMap = {};
     const cssRules = [
-        '/* Palette Styles - Dynamically updated by color_palettes.mjs */',
+        '/* Palette Styles - Dynamically updated by colorPalettes.mjs */',
         '',
         '/* Default fallback styles */',
         '.palette-default-color-0 {',
@@ -295,19 +290,6 @@ function getPaletteSelectorInstance() {
          // No catch here, let errors propagate if initial load truly fails fatally
    }
    return _palettesLoadedPromise;
-}
-
-export function applyCurrentPaletteToElements(elements) {
-    const selector = getPaletteSelectorInstance();
-    if (selector instanceof PaletteSelector) {
-        // If we have the cached instance, use it directly
-        selector.applyPaletteToElements(elements);
-    } else {
-        // If we got a promise, wait for it
-        selector.then(selector => {
-            selector.applyPaletteToElements(elements);
-        });
-    }
 }
 
 class PaletteSelector {
@@ -508,7 +490,11 @@ class PaletteSelector {
      * @param {HTMLElement} element - The element to check
      * @returns {number|null} The normalized color index or null if invalid
      */
-    getColorIndex(element) {
+    getColorIndex(element) { 
+        if ( !element || !(element instanceof HTMLElement) ) {
+            console.warn("skipping element that is null or is not an instance of HTMLElement");
+            return null;
+        }
         const data_color_index = element.getAttribute("data-color-index");
         // Removed debug log to reduce noise
         // console.log('Getting color index for element:', {
@@ -517,7 +503,7 @@ class PaletteSelector {
         //     'current_num_colors': this.current_num_colors
         // });
 
-        if (!typeValidators.isNonEmptyString(data_color_index)) {
+        if (!utils.isNonEmptyString(data_color_index)) {
             console.warn('Invalid data-color-index:', data_color_index);
             return null;
         }
@@ -684,6 +670,7 @@ class PaletteSelector {
         if (elements === null) {
             elements = document.querySelectorAll("[data-color-index]");
         }
+        console.log("colorPalettes:applyPaletteToElements: elements:", elements.length);
 
         // Apply colors to all elements immediately
         for (const element of elements) {
@@ -981,7 +968,7 @@ class PaletteSelector {
      */
     createElementColorManager(element) {
         const data_color_index = element.getAttribute("data-color-index");
-        if (!typeValidators.isNonEmptyString(data_color_index)) {
+        if (!utils.isNonEmptyString(data_color_index)) {
             return null;
         }
 
@@ -1116,9 +1103,82 @@ getPaletteSelectorInstance().then(selector => {
  * Assigns a color index to an element based on its position in the sequence
  * @param {HTMLElement} element - The element to assign a color index to
  * @param {number} sequenceIndex - The index in the sequence (e.g. job index)
+ * Then apply the current palette to the elements children recursively
  */
 export function assignColorIndex(element, sequenceIndex) {
-    if (!element) return;
+    if (!element || !(element instanceof HTMLElement) ) {
+        console.warn("skipping element that is null or is not an instance of HTMLElement");
+        return;
+    }
     element.setAttribute('data-color-index', sequenceIndex.toString());
-    applyCurrentPaletteToElements([element]);
+    applyCurrentPaletteToElement(element);
+    for ( const child of Array.from(element.children) ) {
+        assignColorIndex(child, sequenceIndex);
+    }
+}
+
+export function getCurrentPalette() {
+    return getPaletteSelectorInstance().then(selector => {
+        return selector.current_color_palette;
+    });
+}
+
+export function applyInternalCurrentPalette(palette) {
+    if (!palette || !Array.isArray(palette?.colors)) {
+        console.warn("Invalid palette. Using fallback colors.");
+        palette = { 
+            name: "fallback",
+            colors: ['#FFFFFF', '#000000']  // Default colors
+        };
+    }
+
+    // Safely convert colors to an array
+    const colorList = Array.from(palette.colors);
+    colorList.forEach((color, index) => {
+        // Apply colors to UI elements
+        console.log(`Applying color ${index}: ${color}`);
+    });
+}
+
+/**
+ * Uses the current palette to set the background-color
+ * and foreground-color (color) of given element of it 
+ * has a 'data-color-index' attibute.
+ * Recursivley apply this update to all descendants of the 
+ * given element.
+ */
+export function applyCurrentPaletteToElement(element) {
+    const selector = getPaletteSelectorInstance();
+    if (selector instanceof PaletteSelector) {
+        // If we have the cached instance, use it directly
+        selector.applyPaletteToElement(element);
+    } else {
+        // If we got a promise, wait for it
+        selector.then(selector => {
+            const colorSet = selector.colorSets[element.getAttribute('data-color-index') % selector.current_num_colors];
+            element.style.backgroundColor = colorSet.backgroundColor;
+            element.style.color = colorSet.foregroundColor;
+        });
+    }
+}
+
+export function initializeColorPalettes() {
+    // Ensure palettes are loaded and PaletteSelector is initialized
+    getPaletteSelectorInstance().then(selector => {
+        // Apply the current palette to all elements
+        selector.applyPaletteToElements();
+        selector.applyPaletteToDocument();
+        selector.updatePaletteStyles();
+
+        // Optionally, set up a listener for palette changes
+        window.addEventListener('paletteChangeComplete', (event) => {
+            selector.applyPaletteToElements();
+            selector.applyPaletteToDocument();
+            selector.updatePaletteStyles();
+        });
+
+        console.log('Color palettes initialized and applied.');
+    }).catch(error => {
+        console.error('Failed to initialize color palettes:', error);
+    });
 }

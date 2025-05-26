@@ -1,47 +1,43 @@
 // @ts-nocheck
 'use strict';
 
-import * as typeValidators from './modules/utils/typeValidators.mjs';
-import * as colorUtils from './modules/utils/colorUtils.mjs';
-import * as domUtils from './modules/utils/domUtils.mjs';
-import * as arrayUtils from './modules/utils/arrayUtils.mjs';
-import * as typeConversions from './modules/utils/typeConversions.mjs';
-import * as timeline from './modules/timeline.mjs';
-import * as focalPoint from './modules/focal_point.mjs';
-import * as alerts from './modules/alerts.mjs';
-import { getPaletteSelectorInstance } from './modules/color_palettes.mjs';
-import { Logger, LogLevel } from "./modules/logger.mjs";
 import { jobs } from './static_content/jobs/jobs.mjs';
+import * as domUtils from './modules/utils/domUtils.mjs';
+import * as mathUtils from './modules/utils/mathUtils.mjs';
+import * as timeline from './modules/timeline/timeline.mjs';
+import * as focalPoint from './modules/core/focalPoint.mjs';
+import * as alerts from './modules/alerts/alerts.mjs';
+import * as colorPalettes from './modules/color/colorPalettes.mjs';
+import * as colorUtils from './modules/color/colorUtils.mjs';
 import * as bizResumeDivSortingModule from './modules/cards/bizResumeDivSortingModule.mjs';
 import * as bizCardDivModule from './modules/cards/bizCardDivModule.mjs';
-import { initializeDivSync } from './modules/cards/divSyncModule.mjs';
-
-// Import new modules
-import * as zIndex from './modules/layout/zIndex.mjs';
-import * as parallax from './modules/layout/parallax.mjs';
-import * as viewPort from './modules/layout/viewPort.mjs';
-import * as filters from './modules/layout/filters.mjs';
-import * as bizResumeDivModule from './modules/cards/bizResumeDivModule.mjs';
-// import * as skillCard from './modules/cards/skillCard.mjs';
-import * as cardUtils from './modules/cards/cardUtils.mjs';
+import * as divSyncModule from './modules/cards/divSyncModule.mjs';
+import * as bizResumeDivScrollingModule from './modules/cards/bizResumeDivScrollingModule.mjs';
+import * as bizResumtDivSortingModule from './modules/cards/bizResumeDivSortingModule.mjs';
+import * as zIndex from './modules/core/zIndex.mjs';
+import * as parallax from './modules/core/parallax.mjs';
+import * as viewPort from './modules/core/viewport.mjs';
+import * as filters from './modules/core/filters.mjs';
+import * as cardUtils from './modules/utils/cardUtils.mjs';
 import * as cardConstants from './modules/cards/cardConstants.mjs';
 import * as autoScroll from './modules/animation/autoScroll.mjs';
-import { initResizeHandle } from './modules/layout/resizeHandle.mjs';
-import { initScrollbarControls } from './modules/layout/viewPort.mjs';
-import * as bizResumtDivSortingModule from './modules/cards/bizResumeDivSortingModule.mjs';
+import * as resizeHandle from './modules/core/resizeHandle.mjs';
+import * as bullsEye from './modules/core/bullsEye.mjs';
+import * as aimPoint from './modules/core/aimPoint.mjs';
 
+import { Logger, LogLevel } from "./modules/logger.mjs";
 const logger = new Logger("main", LogLevel.DEBUG);
+
 
 // --------------------------------------
 // Element reference globals
 
-const rightContentDiv = document.getElementById("resume-content-div");
-const rightColumn = document.getElementById("resume-column");
+const resumeContentDiv= document.getElementById("resume-content-div");
+const resumeColumn = document.getElementById("resume-column");
 const sceneContainer = document.getElementById("scene-container");
-const sceneDiv = document.getElementById("scene-div");
+const scenePlane = document.getElementById("scene-plane");
 const bottomGradient = document.getElementById("bottom-gradient");
 const focalPointElement = document.getElementById("focal-point");
-const bullsEye = document.getElementById("bulls-eye");
 
 const timelineContainer = document.getElementById("timeline-container");
 let paletteSelector = null;
@@ -96,14 +92,14 @@ document.addEventListener('mouseup', function() {
 
 // Initialize the application
 async function initialize() {
+
+    const job0 = jobs[0];
+    console.log("job0:", job0.employer, job0.start, job0.end, job0.role, job0.Description, job0.jobSkills);
+    
     try {
-        // Initialize color palette selector and wait for it to be ready
-        paletteSelector = await getPaletteSelectorInstance();
-        
-        // Ensure a palette is selected before proceeding
-        if (!paletteSelector.current_value) {
-            throw new Error("No palette selected. Cannot proceed with initialization.");
-        }
+        // load color palettes for palette selector
+        colorPalettes.initializeColorPalettes();
+        paletteSelector = await colorPalettes.getPaletteSelectorInstance();
 
         const [minTimelineYear, maxTimelineYear] = getMinMaxTimelineYears(jobs);
         const defaultTimelineYear = maxTimelineYear;
@@ -111,49 +107,48 @@ async function initialize() {
         // Initialize timeline
         timeline.createTimeline(timelineContainer, sceneContainer, minTimelineYear, maxTimelineYear, defaultTimelineYear);
         
-        // Initialize viewPort and bullsEye first
-        viewPort.createViewPort(sceneContainer);
+        // Initialize viewPort and getBullsEyeElement() first
+        viewPort.initializeViewPort(sceneContainer);
         viewPort.updateViewPort(sceneContainer);
-        viewPort.updateBullsEyeVerticalPosition();
+
+        bullsEye.initializeBullsEye();
         
-        // Initialize resize handle - move to resizeHandleManager.initialize()
-        const resizeHandle = document.getElementById('resize-handle');
-        const resumeColumnLeft = document.querySelector('.resume-column-left');
-
-        function updateResizeHandlePosition() { // move to resizeHandleManager.initialize()
-            const rect = resumeColumnLeft.getBoundingClientRect();
-            resizeHandle.style.left = `${rect.left}px`;
-        }
-
-        // Update position on load -  move to resizeHandleManager.initialize()
-        updateResizeHandlePosition();
-
-        // Update position on window resize handle | move to resizeHandleManager.initialize()
-        window.addEventListener('resize', updateResizeHandlePosition);
-
-        // resize handle  move to resizeHandleManager.initialize()
-        const resizeManager = initResizeHandle(sceneContainer, rightColumn, resizeHandle);
-        
-        // Initialize collapse buttons -move to resizeHandleManager.initialize()
-        const collapseLeftButton = document.getElementById('collapse-left');
-        const collapseRightButton = document.getElementById('collapse-right');
+        resizeHandle.initializeResizeHandle();
         
         // sanity check for z and z_index functions
         zIndex.test_z_functions();
 
-        // Create business cards after viewPort and bullsEye are initialized
+        // sanity check for color utils
+        colorUtils.test_color_utils();
+
+        // Create business cards after viewPort, getBullsEyeElement(), and resizeHandle  and color palette are initialized
+        if (!Array.isArray(jobs)) {
+            const jobType = typeof jobs;
+            ("jobType:", jobType);
+            logger.error("jobType:", jobType);
+        }        
         const sortedJobs = [...jobs].sort((a, b) => new Date(b.start) - new Date(a.start));
+
         // Create all bizCards
         sortedJobs.forEach((job, index) => { // jobs loader
-            // Create the bizCard div
+            // Create the bizCardDiv
+            console.log("creating bizCardDiv for jobIndex:", index);
             const bizCardDiv = bizCardDivModule.createBizCardDiv(job, index);
 
-            // Append the bizCard div to the sceneDiv
-            sceneDiv.appendChild(bizCardDiv);
+            const bizCardDivId = bizCardDiv.id;
+            console.log("bizCardDivId:id:", bizCardDivId);
+            const checkBizCarDiv = document.getElementById(bizCardDivId);
+            if (!checkBizCarDiv) throw new Error("bizCardDiv is not found for bizCardDivId:", bizCardDivId);
+
+            const bizResumeDivId = bizCardDivId.replace("card", "resume");
+            const bizResumeDiv = document.getElementById(bizResumeDivId);
+            if (!bizResumeDiv) throw new Error("bizResumeDiv is not found for bizResumeDivId:", bizResumeDivId);
+
+            divSyncModule.verifySyncedPair(bizCardDiv, bizResumeDiv);
         });
 
-        initializeDivSync();
-
+        // initbiResumeDivIdializations after bizCards and bizResumeDivs are created
+        divSyncModule.initializeDivSync();
         bizResumtDivSortingModule.initializeSortingSelector();
         bizResumtDivSortingModule.initializeNavigationButtons();
         
@@ -161,7 +156,7 @@ async function initialize() {
         paletteSelector.applyPaletteToElements();
         
         // Initialize scrollbar controls - cards vertical scrolling
-        initScrollbarControls(sceneContainer);
+        viewPort.initScrollbarControls(sceneContainer);
                 
         // Add event listeners
         sceneContainer.addEventListener('wheel', autoScroll.handlesceneContainerWheel, { passive: true });
@@ -178,24 +173,7 @@ async function initialize() {
         // Start auto-scroll
         autoScroll.startAutoScroll(sceneContainer); 
 
-        let isDragging = false;
-        let startX = 0;
-        let startLeft = 0;
-
-        resizeHandle.addEventListener('mousedown', (e) => {
-            e.preventDefault();
-            isDragging = true;
-            startX = e.clientX;
-            startLeft = parseInt(window.getComputedStyle(resizeHandle).left);
-        });
-
-        collapseLeftButton.addEventListener('click', () => {
-            resizeManager.collapseLeft();
-        });
-
-        collapseRightButton.addEventListener('click', () => {
-            resizeManager.collapseRight();
-        });
+        bizResumeDivScrollingModule.initialization();
 
     } catch (error) {
         console.error('Failed to initialize application:', error);

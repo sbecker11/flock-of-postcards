@@ -2,13 +2,11 @@
     "version": "0.2.0",
     "configurations": [
         {
-            "type": "chrome", // Use "edge" if debugging in Microsoft Edge
-            "request": "attach",
-            "name": "Attach to Chrome (Live Server)",
-            "port": 9222, // Port used for remote debugging
-            "webRoot": "${workspaceFolder}", // Root of your web app
-            "url": "http://127.0.0.1:5501", // URL where Live Server runs
-            "skipFiles": ["<node_internals>/**"] // Skip Node.js internals
+            "name": "Launch Chrome",
+            "request": "launch",
+            "type": "chrome",
+            "url": "http://localhost:8080",
+            "webRoot": "${workspaceFolder}"
         }
     ]
 }

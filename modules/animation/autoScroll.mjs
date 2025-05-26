@@ -16,7 +16,7 @@ let autoScrollEase = 0;
 /**
  * Updates the auto-scroll velocity based on the focal point position
  * @param {number} focalPointY - The y-coordinate of the focal point
- * @param {HTMLElement} sceneContainer - The scene-div container element
+ * @param {HTMLElement} sceneContainer - The scene-plane container element
  */
 export function updateAutoScrollVelocity(focalPointY, sceneContainer) {
     const topHeight = Math.floor(sceneContainer.offsetHeight / 4);
@@ -42,7 +42,7 @@ export function updateAutoScrollVelocity(focalPointY, sceneContainer) {
 }
 
 /**
- * Handles wheel events on the scene-div container
+ * Handles wheel events on the scene-plane container
  * @param {WheelEvent} wheelEvent - The wheel event
  */
 export function handlesceneContainerWheel(wheelEvent) {
@@ -68,7 +68,7 @@ export function handlesceneContainerWheel(wheelEvent) {
 
 /**
  * Starts the auto-scroll animation
- * @param {HTMLElement} sceneContainer - The scene-div container element
+ * @param {HTMLElement} sceneContainer - The scene-plane container element
  */
 export function startAutoScroll(sceneContainer) {
     if (!AUTOSCROLL_ENABLED || autoScrollingInterval != null) {

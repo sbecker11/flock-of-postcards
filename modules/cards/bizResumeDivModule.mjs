@@ -1,16 +1,15 @@
 // cards/bizResumeDivModule.mjs
 
-import * as BizDetailsDiv from './bizDetailsDivModule.mjs';
-import { applyCurrentPaletteToElements } from '../color_palettes.mjs';
-import * as cardUtils from './cardUtils.mjs';
-import * as divSyncModule from './divSyncModule.mjs';
+import * as BizDetailsDiv from './bizDetailsDivModule.mjs'
+import * as colorPalettes from '../color/colorPalettes.mjs';
+
 
 // BizResumeDiv is the div that contains the resume of the job
-// and will be added to the resume-content-div. 
+// each instance will apppend itself to the resume-content-div. 
 export function createBizResumeDiv(bizCardDiv) {
     const bizResumeDiv = document.createElement("div");
     bizResumeDiv.classList.add("biz-resume-div");
-    bizResumeDiv.id = cardUtils.getBizResumeDivId(bizCardDiv.jobIndex);
+    bizResumeDiv.id = createBizResumeDivId(bizCardDiv.id);
     bizResumeDiv.job = bizCardDiv.job;
     bizResumeDiv.jobIndex = bizCardDiv.jobIndex;
     bizResumeDiv.setAttribute('sort-key-start', bizCardDiv.job.start);
@@ -29,18 +28,27 @@ export function createBizResumeDiv(bizCardDiv) {
         throw new Error(`bizCardDiv.pairedElement not found for ${bizCardDiv.id}`);
     }
 
-    // Add click handler for selection
-    divSyncModule.handleClickEvent(event, bizResumeDiv);
-
-    // Create and append the resume details div
-    const resumeDetailsDiv = BizDetailsDiv.createBizDetailsDiv(bizCardDiv);
-    bizResumeDiv.appendChild(resumeDetailsDiv);
-    bizResumeDiv.resumeDetailsDiv = resumeDetailsDiv;
+    // Create and append the new resume details div
+    const divDetailsDiv = BizDetailsDiv.createBizDetailsDiv(bizCardDiv);
+    bizResumeDiv.appendChild(divDetailsDiv);
+    bizResumeDiv.divDetailsDiv = divDetailsDiv;
 
     // Apply the same color palette as the biz card
     bizResumeDiv.setAttribute('data-color-index', bizCardDiv.getAttribute('data-color-index'));
-    applyCurrentPaletteToElements([bizResumeDiv]);
 
-    // will be apppended to the resume-content-div
+    const resumeContentDiv= document.getElementById("resume-content-div");   
+    resumeContentDiv.appendChild(bizResumeDiv);
+
+    // will be appended to the resume-content-div
     return bizResumeDiv;
+}
+
+/**
+ * Gets the ID of a business resume div
+ * @param {string} bizCardDivId - The index of the business card div
+ * @returns {string} The ID of the business resume div
+ */
+export function createBizResumeDivId(bizCardDivId) {
+    const bizResumeDivId = bizCardDivId.replace("card", "resume");
+    return bizResumeDivId;
 }

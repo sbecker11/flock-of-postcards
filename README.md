@@ -176,27 +176,27 @@ If the app is already running, it will re-load the `jobs.mjs` file.
 ### version 0.6:   July 3, 2023  
 
 - Upgraded static website to use ES6 modules, thus requiring a local webserver that supports ES6.  
-- The focal point now eases towards the mouse when it enters the scene-div area.  
-- The focal point now eases toward the bullsEye when it leaves the scene-div areas.  
+- The focal point now eases towards the mouse when it enters the scene-plane area.  
+- The focal point now eases toward the bullsEye when it leaves the scene-plane areas.  
 -  <img src="static_content/graphics/version-0.6.gif">8 MB animated gif</a>
 
 
 ### version 0.5:   June 26, 2023
 
-- A flock of small skill postcards and larger business cards float over the left-side scene-div column.
+- A flock of small skill postcards and larger business cards float over the left-side scene-plane column.
 - A timeline is displayed at ground level, to visualize the date range of employment for each business card.
-- A 3-D parallax effect on cards is controlled by the "focalPoint", which tracks the mouse while over the scene-div.
+- A 3-D parallax effect on cards is controlled by the "focalPoint", which tracks the mouse while over the scene-plane.
 - Add line items to the right-side resume column by selecting business cards.
 - Select a postcard or resume line item by clicking it, click again to deselect it.
 - Selected postcards and line-items have a red-dashed border.
 - Once selected, a postcard or business card is temporarily moved above the flock where is not subject to motion parallax.
 - Click on a postcard to select and scroll its resume line item into view.
 - Click on a resume line item to select and scroll its postcard into view.
-- The scene-div viewPort shows "BullsEye" with a plus sign at scene-div center, where parallax effect is zero.
-- FocalPoint defaults back to the viewPort center BullsEye when it leaves the scene-div.
-- The focalPoint starts tracking the mouse as soon as it re-enters the scene-div area.
-- Scene-div auto-scrolling starts when the focalPoint is in top or bottom quqrter of the scene-div.
-- Autoscrolling stops when the focalPoint moves to viewPort center and when the mouse leaves the scene-div.
+- The scene-plane viewPort shows "BullsEye" with a plus sign at scene-plane center, where parallax effect is zero.
+- FocalPoint defaults back to the viewPort center BullsEye when it leaves the scene-plane.
+- The focalPoint starts tracking the mouse as soon as it re-enters the scene-plane area.
+- Scene-div auto-scrolling starts when the focalPoint is in top or bottom quqrter of the scene-plane.
+- Autoscrolling stops when the focalPoint moves to viewPort center and when the mouse leaves the scene-plane.
 - Click on a resume line item's top-right delete button to delete it.
 - Click on the bottom-right green next button to open and select the resume line item for the next business card.
 - Skill postcards inherit the color of its parent business card.
@@ -228,7 +228,7 @@ If the app is already running, it will re-load the `jobs.mjs` file.
 - horizontal and vertical mouse motion induce motion parallax
 - parallax decreases as distance to viewer increases
 - manual vertical scrolling is supported though scrollbar is invisible
-- scene-div scrolls vertically when mouse approaches top and bottom
+- scene-plane scrolls vertically when mouse approaches top and bottom
 - right column for diagnostics
 
 

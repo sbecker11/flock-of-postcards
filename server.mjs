@@ -5,7 +5,7 @@ import cors from 'cors';
 
 // Assume server is run from the project root directory
 const PROJECT_ROOT = process.cwd();
-const PALETTE_DIR_PATH = path.resolve(PROJECT_ROOT, 'static_content', 'color_palettes');
+const PALETTE_DIR_PATH = path.resolve(PROJECT_ROOT, 'static_content', 'colorPalettes');
 const CSS_FILE_PATH = path.resolve(PROJECT_ROOT, 'static_content', 'css', 'palette-styles.css');
 
 const app = express();

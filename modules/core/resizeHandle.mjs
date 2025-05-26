@@ -2,29 +2,40 @@
  * Module for handling the resize handle functionality
  */
 
-import { clamp } from '../utils.mjs';
-import * as viewPort from './viewPort.mjs';
-import { getViewPort, updateViewPort } from './viewPort.mjs';
-import * as cardUtils from '../cards/cardUtils.mjs';
-// Removed import for parallax as the file does not exist: import * as parallax from '../animation/parallax.mjs';
+import { clampInt } from '../utils/utils.mjs';
+import * as viewPort from '../core/viewport.mjs';
+import * as cardUtils from '../utils/cardUtils.mjs';
+import * as bullsEye from '../core/bullsEye.mjs';
 
 // Constants
 const BUTTON_COLUMN_WIDTH = 20; // Width of the button column
 const MIN_WIDTH = BUTTON_COLUMN_WIDTH; // Minimum width (just the button column)
 const DEFAULT_WIDTH_PERCENT = 50; // Default width as percentage of window width
 
+export function getResizeHandleRect() {
+    const resizeHandleRect = getResizeHandleElement().getBoundingClientRect();
+    return resizeHandleRect;
+}
+
+
+export function initializeViewPercent(viewPercent) {
+    sceneContainer.style.width = `${viewPercent}%`;
+    const resumePercent = 100 - viewPercent;
+    resumeColumn.style.width = `${resumePercent}%`;
+}
+
 /**
- * Updates the percentage display to reflect the visible percentage of scene-div
+ * Updates the percentage display to reflect the visible percentage of scene-plane
  * @param {number} left - The current left position of the resize handle
  */
 function updatePercentageDisplay(left) {
     const percentageDisplay = document.querySelector('.percentage-display');
     if (percentageDisplay) {
         const windowWidth = window.innerWidth;
-        // Calculate percentage of scene-div visibility (0% = handle at left edge, 100% = handle at right edge)
+        // Calculate percentage of scene-plane visibility (0% = handle at left edge, 100% = handle at right edge)
         const maxWidth = windowWidth - BUTTON_COLUMN_WIDTH;
         const percentage = (left / maxWidth) * 100;
-        const clampedPercentage = clamp(Math.round(percentage), 0, 100);
+        const clampedPercentage = clampInt(Math.round(percentage), 0, 100);
         percentageDisplay.textContent = `${clampedPercentage}%`;
     }
 }
@@ -33,9 +44,9 @@ function updatePercentageDisplay(left) {
 // to handle collapse buttons, viewport resizing, and cascading updates.
 
 class ResizeManager {
-    constructor(sceneContainer, rightColumn, collapseLeftButton, collapseRightButton) {
+    constructor(sceneContainer, resumeColumn, collapseLeftButton, collapseRightButton) {
         this.sceneContainer = sceneContainer;
-        this.rightColumn = rightColumn;
+        this.resumeColumn = resumeColumn;
         this.collapseLeftButton = collapseLeftButton;
         this.collapseRightButton = collapseRightButton;
         this.isDragging = false;
@@ -53,12 +64,12 @@ class ResizeManager {
 
     setupEventListeners() {
         // Mouse drag events for resume-column (left edge)
-        this.rightColumn.addEventListener('mousedown', (e) => this.startDrag(e));
+        this.resumeColumn.addEventListener('mousedown', (e) => this.startDrag(e));
         document.addEventListener('mousemove', (e) => this.handleDrag(e));
         document.addEventListener('mouseup', () => this.stopDrag());
 
         // Add mousemove event to dynamically change cursor on left edge
-        this.rightColumn.addEventListener('mousemove', (e) => this.handleCursorChange(e));
+        this.resumeColumn.addEventListener('mousemove', (e) => this.handleCursorChange(e));
 
         // Collapse button events
         this.collapseLeftButton.addEventListener('click', () => this.collapseLeft());
@@ -70,17 +81,25 @@ class ResizeManager {
         // Cursor style changes for buttons
         this.collapseLeftButton.style.cursor = 'w-resize'; // West for left collapse
         this.collapseRightButton.style.cursor = 'e-resize'; // East for right collapse
+
+        // this.resizeHandle.addEventListener('mousedown', (e) => {
+        //     e.preventDefault();
+        //     this.isDragging = true;
+        //     this.startX = e.clientX;
+        //     this.startLeft = parseInt(window.getComputedStyle(this.resizeHandle).left);
+        // });
+    
     }
 
     startDrag(e) {
         // Only start dragging if the click is near the left edge of resume-column
-        const rect = this.rightColumn.getBoundingClientRect();
+        const rect = this.resumeColumn.getBoundingClientRect();
         if (e.clientX < rect.left + 20) { // 20px threshold for left edge
             e.preventDefault();
             this.isDragging = true;
             this.startX = e.clientX;
-            this.startLeft = parseInt(window.getComputedStyle(this.rightColumn).left);
-            this.rightColumn.style.cursor = 'w-resize'; // Adjust cursor during drag
+            this.startLeft = parseInt(window.getComputedStyle(this.resumeColumn).left);
+            this.resumeColumn.style.cursor = 'w-resize'; // Adjust cursor during drag
         }
     }
 
@@ -90,8 +109,8 @@ class ResizeManager {
         // Ensure the left edge stays within bounds, keeping 20px visible at max
         const maxLeft = window.innerWidth - BUTTON_COLUMN_WIDTH;
         const newLeft = Math.max(0, Math.min(maxLeft, this.startLeft + dx));
-        this.rightColumn.style.left = `${newLeft}px`;
-        this.rightColumn.style.width = `${window.innerWidth - newLeft}px`;
+        this.resumeColumn.style.left = `${newLeft}px`;
+        this.resumeColumn.style.width = `${window.innerWidth - newLeft}px`;
         // Keep sceneContainer width aligned with window width
         this.sceneContainer.style.width = `${window.innerWidth}px`;
         // Update percentage display
@@ -104,12 +123,12 @@ class ResizeManager {
     stopDrag() {
         this.isDragging = false;
         // Reset cursor after drag, will be updated by handleCursorChange on next mousemove
-        this.rightColumn.style.cursor = 'default';
+        this.resumeColumn.style.cursor = 'default';
     }
 
     collapseLeft() {
         // Logic to collapse left by exactly 25% increment
-        const currentLeft = parseInt(window.getComputedStyle(this.rightColumn).left);
+        const currentLeft = parseInt(window.getComputedStyle(this.resumeColumn).left);
         const windowWidth = window.innerWidth;
         const maxWidth = windowWidth - BUTTON_COLUMN_WIDTH;
         // Calculate current percentage of scene visibility
@@ -121,8 +140,8 @@ class ResizeManager {
         // Calculate new left position based on percentage
         const newLeft = (clampedPercentage / 100) * maxWidth;
         // Apply new position
-        this.rightColumn.style.left = `${newLeft}px`;
-        this.rightColumn.style.width = `${windowWidth - newLeft}px`;
+        this.resumeColumn.style.left = `${newLeft}px`;
+        this.resumeColumn.style.width = `${windowWidth - newLeft}px`;
         // Keep sceneContainer width aligned with window width
         this.sceneContainer.style.width = `${window.innerWidth}px`;
         // Update percentage display
@@ -136,7 +155,7 @@ class ResizeManager {
 
     collapseRight() {
         // Logic to collapse right by exactly 25% increment
-        const currentLeft = parseInt(window.getComputedStyle(this.rightColumn).left);
+        const currentLeft = parseInt(window.getComputedStyle(this.resumeColumn).left);
         const windowWidth = window.innerWidth;
         const maxWidth = windowWidth - BUTTON_COLUMN_WIDTH;
         // Calculate current percentage of scene visibility
@@ -148,8 +167,8 @@ class ResizeManager {
         // Calculate new left position based on percentage
         const newLeft = (clampedPercentage / 100) * maxWidth;
         // Apply new position
-        this.rightColumn.style.left = `${newLeft}px`;
-        this.rightColumn.style.width = `${windowWidth - newLeft}px`;
+        this.resumeColumn.style.left = `${newLeft}px`;
+        this.resumeColumn.style.width = `${windowWidth - newLeft}px`;
         // Keep sceneContainer width aligned with window width
         this.sceneContainer.style.width = `${window.innerWidth}px`;
         // Update percentage display
@@ -186,10 +205,10 @@ class ResizeManager {
 
     handleWindowResize() {
         // Adjust position if out of bounds
-        const currentLeft = parseInt(window.getComputedStyle(this.rightColumn).left);
+        const currentLeft = parseInt(window.getComputedStyle(this.resumeColumn).left);
         const maxLeft = window.innerWidth - BUTTON_COLUMN_WIDTH;
         if (currentLeft > maxLeft) {
-            this.rightColumn.style.left = `${maxLeft}px`;
+            this.resumeColumn.style.left = `${maxLeft}px`;
         }
         this.updateLayout();
     }
@@ -200,12 +219,12 @@ class ResizeManager {
         viewPort.updateViewPort(this.sceneContainer);
 
         // 2. Update bulls-eye position
-        viewPort.updateBullsEyeVerticalPosition();
+        bullsEye.updateBullsEyeVerticalPosition(viewPort.getViewPortProperties.bullsEyeY);
 
         // 3. Update parallax effects (commented out as parallax module is not available)
         // parallax.renderAllTranslateableDivsAtsceneContainerCenter(this.sceneContainer);
 
-        // 4. Update all translatable divs in scene-div based on viewport changes
+        // 4. Update all translatable divs in scene-plane based on viewport changes
         cardUtils.applyViewRelativeStylingToAllBizCardDivs(viewPort);
 
         // 5. Trigger any necessary re-rendering or additional updates
@@ -228,11 +247,11 @@ class ResizeManager {
 
     // Method to handle cursor change on resume-column left edge
     handleCursorChange(e) {
-        const rect = this.rightColumn.getBoundingClientRect();
+        const rect = this.resumeColumn.getBoundingClientRect();
         if (e.clientX < rect.left + 20 && !this.isDragging) { // 20px threshold for left edge, not during drag
-            this.rightColumn.style.cursor = 'w-resize';
+            this.resumeColumn.style.cursor = 'w-resize';
         } else {
-            this.rightColumn.style.cursor = 'default';
+            this.resumeColumn.style.cursor = 'default';
         }
     }
 
@@ -242,11 +261,41 @@ class ResizeManager {
     }
 }
 
-// Function to initialize the resize manager
-export function initResizeHandle(sceneContainer, rightColumn) {
-    const collapseLeftButton = document.getElementById('collapse-left');
-    const collapseRightButton = document.getElementById('collapse-right');
-    const resizeManager = new ResizeManager(sceneContainer, rightColumn, collapseLeftButton, collapseRightButton);
-    resizeManager.initialize();
-    return resizeManager;
+export function setResizeHandleSetLeft(left) {
+    const resizeHandleElement = getResizeHandleElement();
+    resizeHandleElement.style.left = `${left}px`;
+}
+
+const _sceneContainerElement = document.getElementById('scene-container');
+const _resumeColumnElement = document.getElementById('resume-column');
+const _collapseLeftButton = document.getElementById('collapse-left');
+const _collapseRightButton = document.getElementById('collapse-right');
+const _resizeHandleElement = document.getElementById('resize-handle');
+let _resizeManager = null;
+
+// Function to initialize the _resizeManager instance
+export function initializeResizeHandle() {;
+    _resizeManager = new ResizeManager(
+        _sceneContainerElement,
+        _resumeColumnElement, 
+        _collapseLeftButton, 
+        _collapseRightButton);
+
+    _resizeManager.initialize();
 } 
+
+export function getResizeHandleElement() {
+    return _resizeHandleElement;
+}
+
+export function getResumeColumnElement() {
+    return _resumeColumnElement;
+}
+
+export function getCollapseLeftButtonElement() {
+    return document.getElementById('collapse-left');
+}
+
+export function getCollapseRightButtonElement() {
+    return document.getElementById('collapse-right');
+}

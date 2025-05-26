@@ -1,9 +1,6 @@
-import * as typeValidators from '../utils/typeValidators.mjs';
-import * as colorUtils from '../utils/colorUtils.mjs';
-import * as domUtils from '../utils/domUtils.mjs';
-import * as arrayUtils from '../utils/arrayUtils.mjs';
-import * as typeConversions from '../utils/typeConversions.mjs';
-import { linearInterp } from '../utils/arrayUtils.mjs';
+// /modules/core/filters.mjs
+
+import { linearInterp } from '../utils/mathUtils.mjs';
 
 // Filter constants
 export const MIN_BRIGHTNESS_PERCENT = 75;

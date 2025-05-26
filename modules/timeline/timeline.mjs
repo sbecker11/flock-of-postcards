@@ -1,10 +1,6 @@
 // @ts-check
 
-import * as typeValidators from './utils/typeValidators.mjs';
-import * as colorUtils from './utils/colorUtils.mjs';
-import * as domUtils from './utils/domUtils.mjs';
-import * as arrayUtils from './utils/arrayUtils.mjs';
-import * as typeConversions from './utils/typeConversions.mjs';
+import * as utils from '../utils/utils.mjs';
   
 // --------------------------------------
 // TimeLine globals 
@@ -38,7 +34,7 @@ const MONTHTICK_FONTSIZE = 9;
 // Timeline functions 
 // --------------------------------------
 
-// used to get scene-div-relative top position for anything 
+// used to get scene-plane-relative top position for anything 
 // take care to always append "px" for pixels
 
 /**
@@ -107,7 +103,7 @@ export function createTimeline(timelineContainer, sceneContainer, minYear, maxYe
                 monthTick.classList.add("month-tick-left");
             else
                 monthTick.classList.add("month-tick-right");
-            var monthStr = typeConversions.zeroPad(month, 2);
+            var monthStr = utils.zeroPad(month, 2);
             var monthTickBottom = getTimelineYearMonthBottom(year.toString(), monthStr);
             var check = yearDivBottom - (month - 1) * YEAR_BOTTOM_TO_BOTTOM / 12;
             if (monthTickBottom != check) {
@@ -133,7 +129,7 @@ export function sceneContainerScrollToYear(sceneContainer, year) {
     var leftColumScrollPixelsPerYear = sceneContainer.scrollHeight / totalYears;
 
     var newScrollTop = (_timelineYearMax - year) * leftColumScrollPixelsPerYear;
-    newScrollTop = arrayUtils.clampInt(newScrollTop, 0, sceneContainer.scrollHeight);
+    newScrollTop = utils.clampInt(newScrollTop, 0, sceneContainer.scrollHeight);
 
     sceneContainer.scrollTop = newScrollTop;
 }

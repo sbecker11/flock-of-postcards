@@ -12,8 +12,8 @@
   <title>flock-of-cards</title>
 
   <link rel="stylesheet" href="./styles.css">
-  <link rel="stylesheet" href="./modules/timeline.css">
-  <link rel="stylesheet" href="./modules/alerts.css">
+  <link rel="stylesheet" href="./modules/timeline/timeline.css">
+  <link rel="stylesheet" href="./modules/alerts/alerts.css">
   <link rel="stylesheet" href="./modules/cards/cards.css">
   <link rel="stylesheet" href="./static_content/css/palette-styles.css">
   <link rel="stylesheet" href="./styles/scene-container.css">
@@ -28,16 +28,21 @@
   
   <!-- jobs.mjs is imported by main.mjs -->
   <script type="module" src="./main.mjs" ></script>
-  <script type="module" src="./modules/alerts.mjs" ></script>
-  <script type="module" src="./modules/css_colors.mjs" ></script>
-  <script type="module" src="./modules/color_palettes.mjs" ></script>
+  <script type="module" src="./modules/alerts/alerts.mjs" ></script>
+  <script type="module" src="./modules/color/css_colors.mjs" ></script>
+  <script type="module" src="./modules/color/colorPalettes.mjs" ></script>
+  <script type="module" src="./modules/color/colorUtils.mjs" ></script>
+  <script type="module" src="./modules/utils/utils.mjs" ></script>
+  <script type="module" src="./modules/utils/domUtils.mjs" ></script>
+  <script type="module" src="./modules/utils/mathUtils.mjs" ></script>
+
   
   <div id="main-container">
 
     <div id="scene-container" class="scrollable-container">
-      <div id="scene-div">
-        <div id="scene-div-top-gradient"></div>
-        <div id="scene-div-btm-gradient"></div>
+      <div id="scene-plane">
+        <div id="scene-plane-top-gradient"></div>
+        <div id="scene-plane-btm-gradient"></div>
         <div id="timeline-container" class="timeline-container-left"></div>
         <div class="temporary-content">temporary content</div>
       </div>
@@ -84,7 +89,7 @@
           </div>
           <!--
           <div id="debugScrollingElement"></div>
-          <div id="debugFocalPointElement">mouse not in scene-div<br>bullsEye:[303,452]<br>focalPoint:[303,452]<br>parallax:[0,0]<br>time:1702688539746<br></div>
+          <div id="debugFocalPointElement">mouse not in scene-plane<br>bullsEye:[303,452]<br>focalPoint:[303,452]<br>parallax:[0,0]<br>time:1702688539746<br></div>
           <div id="debugTheSelectedCardDivIdElement">theSelectedCardDivIdStr:null<br>theSelectedCardDivLineItemIdStr:null<br></div> 
           -->
         </div>
