@@ -90,10 +90,15 @@ class ResizeManager {
         const windowWidth = window.innerWidth;
         const maxSceneWidth = windowWidth - BUTTON_COLUMN_WIDTH;
         const dx = this.clientX - this.startX;
-        this.newResumeLeft = this.resumeLeft + dx;
-        this.newSceneWidth = this.newResumeLeft;
-        this.newResumeWidth = windowWidth - this.newSceneWidth;
+        const newLeft = this.resumeLeft + dx;
+        if ((newLeft <= -1) || (newLeft >= windowWidth)) return;
+        this.newResumeLeft = newLeft;
+        this.newSceneWidth = utils.clampInt(0, this.newResumeLeft, maxSceneWidth);
+        this.newResumeLeft = this.newSceneWidth;
+        this.newResumeWidth = windowWidth - this.newResumeLeft;
+        this.newResumeWidth = utils.clampInt(BUTTON_COLUMN_WIDTH, this.newResumeWidth, windowWidth);
         this.newClampedPercentage = Math.round(this.newSceneWidth / maxSceneWidth * 100);
+        this.newClampedPercentage = utils.clampInt(0,this.newClampedPercentage,100);
 
         // let percent = this.newSceneWidth / maxSceneWidth * 100;
         // let newPercent = percent;
@@ -109,6 +114,7 @@ class ResizeManager {
         // }
         // this.newClampedPercentage = utils.clampInt(0, Math.round(newPercent), 100);
         // this.newSceneWidth = Math.round(this.newClampedPercentage * maxSceneWidth / 100;
+
     }
 
     updateContainers() {
@@ -117,10 +123,15 @@ class ResizeManager {
         if ( !utils.isNumber(this.newResumeLeft) ) throw new Error("this.newResumeLeft:", this.newResumeLeft, "is not a Number");
         if ( !utils.isNumber(this.newResumeWidth) ) throw new Error("this.newResumeWidth:", this.newResumeWidth, "is not a Number");
         
-        console.log("update newSceneWidth:", this.newSceneWidth);
-        console.log("update newResumtWidth:", this.newResumeWidth);
-        console.log("update newClampedPercentage:", this.newClampedPercentage);
+        console.log("update windowWidth;     ", window.innerWidth);
+        console.log("update newSceneWidth:   ", this.newSceneWidth);
+        console.log("update newResumeWidth:  ", this.newResumeWidth);
+        console.log("update newClamped%:     ", this.newClampedPercentage);
+        if ( (this.newResumeWidth < BUTTON_COLUMN_WIDTH) || this.newResumeWidth > (window.innerWidth - this.newSceneWidth) ) {
+            return;
+        }
 
+        this.newResumeLeft = utils.clampInt(0, this.newResumeLeft, window.innerWidth);
         this.resumeContainer.style.left = `${this.newResumeLeft}px`;
         this.resumeContainer.style.width = `${this.newResumeWidth}px`;
         this.sceneContainer.style.width = `${this.newSceneWidth}px`;
@@ -138,7 +149,6 @@ class ResizeManager {
         this.clientX = e.clientX;
         this.showContainers("B");
         this.computeContainers();
-        this.updateContainers();
     }
 
     handleDrag(e) {
