@@ -1,10 +1,7 @@
 // modules/utils/colorUtils.mjs
 
-import { isString } from '../utils/utils.mjs';
 import * as mathUtils from '../utils/mathUtils.mjs';
-import { clampInt } from '../utils/utils.mjs';
-import { isNonEmptyString } from '../utils/utils.mjs';
-import { validateFloat, validateIntArrayLength, validateFloatInRange } from '../utils/utils.mjs';
+import * as utils from '../utils/utils.mjs';
 
 import { Logger, LogLevel } from "../logger.mjs";
 const logger = new Logger("colorUtils", LogLevel.DEBUG);
@@ -16,7 +13,7 @@ const logger = new Logger("colorUtils", LogLevel.DEBUG);
 const EPSILON = 1.0;
 
 export function isHexColorString(hexColorStr) {
-    return (isNonEmptyString(hexColorStr) && /^#[0-9A-F]{6}$/i.test(String(hexColorStr)));
+    return (utils.isNonEmptyString(hexColorStr) && /^#[0-9A-F]{6}$/i.test(String(hexColorStr)));
 }
 
 export function validateHexColorString(hexColorStr) {
@@ -90,11 +87,11 @@ export function clampDegrees(value) {
     while ( value > 360.0 ) {
         value -= 360.0;
     }
-    return clampInt(value, 0, 360);
+    return utils.clampInt(value, 0, 360);
 }
 
-export const adjustRgbBrightness = (rgb, brightness) => { validateIntArrayLength(rgb, 3); return rgb.map(channel => clampInt(Math.round(channel * brightness), 0, 255)); }; // 1.0 is normal brightness
-export const adjustHexBrightness = (hexStr, brightness) => { validateHexColorString(hexStr); validateFloat(brightness); return get_Hex_from_RGB(adjustRgbBrightness(get_RGB_from_Hex(`${hexStr}`), brightness)); }; // 1.0 is normal brightness
+export const adjustRgbBrightness = (rgb, brightness) => { utils.validateIntArrayLength(rgb, 3); return rgb.map(channel => utils.clampInt(Math.round(channel * brightness), 0, 255)); }; // 1.0 is normal brightness
+export const adjustHexBrightness = (hexStr, brightness) => { validateHexColorString(hexStr); utils.validateFloat(brightness); return get_Hex_from_RGB(adjustRgbBrightness(get_RGB_from_Hex(`${hexStr}`), brightness)); }; // 1.0 is normal brightness
 export const get_RGB_from_Hex = hexStr => {
     validateHexColorString(hexStr);
     const r = parseInt(hexStr.slice(1, 3), 16);
@@ -102,9 +99,9 @@ export const get_RGB_from_Hex = hexStr => {
     const b = parseInt(hexStr.slice(5, 7), 16);
     return [r, g, b];
 };
-export const get_RGBA_from_RGB = (RGB, alpha) => { validateIntArrayLength(RGB, 3); validateFloatInRange(alpha, 0.0, 1.0); return `rgba(${RGB[0]}, ${RGB[1]}, ${RGB[2]}, ${alpha})`; };
+export const get_RGBA_from_RGB = (RGB, alpha) => { utils.validateIntArrayLength(RGB, 3); utils.validateFloatInRange(alpha, 0.0, 1.0); return `rgba(${RGB[0]}, ${RGB[1]}, ${RGB[2]}, ${alpha})`; };
 
-export const get_Hex_from_RGB = RGB => { validateIntArrayLength(RGB, 3); return "#" + RGB.map(c => c.toString(16).padStart(2, "0")).join("").toUpperCase(); };
+export const get_Hex_from_RGB = RGB => { utils.validateIntArrayLength(RGB, 3); return "#" + RGB.map(c => c.toString(16).padStart(2, "0")).join("").toUpperCase(); };
 
 export function isHSV(HSV) {
     if (!Array.isArray(HSV)) return false;
@@ -168,8 +165,8 @@ export function get_HSV_from_RGB([R, G, B]) {
       h /= 6;
     }
     const H = clampDegrees(h * 360);
-    const S = clampInt(s * 100.0, 0, 100);
-    const V = clampInt(v * 100.0, 0, 100);
+    const S = utils.clampInt(s * 100.0, 0, 100);
+    const V = utils.clampInt(v * 100.0, 0, 100);
     const HSV = [H,S,V];
     validateHSV(HSV);
 
@@ -254,7 +251,7 @@ export function test_HSV_RGB_Hex_functions() {
 }
 
 export function get_RGB_from_RgbStr(rgbStr) {
-    if ( isString(rgbStr) ) {
+    if ( utils.isString(rgbStr) ) {
         rgbStr = rgbStr.replaceAll(" ","");
         const regex = /rgb\((\d+),(\d+),(\d+)\)/;
         const matches = rgbStr.match(regex);
@@ -294,7 +291,7 @@ export function test_RGB_RgbStr_functions() {
 }
 
 export function get_RGB_from_ColorStr(colorStr) {
-    if ( isString(colorStr) && colorStr.length > 6) {
+    if ( utils.isString(colorStr) && colorStr.length > 6) {
         colorStr = colorStr.replaceAll(" ","");
         const regex = /color\((\d+),(\d+),(\d+)\)/;
         const matches = colorStr.match(regex);
@@ -317,7 +314,7 @@ export function get_ColorStr_from_RGB(RGB) {
 }
 // returns a 3-element array of integers or null
 export function get_RGB_from_AnyStr(anyStr) {
-    if ( isString(anyStr) ) {
+    if ( utils.isString(anyStr) ) {
         let hex = css_colors.get_HEX_from_CssColor(anyStr);
         if ( isHexColorString(hex) ) {
             return get_RGB_from_Hex(hex);
@@ -385,7 +382,7 @@ export function normalizeHexColorString(hexColorStr) {
 }
 
 export function clampHSV(colorHSV) {
-    return [clampDegrees(colorHSV[0]), clampInt(colorHSV[1],0,100), clampInt(colorHSV[2],0,100)];
+    return [clampDegrees(colorHSV[0]), utils.clampInt(colorHSV[1],0,100), utils.clampInt(colorHSV[2],0,100)];
 }
 
 
@@ -432,8 +429,8 @@ export function test_getHighContrastCssHexColorStr() {
 // Color Utilities
 
 
-// export const adjustRgbBrightness = (rgb, brightness) => { validateIntArrayLength(rgb, 3); return rgb.map(channel => clampInt(Math.round(channel * brightness), 0, 255)); }; // 1.0 is normal brightness
-// export const adjustHexBrightness = (hexStr, brightness) => { validateHexColorString(hexStr); validateFloat(brightness); return get_Hex_from_RGB(adjustRgbBrightness(get_RGB_from_Hex(`${hexStr}`), brightness)); }; // 1.0 is normal brightness
+// export const adjustRgbBrightness = (rgb, brightness) => { utils.validateIntArrayLength(rgb, 3); return rgb.map(channel => utils.clampInt(Math.round(channel * brightness), 0, 255)); }; // 1.0 is normal brightness
+// export const adjustHexBrightness = (hexStr, brightness) => { validateHexColorString(hexStr); utils.validateFloat(brightness); return get_Hex_from_RGB(adjustRgbBrightness(get_RGB_from_Hex(`${hexStr}`), brightness)); }; // 1.0 is normal brightness
 
 // export const get_RGB_from_Hex = hexStr => {
 //     validateHexColorString(hexStr);
@@ -443,9 +440,9 @@ export function test_getHighContrastCssHexColorStr() {
 //     return [r, g, b];
 // };
 
-// export const get_RGBA_from_RGB = (RGB, alpha) => { validateIntArrayLength(RGB, 3); validateFloatInRange(alpha, 0.0, 1.0); return `rgba(${RGB[0]}, ${RGB[1]}, ${RGB[2]}, ${alpha})`; };
+// export const get_RGBA_from_RGB = (RGB, alpha) => { utils.validateIntArrayLength(RGB, 3); utils.validateFloatInRange(alpha, 0.0, 1.0); return `rgba(${RGB[0]}, ${RGB[1]}, ${RGB[2]}, ${alpha})`; };
 
-// export const get_Hex_from_RGB = RGB => { validateIntArrayLength(RGB, 3); return "#" + RGB.map(c => c.toString(16).padStart(2, "0")).join("").toUpperCase(); };
+// export const get_Hex_from_RGB = RGB => { utils.validateIntArrayLength(RGB, 3); return "#" + RGB.map(c => c.toString(16).padStart(2, "0")).join("").toUpperCase(); };
 
 // export function get_HSV_from_RGB([R, G, B]) {
 //     const RGB = [R,G,B];
@@ -476,8 +473,8 @@ export function test_getHighContrastCssHexColorStr() {
 //       h /= 6;
 //     }
 //     const H = clampDegrees(h * 360);
-//     const S = clampInt(s * 100.0, 0, 100);
-//     const V = clampInt(v * 100.0, 0, 100);
+//     const S = utils.clampInt(s * 100.0, 0, 100);
+//     const V = utils.clampInt(v * 100.0, 0, 100);
 //     const HSV = [H,S,V];
 //     validateHSV(HSV);
 
@@ -530,7 +527,7 @@ export function get_RGB_distance(RGB1, RGB2) {
 //     while ( value > 360.0 ) {
 //         value -= 360.0;
 //     }
-//     return clampInt(value, 0, 360);
+//     return utils.clampInt(value, 0, 360);
 // }
 
 /**
@@ -687,7 +684,7 @@ export function adjustBrightness(hexColor, factor) {
     }
     const rgb = get_RGB_from_Hex(hexColor);
     const adjustedRgb = rgb.map(channel => 
-        clampInt(Math.round(channel * factor), 0, 255)
+        utils.clampInt(Math.round(channel * factor), 0, 255)
     );
     return get_Hex_from_RGB(adjustedRgb);
 } 

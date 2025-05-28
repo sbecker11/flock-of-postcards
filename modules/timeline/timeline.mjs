@@ -126,8 +126,20 @@ export function createTimeline(timelineContainer, sceneContainer, minYear, maxYe
 
 export function sceneContainerScrollToYear(sceneContainer, year) {
     var totalYears = _timelineYearMax - _timelineYearMin + 1;
-    var leftColumScrollPixelsPerYear = sceneContainer.scrollHeight / totalYears;
+    if (!Number.isFinite(totalYears) || totalYears <= 0) {
+        console.error("Invalid totalYears:", totalYears, _timelineYearMax, _timelineYearMin);
+        return;
+    }
+    if (!sceneContainer || typeof sceneContainer.scrollHeight !== 'number' || sceneContainer.scrollHeight <= 0) {
+        console.error("Invalid sceneContainer or scrollHeight:", sceneContainer, sceneContainer && sceneContainer.scrollHeight);
+        return;
+    }
+    if (!Number.isFinite(year)) {
+        console.error("Invalid year:", year);
+        return;
+    }
 
+    var leftColumScrollPixelsPerYear = sceneContainer.scrollHeight / totalYears;
     var newScrollTop = (_timelineYearMax - year) * leftColumScrollPixelsPerYear;
     newScrollTop = utils.clampInt(newScrollTop, 0, sceneContainer.scrollHeight);
 

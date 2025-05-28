@@ -1,12 +1,12 @@
-// cards/bizDetailsDivModule.mjs
-
-import * as cardUtils from '../utils/cardUtils.mjs';
+// scene/bizDetailsDivModule.mjs
 
 // BizDetailsDiv is the div that contains the details of the job
 // and will be added to the bizCard and will be added to the
 // BizResumeDiv which will be added to the resume-content-div.
 // BizDetailsDivs do not add themselves to a bizCardDiv or 
 // a bizResumeDiv.
+
+import * as sceneContainer from './sceneContainer.mjs';
 
 export function createBizDetailsDiv(bizCardDiv) {
     const bizDetailsDiv = document.createElement('div');
@@ -20,7 +20,7 @@ export function createBizDetailsDiv(bizCardDiv) {
     `
     <h2 class="biz-details-employer header-text">${job.employer}</h2>
     <h3 class="biz-details-role header-text">${job.role}</h3>
-    <p class="biz-defails-dates header-text">${cardUtils.formatDateRange(job.start, job.end)}</p>
+    <p class="biz-defails-dates header-text">${sceneContainer.formatDateRange(job.start, job.end)}</p>
     <ul class="bulleted-job-description-items-ul">
         ${job.Description.split(bizDetailsDiv.BULLET).map(item => `<li class="bulleted-job-description-items-li">${item}</li>`).join('')}
     </ul>

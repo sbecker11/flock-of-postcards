@@ -2,7 +2,6 @@
 
 import { get_z_from_zIndexStr } from './zIndex.mjs';
 import * as domUtils from '../utils/domUtils.mjs';
-import { findAllTranslatableCardsInViewPort } from '../utils/cardUtils.mjs';
 
 // Parallax constants
 export const PARALLAX_X_EXAGGERATION_FACTOR = 0.05;

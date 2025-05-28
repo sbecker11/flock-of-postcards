@@ -1,4 +1,4 @@
-// modules/cards/divSyncModule.mjs
+// modules/scene/divSyncModule.mjs
 
 import * as jsonUtils from '../utils/jsonUtils.mjs';
  
@@ -22,8 +22,7 @@ export function makeSyncedPair(element1, element2) {
 
 export function getPairedElement(element) {
     if ( !element || !(element instanceof HTMLElement) ) throw new Error("DivSyncModule:getPairedElement: given null or non-HTMLElement element");
-    const pairedElement = document.getElementById(element.getAttribute('data-paired-id'))
-    ;
+    const pairedElement = document.getElementById(element.getAttribute('data-paired-id'));
     if ( !pairedElement || !(pairedElement instanceof HTMLElement) ) throw new Error("DivSyncModule:getPairedElement: given null or non-HTMLElement pairedElement");
     return pairedElement;
 }
@@ -36,18 +35,20 @@ export function isPairedElement(element) {
 }
 
 export function getBizCardDiv(element) {
-    if (!isPairedElement(element) ) throw new Error(`divSyncModule:getBizCardDiv: element is null or element:${element.id} is not paired`);
-    if (hasClass(element, 'biz-card-div') ) return element;
+    if (!element) return null;
+    if (elementHasClass(element, 'biz-card-div') ) return element;
     const pairElement = getPairedElement(element);
-    if ( hasClass(pairElement, 'biz-card-div') ) return pairElement;
-    else throw new Error(`divSyncModule:getBizCardDiv: element:${element.id} is not a biz-card-div and its pairedElement:${pairElement.id} is not a biz-card-div`);
+    if ( !pairElement ) throw new Error(`divSyncModule:getBizCardDiv: element:${element.id} has null pairedElement`);
+    if ( elementHasClass(pairElement, 'biz-card-div') ) return pairElement;
+    else throw new Error(`divSyncModule:getBizCardDiv: neither element:${element.id} or its pairedElement:${pairElement.id} have class biz-card-div`);
 }
 export function getBizResumeDiv(element) {
-    if (!isPairedElement(element) ) throw new Error(`divSyncModule:getBizResumeDiv: element is null or element:${element.id} is not paired`);
-    if (hasClass(element, 'biz-resume-div') ) return element;
+    if (!element) return null;
+    if (elementHasClass(element, 'biz-resume-div') ) return element;
     const pairElement = getPairedElement(element);
-    if ( hasClass(pairElement, 'biz-resume-div') ) return pairElement;
-    else throw new Error(`divSyncModule:getBizResumeDiv: element:${element.id} is not a biz-resume-div and its pairedElement:${pairElement.id} is not a biz-resume-div`);
+    if ( !pairElement ) throw new Error(`divSyncModule:getBizCardDiv: element:${element.id} has null pairedElement`);
+    if ( elementHasClass(pairElement, 'biz-resume-div') ) return pairElement;
+    else throw new Error(`divSyncModule:getBizResumeDiv: neither element:${element.id} or its pairedElement:${pairElement.id} have class biz-resume-div`);
 }
 
 //=======================
@@ -55,53 +56,69 @@ export function getBizResumeDiv(element) {
 //=======================
 
 export function addClass(element, className) {
-    if ( !isPairedElement ) return false;
+    if (!element || !className) return false;
+    if ( !isPairedElement(element) ) return false;
     const pairedElement = getPairedElement(element);
-    verifyMatchindClassLists(element, pairedElement);
-    if (hasClass(element, className) ) return false;
+    verifyMatchingClassLists(element, pairedElement);
+    if (elementHasClass(element, className) ) return false;
     element.classList.add(className);
-    setClassPath(elememnt, pairedElement);
+    pairedElement.classList.add(className);
     return true;
 }
 
 export function arePairedElements(element1, element2) {
+    if (!element1 || !element2) return false;
     const pairedElement1 = getPairedElement(element1);
     const pairedElement2 = getPairedElement(element2);
     return (pairedElement1 == element2 && pairedElement2 == element1);
 }
 
-export function setClassPath(fromElement, toElement) {
-    if ( !arePairedElement(fromElement) ) return false;
-    const fromElementClassList = new classList(fromElement.classList); 
-    toElement.classLIst = fromElementClassList;
-}
+// export function setClassPath(fromElement, toElement) {
+//     if (!fromElement || !toElement) return false;
+//     if ( !arePairedElements(fromElement, toElement) ) return false;
+//     // Copy classList from fromElement to toElement
+//     toElement.className = fromElement.className;
+// }
 
-export function verifyMatchindClassLists(element1, element2) {
+export function verifyMatchingClassLists(element1, element2) {
+    if (!element1 || !element2) return false;
     if ( classListsMatch(element1.classList, element2.classList) ) return true;
-    else throw new Error(`verifyMatchindClassLists: element1:${element1.id} and element2:${element2.id} classLists do not match`);
+    else throw new Error(`verifyMatchingClassLists: element1:${element1.id} and element2:${element2.id} classLists do not match`);
 }
 
 export function classListsMatch(classList1, classList2) {
-    if ( classList1.length !== classList2.length ) return false;
-    for ( let i = 0; i < classList1.length; i++ ) {
-        if ( ! classList2.contain.sclassList1[i] ) return false;
-        if ( ! classList1.contains.classlist2[i] ) return false;
+    const set1 = new Set(classList1);
+    const set2 = new Set(classList2);
+    const ignoreSet = new Set(['biz-card-div','biz-resume-div']);
+    
+    // Remove ignored classes from both sets
+    for (let ignoreClass of ignoreSet) {
+        set1.delete(ignoreClass);
+        set2.delete(ignoreClass);
+    }
+    
+    // Compare sets properly
+    if (set1.size !== set2.size) return false;
+    for (let item of set1) {
+        if (!set2.has(item)) return false;
     }
     return true;
 }
 
 export function removeClass(element, className) {
+    if (!element) return false;
     if ( !isPairedElement(element) ) return;
     const pairedElement = getPairedElement(element);
-    verifyMatchindClassLists(element, pairedElement);
-    if ( !hasClass(element, className)) return false;
-    element.classList = new classList(element.classList).filter(c => c !== className);
-    pairedElement.classList = new classList(pairedElement.classList).filter(c => c !== className);
-    if ( verifyMatchindClassLists(pairElement, element) ) return true;
+    verifyMatchingClassLists(element, pairedElement);
+    if ( !elementHasClass(element, className)) return false;
+    element.classList.remove(className);
+    pairedElement.classList.remove(className);
+    if ( verifyMatchingClassLists(pairedElement, element) ) return true;
 }    
 
-export function hasClass(element, className) {
+export function bothPairHaveClass(element, className) {
     if ( !element ) return false;
+    if ( className in ['biz-card-div','biz-resume-div'] ) throw new Error(`divSyncModule: hasClass: given className:${className}, which is reserved for divSync paired elements`);
     const pairedElement = getPairedElement(element);
     if ( !pairedElement ) throw new Error(`divSyncModule: hasClass: element:${element.id} has null pairedElement`);
     if ( element.classList.contains(className) ) {
@@ -111,6 +128,11 @@ export function hasClass(element, className) {
         if ( !pairedElement.classList.contains(className) ) return false;
         else throw new Error(`divSyncModule: hasClass: element:${element.id} does not have class:${className} but pairedElement:${pairedElement.id} does`);
     }
+}
+
+export function elementHasClass(element, className) {
+    if ( !element || !className) return false;
+    return element.classList.contains(className);
 }
 
 //=======================
@@ -125,20 +147,22 @@ const STATES = {
 
 // clear all states before adding state
 function applyState(element, state) {
-    if (!isSyncedPair(element) ) throw new Error('DivSyncModule: applyState given null orunpaired element');
+    if (!element) return;
+    const pairedElement = getPairedElement(element);
+    if (!pairedElement) throw new Error('DivSyncModule: applyState',state,'given null pairedElement for element:',element.id);
 
     // clear all states
     removeClass(element,STATES.HOVERED);
     removeClass(element,STATES.SELECTED);
 
-    // add state
+    console.log("divSyncModule: applyState: element:",element.id,"state:",state);
     if (state) addClass(element, state);
 }
 
 // apply state to both elements without clearing other states
 export function syncPairStates(element, state) {
-    if (!isSyncedPair(element) ) throw new Error('DivSyncModule: syncPairStates given null or unpaired element');
-
+    if (!element) return;
+    //console.log("divSyncModule: syncPairStates: element:",element.id,"state:",state);
     // apply state to both elements
     applyState(element, state);
 }
@@ -151,14 +175,8 @@ export function syncPairStates(element, state) {
 // return true if the element is a synced pair
 // otherwise outputs a warning and return false
 export function isSyncedPair(element) {
-    if (!element) console.warn("isSyncedPair: given ull element"); return false;
-    const pairedElement = getPairedElement(element)
-    if (!pairedElement) console.warn("isSyncedPair: null pairedElement"); return false;
-    const pairedElementOfPairedElement = getPairedElement(pairedElement);
-    if (!pairedElementOfPairedElement) { console.warn("isSyncedPair: null pairedElementOfPairedElement"); return false; }
-    if (pairedElementOfPairedElement.id !== element.id) { console.warn("isSyncedPair: pairedElementOfPairedElement.id !== element.id"); return false; }
-    if (pairedElementOfPairedElement.pairedElement !== element) { console.warn("isSyncedPair: pairedElementOfPairedElement.pairedElement !== element"); return false; }
-    return true;
+    if (element == null) return false;
+    return (getPairedElement(getPairedElement(element)) == element);
 }
 
 // does a deep verification of the pairing
@@ -167,28 +185,38 @@ export function isSyncedPair(element) {
 // have been created and appended to the DOM
 // throws an Error if the pairing is not valid
 // otherwise returns true
-export function verifySyncedPair(pairedElement,) {
+export function verifySyncedPair(element1, element2) {
     const errors = []
     try {
-        if (!element) errors.push("verifySyncedPair: null element");
-        if (!element.id) errors.push(`verifySyncedPair: element:${element.id} has null id`);
-        if (element.id.indexOf('undefined') >= 0) errors.push(`verifySyncedPair: element:${element.id} includes "undefined"`);
-        if (!isSyncedPair(element)) errors.push(`verifySyncedPair: element:${element.id} is not a synced pair`);
-        const pairedElement = getPairedElement(element);
-        if (pairedElement == null ) errors.push(`verifySyncedPair: element:${element.id} has null pairedElement`);
-        if (!isSyncedPair(pairedElement) ) errors.push(`verifySyncedPair: element:${element.id} has null pairedElement`);
-        const pairOfPairedElement = getPairedElement(pairedElement);
-        if (pairOfPairedElement != element) errors.push(`verifySyncedPair: element:${element.id} != pairOfPairedElement:${pairOfPairedElement.id}`);
-        const bizCardDiv = getBizCardDiv(element);
-        const bizResumeDiv = getBizResumeDiv(element);
-        if (!bizCardDiv) errors.push(`verifySyncedPair: element:${element.id} bizCardDiv is null`);
-        return timesValidated+1
-    }
-    finally {
+        if (!element1) errors.push("verifySyncedPair: null element1");
+        if (!element2) errors.push("verifySyncedPair: null element2");
+        if (!element1.id) errors.push(`verifySyncedPair: element1:${element1.id} has null id`);
+        if (element1.id.indexOf('undefined') >= 0) errors.push(`verifySyncedPair: elemen1:${element1.id} includes "undefined"`);
+        if (element2.id.indexOf('undefined') >= 0) errors.push(`verifySyncedPair: elemen2:${element2.id} includes "undefined"`);
+        if (!isSyncedPair(element1)) errors.push(`verifySyncedPair: element1:${element1.id} is not a synced pair`);
+        if (!isSyncedPair(element2)) errors.push(`verifySyncedPair: element2:${element2.id} is not a synced pair`);
+        const pairedElement1 = getPairedElement(element1);
+        if (pairedElement1 == null ) errors.push(`verifySyncedPair: element1:${element1.id} has null pairedElement`);
+        if (!isSyncedPair(pairedElement1) ) errors.push(`verifySyncedPair: element1:${element1.id} has null pairedElement`);
+        const pairedElement2 = getPairedElement(element2);
+        if (pairedElement2 == null ) errors.push(`verifySyncedPair: element2:${element2.id} has null pairedElement`);
+        if (!isSyncedPair(pairedElement2) ) errors.push(`verifySyncedPair: element2:${element2.id} has null pairedElement`);
+        const pairOfPairedElement1 = getPairedElement(pairedElement1);
+        if (pairOfPairedElement1 != element1) errors.push(`verifySyncedPair: element1:${element1.id} != pairOfPairedElement1:${pairOfPairedElement1.id}`);
+        const bizCardDiv1 = getBizCardDiv(element1);
+        const bizResumeDiv1 = getBizResumeDiv(element1);
+        if (!bizCardDiv1) errors.push(`verifySyncedPair: element1:${element1.id} bizCardDiv is null`);
+        const bizCardDiv2 = getBizCardDiv(element2);
+        const bizResumeDiv2 = getBizResumeDiv(element2);
+        if (!bizCardDiv2) errors.push(`verifySyncedPair: element2:${element2.id} bizCardDiv is null`);
+        if (!bizResumeDiv2) errors.push(`verifySyncedPair: element2:${element2.id} bizResumeDiv is null`);
+        
         if (errors.length > 0) {
-            throw new Error(`divSyncModule: verifySyncedPair: ${element.id} errors: ${errors.join('\n')}`);
+            throw new Error(`divSyncModule: verifySyncedPair: ${element1.id} ${element2.id} errors: ${errors.join('\n')}`);
         }
-        return 0;
+        return true;
+    } catch (error) {
+        throw error;
     }
 }
 
@@ -201,7 +229,8 @@ let currentSelected = null;
 
 // return true if the element or its pairedElement is the currentSelected
 export function matchesCurrentSelected(element) {
-    if (!isSyncedPair(element) ) throw new Error('DivSyncModule: applyState given null orunpaired element');
+    if ( element == null ) return false;
+    if (!isSyncedPair(element) ) throw new Error('DivSyncModule: matchesCurrentSelected given null or unpaired element');
     return element === currentSelected || getPairedElement(element) === currentSelected;
 }
 
@@ -220,7 +249,8 @@ export function clearSelected() {
 }
 // set the currentSelected to the element`
 export function setSelected(element) {
-    if (!isSyncedPair(element) ) throw new Error('DivSyncModule: setSelected given null orunpaired element');
+    if ( element == null ) return;
+    if (!isSyncedPair(element) ) throw new Error('DivSyncModule: setSelected given null or unpaired element');
 
     // unselect / clear all selected elements
     document.querySelectorAll(`.${STATES.SELECTED}`).forEach(element => {
@@ -240,11 +270,12 @@ export function setSelected(element) {
 
 // log the id of the selected element or null if no element is selected
 export function getSelected() {
-    console.log('DivSyncModule:getSelected', currentSelected ? currentSelected.id : 'null');
+    //.log('DivSyncModule:getSelected', currentSelected ? currentSelected.id : 'null');
     return currentSelected;
 }
 
 export function setSelectedBizResumeDiv(element) {
+    if ( element == null ) return;
     if (!isSyncedPair(element) ) throw new Error('DivSyncModule: setSelectedBizResumeDiv given null or unpaired element');
     const bizResumeDiv = getBizResumeDiv(element);
     if (!bizResumeDiv) throw new Error('DivSyncModule: setSelectedBizResumeDiv given element that is not a biz-resume-div');
@@ -265,17 +296,17 @@ export function getSelectedBizResumeDiv() {
 // otherwise select the element (and its pairedElement)
 // which notifies the divSyncPairEventListeners
 export function handleClickEvent(element) {
-    if ( !element ) throw new Error("DivSyncModule: handleClickEvent given a null element");
+    if ( element == null ) return;
     if ( !element.pairedElement ) throw new Error(`divSyncModule: handleClickEvent: element:${element.id} has null pairedElement`);
 
     // if the element is alredy selected and it is 
     // the currentSelected then unselect 
     // it and clear teh currentSelected and return
-    if (hasClass(element, STATES.SELECTED)) {
+    if (elementHasClass(element, STATES.SELECTED)) {
         if ( element === currentSelected || element.pairedElement === currentSelected ) {
             console.log("DivSyncModule:handleClickEvent: unselecting currentSelected");
-            removeClass(STATES.SELECTED);
-            clearSlected();
+            removeClass(element, STATES.SELECTED);
+            clearSelected();
             return;
         }
     }
@@ -306,7 +337,7 @@ export class DivSyncPairEventError extends Error {
         this.name = 'DivSyncPairEventError';
         this.element = element;
         this.pairedElement = element.pairedElement;
-        if ( !isValidEventType(eventType) ) throw new Error(`DivSyncPairEventError: given invalid eventType: ${eventType}`);
+        if ( !isValidDivSyncPairEventType(eventType) ) throw new Error(`DivSyncPairEventError: given invalid eventType: ${eventType}`);
         this.eventType = eventType;
     }
 }
@@ -369,18 +400,19 @@ function notifyDivSyncPairEventListeners(element, eventType=DivSyncPairEventType
         if (!isValidDivSyncPairEventType(eventType)) throw new Error(`DivSyncModule: notifyDivSyncPairEventListeners: given invalid eventType: ${eventType}`);
     } catch (error) {
         const errorEvent = new DivSyncPairEvent(element, error.message, DivSyncPairEventTypes.SERVER_ERROR);
-        console.error('HaHa DivSyncModule: notifyDivSyncPairEventListeners: error', errorEvent);
+        console.error('OhNno DivSyncModule: notifyDivSyncPairEventListeners: error', errorEvent);
         divSyncPairEventListeners.forEach(eventListener => eventListener(errorEvent));
         return;
     }
     const normalEvent = new DivSyncPairEvent(element, eventType);
+    console.error('HaHa HaHa HaHa HaHa HaHa HaHa HaHa DivSyncModule: notifyDivSyncPairEventListeners: normalEvent:', normalEvent);
     divSyncPairEventListeners.forEach(eventListener => eventListener(normalEvent));
 }
 
 // stringify a DivSyncPair object
 // by using a key-value replacer for known self-referencing keys
 export function stringify(element) {
-    if (!isPairedElement(divSyncPair) ) throw new Error(`divSyncModule:stringify: element is null or element:${element.id} is not paired`);
+    if (!isPairedElement(element) ) throw new Error(`divSyncModule:stringify: element is null or element:${element.id} is not paired`);
     return jsonUtils.stringifyCicular(element);
 }
 
@@ -414,12 +446,14 @@ export function initializeDivSync() {
 
         // Bind mouseenter events to both elements
         element.addEventListener('mouseenter', () => {
-            if (!hasClass(element, STATES.SELECTED)) {
+            if (!elementHasClass(element, STATES.SELECTED)) {
+                //console.log("divSyncModule: mouseenter: element:",element.id);
                 syncPairStates(element, STATES.HOVERED);
             }
         });
         pairedElement.addEventListener('mouseenter', () => {
-            if (!hasClass(pairedElement, STATES.SELECTED)) {
+            if (!elementHasClass(pairedElement, STATES.SELECTED)) {
+                //console.log("divSyncModule: mouseenter: lement:",pairedElement.id);
                 syncPairStates(pairedElement, STATES.HOVERED);
             }
         });

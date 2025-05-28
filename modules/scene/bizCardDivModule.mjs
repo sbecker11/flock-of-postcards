@@ -1,15 +1,14 @@
-// cards/bizCardDivModule.mjs
+// scene/bizCardDivModule.mjs
 
-import * as viewPort from '../core/viewport.mjs';
+import * as viewPort from '../core/viewPort.mjs';
 import * as BizDetailsDivModule from './bizDetailsDivModule.mjs';
-import * as cardUtils from '../utils/cardUtils.mjs';
 import * as BizResumeDivModule from './bizResumeDivModule.mjs';
-import { assignColorIndex } from '../color/colorPalettes.mjs';
 import * as divSyncModule from './divSyncModule.mjs';
 import * as colorPalettes from '../color/colorPalettes.mjs';
 import * as domUtils from '../utils/domUtils.mjs';
 import * as utils from '../utils/utils.mjs';
 import * as mathUtils from '../utils/mathUtils.mjs';
+import * as sceneContainer from './sceneContainer.mjs';
 
 // Business card constants
 export const BIZCARD_MEAN_WIDTH = 200;
@@ -22,24 +21,15 @@ export const MAX_X_OFFSET = 100; // Maximum random horizontal offset in pixels
 export const BIZCARD_MIN_Z = 0;
 export const BIZCARD_MAX_Z = 10;
 
-/**
- * Initializes view-relative styling for a any card div
- * assuming that the focal point is locatedd at viewPort
- * center origin which is marked by the bullsEye, so 
- * motion parallax-derived offsets are not applied.
- * 
- * @param {Object} viewPort - The viewPort object
- * @param {HTMLElement} cardDiv - The skill or biz card div
- */
 
+export function isBizCardDiv(obj) {
+    return obj && domUtils.isDivElement(obj) && obj.classList.contains('biz-card-div');
+}
 
 // returns the id of the bizCardDiv using the jobIndex
 export function createBizCardDivId(jobIndex) {
-    console.log("jobIndex:[", jobIndex, "]");
     const jobInt = utils.getNumericValue(jobIndex);
-    console.log("jobInt:[", jobInt, "]");
     const bizCardDivId = `biz-card-div-${jobInt}`;
-    console.log("bizCardDivId:", bizCardDivId);
     return bizCardDivId;
 }
 
@@ -94,13 +84,10 @@ export function createBizCardDiv(job, jobIndex) {
     bizCardDiv.appendChild(bizDetailsDiv);
     bizCardDiv.bizDetailsDiv = bizDetailsDiv;
 
-    // Initialize view-relative styling based on b
-    // the scene-relative geometry and focalPoint 
-    // at viewPort center which is marked by the bullsEye
-    if (!viewPort.viewPortIsInitialized()) {
-        throw new Error("ViewPort not initialized");
-    }
-    cardUtils.applyViewRelativeStyling(viewPort, bizCardDiv);
+    // // Initialize view-relative styling based on b
+    // // the scene-relative geometry and focalPoint 
+    // // at viewPort center which is marked by the bullsEye
+    // viewport.applyViewRelativeStyling(bizCardDiv);
 
     // Create the bizResumeDiv which appends itself to the the resume-content-div
     const bizResumeDiv = BizResumeDivModule.createBizResumeDiv(bizCardDiv);
@@ -132,7 +119,7 @@ function setBizCardDivSceneGeometry(bizCardDiv) {
     }
 
     // Get vertical positions - based on job start and end dates
-    const { sceneTop, sceneBottom } = cardUtils.getSceneVerticalPositions(job.start, job.end, MIN_BIZCARD_HEIGHT);
+    const { sceneTop, sceneBottom } = sceneContainer.getSceneVerticalPositions(job.start, job.end, MIN_BIZCARD_HEIGHT);
     bizCardDiv.setAttribute("sceneTop", `${sceneTop}`);
     const sceneHeight = sceneBottom - sceneTop;
     bizCardDiv.setAttribute("sceneHeight", `${sceneHeight}`);
@@ -140,11 +127,14 @@ function setBizCardDivSceneGeometry(bizCardDiv) {
     const sceneCenterX = mathUtils.getRandomSignedOffset(MAX_X_OFFSET); // Random offset from scene origin
     const sceneWidth = BIZCARD_MEAN_WIDTH + mathUtils.getRandomSignedOffset(MAX_WIDTH_OFFSET);
     const sceneLeft = sceneCenterX - sceneWidth / 2;
+    bizCardDiv.setAttribute("sceneCenterX", `${sceneCenterX}`);
     bizCardDiv.setAttribute("sceneLeft", `${sceneLeft}`);
     bizCardDiv.setAttribute("sceneWidth", `${sceneWidth}`);
 
     const sceneZ = mathUtils.getRandomBetween(BIZCARD_MIN_Z, BIZCARD_MAX_Z);
     bizCardDiv.setAttribute("sceneZ", sceneZ);
+
+    viewPort.applyViewRelativeStyling(bizCardDiv);
 }
 
 export function initializeDivSync() {

@@ -1,8 +1,9 @@
-// modules/cards/bizResumeDivScrollingModule.mjs
+// modules/scene/bizResumeDivScrollingModule.mjs
 
 import * as bizResumeDivSortingModule from './bizResumeDivSortingModule.mjs';
 import { scrollBizCardDivIntoView } from './bizCardDivModule.mjs';
 import * as divSyncModule from './divSyncModule.mjs';
+import * as jsonUtils from '../utils/jsonUtils.mjs';
 
 function scrollDivPairIntoView(element) {
     if (!element) {
@@ -200,10 +201,10 @@ function divSyncPairEventHandler(divSyncPairEvent) {
         return;
     }
 
-    const eventDataString = divSyncModule.stringifyDivSyncObject(divSyncPairEvent);
     if ( divSyncPairEvent.eventType === divSyncModule.DivSyncPairEventTypes.SERVER_ERROR ) {
         console.warn('bizResumeDivSortingModule: divSyncPairEventHandler: SERVER_ERROR:',  eventDataString);
     } else {
+        const eventDataString = jsonUtils.stringifyCicular(divSyncPairEvent);
         console.warn('bizResumeDivSortingModule: divSyncPairEventListener: ',
             'unhandled event type: ', divSyncPairEvent.eventType,
             'eventDataString:', eventDataString);

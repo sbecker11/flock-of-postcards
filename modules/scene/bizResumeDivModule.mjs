@@ -1,4 +1,4 @@
-// cards/bizResumeDivModule.mjs
+// scene/bizResumeDivModule.mjs
 
 import * as BizDetailsDiv from './bizDetailsDivModule.mjs'
 import * as colorPalettes from '../color/colorPalettes.mjs';

@@ -1,4 +1,4 @@
-// cards/bizResumeDivSortingModule.mjs
+// scene/bizResumeDivSortingModule.mjs
 
 import * as divSyncModule from './divSyncModule.mjs';
 import { getCurrentPalette, applyCurrentPaletteToElement } from '../color/colorPalettes.mjs';

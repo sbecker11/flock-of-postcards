@@ -182,6 +182,6 @@ export function tryCircularTests() {
 // Examples: 
 // 1). cd modules/utils; node stringUtils.mjs or
 // 2). node modules/utils/stringUtils.mjs
-(function() {
-    tryCircularTests();
-})();
+// (function() {
+//     tryCircularTests();
+// })();

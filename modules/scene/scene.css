@@ -1,0 +1,225 @@
+
+#scene-container {
+    width: 50%; /* Initial width */
+    height: 100vh; /* Full viewPort height */
+    overflow-y: scroll; 
+    overscroll-behavior: contain;
+    -ms-overflow-style: none; /* Hide scrollbar for IE and Edge */
+    scrollbar-width: none; /* Hide scrollbar for Firefox */
+    overflow-x: hidden; /* prevent horizontal scrolling */
+    position: relative;
+    isolation: isolate;
+    background-color: var(--background-dark);
+    z-index: 0;
+    /* transition: width 0.3s ease; Add matching transition */
+    margin: 0;
+    padding: 0;
+  }
+  
+  #scene-container::-webkit-scrollbar {
+    display: none; /* Hide scrollbar for Chrome, Safari, and Opera */
+  }
+  
+  #scene-plane {
+    position: relative;
+    background-color: var(--background-dark);
+    width: 100%;
+    min-height: 200vh; /* Ensure content is taller than viewPort */
+    scroll-behavior: smooth;
+    z-index: 1;
+    isolation: isolate;
+  }
+  
+  #diagonal-scene-plane {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;  /* lets clicks pass through */
+  }
+  
+  #scene-plane-btm-gradient {
+    position: absolute;
+    width: 100%;
+    height: 1000px;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    background-image: linear-gradient(to bottom, var(--background-light), var(--background-dark));
+    pointer-events: none;
+    z-index: 2;
+  }
+  
+  #scene-plane-top-gradient {
+    position: absolute;
+    width: 100%;
+    height: 1000px;
+    top: 0;
+    left: 0;
+    right: 0;
+    background: linear-gradient(to bottom, var(--background-light), var(--background-dark));
+    pointer-events: none;
+    z-index: 2;
+  }
+  
+  /* Override all native dark mode styles with maximum specificity */
+  html[native-dark-active][native-dark-active] #scene-container,
+  html[native-dark-active] #scene-container,
+  #scene-container {
+    background-color: var(--background-dark) !important;
+  }
+  
+/* scene/scene.css */
+.biz-card-div,
+.biz-resume-div {
+    font-size: 12px;
+    padding: 0px;
+    box-sizing: border-box;
+    cursor: pointer;
+    z-index: 4;
+    transition: all 0s;
+    border: 2px solid white;
+    border-radius: 25px;
+}
+
+.biz-card-div {
+    position: absolute;
+    border-color: 2px solid white;
+    border-radius: 25px;
+}
+
+.biz-card-div.hovered,
+.biz-resume-div.hovered {
+    filter: brightness(1.25);
+    border: 3px solid blue !important;
+}
+
+.biz-card-div.selected,
+.biz-resume-div.selected {
+    filter: brightness(1.5);
+    border: 10px solid purple !important;
+}
+
+/* In card view, hide all text elements in biz-details-div by default */
+.biz-card-div biz-details-div > * {
+    display: none;
+}
+.biz-details-div {
+    padding-top: 0px;
+    padding: 20px;
+}
+
+.biz-card-div  .biz-details-div * {
+    display: none;
+}
+
+/* Show specific header elements in card view */
+.biz-card-div .biz-details-div > h2,
+.biz-card-div .biz-details-div > h3,
+.biz-card-div .biz-details-div > .biz-defails-dates,
+.biz-card-div .biz-details-div > .header-text {
+    display: block;
+    font-weight: bold;
+}
+
+/* In resume view, show all text elements */
+.biz-resume-div .biz-details-div > * {
+    display: block;
+}
+
+.biz-resume-div {
+    width: 100%;
+    margin: 10px;
+    padding: 10px;
+    background-color: transparent;
+    overflow: hidden;
+    border-radius: 25px;
+}
+.biz-details-div {
+    margin: 0px;
+    padding: 10px;
+    background-color: transparent;
+    font-family: Arial, Helvetica, sans-serif;
+    font-weight: normal;
+    font-size: 12px;
+    display: block !important;
+}
+
+.biz-card-div-role {
+    font-size: 20px;
+}
+
+.biz-card-div-employer {
+    font-size: 18px;
+}
+    
+.biz-card-div-dates {
+    font-size: 16px;
+}
+
+.biz-skill-card-div-dates {
+    font-size: 16px;
+}
+
+
+.bulleted-job-description-items-ul {
+    list-style: none;
+    padding-left: 1.5rem;
+    margin: 1rem 0;
+}
+
+.bulleted-job-description-items-li {
+    position: relative;
+    margin-bottom: 0.5rem;
+    line-height: 1.4;
+    display: block;
+}
+
+.bulleted-job-description-items-li::before {
+    content: "•";
+    position: absolute;
+    left: -1.5rem;
+    color: var(--text-color);
+}
+
+.bulleted-job-skills-ul {
+    list-style: none;
+    padding-left: 0;
+    margin: 1rem 0;
+    display: flex;
+    flex-wrap: nowrap;
+    gap: 0.5rem;
+    overflow-x: auto;
+}
+
+.bulleted-job-skills-li {
+    position: relative;
+    padding: 0.25rem 0.75rem;
+    font-size: 0.9rem;
+    white-space: nowrap;
+}
+
+.bulleted-job-skills-li::before {
+    content: "•";
+    margin-right: 0.25rem;
+}
+
+.slide-in-from-top {
+    animation: slideFromTop 0.5s ease-out forwards;
+}
+
+@keyframes slideFromTop {
+    from { transform: translateY(-100%); opacity: 0; }
+    to { transform: translateY(0); opacity: 1; }
+}
+
+.slide-in-from-bottom {
+    animation: slideFromBottom 0.5s ease-out forwards;
+}
+
+@keyframes slideFromBottom {
+    from { transform: translateY(100%); opacity: 0; }
+    to { transform: translateY(0); opacity: 1; }
+} 
+

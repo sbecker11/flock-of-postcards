@@ -1,0 +1,88 @@
+
+#aim-point {
+    position: fixed;
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    background-color: red;
+    border: 0.5px solid white;
+    z-index: 200;
+    pointer-events: none;
+    top: 0;
+    left: 0;
+    transform: translate(-50%, -50%); /* Match bullsEye's centering */
+  }
+  #aim-ooint .hidden {
+    display: none;
+  }
+  
+  #bulls-eye {
+    position: fixed;
+    top: 50%;
+    left: 25%;
+    transform: translate(-50%, -50%); /* Center the bullsEye */
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    border: 2px solid gray;
+    z-index: 98;
+    pointer-events: none;
+    display: flex;
+    align-items: center; 
+    justify-content: center;
+    font-size: 31px;
+    font-weight: 700;
+    color: gray;
+  }
+  
+  #focal-point {
+    position: fixed;  /* Keep fixed to position relative to viewPort */
+    top: 50%;        /* Position at vertical center */
+    left: 50%;       /* Position at horizontal center */
+    transform: translate(-50%, -50%);  /* Center the element itself */
+    width: 25px;
+    height: 25px;
+    border-radius: 50%;
+    border: 2px solid gray;
+    z-index: 99;
+    font-size: 31px;
+    font-weight: 700;
+    color: gray;
+    background-color: transparent;
+    display: flex;
+    align-items: center; 
+    justify-content: center;
+    z-index: 100;
+    cursor: default;
+    pointer-events: none;  /* Always let events pass through by default */
+  }
+  
+  #focal-point.focal-point-is-draggable {
+    cursor: grab;
+    color: green;
+    pointer-events: all;  /* Only capture events when draggable */
+  }
+  
+  #focal-point.focal-point-is-draggable:hover {
+    pointer-events: all;  /* Ensure we can interact when hovering */
+  }
+  
+  #focal-point.focal-point-is-being-dragged {
+    cursor: move;
+    pointer-events: all;  /* Ensure we maintain interaction while dragging */
+  }
+  
+  #focal-point.awake {
+    color: white;
+  }
+  
+  .focal-point-is-draggable {
+    cursor: grab;
+    color: green;
+  }
+  
+  .focal-point-is-being-dragged {
+    cursor: move;
+  }
+  
+  

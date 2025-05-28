@@ -1,0 +1,102 @@
+
+/* Custom Mac-style Dropdown */
+.custom-dropdown-button {
+    flex: 1 1 auto;
+    min-width: 60px;
+    max-width: calc(240px + 23px);
+    padding: 8px 12px;
+    margin: 0;
+    background-color: #4CAF50;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-weight: bold;
+    outline: none;
+    transition: background-color 0.2s ease, box-shadow 0.2s ease;
+    width: 100%;
+    text-shadow: 1px 1px 1px rgba(0, 0, 0, 0.8);
+    position: relative;
+    text-align: left;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.button-text {
+    flex: 1;
+    text-align: left;
+}
+
+.dropdown-arrow {
+    font-size: 12px;
+    line-height: 1;
+    font-family: monospace;
+    margin-left: 8px;
+    transition: transform 0.2s ease;
+    display: inline-block;
+    transform-origin: center;
+}
+
+.custom-dropdown-content {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    right: 0;
+    background-color: #4CAF50;
+    border-radius: 4px;
+    margin-top: 4px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+    opacity: 0;
+    visibility: hidden;
+    transform: translateY(-10px);
+    transition: opacity 0.2s ease, transform 0.2s ease, visibility 0.2s;
+    z-index: 1000;
+    max-height: 300px;
+    overflow-y: auto;
+}
+
+.custom-dropdown-content.open {
+    opacity: 1;
+    visibility: visible;
+    transform: translateY(0);
+}
+
+.custom-dropdown-option {
+    padding: 8px 12px;
+    color: white;
+    cursor: pointer;
+    transition: background-color 0.2s ease;
+    text-shadow: 1px 1px 1px rgba(0, 0, 0, 0.8);
+}
+
+.custom-dropdown-option:hover {
+    background-color: #45a049;
+}
+
+.custom-dropdown-option.selected {
+    background-color: #45a049;
+    font-weight: bold;
+}
+
+/* When container width is less than 90%, adjust max-width */
+@media (max-width: 90%) {
+    .custom-dropdown-button {
+        max-width: calc(180px + 10px);
+    }
+}
+
+/* When container width is less than 70%, adjust max-width */
+@media (max-width: 70%) {
+    .custom-dropdown-button {
+        max-width: calc(120px + 5px);
+    }
+}
+
+/* When container width is less than 50%, adjust max-width */
+@media (max-width: 50%) {
+    .custom-dropdown-button {
+        max-width: 60px;
+    }
+}
+

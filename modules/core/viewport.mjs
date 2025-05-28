@@ -1,9 +1,9 @@
-// modules/core/viewport.mjs
+// modules/core/npm mjs
 
 import { isHTMLElement } from '../utils/domUtils.mjs';
-import * as resizeHandle from './resizeHandle.mjs';    
 import * as bullsEye from './bullsEye.mjs';
-import * as aimPoint from './aimPoint.mjs';
+import * as utils from '../utils/utils.mjs';
+
 
 // Constants
 const VIEWPORT_PADDING = 20; // Padding around the viewPortProperties
@@ -18,80 +18,74 @@ const viewPortProperties = {
     centerX: null,
     centerY: null,
     width: null,
-    height: null,
-    bullsEyeX: null,
-    bullsEyeY: null
+    height: null
 };
 
-let _sceneContainer = null;
-// const _resizeHandle = document.getElementById("resize-handle");
-// const _resumeColumn = document.getElementById("resume-column");
-let _bullsEyeElement = null;
-let _aimPointElement = null;
 
-export function getSceneContainer() {
-    return _sceneContainer;
-}
+let _isInitialized = false;
+
+const _sceneContainer = document.getElementById("scene-container");
+const _resumeContainer = document.getElementById("resume-container");
 
 export function initializeViewPort() {
-    _sceneContainer = document.getElementById("scene-container");
-    _bullsEyeElement = bullsEye.getBullsEyeElement();
-    _aimPointElement = aimPoint.getAimPointElement();
-}
-
-export function initializeResizeHandle() {
-    bullsEye.setBullsEyeCenter(0, 0);
-    resizeHandle.setResizeHandleLeft(viewPortProperties.bullsEyeX);
+    console.log("initializeViewPort");
+    _isInitialized = true;
+    updateViewPort();
 }
 
 export function viewPortIsInitialized() {
-    return viewPortProperties.bullsEyeX != null && viewPortProperties.bullsEyeY != null;
-}
-
-export function getViewPortProperties() {
-    return viewPortProperties;
+    return _isInitialized;
 }
 
 /**
- * Updates the viewPortProperties geometry relative to the scene-plane container
- * and the resize handle and the bullsEye
- * @param {HTMLElement} sceneContainer - The scene-plane container element
+ * called from sceneContainer.updateSceneContainer
+ * viewPort uopdates interal properties and its chlldren
+ * using the current sceneContainer.offsetWidth and resumeContainerw.offsetWidth
+ * tells the bullsEye to update the position of its HTML element
  */
 export function updateViewPort() {
-    const sceneContainer = getSceneContainer();
-    if ( (sceneContainer == null) || !isHTMLElement(sceneContainer) ) {
-        throw new Error("sceneContainer is null ornot an HTMLElement");
+    console.log("updateViewPort");
+    if ( !viewPortIsInitialized() ) {
+        throw new Error("viewPortProperties is not initialized");
     }
+    const sceneContainerRect = _sceneContainer.getBoundingClientRect();
 
-    const sceneContainerRect = sceneContainer.getBoundingClientRect();
-    const sceneContainerWidth = sceneContainerRect.right - sceneContainerRect.left;
-    const sceneContainerHeight = sceneContainerRect.bottom - sceneContainerRect.top;
+    // the scene matches the size of the window
+    const sceneWidth =_sceneContainer.offsetWidth;
+    const viewPortWidth = sceneWidth;
+    const viewPortLeft = 0;
+    const viewPortHeight = sceneContainerRect.height;
+    const viewPortTop = sceneContainerRect.top;
     
     viewPortProperties.padding = VIEWPORT_PADDING;
-    viewPortProperties.top = sceneContainerRect.top - viewPortProperties.padding;
-    viewPortProperties.left = sceneContainerRect.left - viewPortProperties.padding;
-    viewPortProperties.right = sceneContainerRect.right + viewPortProperties.padding;
-    viewPortProperties.bottom = sceneContainerRect.bottom + viewPortProperties.padding;
-    viewPortProperties.centerX = sceneContainerRect.left + sceneContainerWidth / 2;
-    viewPortProperties.centerY = sceneContainerRect.top + sceneContainerHeight / 2;
-    viewPortProperties.width = sceneContainerWidth;
-    viewPortProperties.height = sceneContainerHeight;
+    viewPortProperties.top = viewPortTop - viewPortProperties.padding;
+    viewPortProperties.left = viewPortLeft - viewPortProperties.padding;
+    viewPortProperties.right = viewPortWidth + viewPortProperties.padding;
+    viewPortProperties.bottom = viewPortHeight + viewPortProperties.padding;
+    viewPortProperties.centerX = viewPortWidth / 2;
+    viewPortProperties.centerY = viewPortHeight / 2;
+    viewPortProperties.width = viewPortWidth + 2*viewPortProperties.padding;
+    viewPortProperties.height = viewPortHeight + 2*viewPortProperties.padding;
     
     // Calculate bullsEye position as midpoint between window left edge (0) and resize handle center
     // If handle is at left edge (initial state), use window width / 2 as initial position
-    const handleLeft = resizeHandle.getResizeHandleRect.left || window.innerWidth / 2;
-    viewPortProperties.bullsEyeX = handleLeft / 2;
+    // const handleLeft = resizeHandle.getResizeHandleRect.left || window.innerWidth / 2;
 
-    // Update the bullsEye element position
-    const bullsEyeElement = bullsEye.getBullsEyeElement();    
-    if (bullsEyeElement) {
-        bullsEye.setBullsEyeLeft(viewPortProperties.bullsEyeX);
-        // Only update vertical position if it hasn't been set yet
-        if (!viewPortProperties.bullsEyeY) {
-            viewPortProperties.bullsEyeY = window.innerHeight / 2;
-            bullsEyeElement.style.top = `${viewPortProperties.bullsEyeY}px`;
-        }
+    // tell the bullsEye to update the position of its HTML element (using getViewPortCenter()
+    bullsEye.updateBullsEyeCenter();
+
+    viewAllBizCardDivs();
+}
+
+export function getViewPortOrigin() {
+    console.log("viewPort.getViewPortOrigin()");
+    if ( !viewPortIsInitialized() ) {
+        throw new Error("viewPortProperties is not initialized");
     }
+    return { 
+        x: viewPortProperties.centerX, 
+        y: viewPortProperties.centerY 
+    };
 }
 
 /**
@@ -99,8 +93,11 @@ export function updateViewPort() {
  * @param {HTMLElement} cardDiv - The card div to check
  * @returns {boolean} True if the card div is within the viewPortProperties
  */
-export function isCardDivWithinViewPort(cardDiv) {
-    const rect = cardDiv.getBoundingClientRect();
+export function isBizCardDivWithinViewPort(bizCardDiv) {
+    if ( !viewPortIsInitialized() ) {
+        throw new Error("viewPortProperties is not initialized");
+    }
+    const rect = bizCardDiv.getBoundingClientRect();
     return (
         rect.right >= viewPortProperties.left &&
         rect.left <= viewPortProperties.right &&
@@ -109,61 +106,92 @@ export function isCardDivWithinViewPort(cardDiv) {
     );
 }
 
-/**
- * Gets the current viewPortProperties state
- * @returns {Object} The current viewPortProperties state
- */
-export function getViewPort() {
-    if (!viewPortProperties.bullsEyeX || !viewPortProperties.bullsEyeY) {
-        throw new Error("ViewPort not properly initialized");
+// displays only those bizCardDivs that are within the viewport
+//
+export function viewAllBizCardDivs() {
+    console.log("viewPort.viewAllBizCardDivs()");
+
+    if ( !viewPortIsInitialized() ) {
+        throw new Error("viewPortProperties is not initialized");
     }
-    return { ...viewPortProperties };
+    const bizCardDivs = document.getElementsByClassName("biz-card-div");
+    for (const bizCardDiv of bizCardDivs) {
+        applyViewRelativeStyling(bizCardDiv);
+        bizCardDiv.style.display = 'block';
+    }
+}
+
+export function setViewPortWidth(width) {
+    console.log("viewPort.setViewPortWidth:", width );
+    if ( !viewPortIsInitialized() ) {
+        throw new Error("viewPort not yet initialized");
+    }
+    if ( !utils.isNumber(width) ) {
+        throw new Error("viewPort.setViewPortWidth:", width, "is not a Number");
+    }
+    viewPortProperties.width = width;
+    viewPortProperties.centerX = width/2;
+    updateViewPort();
 }
 
 /**
- * Updates the percentage display based on viewPortProperties visibility
- * @param {HTMLElement} sceneContainer - The scene-plane container element
+ * Applies view-relative styling for a bizCardDiv 
+ * with scene-plane relative coordinates
+ * @param {HTMLElement} bizCardDiv - The card div
  */
-export function updateScrollPercentage(sceneContainer) {
-    const percentageDisplay = document.querySelector('.percentage-display');
-    if (!percentageDisplay) return;
+export function applyViewRelativeStyling(bizCardDiv) {
+    if ( !viewPortIsInitialized() ) {
+        throw new Error("viewPortProperties is not initialized");
+    }
+    if ( !isHTMLElement(bizCardDiv) ) {
+        throw new Error(`bizCardDiv is not an HTMLElement: ${bizCardDiv}`);
+    }
 
+    const bullsEyeX = viewPortProperties.bullsEyeX;
 
-    const handleRect = resizeHandle.getResizeHandleRect();
-    const windowWidth = window.innerWidth;
-    
-    // Calculate percentage (0% when handle is at far left, 100% when handle is at far right)
-    const percentage = Math.round((handleRect.left / windowWidth) * 100);
-    percentageDisplay.textContent = `${percentage}%`;
+    // transform scene-relative attributes to get view-relative styling
+    const sceneCenterX = parseFloat(bizCardDiv.getAttribute("sceneCenterX"));
+    const sceneLeft = parseInt(bizCardDiv.getAttribute("sceneLeft"));
+    const viewLeft = viewPortProperties.centerX + sceneLeft;
+    const viewWidth = parseInt(bizCardDiv.getAttribute("sceneWidth"));
+    const viewTop = parseInt(bizCardDiv.getAttribute("sceneTop"));
+    const viewHeight = parseInt(bizCardDiv.getAttribute("sceneHeight"));
+    //console.log(`VIEW id:${bizCardDiv.id} sceneCenterX:${sceneCenterX}, sceneLeft:${sceneLeft}, viewLeft:${viewLeft}, viewTop:${viewTop}, viewHeight:${viewHeight}`);
+    // apply view-relative styling
+    bizCardDiv.style.height =  `${viewHeight}px`;
+    bizCardDiv.style.top =     `${viewTop}px`;
+    bizCardDiv.style.width =   `${viewWidth}px`;
+    bizCardDiv.style.left =    `${viewLeft}px`;
+
+    // console.log(`bizCardDiv view-relativestyling for ${bizCardDiv.id}:`, {
+    //     styleLeft: bizCardDiv.style.left,
+    //     offsetLeft: bizCardDiv.offsetLeft,
+    //     boundingLeft: bizCardDiv.getBoundingClientRect().left,
+    //     viewLeft,
+    //     bullsEyeX,
+    //     sceneLeft,
+    //     parsedSceneLeft: parseFloat(sceneLeft)
+    // });
+    bizCardDiv.style.display = 'block';
 }
 
 /**
- * Initializes the scrollbar controls
- * @param {HTMLElement} sceneContainer - The scene-plane container element
+ * Finds all translatable card divs within the viewPort
+ * @returns {Array<HTMLElement>} Array of translatable card divs within the viewPort
  */
-export function initScrollbarControls(sceneContainer) {
-    // Add scroll event listener to update percentage
-    sceneContainer.addEventListener('scroll', () => {
-        updateScrollPercentage(sceneContainer);
+export function findAllTranslatableCardsInViewPort() {
+    console.log("viewPort.findAllTranslatableCardsInViewPort()");
+    if ( !viewPortIsInitialized() ) {
+        throw new Error("viewPortProperties is not initialized");
+    }
+    const allBizCardDivs = document.getElementsByClassName("biz-card-div");
+    return Array.from(allBizCardDivs).filter(div => {
+        const rect = div.getBoundingClientRect();
+        return (
+            rect.top < viewPortProperties.top + viewPortProperties.height &&
+            rect.left < viewPortProperties.left + viewPortProperties.width &&
+            rect.bottom > viewPortProperties.top &&
+            rect.right > viewPortProperties.left
+        );
     });
-
-    // Initial percentage update
-    updateScrollPercentage(sceneContainer);
-}
-
-function checkFixtureParents() {
-    if ( _bullsEyeElement.parentElement != _sceneContainer ) {
-        throw new Error("bullsEyeParent is not the scene-plane container");
-    }
-    _bullsEyeElement['saved-parent'] = _sceneContainer;
-
-    if ( _aimPointDotElement.parentElement != _sceneContainer ) {
-        throw new Error("aimPointParent is not the scene-plane container");
-    }
-    _aimPointDotElement['saved-parent'] = _sceneContainer;
-
-    if ( _focalPointElement.parentElement != _sceneContainer ) {
-        throw new Error("focalPointParent is not the scene-plane container");
-    }
-    _focalPointElement['saved-parent'] = _sceneContainer;
-}
+} 

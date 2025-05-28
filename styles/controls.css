@@ -23,7 +23,7 @@
   border-color: white;
 }
 
-.percentage-display {
+.scene-visible-percentage {
   color: white;
   font-size: 10px;
   font-family: monospace;
@@ -36,6 +36,6 @@
   width: 100%;
 }
 
-.percentage-display:hover {
+.scene-visible-percentage:hover {
   color: #00ff00;
 } 

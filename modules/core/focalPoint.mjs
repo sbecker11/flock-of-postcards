@@ -152,14 +152,14 @@ function initializeState() {
     
     // Apply divider position
     const sceneContainer = document.getElementById('scene-container');
-    const resumeColumn = document.getElementById('resume-column');
-    if (sceneContainer && resumeColumn) {
+    const resumeContainer = document.getElementById('resume-container');
+    if (sceneContainer && resumeContainer) {
         const viewPercent = state.dividerPosition;
         const resumePercent = 100 - viewPercent;
         resizeHandle.initializeViewPercent(viewPercent);
 
         // Update bulls-eye position after setting the divider
-        updateBullsEyeCenter();
+        // updateBullsEyeCenter();
     }
 
     // Apply palette selection if available
@@ -182,10 +182,8 @@ export function getCurrentState() {
 // on windwo load
 export function handleOnWindowLoad() {
     logger.log("focalPoint handlingOnWindowLoad");
-
     // Compute initial bullsEye center
-    updateBullsEyeCenter();
-
+    // updateBullsEyeCenter();
     startEasingToBullsEye("handleOnWindowLoad");
 }
 
@@ -209,13 +207,13 @@ export function set_isBeingDragged_false(eventPosition) {
 }
 
 export function handleOnWindowResize() {
-    updateBullsEyeCenter();
+    // updateBullsEyeCenter();
     startEasingToBullsEye("handleOnWindowResize");
 }
 
 
-// Add a listener for window resize to update bullsEye center
-window.addEventListener('resize', updateBullsEyeCenter);
+// // Add a listener for window resize to update bullsEye center
+// window.addEventListener('resize', updateBullsEyeCenter);
 
 export function getFocalPoint() {
     if ( !_focalPointElement ) {
@@ -288,8 +286,8 @@ export function createFocalPoint(focalPointElement) {
     });
 
     // Initial bulls-eye position update
-    updateBullsEyeCenter();
-    viewPort.checkFixtureParents();
+    // updateBullsEyeCenter();
+    // viewPort.resetFIxtureParents();
 
     // Add scene-plane container event listeners
     _sceneContainer.addEventListener("mouseenter", onsceneContainerEnter);
@@ -316,9 +314,9 @@ export function createFocalPoint(focalPointElement) {
     moveFocalPointTo(getBullsEyeCenter(), "createFocalPoint");
 
     // Update bulls-eye position again after any CSS transitions complete
-    setTimeout(() => {
-        updateBullsEyeCenter();
-    }, 310); // Match the transition duration from CSS
+    // setTimeout(() => {
+    //     updateBullsEyeCenter();
+    // }, 310); // Match the transition duration from CSS
 }
 
 const _focalPointPositionListeners = [];
@@ -636,9 +634,6 @@ function onWindowMouseEnter(event) {
     startEasingToAimPoint("window.mouseenter");
 }
 
-// Draw on window load
-window.addEventListener('load', handleOnWindowLoad);
-
 // Draw on window resize
 window.addEventListener('resize', handleOnWindowResize);
 
@@ -651,7 +646,7 @@ function initializeResizeObserver() {
     _resizeObserver = new ResizeObserver((entries) => {
         for (const entry of entries) {
             if (entry.target === _sceneContainer) {
-                updateBullsEyeCenter();
+            //     updateBullsEyeCenter();
                 // If focal point is locked to bulls-eye, update its position too
                 if (_isLockedToBullsEye) {
                     moveFocalPointTo(getBullsEyeCenter(), "resize-observer");

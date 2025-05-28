@@ -13,14 +13,12 @@
 
   <link rel="stylesheet" href="./styles.css">
   <link rel="stylesheet" href="./modules/timeline/timeline.css">
-  <link rel="stylesheet" href="./modules/alerts/alerts.css">
-  <link rel="stylesheet" href="./modules/cards/cards.css">
-  <link rel="stylesheet" href="./static_content/css/palette-styles.css">
+  <link rel="stylesheet" href="./styles/resume-container.css">
   <link rel="stylesheet" href="./styles/scene-container.css">
-  <link rel="stylesheet" href="./styles/controls.css">
-  <link rel="stylesheet" href="./styles/resume-column.css">
-  <link rel="stylesheet" href="./styles/temporary-content.css">
-  <link rel="stylesheet" href="/modules/cards/divSync.css" media="screen, print">
+  <link rel="stylesheet" href="./modules/core/core.css">
+  <link rel="stylesheet" href="./modules/scene/scene.css">
+  <link rel="stylesheet" href="./styles/controls.css"> 
+  <link rel="stylesheet" href="./static_content/css/palette-styles.css">
 
 </head>
 
@@ -28,7 +26,6 @@
   
   <!-- jobs.mjs is imported by main.mjs -->
   <script type="module" src="./main.mjs" ></script>
-  <script type="module" src="./modules/alerts/alerts.mjs" ></script>
   <script type="module" src="./modules/color/css_colors.mjs" ></script>
   <script type="module" src="./modules/color/colorPalettes.mjs" ></script>
   <script type="module" src="./modules/color/colorUtils.mjs" ></script>
@@ -44,23 +41,22 @@
         <div id="scene-plane-top-gradient"></div>
         <div id="scene-plane-btm-gradient"></div>
         <div id="timeline-container" class="timeline-container-left"></div>
-        <div class="temporary-content">temporary content</div>
       </div>
-      <div id="aim-point-dot"></div>
+      <div id="aim-point"></div>
       <div id="bulls-eye">+</div>
       <div id="focal-point">⦻</div>
     </div>
 
-    <div id="resume-column">
-      <div class="resume-column-left">
+    <div id="resume-container">
+      <div id="resume-container-left">
         <div id="resize-handle" class="resize-handle">
           <button class="toggle-collapse-button" id="collapse-left">◀</button>
           <button class="toggle-collapse-button" id="collapse-right">▶</button>
-          <span class="percentage-display">50%</span>
+          <span id="scene-visible-percentage">50%</span>
         </div>
       </div>
-      <div class="resume-column-right">
-        <div id="resume-column-header-div">
+      <div id="resume-container-right">
+        <div id="resume-container-header-div">
           <p class="intro">Welcome to your flock-of-postcards!</p>
           <div id="color-palette-container" tabindex="-1">
             <select id="color-palette-selector" tabindex="0"></select>
@@ -68,11 +64,11 @@
           <div id="biz-card-sorting-container" tabindex="-1">
               <select id="biz-resume-div-sorting-selector" tabindex="0"></select>
           </div>
-          <div class="biz-card-controls">
-            <button id="select-first-biz-card">First</button>
-            <button id="select-prev-resume-div">Prev</button>
-            <button id="select-next-resume-div">Next</button>
-            <button id="select-last-biz-card">Last</button>
+          <div id="biz-card-controls">
+            <button id="select-first-biz-card" class="biz-card-control-button">First</button>
+            <button id="select-prev-resume-div" class="biz-card-control-button">Prev</button>
+            <button id="select-next-resume-div" class="biz-card-control-button">Next</button>
+            <button id="select-last-biz-card" class="biz-card-control-button">Last</button>
           </div>
       </div>
         <div id="resume-content-div" class="scrollable-container">
@@ -80,7 +76,7 @@
           <!-- <div id="skills" style="color:black;height:50px;width:100%;"></div> -->
         </div>
         
-        <div id="resume-column-footer-div">
+        <div id="resume-container-footer-div">
           <div>
               <p class="footnote">
                   create a flock-of-postcards for your own resume at
@@ -99,9 +95,6 @@
 
   <script>
     // Initialization is now handled in main.mjs
-
-    // For skill-card-div elements
-    const cardDivs = document.getElementsByClassName("skill-card-div");
 
     // For biz-card-div elements
     const bizCardDivs = document.getElementsByClassName("biz-card-div");

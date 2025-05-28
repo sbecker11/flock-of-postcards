@@ -68,24 +68,17 @@ export function saveState() {
 
 export function initializeState() {
     const state = loadState();
-    _isDraggable = state.isDraggable;
-    _isLockedToBullsEye = state.isLockedToBullsEye;
-    _aimPointMode = state.aimPointMode ?? AimPointMode.RETURN_TO_BULLS_EYE;
+    
+    // _isDraggable = state.isDraggable;
+    // _isLockedToBullsEye = state.isLockedToBullsEye;
+    // _aimPointMode = state.aimPointMode ?? AimPointMode.RETURN_TO_BULLS_EYE;
     
     // Apply divider position
-    const sceneContainer = document.getElementById('scene-container');
-    const resumeColumn = document.getElementById('resume-column');
-    if (sceneContainer && resumeColumn) {
         const leftPercent = state.dividerPosition;
         const rightPercent = 100 - leftPercent;
-        sceneContainer.style.width = `${leftPercent}%`;
-        resumeColumn.style.width = `${rightPercent}%`;
-        const resizeHandle = document.getElementById('resize-handle');
-        if (resizeHandle) {
-            resizeHandle.style.left = `${leftPercent}%`;
-        }
-        // Update bulls-eye position after setting the divider
-        updateBullsEyeCenter();
+        resumeContainer.style.width = `${rightPercent}%`;
+        resumeContainer.updateResumeConteiner(); 
+        // pdateResizeHandle -> updateSceneContainer -> updateViewPort -> updateBullsEye
     }
 
     // Apply palette selection if available

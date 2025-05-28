@@ -3,14 +3,14 @@
 import { Logger, LogLevel } from "../logger.mjs";
 const logger = new Logger("aimPoint", LogLevel.INFO, LogLevel.TRACE_ON_FAILURE);
 
-const _aimPointDotElement = document.getElementById("aim-point-dot");
+const _aimPointElement = document.getElementById("aim-point");
 
 export function setAimPoint(position, prefix="") {
     if (position == null) throw new Error("setAimPoint: position is null");
-    _aimPointDotElement.style.left = `${position.x}px`;
-    _aimPointDotElement.style.top = `${position.y}px`;
-    if (_aimPointDotElement.classList.contains('hidden')) {
-        _aimPointDotElement.classList.remove('hidden');
+    _aimPointElement.style.left = `${position.x}px`;
+    _aimPointElement.style.top = `${position.y}px`;
+    if (_aimPointElement.classList.contains('hidden')) {
+        _aimPointElement.classList.remove('hidden');
     }
     if (prefix != "") {
         logger.log(`setAimPoint:${prefix}`, position);
@@ -19,17 +19,17 @@ export function setAimPoint(position, prefix="") {
 
 export function getAimPoint() {
     return {
-        x: parseFloat(_aimPointDotElement.style.left), 
-        y: parseFloat(_aimPointDotElement.style.top) 
+        x: parseFloat(_aimPointElement.style.left), 
+        y: parseFloat(_aimPointElement.style.top) 
     };
 }
 
 
 export function getAimPointElement() {
-    if ( _aimPointDotElement == null ) {
-        _aimPointDotElement = document.getElementById("aim-point-dot");
+    if ( _aimPointElement == null ) {
+        _aimPointElement = document.getElementById("aim-point");
     }
-    return _aimPointDotElement;
+    return _aimPointElement;
 }
 
 // Define the aim point modes

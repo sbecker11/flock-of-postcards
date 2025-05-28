@@ -23,6 +23,8 @@ app.use((req, res, next) => {
         res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
         res.setHeader('Pragma', 'no-cache');
         res.setHeader('Expires', '0');
+        // Remove any existing Content-Length header to let Express calculate it
+        res.removeHeader('Content-Length');
     }
     next();
 });
@@ -31,7 +33,23 @@ app.use((req, res, next) => {
 // Make sure client-side fetch paths match how files are served.
 // Serving the whole project root might be needed if index.html is there.
 console.log(`Serving static files from root: ${PROJECT_ROOT}`);
-app.use(express.static(PROJECT_ROOT));
+
+// Add logging for CSS file requests
+app.use((req, res, next) => {
+    if (req.path.endsWith('.css')) {
+        console.log(`CSS file requested: ${req.path}`);
+    }
+    next();
+});
+
+app.use(express.static(PROJECT_ROOT, {
+    // Set proper MIME types
+    setHeaders: (res, path) => {
+        if (path.endsWith('.css')) {
+            res.setHeader('Content-Type', 'text/css');
+        }
+    }
+}));
 
 // --- API Endpoint for Dynamic Manifest ---
 app.get('/api/palette-manifest', async (req, res) => {
@@ -102,14 +120,14 @@ app.post('/api/write-css', async (req, res) => {
         res.json({ success: true });
     } catch (error) {
         console.error('Error writing CSS file:', error);
-        res.status(500).json({ 
+        res.status(500).json({
             error: 'Failed to write CSS file',
-            details: error.message 
+            details: error.message
         });
     }
 });
 
-// --- Start the server with port finding --- 
+// --- Start the server with port finding ---
 const MAX_PORT_RETRIES = 10; // Limit how many ports to try
 const START_PORT = process.env.PORT ? parseInt(process.env.PORT, 10) : 3000;
 
@@ -132,7 +150,7 @@ function startServer(port) {
             // Close the server instance that failed before retrying
             server.close(() => {
                  startServer(port + 1); // Recursively try the next port
-            }); 
+            });
         } else {
             // Handle other server errors
             console.error("Server failed to start:", err);
@@ -142,4 +160,4 @@ function startServer(port) {
 }
 
 // Initial call to start the server process
-startServer(START_PORT); 
+startServer(START_PORT);

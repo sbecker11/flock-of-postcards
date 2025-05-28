@@ -1,0 +1,592 @@
+#resume-container {
+  position: fixed;
+  top: 0;
+  right: 0;
+  height: 100vh;
+  display: flex;
+  flex-direction: row;
+  background-color: var(--background-dark);
+  overflow-y: hidden;
+  margin: 0;
+  padding: 0;
+  z-index: 1;
+  width: 50%; /* Initial width */
+}
+
+/* Style for resize-handle as part of resume-container */
+#resize-handle {
+  pointer-events: none;
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 20px;
+  display: flex !important;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-start; /* Top to bottom alignment */
+  z-index: 9910; /* High z-index for visibility */
+  gap: 2px;
+}
+
+#resume-container-left {
+  width: 20px;
+  opacity: 1.0;
+  flex-shrink: 0;
+  position: absolute;
+  height: 100vh !important;
+  left: 0 !important;
+  top: 0 !important;
+  bottom: 0 !important;
+  pointer-events: auto !important;
+  cursor: col-resize !important;
+  z-index: 9911 !important;
+}
+
+#resume-container-right {
+  flex: 1;
+  left: 20px;
+  margin-left:20px;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  width: 100%;
+}
+
+
+/* Style for the toggle buttons */
+
+/* Specific styles for the draggable button states */
+#toggle-draggable-button.draggable-on {
+  background-color: white;
+  color: gray;
+}
+
+#toggle-draggable-button.draggable-off {
+  background-color: gray;
+  color: white;
+}
+
+/* New styles for the state toggle button (like the 'd' button) */
+.toggle-state-button {
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    border: 1px solid gray;
+    background: rgba(50, 50, 50, 0.9);
+    color: white;
+    cursor: pointer;
+    display: flex !important; /* Force display flex */
+    align-items: center;
+    justify-content: center;
+    font-size: 12px;
+    font-weight: bold;
+    line-height: 1;
+    z-index: 1002; /* Ensure it's above other elements */
+    transition: all 0.2s ease;
+    margin: 2px 0;
+    padding: 0;
+    font-family: monospace;
+    position: relative; /* Ensure proper stacking context */
+}
+
+.toggle-state-button:hover {
+    background-color: rgba(80, 80, 80, 1);
+    border-color: white;
+}
+
+/* Styles for the draggable button states */
+.toggle-state-button.d-button.draggable-on {
+    background-color: white; /* ON state */
+    color: gray;
+}
+
+.toggle-state-button.d-button.draggable-off {
+    background-color: gray; /* OFF state */
+    color: white;
+}
+
+#resume-container-header-div {
+  background-color: #444444;
+  color: white;
+  padding: 10px;
+  align-content: left;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  height: fit-content; /* Height based on content */
+  flex-shrink: 0; /* Prevent header from shrinking */
+}
+
+
+#resume-content-div {
+  flex-grow: 1;
+  overflow-y: auto;
+  overflow-x: hidden;
+  width: 100%;
+  box-sizing: border-box; 
+  background-color: var(--background-middle);
+  color: black;
+  padding: 10px;
+  padding-left: 0px;
+  padding-right: 20px;
+  position: relative;
+}
+
+.resume-content-div-child {
+  max-width: 100%;
+  height: auto;
+  position: relative;
+}
+
+#resume-container-footer-div {
+  display: flex;
+  flex-direction: column;
+  background-color: #999999;
+  padding: 10px;
+  height: fit-content; /* Height based on content */
+  flex-shrink: 0; /* Prevent footer from shrinking */
+}
+
+#biz-card-controls {
+  display: flex;
+  gap: 5px;
+  margin: 10px 0;
+  flex-wrap: wrap;
+  width: 100%;
+}
+
+.biz-card-control-button {
+  flex: 1 1 auto;
+  min-width: 60px;
+  max-width: calc(240px + 15px); /* 4 buttons + 3 gaps max */
+  padding: 8px 12px;
+  margin: 0;
+  background-color: #2196F3; /* Blue color */
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-weight: bold;
+  outline: none;
+  transition: background-color 0.2s ease, box-shadow 0.2s ease;
+  text-shadow: 1px 1px 1px rgba(0, 0, 0, 0.8);
+}
+
+.biz-card-control-button:hover {
+  background-color: #1976D2; /* Darker blue on hover */
+}
+
+.biz-card-control-button:focus {
+  outline: none;
+  box-shadow: 0 0 5px rgba(255, 255, 255, 0.5);
+}
+
+
+/* When container width is less than 90%, adjust max-width */
+@media (max-width: 90%) {
+  .biz-card-control-button {
+      max-width: calc(180px + 10px); /* 3 buttons + 2 gaps */
+  }
+}
+
+/* When container width is less than 70%, adjust max-width */
+@media (max-width: 70%) {
+  .biz-card-control-button {
+      max-width: calc(120px + 5px); /* 2 buttons + 1 gap */
+  }
+}
+
+/* When container width is less than 50%, adjust max-width */
+@media (max-width: 50%) {
+  .biz-card-control-button {
+      max-width: 60px; /* 1 button */
+  }
+}
+
+#color-palette-container {
+  position: relative;
+  display: flex;
+  outline: none;
+  padding: 5px 0; /* Remove horizontal padding */
+  width: 100%;
+}
+
+#color-palette-selector {
+  flex: 1 1 auto;
+  min-width: 60px;
+  max-width: calc(240px + 23px);
+  padding: 8px 12px;
+  margin: 0;
+  background-color: #4CAF50;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-weight: bold;
+  outline: none;
+  transition: background-color 0.2s ease, box-shadow 0.2s ease;
+  width: 100%;
+  text-shadow: 1px 1px 1px rgba(0, 0, 0, 0.8);
+  position: relative;
+  padding-right: 30px;
+}
+
+#color-palette-selector::after {
+  content: '▶';
+  position: absolute;
+  right: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  font-size: 12px;
+  line-height: 1;
+  font-family: monospace;
+  pointer-events: none;
+  color: #4CAF50;
+  z-index: 1;
+}
+
+#color-palette-selector:focus::after {
+  content: '◀';
+  transform: translateY(-50%) rotate(90deg);
+}
+
+/* When container width is less than 90%, adjust max-width */
+@media (max-width: 90%) {
+  #color-palette-selector {
+      max-width: calc(180px + 10px); /* 3 buttons + 2 gaps */
+  }
+}
+
+/* When container width is less than 70%, adjust max-width */
+@media (max-width: 70%) {
+  #color-palette-selector {
+      max-width: calc(120px + 5px); /* 2 buttons + 1 gap */
+  }
+}
+
+/* When container width is less than 50%, adjust max-width */
+@media (max-width: 50%) {
+  #color-palette-selector {
+      max-width: 60px; /* 1 button */
+  }
+}
+
+#color-palette-selector option {
+  background-color: #4CAF50;
+  color: white;
+  font-weight: bold;
+  text-shadow: 1px 1px 1px rgba(0, 0, 0, 0.8);
+}
+
+#color-palette-selector:hover {
+  background-color: #45a049;
+}
+
+#color-palette-selector:focus {
+  outline: none;
+  box-shadow: 0 0 5px rgba(255, 255, 255, 0.5);
+}
+
+#color-palette-selector:not(:focus) {
+  pointer-events: none;
+}
+
+#color-palette-container:hover #color-palette-selector {
+  pointer-events: auto;
+}
+
+/* Add percentage display under buttons */
+/* Removed scene-visible-percentage styles, see resume-container.css */
+
+#biz-card-sorting-container {
+  position: relative;
+  display: flex;
+  outline: none;
+  padding: 5px 0; /* Remove horizontal padding */
+  width: 100%;
+}
+
+#biz-resume-div-sorting-selector {
+  flex: 1 1 auto;
+  min-width: 60px;
+  max-width: calc(240px + 23px);
+  padding: 8px 12px;
+  margin: 0;
+  background-color: #4CAF50;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-weight: bold;
+  outline: none;
+  transition: background-color 0.2s ease, box-shadow 0.2s ease;
+  width: 100%;
+  text-shadow: 1px 1px 1px rgba(0, 0, 0, 0.8);
+  position: relative;
+  padding-right: 30px;
+}
+
+#biz-resume-div-sorting-selector::after {
+  content: '▶';
+  position: absolute;
+  right: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  font-size: 12px;
+  line-height: 1;
+  font-family: monospace;
+  pointer-events: none;
+  color: #4CAF50;
+  z-index: 1;
+}
+
+#biz-resume-div-sorting-selector:focus::after {
+  content: '◀';
+  transform: translateY(-50%) rotate(90deg);
+}
+
+/* When container width is less than 90%, adjust max-width */
+@media (max-width: 90%) {
+  #biz-resume-div-sorting-selector {
+      max-width: calc(180px + 10px); /* 3 buttons + 2 gaps */
+  }
+}
+
+/* When container width is less than 70%, adjust max-width */
+@media (max-width: 70%) {
+  #biz-resume-div-sorting-selector {
+      max-width: calc(120px + 5px); /* 2 buttons + 1 gap */
+  }
+}
+
+/* When container width is less than 50%, adjust max-width */
+@media (max-width: 50%) {
+  #biz-resume-div-sorting-selector {
+      max-width: 60px; /* 1 button */
+  }
+}
+
+#biz-resume-div-sorting-selector option {
+  background-color: #4CAF50;
+  color: white;
+  font-weight: bold;
+  text-shadow: 1px 1px 1px rgba(0, 0, 0, 0.8);
+}
+
+#biz-resume-div-sorting-selector:hover {
+  background-color: #45a049;
+}
+
+#biz-resume-div-sorting-selector:focus {
+  outline: none;
+  box-shadow: 0 0 5px rgba(255, 255, 255, 0.5);
+}
+
+#biz-resume-div-sorting-selector:not(:focus) {
+  pointer-events: none;
+}
+
+#biz-card-sorting-container:hover #biz-resume-div-sorting-selector {
+  pointer-events: auto;
+}
+
+
+/* Styles for resume column and related elements */
+#resume-container-header-div {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+}
+
+.intro {
+  padding-left: 5px;
+}
+
+#resume-container-footer-div {
+  display: flex;
+  flex-direction: column;
+}
+
+#resume-container-footer-div > div {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.footnote {
+  margin: 0;
+  padding-left: 5px;
+}
+
+
+/* Styles for children of resize-handle */
+.toggle-collapse-button#collapse-left {
+  cursor: w-resize; /* West cursor */
+  z-index: 61; /* Above container */
+  pointer-events: auto;
+  margin-top: 20px; /* Spacing from top */
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  border: 1px solid gray;
+  background: rgba(50, 50, 50, 0.9);
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 12px;
+  font-weight: bold;
+  line-height: 1;
+  margin: 2px 0;
+  padding: 0;
+  z-index:9993;
+}
+
+.toggle-collapse-button#collapse-right {
+  cursor: e-resize; /* East cursor */
+  z-index: 62; /* Above left button */
+  pointer-events: auto;
+  margin-top: 10px; /* Spacing from left button */
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  border: 1px solid gray;
+  background: rgba(50, 50, 50, 0.9);
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 12px;
+  font-weight: bold;
+  line-height: 1;
+  margin: 2px 0;
+  padding: 0;
+  z-index: 9993;
+}
+
+.toggle-collapse-button:hover {
+  background-color: rgba(80, 80, 80, 1);
+  border-color: white;
+}
+
+.toggle-state-button#toggle-draggable-button {
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  border: 1px solid gray;
+  background: rgba(50, 50, 50, 0.9);
+  color: white;
+  cursor: pointer;
+  display: flex !important;
+  align-items: center;
+  justify-content: center;
+  font-size: 12px;
+  font-weight: bold;
+  line-height: 1;
+  z-index: 63; /* Above collapse buttons */
+  transition: all 0.2s ease;
+  margin: 2px 0;
+  padding: 0;
+  font-family: monospace;
+  position: relative; /* Ensure proper stacking context */
+  margin-top: calc(50vh - 60px); /* Position at vertical midpoint, accounting for other elements */
+}
+
+.toggle-state-button#toggle-draggable-button:hover {
+  background-color: rgba(80, 80, 80, 1);
+  border-color: white;
+}
+
+.toggle-state-button#toggle-draggable-button.draggable-on {
+  background-color: white; /* ON state */
+  color: gray;
+}
+
+.toggle-state-button#toggle-draggable-button.draggable-off {
+  background-color: gray; /* OFF state */
+  color: white;
+}
+
+#scene-visible-percentage {
+  pointer-events: none; /* No interactions */
+  z-index: 63; /* Above right button */
+  margin-top: 10px; /* Spacing from right button */
+  color: white;
+  font-size: 10px;
+  font-family: monospace;
+  text-align: center;
+  cursor: pointer;
+  background: none;
+  border: none;
+  padding: 2px;
+  width: 100%;
+  z-index: 9902;
+}
+
+.scene-visible-percentage:hover {
+  color: #00ff00;
+}
+
+/* Animation for sliding in from the top (next) */
+.slide-in-from-right {
+    animation: slideInFromTop 0.5s ease-out forwards;
+}
+
+@keyframes slideInFromTop {
+    from {
+        transform: translateY(-100%);
+        opacity: 0;
+    }
+    to {
+        transform: translateY(0);
+        opacity: 1;
+    }
+}
+
+/* Animation for sliding in from the bottom (prev) */
+.slide-in-from-left {
+    animation: slideInFromBottom 0.5s ease-out forwards;
+}
+
+@keyframes slideInFromBottom {
+    from {
+        transform: translateY(100%);
+        opacity: 0;
+    }
+    to {
+        transform: translateY(0);
+        opacity: 1;
+    }
+}
+
+/* Vertical slide animations for bizResumeDiv scrolling */
+@keyframes slide-in-from-bottom {
+    from {
+        transform: translateY(100%);
+        opacity: 0;
+    }
+    to {
+        transform: translateY(0);
+        opacity: 1;
+    }
+}
+
+@keyframes slide-in-from-top {
+    from {
+        transform: translateY(-100%);
+        opacity: 0;
+    }
+    to {
+        transform: translateY(0);
+        opacity: 1;
+    }
+}
+
+.biz-resume-div.slide-in-from-bottom {
+    animation: slide-in-from-bottom 0.5s ease-out forwards;
+}
+
+.biz-resume-div.slide-in-from-top {
+    animation: slide-in-from-top 0.5s ease-out forwards;
+} 

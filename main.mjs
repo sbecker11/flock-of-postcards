@@ -6,24 +6,24 @@ import * as domUtils from './modules/utils/domUtils.mjs';
 import * as mathUtils from './modules/utils/mathUtils.mjs';
 import * as timeline from './modules/timeline/timeline.mjs';
 import * as focalPoint from './modules/core/focalPoint.mjs';
-import * as alerts from './modules/alerts/alerts.mjs';
 import * as colorPalettes from './modules/color/colorPalettes.mjs';
 import * as colorUtils from './modules/color/colorUtils.mjs';
-import * as bizResumeDivSortingModule from './modules/cards/bizResumeDivSortingModule.mjs';
-import * as bizCardDivModule from './modules/cards/bizCardDivModule.mjs';
-import * as divSyncModule from './modules/cards/divSyncModule.mjs';
-import * as bizResumeDivScrollingModule from './modules/cards/bizResumeDivScrollingModule.mjs';
-import * as bizResumtDivSortingModule from './modules/cards/bizResumeDivSortingModule.mjs';
+import * as bizResumeDivSortingModule from './modules/scene/bizResumeDivSortingModule.mjs';
+import * as bizCardDivModule from './modules/scene/bizCardDivModule.mjs';
+import * as divSyncModule from './modules/scene/divSyncModule.mjs';
+import * as bizResumeDivScrollingModule from './modules/scene/bizResumeDivScrollingModule.mjs';
+import * as bizResumtDivSortingModule from './modules/scene/bizResumeDivSortingModule.mjs';
 import * as zIndex from './modules/core/zIndex.mjs';
 import * as parallax from './modules/core/parallax.mjs';
-import * as viewPort from './modules/core/viewport.mjs';
+import * as viewPort from './modules/core/viewPort.mjs';
 import * as filters from './modules/core/filters.mjs';
-import * as cardUtils from './modules/utils/cardUtils.mjs';
-import * as cardConstants from './modules/cards/cardConstants.mjs';
+import * as cardConstants from './modules/scene/cardConstants.mjs';
 import * as autoScroll from './modules/animation/autoScroll.mjs';
 import * as resizeHandle from './modules/core/resizeHandle.mjs';
 import * as bullsEye from './modules/core/bullsEye.mjs';
 import * as aimPoint from './modules/core/aimPoint.mjs';
+import * as resumeContainer from './modules/resume/resumeContainer.mjs';
+import * as sceneContainer from './modules/scene/sceneContainer.mjs';
 
 import { Logger, LogLevel } from "./modules/logger.mjs";
 const logger = new Logger("main", LogLevel.DEBUG);
@@ -32,14 +32,6 @@ const logger = new Logger("main", LogLevel.DEBUG);
 // --------------------------------------
 // Element reference globals
 
-const resumeContentDiv= document.getElementById("resume-content-div");
-const resumeColumn = document.getElementById("resume-column");
-const sceneContainer = document.getElementById("scene-container");
-const scenePlane = document.getElementById("scene-plane");
-const bottomGradient = document.getElementById("bottom-gradient");
-const focalPointElement = document.getElementById("focal-point");
-
-const timelineContainer = document.getElementById("timeline-container");
 let paletteSelector = null;
 
 // --------------------------------------
@@ -90,34 +82,36 @@ document.addEventListener('mouseup', function() {
     document.getElementById("scene-container").classList.remove('no-select');
 });
 
+
 // Initialize the application
 async function initialize() {
+    console.log("loaded job.length:", jobs.length);
 
-    const job0 = jobs[0];
-    console.log("job0:", job0.employer, job0.start, job0.end, job0.role, job0.Description, job0.jobSkills);
-    
     try {
         // load color palettes for palette selector
         colorPalettes.initializeColorPalettes();
         paletteSelector = await colorPalettes.getPaletteSelectorInstance();
 
-        const [minTimelineYear, maxTimelineYear] = getMinMaxTimelineYears(jobs);
-        const defaultTimelineYear = maxTimelineYear;
+        // Get DOM elements for containers
+        const resumeContainerElem = document.getElementById('resume-container');
+        const sceneContainerElem = document.getElementById('scene-container');
+
+        // Update resume container so it is sized before viewport logic
+        resumeContainer.initializeResumeContainer();
+
+        // Now containers should have correct sizes
+
+        // Initialize viewPort and getBullsEyeElement() first, now that containers are sized
+        viewPort.initializeViewPort();
 
         // Initialize timeline
-        timeline.createTimeline(timelineContainer, sceneContainer, minTimelineYear, maxTimelineYear, defaultTimelineYear);
-        
-        // Initialize viewPort and getBullsEyeElement() first
-        viewPort.initializeViewPort(sceneContainer);
-        viewPort.updateViewPort(sceneContainer);
+        const [minTimelineYear, maxTimelineYear] = getMinMaxTimelineYears(jobs);
+        const defaultTimelineYear = maxTimelineYear;
+        const _timelineContainer = document.getElementById("timeline-container");
+        timeline.createTimeline(_timelineContainer, sceneContainerElem, minTimelineYear, maxTimelineYear, defaultTimelineYear);
 
-        bullsEye.initializeBullsEye();
-        
-        resizeHandle.initializeResizeHandle();
-        
         // sanity check for z and z_index functions
         zIndex.test_z_functions();
-
         // sanity check for color utils
         colorUtils.test_color_utils();
 
@@ -126,20 +120,17 @@ async function initialize() {
             const jobType = typeof jobs;
             ("jobType:", jobType);
             logger.error("jobType:", jobType);
-        }        
+        }
         const sortedJobs = [...jobs].sort((a, b) => new Date(b.start) - new Date(a.start));
 
         // Create all bizCards
         sortedJobs.forEach((job, index) => { // jobs loader
             // Create the bizCardDiv
-            console.log("creating bizCardDiv for jobIndex:", index);
             const bizCardDiv = bizCardDivModule.createBizCardDiv(job, index);
 
             const bizCardDivId = bizCardDiv.id;
-            console.log("bizCardDivId:id:", bizCardDivId);
             const checkBizCarDiv = document.getElementById(bizCardDivId);
             if (!checkBizCarDiv) throw new Error("bizCardDiv is not found for bizCardDivId:", bizCardDivId);
-
             const bizResumeDivId = bizCardDivId.replace("card", "resume");
             const bizResumeDiv = document.getElementById(bizResumeDivId);
             if (!bizResumeDiv) throw new Error("bizResumeDiv is not found for bizResumeDivId:", bizResumeDivId);
@@ -147,53 +138,54 @@ async function initialize() {
             divSyncModule.verifySyncedPair(bizCardDiv, bizResumeDiv);
         });
 
+
         // initbiResumeDivIdializations after bizCards and bizResumeDivs are created
         divSyncModule.initializeDivSync();
         bizResumtDivSortingModule.initializeSortingSelector();
         bizResumtDivSortingModule.initializeNavigationButtons();
-        
+
         // Apply the current palette to all bizCards - color palette
         paletteSelector.applyPaletteToElements();
-        
+
         // Initialize scrollbar controls - cards vertical scrolling
-        viewPort.initScrollbarControls(sceneContainer);
-                
+        //viewPort.initScrollbarControls(sceneContainer);
+
         // Add event listeners
-        sceneContainer.addEventListener('wheel', autoScroll.handlesceneContainerWheel, { passive: true });
-        sceneContainer.addEventListener('scroll', () => {
+        sceneContainerElem.addEventListener('wheel', autoScroll.handlesceneContainerWheel, { passive: true });
+        sceneContainerElem.addEventListener('scroll', () => {
             // Update parallax effects when scrolling (commented out as parallax module is not available)
-            // parallax.renderAllTranslateableDivsAtsceneContainerCenter(sceneContainer);
+            // parallax.renderAllTranslateableDivsAtsceneContainerCenter(sceneContainerElem);
+        });
+
+        window.addEventListener('load', () => {
+            resumeContainer.updateResumeContainer();
         });
         window.addEventListener('resize', () => {
-            viewPort.updateViewPort(sceneContainer);
-            viewPort.updateBullsEyeVerticalPosition();
-            // parallax.renderAllTranslateableDivsAtsceneContainerCenter(sceneContainer); (commented out as parallax module is not available)
+            resumeContainer.updateResumeContainer();
         });
 
         // Start auto-scroll
-        autoScroll.startAutoScroll(sceneContainer); 
+        autoScroll.startAutoScroll(sceneContainerElem);
 
         bizResumeDivScrollingModule.initialization();
 
+        // Now that everything is initialized, call focalPoint.handleOnWindowLoad()
+        focalPoint.handleOnWindowLoad();
     } catch (error) {
         console.error('Failed to initialize application:', error);
-        alerts.showError('Failed to initialize application. Please refresh the page.');
     }
 }
 
 // Start the application
-document.addEventListener('DOMContentLoaded', function() {
-    initialize().catch(error => {
-        console.error('Failed to initialize application:', error);
-        alerts.showError('Failed to initialize application. Please refresh the page.');
-    });
-});
+document.addEventListener('DOMContentLoaded', async function() {
+    try {
+        await initialize();
+        bizResumeDivSortingModule.initializeSortingSelector();
+        bizResumeDivSortingModule.initializeNavigationButtons();
 
-// Add after DOMContentLoaded event
-document.addEventListener('DOMContentLoaded', () => {
-    console.log("[Debug] DOM loaded - initializing sorting selector");
-    bizResumeDivSortingModule.initializeSortingSelector();
-    bizResumeDivSortingModule.initializeNavigationButtons();
+    } catch (error) {
+        console.error('Failed to initialize application:', error);
+    }
 });
 
 
