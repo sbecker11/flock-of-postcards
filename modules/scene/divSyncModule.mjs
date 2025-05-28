@@ -413,7 +413,7 @@ function notifyDivSyncPairEventListeners(element, eventType=DivSyncPairEventType
 // by using a key-value replacer for known self-referencing keys
 export function stringify(element) {
     if (!isPairedElement(element) ) throw new Error(`divSyncModule:stringify: element is null or element:${element.id} is not paired`);
-    return jsonUtils.stringifyCicular(element);
+    return jsonUtils.stringifyCircular(element);
 }
 
 export function removeDivSyncPairEventListener(divSyncPairEventListener) {

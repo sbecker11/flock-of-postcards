@@ -39,11 +39,12 @@ export function scrollBizCardDivIntoView(element) {
         throw new Error(`element is undefined or not a pairedElement`);
     }
     const bizCardDiv = divSyncModule.getBizCardDiv(element);
-    const bizDetailsEmployer = bizCardDiv.querySelector('.biz-details-employer');
-    if (!bizDetailsEmployer) {
-        throw new Error(`bizDetailsEmployer not found for ${bizCardDiv.id}`);
-    }
-    bizDetailsEmployer.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    const bizDetailsDiv = bizCardDiv.querySelector('.biz-details-div');
+    if (!bizDetailsDiv) throw new Error(`bizDetailsDiv not found for ${bizCardDiv.id}`);
+    const bizDetailsClass = '.biz-details-employer';
+    const bizDetailsElement = bizDetailsDiv.querySelector(bizDetailsClass);
+    if (!bizDetailsElement) throw new Error(`${bizDetailsClass} not found for ${bizCardDiv.id} / biz-details-div`);
+    bizDetailsElement.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
 }
 
 /**

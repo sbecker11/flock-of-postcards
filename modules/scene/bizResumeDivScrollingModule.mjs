@@ -204,7 +204,7 @@ function divSyncPairEventHandler(divSyncPairEvent) {
     if ( divSyncPairEvent.eventType === divSyncModule.DivSyncPairEventTypes.SERVER_ERROR ) {
         console.warn('bizResumeDivSortingModule: divSyncPairEventHandler: SERVER_ERROR:',  eventDataString);
     } else {
-        const eventDataString = jsonUtils.stringifyCicular(divSyncPairEvent);
+        const eventDataString = jsonUtils.stringifyCircular(divSyncPairEvent);
         console.warn('bizResumeDivSortingModule: divSyncPairEventListener: ',
             'unhandled event type: ', divSyncPairEvent.eventType,
             'eventDataString:', eventDataString);

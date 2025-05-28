@@ -11,7 +11,7 @@ import * as viewPort from './viewPort.mjs';
 const BUTTON_COLUMN_WIDTH = 20; // Width of the button column
 const MIN_WIDTH = BUTTON_COLUMN_WIDTH; // Minimum width (just the button column)
 const DEFAULT_WIDTH_PERCENT = 50; // Default width as percentage of window width
-const PERCENTAGE_INCREMENT = 25;
+const PERCENTAGE_INCREMENT = 100 / 3;
 
 let _resizeManager = null;
 
@@ -99,22 +99,23 @@ class ResizeManager {
         this.newResumeWidth = utils.clampInt(BUTTON_COLUMN_WIDTH, this.newResumeWidth, windowWidth);
         this.newClampedPercentage = Math.round(this.newSceneWidth / maxSceneWidth * 100);
         this.newClampedPercentage = utils.clampInt(0,this.newClampedPercentage,100);
-
-        // let percent = this.newSceneWidth / maxSceneWidth * 100;
-        // let newPercent = percent;
-        // if ( increment === -1 ) {
-        //     const fraction = Math.floor( (percent-PERCENTAGE_INCREMENT/2) / PERCENTAGE_INCREMENT);
-        //     newPercent = fraction * PERCENTAGE_INCREMENT;
-        //     console.log("=fraction:", fraction, "newPercent:", newPercent);
-        // }
-        // else if ( increment === +1 ) {
-        //     const fraction = Math.ceil( (percent+PERCENTAGE_INCREMENT/2) / PERCENTAGE_INCREMENT);
-        //     newPercent = fraction * PERCENTAGE_INCREMENT;
-        //     console.log("+fraction:", fraction, "newPercent:", newPercent);
-        // }
-        // this.newClampedPercentage = utils.clampInt(0, Math.round(newPercent), 100);
-        // this.newSceneWidth = Math.round(this.newClampedPercentage * maxSceneWidth / 100;
-
+        if (  increment == 0 ) return;
+        let percent = (maxSceneWidth > 0) ? (this.newSceneWidth / maxSceneWidth * 100) : 0;  
+        let newPercent = percent;
+        if ( increment === -1 ) {
+            const fraction = Math.floor( (percent-PERCENTAGE_INCREMENT/2) / PERCENTAGE_INCREMENT);
+            newPercent = fraction * PERCENTAGE_INCREMENT;
+            console.log("=fraction:", fraction, "newPercent:", newPercent);
+        }
+        else if ( increment === +1 ) {
+            const fraction = Math.ceil( (percent+PERCENTAGE_INCREMENT/2) / PERCENTAGE_INCREMENT);
+            newPercent = fraction * PERCENTAGE_INCREMENT;
+            console.log("+fraction:", fraction, "newPercent:", newPercent);
+        }
+        this.newClampedPercentage = utils.clampInt(0, Math.round(newPercent), 100);
+        this.newSceneWidth = Math.round(this.newClampedPercentage * maxSceneWidth / 100);
+        this.newResumeLeft = this.newSceneWidth;
+        this.newResumeWidth = windowWidth - this.newResumeLeft;
     }
 
     updateContainers() {
