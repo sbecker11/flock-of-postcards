@@ -27,18 +27,9 @@
     min-height: 200vh; /* Ensure content is taller than viewPort */
     scroll-behavior: smooth;
     z-index: 1;
-    isolation: isolate;
+    isolation: isolate;;
   }
-  
-  #diagonal-scene-plane {
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    pointer-events: none;  /* lets clicks pass through */
-  }
-  
+    
   #scene-plane-btm-gradient {
     position: absolute;
     width: 100%;
@@ -81,6 +72,7 @@
     transition: all 0s;
     border: 2px solid white;
     border-radius: 25px;
+    pointer-events: auto;
 }
 
 .biz-card-div {

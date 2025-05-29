@@ -11,6 +11,7 @@
   padding: 0;
   z-index: 1;
   width: 50%; /* Initial width */
+  pointer-events: none;
 }
 
 /* Style for resize-handle as part of resume-container */
@@ -27,6 +28,7 @@
   justify-content: flex-start; /* Top to bottom alignment */
   z-index: 9910; /* High z-index for visibility */
   gap: 2px;
+  pointer-events: none;
 }
 
 #resume-container-left {
@@ -51,6 +53,7 @@
   flex-direction: column;
   overflow: hidden;
   width: 100%;
+  pointer-events: none;
 }
 
 
@@ -116,6 +119,7 @@
   align-items: flex-start;
   height: fit-content; /* Height based on content */
   flex-shrink: 0; /* Prevent header from shrinking */
+  pointer-events: none;
 }
 
 
@@ -131,6 +135,7 @@
   padding-left: 0px;
   padding-right: 20px;
   position: relative;
+  pointer-events: none;
 }
 
 .resume-content-div-child {
@@ -146,6 +151,7 @@
   padding: 10px;
   height: fit-content; /* Height based on content */
   flex-shrink: 0; /* Prevent footer from shrinking */
+  pointer-events: none;
 }
 
 #biz-card-controls {
@@ -154,6 +160,7 @@
   margin: 10px 0;
   flex-wrap: wrap;
   width: 100%;
+  pointer-events: none;
 }
 
 .biz-card-control-button {
@@ -171,6 +178,7 @@
   outline: none;
   transition: background-color 0.2s ease, box-shadow 0.2s ease;
   text-shadow: 1px 1px 1px rgba(0, 0, 0, 0.8);
+  pointer-events: auto;
 }
 
 .biz-card-control-button:hover {
@@ -210,6 +218,7 @@
   outline: none;
   padding: 5px 0; /* Remove horizontal padding */
   width: 100%;
+  pointer-events: auto;
 }
 
 #color-palette-selector {
@@ -230,6 +239,7 @@
   text-shadow: 1px 1px 1px rgba(0, 0, 0, 0.8);
   position: relative;
   padding-right: 30px;
+  pointer-events: auto;
 }
 
 #color-palette-selector::after {
@@ -277,6 +287,7 @@
   color: white;
   font-weight: bold;
   text-shadow: 1px 1px 1px rgba(0, 0, 0, 0.8);
+  pointer-events: auto;
 }
 
 #color-palette-selector:hover {
@@ -305,6 +316,7 @@
   outline: none;
   padding: 5px 0; /* Remove horizontal padding */
   width: 100%;
+  pointer-events: auto;
 }
 
 #biz-resume-div-sorting-selector {
@@ -325,6 +337,7 @@
   text-shadow: 1px 1px 1px rgba(0, 0, 0, 0.8);
   position: relative;
   padding-right: 30px;
+  pointer-events: auto;
 }
 
 #biz-resume-div-sorting-selector::after {
@@ -372,6 +385,7 @@
   color: white;
   font-weight: bold;
   text-shadow: 1px 1px 1px rgba(0, 0, 0, 0.8);
+  pointer-events: auto;
 }
 
 #biz-resume-div-sorting-selector:hover {
@@ -397,22 +411,24 @@
   display: flex;
   flex-direction: column;
   align-items: flex-start;
+  pointer-events: none;
 }
 
 .intro {
   padding-left: 5px;
 }
 
-#resume-container-footer-div {
+/* #resume-container-footer-div {
   display: flex;
   flex-direction: column;
-}
+  pointer-events: none;
+
 
 #resume-container-footer-div > div {
   display: flex;
   justify-content: space-between;
   align-items: center;
-}
+} */
 
 .footnote {
   margin: 0;
@@ -522,6 +538,7 @@
   padding: 2px;
   width: 100%;
   z-index: 9902;
+  pointer-events: none;
 }
 
 .scene-visible-percentage:hover {
