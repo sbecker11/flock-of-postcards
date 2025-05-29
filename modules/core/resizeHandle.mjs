@@ -32,7 +32,7 @@ export function initializeViewPercent(viewPercent) {
 // to handle collapse buttons, viewport resizing, and cascading updates.
 
 class ResizeManager {
-    constructor(s, nIncrements = 3) {
+    constructor(s, nIncrements = 3, hysteresisPixels = 2) {
         this.sceneContainer = document.getElementById('scene-container');
         this.resumeContainer = document.getElementById('resume-container');
         this.resumeContainerLeft = document.getElementById('resume-container-left');
@@ -54,6 +54,8 @@ class ResizeManager {
         this.newSceneWidth = 0;
         this.newClampedPercentage = 0;
         this.nIncrements = nIncrements;
+        this.hysteresisPixels = hysteresisPixels;
+        this.lastSnapIndex = null;
         // Bind drag handlers for document-level events
         this._boundHandleDrag = this.handleDrag.bind(this);
         this._boundStopDrag = this.stopDrag.bind(this);
@@ -188,6 +190,13 @@ class ResizeManager {
         document.addEventListener('mousemove', this._boundHandleDrag);
         document.addEventListener('mouseup', this._boundStopDrag);
         document.addEventListener('mouseleave', this._boundHandleMouseLeave);
+        // Set lastSnapIndex to the current snap at drag start
+        const windowWidth = window.innerWidth;
+        const maxSceneWidth = windowWidth - BUTTON_COLUMN_WIDTH;
+        const sceneWidth = this.sceneContainer.offsetWidth;
+        const percent = (maxSceneWidth > 0) ? (sceneWidth / maxSceneWidth * 100) : 0;
+        const increment = this.percentageIncrement;
+        this.lastSnapIndex = Math.round(percent / increment);
     }
 
     handleDrag(e) {
@@ -205,6 +214,7 @@ class ResizeManager {
             this.clientX = e.clientX;
             this.lastClientX = e.clientX;
         }
+        // Pure smooth drag: always use mouse position
         this.computeContainers(forceEdge);
         this.updateContainers();
     }
@@ -368,12 +378,12 @@ class ResizeManager {
 
 
 // this is called by sceneContainer.updateSceneContainer
-export function initializeResizeHandle(nIncrements = 3) {
+export function initializeResizeHandle(nIncrements = 3, hysteresisPixels = 2) {
     console.log("initializeResizeHandle");
 
     if ( !_resizeManager ) {
         console.log("new ResizeManager created");
-        _resizeManager = new ResizeManager(undefined, nIncrements);
+        _resizeManager = new ResizeManager(undefined, nIncrements, hysteresisPixels);
         _resizeManager.initialize();
     }
 }
