@@ -289,7 +289,6 @@ export function getSelectedBizResumeDiv() {
     return getBizResumeDiv(currentSelected);
 }
 
-
 // handles clicking to select an element or its pairedElement
 // if the element is the currentSelected then unselect it
 // and clear the currectSelected
@@ -429,6 +428,15 @@ export function removeDivSyncPairEventListener(divSyncPairEventListener) {
 // after all bixDivCards and bizResumeDivs 
 // have been created and appended to the DOM
 export function initializeDivSync() {
+    // click in scene-plane to unselected 
+    // any selected biz-card-divs
+    document.getElementById('scene-plane').addEventListener('click', () => {
+        console.log('scene-plane click');
+        if ( currentSelected ) {
+            clearSelected();
+        }
+    });
+
     // Validate pairings
     let unpaired = [];
 
