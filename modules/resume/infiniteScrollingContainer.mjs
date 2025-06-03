@@ -124,11 +124,17 @@ class InfiniteScrollingContainer {
     
     // First pass: reset styling for proper measurement
     this.allItems.forEach(item => {
-      // Reset position and size
+      // Set explicit width with 10px gap on each side
       item.element.style.position = 'absolute';
       item.element.style.height = 'auto';
       item.element.style.minHeight = 'auto';
       item.element.style.overflow = 'visible';
+      item.element.style.width = 'calc(100% - 20px)'; // Create 10px gap on each side
+      item.element.style.boxSizing = 'border-box';
+      
+      // Explicit positioning for the gap
+      item.element.style.left = '10px'; // 10px from left
+      item.element.style.right = 'auto'; // Don't set right
       
       // Minimal padding and margins
       item.element.style.padding = '10px';
@@ -145,6 +151,7 @@ class InfiniteScrollingContainer {
         skillsList.style.padding = '0';
         skillsList.style.margin = '0.2rem 0';
         skillsList.style.lineHeight = '1.2';
+        skillsList.style.width = '100%';
         
         // Fix each skill item
         const skillItems = skillsList.querySelectorAll('.bulleted-job-skills-li');
@@ -166,6 +173,7 @@ class InfiniteScrollingContainer {
         descList.style.listStyle = 'none';
         descList.style.padding = '0 0 0 1.5rem';
         descList.style.margin = '0.3rem 0';
+        descList.style.width = '100%';
         
         // Make description items compact but readable
         const descItems = descList.querySelectorAll('.bulleted-job-description-items-li');
@@ -174,6 +182,7 @@ class InfiniteScrollingContainer {
           desc.style.position = 'relative';
           desc.style.marginBottom = '0.2rem';
           desc.style.lineHeight = '1.25';
+          desc.style.width = '100%';
         });
       }
       
@@ -184,6 +193,7 @@ class InfiniteScrollingContainer {
         detailsDiv.style.overflow = 'visible';
         detailsDiv.style.padding = '5px';
         detailsDiv.style.margin = '0';
+        detailsDiv.style.width = '100%';
         
         // Ensure headers are compact but readable
         const headers = detailsDiv.querySelectorAll('h1, h2, h3, h4, h5, h6');
@@ -220,8 +230,6 @@ class InfiniteScrollingContainer {
       
       // Position
       item.element.style.top = `${currentTop}px`;
-      item.element.style.left = '0';
-      item.element.style.right = '0';
       
       // Update item data
       item.top = currentTop;

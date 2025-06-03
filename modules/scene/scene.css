@@ -75,13 +75,18 @@
 }
 
 .biz-resume-div {
-    position: static !important;
+    position: absolute;
     width: 100%;
-    margin: 10px;
-    padding: 5px 10px;
+    margin: 0;
+    padding: 10px;
     background-color: transparent;
-    overflow: hidden;
+    overflow: visible;
     border-radius: 25px;
+    box-sizing: border-box;
+    cursor: pointer;
+    z-index: 4;
+    transition: all 0s;
+    border: 1px solid white;
 }
 
 .biz-card-div.hovered, .biz-resume-div.hovered {
