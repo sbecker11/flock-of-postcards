@@ -613,7 +613,7 @@ export const jobs = [
     "role": "Senior Architect ",
     "start": "2006-02-01",
     "end": "2007-12-01",
-    "Description": "• Eleven LLC built mobile apps used by beverage industry distributors to help manage placement  of their products in the shelves and coolers in retail locations. The work done by the Sierra Vista Group was instrumental in their company being acquired by Trimble. \n• As the architect and team lead, we used [Java], [Bash], [GitHub], [Linux], and  JBoss message-oriented middleware platform, Sybase Anywhere for the client/server based database, and Windows Mobile running on ruggedized mobile devices.",
+    "Description": "• Eleven LLC built mobile apps used by beverage industry distributors to help manage placement  of their products in the shelves and coolers in Resume locations. The work done by the Sierra Vista Group was instrumental in their company being acquired by Trimble. \n• As the architect and team lead, we used [Java], [Bash], [GitHub], [Linux], and  JBoss message-oriented middleware platform, Sybase Anywhere for the client/server based database, and Windows Mobile running on ruggedized mobile devices.",
     "references": [
       "<div class=\"anchor-ref\"><a href=\"https://www.eleven.net/\">[Eleven LLC]</a></div>",
       "<div class=\"anchor-ref\"><a href=\"https://help.trimblegeospatial.com/TMM/Home.htm\">[Trimble]</a></div>",

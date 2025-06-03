@@ -80,7 +80,18 @@ export function get_z_from_zIndexStr(zIndexStr) {
  * @param {number} z - The z value to convert
  * @returns {string} The corresponding z-index string
  */
-export function get_zIndexStr_from_z(z) {
+export function get_zIndexStr_from_z(z, cardDivId=null) {
+    if ( cardDivId ) {
+        if ( cardDivId.indexOf("biz-card-div") >= 0 ) {
+            if ( (z < BIZCARD_Z_MIN) || (z > BIZCARD_Z_MAX) ) {
+                throw new Error(`z:${z} is out of bizCardDiv range of${BIZCARD_Z_MIN}..${BIZCARD_Z_MAX}`);
+            }
+        } else if ( cardDivId.indexOf("skill-card-div") >= 0 ) {
+            if ( (z < SKILLCARD_Z_MIN) || (z > SKILLCARD_Z_MAX) ) {
+                throw new Error(`z:${z} is out of allDivs range of ${SKILLCARD_Z_MIN}..${SKILLCARD_Z_MAX}`);
+            }
+        }
+    }
     if ((z < ALL_CARDS_Z_MIN) || (z > ALL_CARDS_Z_MAX)) {
         throw new Error(`z:${z} is out of range of ${ALL_CARDS_Z_MIN}..${ALL_CARDS_Z_MAX}`);
     }

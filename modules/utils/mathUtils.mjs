@@ -47,16 +47,15 @@ export function getEuclideanDistance(arr1, arr2) {
     return Math.sqrt(getSquaredDistance(arr1, arr2));
 }
 /**
- * Gets a random number between min and max (inclusive)
- * @param {number} min - Minimum value
- * @param {number} max - Maximum value
- * @returns {number} Random number between min and max
+ * Gets a random int number between min and max (inclusive)
+ * @param {number} min - Minimum int value
+ * @param {number} max - Maximum int value
+ * @returns {number} Random int number between min and max
  */
-export function getRandomBetween(min, max) {
+export function getRandomInt(min, max) {
     return Math.floor(Math.random() * (max - min + 1)) + min;
 }
 
-export const getRandomInt = (min, max) => Math.floor(Math.random() * (max - min + 1)) + min;
 export const getRandomSign = () => Math.random() < 0.5 ? -1 : 1;
 
 

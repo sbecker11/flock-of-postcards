@@ -662,9 +662,8 @@ export function isValidHexColor(hexColor) {
  * @returns {string} Either black or white hex color
  */
 export function getContrastingColor(backgroundColor) {
-    if (!isValidHexColor(backgroundColor)) {
-        throw new Error('Invalid hex color format');
-    }
+    if (!backgroundColor) throw new Error("getContrastingColor: backgroundColor is null");
+    if (!isValidHexColor(backgroundColor)) throw new Error('Invalid hex color format for backgroundColor;', backgroundColor);
     const rgb = get_RGB_from_Hex(backgroundColor);
     // Calculate relative luminance
     const luminance = (0.299 * rgb[0] + 0.587 * rgb[1] + 0.114 * rgb[2]) / 255;

@@ -13,7 +13,6 @@ export const linearInterp = (x, x1, y1, x2, y2) => y1 + ((x - x1) / (x2 - x1)) *
 export const getRandomInt = (min, max) => Math.floor(Math.random() * (max - min + 1)) + min;
 export const getRandomSign = () => Math.random() < 0.5 ? -1 : 1;
 export const zeroPad = (num, places) => num.toString().padStart(places, "0");
-
 export const isString = (value) => (typeof value === 'string' || value instanceof String);
 export const isNonEmptyString = (value) => (isString(value) && (value.length > 0));
 export const isNumber = (value) => typeof value === 'number' && !Number.isNaN(value);
@@ -28,21 +27,41 @@ export function isNumeric(obj) {
     return Number.isFinite(n);
 };
 
-export function isNumericString(str) {
-    const n = parseFloat(str);
-    return Number.isFinite(n);
+
+// returns true for "5", "5.2", "5_foreground_only"
+// returns false for "abc", "5abc", "5_foreground_only"
+export function hasLeadingNumericValue(str) {
+    return typeof str === "string" && /^\d+(\.\d+)?/.test(str);
 }
 
+// returns 5 for "5","5_foreground_only" and 5.2 for "5.2" and '5.2_foreground_only"
+// throws Error for "abc", "5abc", "5_foreground_only"
+export function getLeadingNumericValue(str) {
+    const match = str.match(/^\d+(\.\d+)?/);
+    if (match) return parseFloat(match[0]);
+    throw new Error(`getLeadingNumericValue: ${str} does not start with a number`);
+}
+
+// returnd true for : "0", "123", "-5.2", "+.5", ".5"
+// returns false for : ".", "", "abc", "5abc", "5_foreground_only"
+export function isNumericString(str) {
+    // Only return true if the entire string is a valid number (integer or decimal, optional sign)
+    return typeof str === 'string' && /^[-+]?\d*(\.\d+)?$/.test(str.trim()) && str.trim() !== '';
+}
+
+// returnd Number for : "0", "123", "-5.2", "+.5", ".5"
+// throws error for : ".", "", "abc", "5abc", "5_foreground_only"
 export function getNumericValue(str) {
+    if (typeof str === 'number' && Number.isFinite(str)) {
+        return str;
+    }
     if (isNumericString(str)) {
         const n = parseFloat(str);
-        if( Number.isFinite(n) ) return n;
+        if (Number.isFinite(n)) return n;
         else throw new Error(`getNumericValue: ${str} is not a numeric string`);
     }
     throw new Error(`getNumericValue: ${str} is not a numeric string`);
 }
-
-
 
 export const validateIsNumeric = (obj) => {
     if (!isNumeric(obj)) {

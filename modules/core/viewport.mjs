@@ -2,7 +2,8 @@
 
 import { isHTMLElement } from '../utils/domUtils.mjs';
 import * as bullsEye from './bullsEye.mjs';
-import * as utils from '../utils/utils.mjs';
+import * as utils from '../utils/utils.mjs';    
+import * as zIndex from './zIndex.mjs';
 
 
 // Constants
@@ -44,7 +45,7 @@ export function viewPortIsInitialized() {
  * tells the bullsEye to update the position of its HTML element
  */
 export function updateViewPort() {
-    console.log("updateViewPort");
+    // console.log("updateViewPort");
     if ( !viewPortIsInitialized() ) {
         throw new Error("viewPortProperties is not initialized");
     }
@@ -74,14 +75,16 @@ export function updateViewPort() {
     // tell the bullsEye to update the position of its HTML element (using getViewPortCenter()
     bullsEye.updateBullsEyeCenter();
 
-    viewAllBizCardDivs();
+    // console.log("updateViewPort: calling viewAllBizCardDivs()");
+    // viewAllBizCardDivs();
 }
 
 export function getViewPortOrigin() {
-    console.log("viewPort.getViewPortOrigin()");
+    // console.log("viewPort.getViewPortOrigin()");
     if ( !viewPortIsInitialized() ) {
         throw new Error("viewPortProperties is not initialized");
     }
+    //console.log("^^^^^^^^^ getViewPortOrigin: viewPortProperties.centerX:", viewPortProperties.centerX);
     return { 
         x: viewPortProperties.centerX, 
         y: viewPortProperties.centerY 
@@ -109,7 +112,7 @@ export function isBizCardDivWithinViewPort(bizCardDiv) {
 // displays only those bizCardDivs that are within the viewport
 //
 export function viewAllBizCardDivs() {
-    console.log("viewPort.viewAllBizCardDivs()");
+    // console.log("viewPort.viewAllBizCardDivs()");
 
     if ( !viewPortIsInitialized() ) {
         throw new Error("viewPortProperties is not initialized");
@@ -122,7 +125,7 @@ export function viewAllBizCardDivs() {
 }
 
 export function setViewPortWidth(width) {
-    console.log("viewPort.setViewPortWidth:", width );
+    // console.log("viewPort.setViewPortWidth:", width );
     if ( !viewPortIsInitialized() ) {
         throw new Error("viewPort not yet initialized");
     }
@@ -147,23 +150,27 @@ export function applyViewRelativeStyling(bizCardDiv) {
         throw new Error(`bizCardDiv is not an HTMLElement: ${bizCardDiv}`);
     }
 
-    const bullsEyeX = viewPortProperties.bullsEyeX;
+    const bullsEyeX = viewPortProperties.centerX;
+    console.log("applyViewRelativeStyling: bizCardDiv.id:", bizCardDiv.id, "bullsEyeX:", bullsEyeX);
 
     // transform scene-relative attributes to get view-relative styling
-    const sceneCenterX = parseFloat(bizCardDiv.getAttribute("sceneCenterX"));
-    const sceneLeft = parseInt(bizCardDiv.getAttribute("sceneLeft"));
+    const sceneCenterX = parseFloat(bizCardDiv.getAttribute("data-sceneCenterX"));
+    const sceneLeft = parseInt(bizCardDiv.getAttribute("data-sceneLeft"));
     const viewLeft = viewPortProperties.centerX + sceneLeft;
-    const viewWidth = parseInt(bizCardDiv.getAttribute("sceneWidth"));
-    const viewTop = parseInt(bizCardDiv.getAttribute("sceneTop"));
-    const viewHeight = parseInt(bizCardDiv.getAttribute("sceneHeight"));
-    //console.log(`VIEW id:${bizCardDiv.id} sceneCenterX:${sceneCenterX}, sceneLeft:${sceneLeft}, viewLeft:${viewLeft}, viewTop:${viewTop}, viewHeight:${viewHeight}`);
+    console.log("applyViewRelativeStyling: bizCardDiv.id:", bizCardDiv.id, "viewLeft:", viewLeft);
+    const viewWidth = parseInt(bizCardDiv.getAttribute("data-sceneWidth"));
+    const viewTop = parseInt(bizCardDiv.getAttribute("data-sceneTop"));
+    const viewHeight = parseInt(bizCardDiv.getAttribute("data-sceneHeight"));
+    const viewZ = parseInt(bizCardDiv.getAttribute("data-sceneZ"));
+    //// console.log(`VIEW id:${bizCardDiv.id} sceneCenterX:${sceneCenterX}, sceneLeft:${sceneLeft}, viewLeft:${viewLeft}, viewTop:${viewTop}, viewHeight:${viewHeight}`);
     // apply view-relative styling
     bizCardDiv.style.height =  `${viewHeight}px`;
     bizCardDiv.style.top =     `${viewTop}px`;
     bizCardDiv.style.width =   `${viewWidth}px`;
     bizCardDiv.style.left =    `${viewLeft}px`;
+    bizCardDiv.style.zIndex = zIndex.get_zIndexStr_from_z(viewZ, bizCardDiv.id);
 
-    // console.log(`bizCardDiv view-relativestyling for ${bizCardDiv.id}:`, {
+    // // console.log(`bizCardDiv view-relativestyling for ${bizCardDiv.id}:`, {
     //     styleLeft: bizCardDiv.style.left,
     //     offsetLeft: bizCardDiv.offsetLeft,
     //     boundingLeft: bizCardDiv.getBoundingClientRect().left,
@@ -180,7 +187,7 @@ export function applyViewRelativeStyling(bizCardDiv) {
  * @returns {Array<HTMLElement>} Array of translatable card divs within the viewPort
  */
 export function findAllTranslatableCardsInViewPort() {
-    console.log("viewPort.findAllTranslatableCardsInViewPort()");
+    // console.log("viewPort.findAllTranslatableCardsInViewPort()");
     if ( !viewPortIsInitialized() ) {
         throw new Error("viewPortProperties is not initialized");
     }

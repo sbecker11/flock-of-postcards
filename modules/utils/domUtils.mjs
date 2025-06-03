@@ -28,17 +28,24 @@ import * as colorUtils from '../color/colorUtils.mjs';
 //     return value / 2;
 // }
 
-// export function addClass(element, className) {
-//     if (element && className) {
-//         element.classList.add(className);
-//     }
-// }
+export function hasClass(element, className) {
+    return element && className && element.classList.contains(className);
+}
 
-// export function removeClass(element, className) {
-//     if (element && className) {
-//         element.classList.remove(className);
-//     }
-// }
+export function addClass(element, className) {
+    if (element && className && !hasClass(element, className)) {
+       return element.classList.add(className);
+    }
+    return false;
+}
+
+export function removeClass(element, className) {
+    if ( hasClass(element, className) ) {
+        element.classList.remove(className);
+        return true;
+    }
+    return false; 
+}
 
 // export function toggleClass(element, className) {
 //     if (element && className) {

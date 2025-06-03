@@ -12,8 +12,8 @@ export function initializeSceneContainer() {
 }
 // called from updateResumeContainer
 export function updateSceneContainer() {
-    console.log("updateSceneContainer");
-    // viewPort uopdates interal properties and its chlldren
+    // console.log("updateSceneContainer");
+    // viewPort updates interal properties and its chlldren
     // using the current sceneContainer.offsetWidth and resumeContainerw.offset
     viewPort.updateViewPort();
 }
@@ -84,6 +84,7 @@ export function getSceneVerticalPositions(startDateString, endDateString,  minHe
             return { sceneTop: adjustedSceneTop, sceneBottom: adjustedSceneBottom };
         }
     }
-    console.log(`getSceneVerticalPositions: sceneTop:${sceneTop}, sceneBottom:${sceneBottom}`);
+    console.log(`**** getSceneVerticalPositions: endDate:${endDate}, startDate:${startDate}`);
+    console.log(`****getSceneVerticalPositions: sceneTop:${sceneTop}, sceneBottom:${sceneBottom}`);
     return { sceneTop: sceneTop, sceneBottom: sceneBottom };
 }

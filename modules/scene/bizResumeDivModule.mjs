@@ -1,45 +1,32 @@
 // scene/bizResumeDivModule.mjs
 
-import * as BizDetailsDiv from './bizDetailsDivModule.mjs'
+import * as utils from '../utils/utils.mjs';
+import * as BizDetailsDivModule from './bizDetailsDivModule.mjs';
 import * as colorPalettes from '../color/colorPalettes.mjs';
 
-
 // BizResumeDiv is the div that contains the resume of the job
-// each instance will apppend itself to the resume-content-div. 
+// it is created by resumeManager and is never appended to the DOM. 
 export function createBizResumeDiv(bizCardDiv) {
+    if ( !bizCardDiv ) throw new Error('createBizResumeDiv: given null bizCardDiv');
     const bizResumeDiv = document.createElement("div");
     bizResumeDiv.classList.add("biz-resume-div");
     bizResumeDiv.id = createBizResumeDivId(bizCardDiv.id);
-    bizResumeDiv.job = bizCardDiv.job;
-    bizResumeDiv.jobIndex = bizCardDiv.jobIndex;
-    bizResumeDiv.setAttribute('sort-key-start', bizCardDiv.job.start);
-    bizResumeDiv.setAttribute('sort-key-end', bizCardDiv.job.end);
-    bizResumeDiv.setAttribute('sort-key-employer', bizCardDiv.job.employer);
-    bizResumeDiv.setAttribute('sort-key-title', bizCardDiv.job.title);
-    bizResumeDiv.setAttribute('sort-key-job-index', bizCardDiv.jobIndex);
-
-    bizResumeDiv.pairedElement = bizCardDiv;
-    bizCardDiv.pairedElement = bizResumeDiv;
-
-    if (!bizResumeDiv.pairedElement) {
-        throw new Error(`bizResumeDiv.pairedElement not found for ${bizResumeDiv.id}`);
-    }
-    if (!bizCardDiv.pairedElement) {
-        throw new Error(`bizCardDiv.pairedElement not found for ${bizCardDiv.id}`);
-    }
-
-    // Create and append the new resume details div
-    const divDetailsDiv = BizDetailsDiv.createBizDetailsDiv(bizCardDiv);
-    bizResumeDiv.appendChild(divDetailsDiv);
-    bizResumeDiv.divDetailsDiv = divDetailsDiv;
+    const jobIndex = bizCardDiv.getAttribute('data-job-index');
+    if ( !utils.isNumeric(jobIndex)) throw new Error('createBizResumeDiv: given non-numeric attribute jobIndex');
+    bizResumeDiv.setAttribute('data-job-index', jobIndex);
 
     // Apply the same color palette as the biz card
-    bizResumeDiv.setAttribute('data-color-index', bizCardDiv.getAttribute('data-color-index'));
+    const colorIndex = bizCardDiv.getAttribute('data-color-index');
+    if ( !colorPalettes.isColorIndexString(colorIndex) ) throw new Error('createBizResumeDiv: given non-colorIndexString colorIndex');
+    bizResumeDiv.setAttribute('data-color-index', colorIndex);
+    
+    // create bizResumeDetails after setting data-color-index
+    const bizResumeDetailsDiv = BizDetailsDivModule.createBizResumeDetailsDiv(bizResumeDiv, bizCardDiv);
+    bizResumeDiv.appendChild(bizResumeDetailsDiv);
 
-    const resumeContentDiv= document.getElementById("resume-content-div");   
-    resumeContentDiv.appendChild(bizResumeDiv);
+    // and apply the color set to bizResumeDiv and its after appending the bizResumeDetailsDiv
+    colorPalettes.applyCurrentColorPaletteToElement(bizResumeDiv);
 
-    // will be appended to the resume-content-div
     return bizResumeDiv;
 }
 

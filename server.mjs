@@ -129,7 +129,7 @@ app.post('/api/write-css', async (req, res) => {
 
 // --- Start the server with port finding ---
 const MAX_PORT_RETRIES = 10; // Limit how many ports to try
-const START_PORT = process.env.PORT ? parseInt(process.env.PORT, 10) : 3000;
+const START_PORT = process.env.PORT ? parseInt(process.env.PORT, 10) : 3001;
 
 function startServer(port) {
     if (port >= START_PORT + MAX_PORT_RETRIES) {

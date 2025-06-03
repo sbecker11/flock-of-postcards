@@ -1,4 +1,3 @@
-
 #scene-container {
     width: 50%; /* Initial width */
     height: 100vh; /* Full viewPort height */
@@ -75,93 +74,86 @@
     pointer-events: auto;
 }
 
-.biz-card-div {
-    position: absolute;
-    border-color: 2px solid white;
-    border-radius: 25px;
-}
-
-.biz-card-div.hovered,
-.biz-resume-div.hovered {
-    filter: brightness(1.25);
-    border: 3px solid blue !important;
-}
-
-.biz-card-div.selected,
-.biz-resume-div.selected {
-    filter: brightness(1.5);
-    border: 10px solid purple !important;
-}
-
-/* In card view, hide all text elements in biz-details-div by default */
-.biz-card-div biz-details-div > * {
-    display: none;
-}
-.biz-details-div {
-    padding-top: 0px;
-    padding: 20px;
-}
-
-.biz-card-div  .biz-details-div * {
-    display: none;
-}
-
-/* Show specific header elements in card view */
-.biz-card-div .biz-details-div > h2,
-.biz-card-div .biz-details-div > h3,
-.biz-card-div .biz-details-div > .biz-defails-dates,
-.biz-card-div .biz-details-div > .header-text {
-    display: block;
-    font-weight: bold;
-}
-
-/* In resume view, show all text elements */
-.biz-resume-div .biz-details-div > * {
-    display: block;
-}
-
 .biz-resume-div {
+    position: static !important;
     width: 100%;
     margin: 10px;
-    padding: 10px;
+    padding: 5px 10px;
     background-color: transparent;
     overflow: hidden;
     border-radius: 25px;
 }
-.biz-details-div {
+
+.biz-card-div.hovered, .biz-resume-div.hovered {
+    filter: brightness(1.25);
+    border: 3px solid blue !important;
+}
+
+.biz-card-div.selected, .biz-resume-div.selected {
+    filter: brightness(1.5);
+    border: 10px solid purple !important;
+}
+
+/* hide all biz-card-details-div fields by default */
+.biz-card-details-div > * {
+    display: none;
+}
+
+/* display headers for both div-card-details and div-resume-details */
+.biz-details-role {
+    font-size: 20px;
+    display: block;
+}
+
+.biz-details-employer {
+    font-size: 18px;
+    display: block;
+}
+
+.biz-details-dates {
+    font-size: 16px;
+    display: block;
+}
+
+/* Show specific header elements in card view */
+.biz-card-details-div > h2,
+.biz-card-details-div > h3,
+.biz-card-details-div > .biz-defails-dates,
+.biz-card-details-div > .header-text {
+    display: none;
+} 
+
+/* show all .biz-resume-details by default */
+.biz-resume-details-div > * {
+    display: block;
+}
+
+/* variance from those shared from biz-card-div */
+.biz-card-details-div, .biz-resume-details-div {
     margin: 0px;
     padding: 10px;
     background-color: transparent;
     font-family: Arial, Helvetica, sans-serif;
     font-weight: normal;
     font-size: 12px;
-    display: block !important;
+}
+.biz-card-details-div, .biz-resume-details-div {
+    padding-top: 0px;
+    padding: 20px;
 }
 
-.biz-card-div-role {
-    font-size: 20px;
+.biz-card-details-div .header-text, 
+.biz-resume-details-div .header-text {
+    display: block;
 }
 
-.biz-card-div-employer {
-    font-size: 18px;
-}
-    
-.biz-card-div-dates {
-    font-size: 16px;
-}
-
-.biz-skill-card-div-dates {
-    font-size: 16px;
-}
-
-
-.bulleted-job-description-items-ul {
+.biz-resume-details-div .bulleted-job-description-items-ul {
     list-style: none;
     padding-left: 1.5rem;
     margin: 1rem 0;
 }
 
-.bulleted-job-description-items-li {
+.biz-resume-details-div .bulleted-job-description-items-li {
     position: relative;
     margin-bottom: 0.5rem;
     line-height: 1.4;
@@ -178,23 +170,25 @@
 .bulleted-job-skills-ul {
     list-style: none;
     padding-left: 0;
-    margin: 1rem 0;
+    margin: 0.25rem 0;
     display: flex;
-    flex-wrap: nowrap;
-    gap: 0.5rem;
-    overflow-x: auto;
+    flex-wrap: wrap;
+    gap: 0.1rem;
 }
 
 .bulleted-job-skills-li {
     position: relative;
-    padding: 0.25rem 0.75rem;
-    font-size: 0.9rem;
+    padding: 0.1rem 0rem;
+    font-size: 0.75rem;
     white-space: nowrap;
+    line-height: 1.4;
 }
 
 .bulleted-job-skills-li::before {
     content: "•";
-    margin-right: 0.25rem;
+    margin-right: 0.15rem;
+    color: currentColor;
+    font-size: 1em;
 }
 
 .slide-in-from-top {

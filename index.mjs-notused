@@ -78,7 +78,7 @@ export function initializeState() {
         const rightPercent = 100 - leftPercent;
         resumeContainer.style.width = `${rightPercent}%`;
         resumeContainer.updateResumeConteiner(); 
-        // pdateResizeHandle -> updateSceneContainer -> updateViewPort -> updateBullsEye
+        // updateResizeHandle -> updateSceneContainer -> updateViewPort -> updateBullsEye
     }
 
     // Apply palette selection if available

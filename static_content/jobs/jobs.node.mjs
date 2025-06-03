@@ -195,7 +195,7 @@ const jobs = [
     "css name": "lime",
     "css RGB": "#00ff00",
     "text color": "#000000",
-    "Description": "• [Eleven LLC](http://www.eleven.net) built mobile apps used by beverage industry distributors to help manage placement  of their products in the shelves and coolers in retail locations. The work done by the Sierra Vista Group was instrumental in their company being acquired by [Trimble](http://help.trimblegeospatial.com/TMM/Home.htm). \n• As the architect and team lead, we used [Java], [Bash], [GitHub], [Linux], and  [JBoss](http://developers.redhat.com/products/eap/overview) message-oriented middleware platform, [Sybase Anywhere] for the client/server based database, and [Windows Mobile](http://en.wikipedia.org/wiki/Windows_Mobile_5.0) running on ruggedized mobile devices. "
+    "Description": "• [Eleven LLC](http://www.eleven.net) built mobile apps used by beverage industry distributors to help manage placement  of their products in the shelves and coolers in Resume locations. The work done by the Sierra Vista Group was instrumental in their company being acquired by [Trimble](http://help.trimblegeospatial.com/TMM/Home.htm). \n• As the architect and team lead, we used [Java], [Bash], [GitHub], [Linux], and  [JBoss](http://developers.redhat.com/products/eap/overview) message-oriented middleware platform, [Sybase Anywhere] for the client/server based database, and [Windows Mobile](http://en.wikipedia.org/wiki/Windows_Mobile_5.0) running on ruggedized mobile devices. "
   },
   {
     "role": "Senior Architect",

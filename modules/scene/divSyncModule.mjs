@@ -1,9 +1,10 @@
 // modules/scene/divSyncModule.mjs
 
 import * as jsonUtils from '../utils/jsonUtils.mjs';
+import { ResumeManager } from '../resume/resumeManager.mjs';
  
 //=======================
-// PAIRED ELEMENTS
+// PAIRED ELEMENTS only works if both elements are in the DOM
 //=======================
 export function makeSyncedPair(element1, element2) {
     if ( !element1 || !element1 instanceof HTMLElement )
@@ -12,6 +13,13 @@ export function makeSyncedPair(element1, element2) {
         throw new Error("DivSyncModule:makeSyncedPair: given non-HTMLElement element:", element2.id);
     element1.setAttribute('data-paired-id', element2.id);
     element2.setAttribute('data-paired-id', element1.id);
+    const element1PairedId = element1.getAttribute('data-paired-id');
+    const element2PairedId = element2.getAttribute('data-paired-id');
+    console.log("DivSyncModule:makeSyncedPair: element1:", element1.id, " and element2:", element2.id, " are paired");
+    console.log("DivSyncModule:makeSyncedPair: element1PairedId:", element1PairedId);
+    console.log("DivSyncModule:makeSyncedPair: element2PairedId:", element2PairedId);
+    if ( !document.getElementById(element1.id) ) throw Error (`divSyncModule:makeSyncedPair: element1:${element1.id} not found in DOM`);
+    if ( !document.getElementById(element2.id) ) throw Error (`divSyncModule:makeSyncedPair: element2:${element2.id} not found in DOM`);
     if (!isPairedElement(element1) ) throw new Error(`divSyncModule:getBizCardDiv: element1:${element1.id} is not paired`);
     if (!isPairedElement(element2) ) throw new Error(`divSyncModule:getBizCardDiv: element2:${element2.id} is not paired`);
     console.log("DivSyncModule:makeSyncedPair: element1:", element1.id, " and element2:", element2.id, " are paired");
@@ -20,10 +28,17 @@ export function makeSyncedPair(element1, element2) {
     return element1;
 }
 
+// only works if both elements are in the DOM
 export function getPairedElement(element) {
-    if ( !element || !(element instanceof HTMLElement) ) throw new Error("DivSyncModule:getPairedElement: given null or non-HTMLElement element");
-    const pairedElement = document.getElementById(element.getAttribute('data-paired-id'));
-    if ( !pairedElement || !(pairedElement instanceof HTMLElement) ) throw new Error("DivSyncModule:getPairedElement: given null or non-HTMLElement pairedElement");
+    if ( !element ) throw new Error("DivSyncModule:getPairedElement: given null element");
+    if ( !(element instanceof HTMLElement) ) throw new Error("DivSyncModule:getPairedElement: given non-HTMLElement element");
+    const foundElement = document.getElementById(element.id);
+    if ( !foundElement ) throw new Error("DivSyncModule:getPairedElement: can't find element with id:", element.id, " in DOM");
+
+    const elementPairedId = element.getAttribute('data-paired-id');
+    const pairedElement = document.getElementById(elementPairedId);
+    if ( !pairedElement ) throw new Error("DivSyncModule:getPairedElement: can't find pairedElement with id:", elementPairedId, " in DOM");
+    
     return pairedElement;
 }
 
@@ -136,10 +151,10 @@ export function elementHasClass(element, className) {
 }
 
 //=======================
-// PAIRED ELEMENT STATES
+// PAIRED ELEMENT PAIRED_ELEMENT_STATE
 //=======================
 
-const STATES = {
+export const PAIRED_ELEMENT_STATE = {
     HOVERED: 'hovered',  // Just class names
     SELECTED: 'selected' 
 };
@@ -152,11 +167,18 @@ function applyState(element, state) {
     if (!pairedElement) throw new Error('DivSyncModule: applyState',state,'given null pairedElement for element:',element.id);
 
     // clear all states
-    removeClass(element,STATES.HOVERED);
-    removeClass(element,STATES.SELECTED);
+    removeClass(element, PAIRED_ELEMENT_STATE.HOVERED);
+    removeClass(element,PAIRED_ELEMENT_STATE.SELECTED);
 
     console.log("divSyncModule: applyState: element:",element.id,"state:",state);
     if (state) addClass(element, state);
+
+    const bizResumeDiv = getBizResumeDiv(element);
+    const bizResumeDivId = bizResumeDiv.id;
+    const resumeManager = getResumeManager();
+    resumeManager.removeClass(bizResumeDivId, PAIRED_ELEMENT_STATE.HOVERED);
+    resumeManager.removeClass(bizResumeDivId, PAIRED_ELEMENT_STATE.SELECTED);
+    resumeManager.addClass(bizResumeDivId, PAIRED_ELEMENT_STATE.SELECTED);
 }
 
 // apply state to both elements without clearing other states
@@ -240,7 +262,7 @@ export function clearSelected() {
     syncPairStates(currentSelected, null);
 
     // unselect / clear all selected elements
-    document.querySelectorAll(`.${STATES.SELECTED}`).forEach(element => {
+    document.querySelectorAll(`.${PAIRED_ELEMENT_STATE.SELECTED}`).forEach(element => {
         syncPairStates(element, null);
     });
     
@@ -253,12 +275,12 @@ export function setSelected(element) {
     if (!isSyncedPair(element) ) throw new Error('DivSyncModule: setSelected given null or unpaired element');
 
     // unselect / clear all selected elements
-    document.querySelectorAll(`.${STATES.SELECTED}`).forEach(element => {
+    document.querySelectorAll(`.${PAIRED_ELEMENT_STATE.SELECTED}`).forEach(element => {
         syncPairStates(element, null);
     });
 
     // Set element as STATUS_SELECTED
-    syncPairStates(element, STATES.SELECTED);
+    syncPairStates(element, PAIRED_ELEMENT_STATE.SELECTED);
 
     // update global currentSelected tracker
     console.log("DivSyncModule:setSelected: currentSelected = ", element.id);
@@ -301,10 +323,10 @@ export function handleClickEvent(element) {
     // if the element is alredy selected and it is 
     // the currentSelected then unselect 
     // it and clear teh currentSelected and return
-    if (elementHasClass(element, STATES.SELECTED)) {
+    if (elementHasClass(element, PAIRED_ELEMENT_STATE.SELECTED)) {
         if ( element === currentSelected || element.pairedElement === currentSelected ) {
             console.log("DivSyncModule:handleClickEvent: unselecting currentSelected");
-            removeClass(element, STATES.SELECTED);
+            removeClass(element, PAIRED_ELEMENT_STATE.SELECTED);
             clearSelected();
             return;
         }
@@ -318,6 +340,7 @@ export function handleClickEvent(element) {
 // DivSyncPairEvents
 // ========================
 
+
 export class DivSyncPairEvent {
     constructor(element, eventType) {
         if ( ! isPairedElement(element)) throw new Error(`DivSyncModule: DivSyncPairEvent: given undefined or unpaired element`);
@@ -327,6 +350,7 @@ export class DivSyncPairEvent {
         this.pairedElement = element.pairedElement;
         this.bizCardDiv = getBizCardDiv(element);
         this.bizResumeDiv = getBizResumeDiv(element);
+        this.jobIndex = this.bizCardDiv.getAttribute('data-job-index');
     }
 }
 
@@ -403,7 +427,8 @@ function notifyDivSyncPairEventListeners(element, eventType=DivSyncPairEventType
         divSyncPairEventListeners.forEach(eventListener => eventListener(errorEvent));
         return;
     }
-    const normalEvent = new DivSyncPairEvent(element, eventType);
+    const bizResumeDiv = getBizResumeDiv(element);
+    const normalEvent = new DivSyncPairEvent(bizResumeDiv, eventType);
     console.error('HaHa HaHa HaHa HaHa HaHa HaHa HaHa DivSyncModule: notifyDivSyncPairEventListeners: normalEvent:', normalEvent);
     divSyncPairEventListeners.forEach(eventListener => eventListener(normalEvent));
 }
@@ -420,6 +445,15 @@ export function removeDivSyncPairEventListener(divSyncPairEventListener) {
     divSyncPairEventListeners = divSyncPairEventListeners.filter(listener => listener !== divSyncPairEventListener);
 }
 
+function _setResumeManager(resumeManager) {
+    _resumeManager = resumeManager;
+}
+
+function getResumeManager() {
+    if ( !_resumeManager ) throw new Error('DivSyncModule: getResumeManager: _resumeManager is null');
+    return _resumeManager;
+}
+
 // ========================
 // INITIALIZATION
 // ========================
@@ -427,7 +461,12 @@ export function removeDivSyncPairEventListener(divSyncPairEventListener) {
 // this should be called in main.mjs
 // after all bixDivCards and bizResumeDivs 
 // have been created and appended to the DOM
-export function initializeDivSync() {
+export function initializeDivSync(resumeManager) {
+
+    if ( !resumeManager ) throw new Error('DivSyncModule: initializeDivSync: given null resumeManager');
+    if ( ! (resumeManager instanceof ResumeManager) ) throw new Error('DivSyncModule: initializeDivSync: given resumeManager that is not an instance of ResumeManager');
+    _setResumeManager(resumeManager);
+
     // click in scene-plane to unselected 
     // any selected biz-card-divs
     document.getElementById('scene-plane').addEventListener('click', () => {
@@ -436,6 +475,8 @@ export function initializeDivSync() {
             clearSelected();
         }
     });
+
+    _resumeManager = resumeMenager;
 
     // Validate pairings
     let unpaired = [];
@@ -454,26 +495,26 @@ export function initializeDivSync() {
 
         // Bind mouseenter events to both elements
         element.addEventListener('mouseenter', () => {
-            if (!elementHasClass(element, STATES.SELECTED)) {
+            if (!elementHasClass(element, PAIRED_ELEMENT_STATE.SELECTED)) {
                 //console.log("divSyncModule: mouseenter: element:",element.id);
-                syncPairStates(element, STATES.HOVERED);
+                syncPairStates(element, PAIRED_ELEMENT_STATE.HOVERED);
             }
         });
         pairedElement.addEventListener('mouseenter', () => {
-            if (!elementHasClass(pairedElement, STATES.SELECTED)) {
+            if (!elementHasClass(pairedElement, PAIRED_ELEMENT_STATE.SELECTED)) {
                 //console.log("divSyncModule: mouseenter: lement:",pairedElement.id);
-                syncPairStates(pairedElement, STATES.HOVERED);
+                syncPairStates(pairedElement, PAIRED_ELEMENT_STATE.HOVERED);
             }
         });
 
         // Bind mouseleave events to both elements
         element.addEventListener('mouseleave', () => {
-            if (!element.classList.contains(STATES.SELECTED)) {
+            if (!element.classList.contains(PAIRED_ELEMENT_STATE.SELECTED)) {
                 syncPairStates(element, null);
             }
         });
         pairedElement.addEventListener('mouseleave', () => {
-            if (!element.pairedElement.classList.contains(STATES.SELECTED)) {
+            if (!element.pairedElement.classList.contains(PAIRED_ELEMENT_STATE.SELECTED)) {
                 syncPairStates(element.pairedElement, null);
             }
         });

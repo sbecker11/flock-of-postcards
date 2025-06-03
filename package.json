@@ -7,7 +7,7 @@
   "scripts": {
     "start": "npm run kill-listeners &&concurrently \"npm run node-server\" \"npm run open-chrome\"",
     "node-server": "nodemon server.mjs",
-    "open-chrome": "open-cli http://localhost:3000 --incognito",
+    "open-chrome": "open-cli http://localhost:3001 --incognito",
     "kill-listeners": "lsof -i :3000 | awk 'NR>1 {print $2}' | xargs -r kill -9 || true"
   },
   "repository": {
@@ -26,6 +26,7 @@
   },
   "homepage": "https://github.com/sbecker11/flock-of-postcards#readme",
   "dependencies": {
+    "@google/generative-ai": "^0.24.1",
     "cors": "^2.8.5",
     "dayjs": "^1.11.10",
     "exceljs": "^4.4.0",
@@ -38,7 +39,7 @@
   },
   "devDependencies": {
     "concurrently": "^9.1.2",
-    "open-cli": "^8.0.0",
-    "nodemon": "^3.1.10"
+    "nodemon": "^3.1.10",
+    "open-cli": "^8.0.0"
   }
 }
