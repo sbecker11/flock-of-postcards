@@ -119,37 +119,43 @@ class InfiniteScrollingContainer {
   }
 
   positionItems() {
-    // Reduce extra space to be minimal
-    const extraSpace = 0; // No extra padding
+    // Minimal spacing between items (3px)
+    const spacing = 3;
     
-    // First pass: fix styling and make content visible
+    // First pass: reset styling for proper measurement
     this.allItems.forEach(item => {
-      // Reset position for measurement
+      // Reset position and size
       item.element.style.position = 'absolute';
       item.element.style.height = 'auto';
+      item.element.style.minHeight = 'auto';
       item.element.style.overflow = 'visible';
       
-      // Fix the skills display with more compact styling
+      // Minimal padding and margins
+      item.element.style.padding = '10px';
+      item.element.style.margin = '0';
+      item.element.style.borderWidth = '1px';
+      
+      // Fix the skills display
       const skillsList = item.element.querySelector('.bulleted-job-skills-ul');
       if (skillsList) {
         skillsList.style.display = 'flex';
         skillsList.style.flexWrap = 'wrap';
-        skillsList.style.gap = '0.1rem'; // Smaller gap
+        skillsList.style.gap = '0.1rem';
         skillsList.style.listStyle = 'none';
         skillsList.style.padding = '0';
-        skillsList.style.margin = '0.25rem 0'; // Smaller margin
-        skillsList.style.lineHeight = '1.2'; // Tighter line height
+        skillsList.style.margin = '0.2rem 0';
+        skillsList.style.lineHeight = '1.2';
         
-        // Fix each skill item with reduced spacing
+        // Fix each skill item
         const skillItems = skillsList.querySelectorAll('.bulleted-job-skills-li');
         skillItems.forEach(skill => {
           skill.style.display = 'inline-block';
           skill.style.position = 'relative';
-          skill.style.padding = '0.05rem 0.25rem 0.05rem 0'; // Reduced padding
+          skill.style.padding = '0.05rem 0.25rem 0.05rem 0';
           skill.style.whiteSpace = 'nowrap';
-          skill.style.fontSize = '0.85em'; // Slightly smaller font
-          skill.style.lineHeight = '1.2'; // Tighter line height
-          skill.style.marginRight = '0.1rem'; // Smaller right margin
+          skill.style.fontSize = '0.85em';
+          skill.style.lineHeight = '1.2';
+          skill.style.marginRight = '0.1rem';
         });
       }
       
@@ -159,30 +165,31 @@ class InfiniteScrollingContainer {
         descList.style.display = 'block';
         descList.style.listStyle = 'none';
         descList.style.padding = '0 0 0 1.5rem';
-        descList.style.margin = '0.5rem 0'; // Further reduced margin
+        descList.style.margin = '0.3rem 0';
         
-        // Make description items more compact
+        // Make description items compact but readable
         const descItems = descList.querySelectorAll('.bulleted-job-description-items-li');
         descItems.forEach(desc => {
           desc.style.display = 'block';
           desc.style.position = 'relative';
-          desc.style.marginBottom = '0.25rem'; // Further reduced margin
-          desc.style.lineHeight = '1.2'; // Even tighter line height
+          desc.style.marginBottom = '0.2rem';
+          desc.style.lineHeight = '1.25';
         });
       }
       
-      // Make details div more compact
+      // Make details div proper
       const detailsDiv = item.element.querySelector('.biz-resume-details-div');
       if (detailsDiv) {
         detailsDiv.style.height = 'auto';
         detailsDiv.style.overflow = 'visible';
-        detailsDiv.style.padding = '10px'; // Reduce padding
+        detailsDiv.style.padding = '5px';
+        detailsDiv.style.margin = '0';
         
-        // Reduce spacing between headers
+        // Ensure headers are compact but readable
         const headers = detailsDiv.querySelectorAll('h1, h2, h3, h4, h5, h6');
         headers.forEach(header => {
-          header.style.marginBottom = '0.25rem';
-          header.style.marginTop = '0.25rem';
+          header.style.marginBottom = '0.2rem';
+          header.style.marginTop = '0.2rem';
         });
       }
       
@@ -195,29 +202,33 @@ class InfiniteScrollingContainer {
     // Force layout calculation
     void this.container.offsetHeight;
     
-    // Second pass: measure and position
+    // Second pass: measure and position with proper heights
     let currentTop = 0;
     
-    this.allItems.forEach(item => {
-      // Measure content
-      const contentHeight = item.element.scrollHeight;
+    this.allItems.forEach((item, index) => {
+      // Add minimal spacing between items (not before first)
+      if (index > 0) {
+        currentTop += spacing;
+      }
       
-      // Calculate final height - reducing by 50px but ensuring content fits
-      const finalHeight = Math.max(100, contentHeight);
+      // Measure content including overflow
+      const contentHeight = item.element.scrollHeight + 10; // Small buffer
       
-      // Position and size
+      // Set height based on actual content
+      item.element.style.height = `${contentHeight}px`;
+      item.element.style.minHeight = `${contentHeight}px`;
+      
+      // Position
       item.element.style.top = `${currentTop}px`;
       item.element.style.left = '0';
       item.element.style.right = '0';
-      item.element.style.height = `${finalHeight}px`;
-      item.element.style.minHeight = `${finalHeight}px`;
       
       // Update item data
       item.top = currentTop;
-      item.height = finalHeight;
+      item.height = contentHeight;
       
       // Move to next position
-      currentTop += finalHeight;
+      currentTop += contentHeight;
     });
     
     // Set container height
