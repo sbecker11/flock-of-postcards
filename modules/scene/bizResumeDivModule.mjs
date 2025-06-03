@@ -10,6 +10,7 @@ export function createBizResumeDiv(bizCardDiv) {
     if ( !bizCardDiv ) throw new Error('createBizResumeDiv: given null bizCardDiv');
     const bizResumeDiv = document.createElement("div");
     bizResumeDiv.classList.add("biz-resume-div");
+    bizResumeDiv.classList.add("resume-content-div-child"); // Add the required class for proper styling
     bizResumeDiv.id = createBizResumeDivId(bizCardDiv.id);
     const jobIndex = bizCardDiv.getAttribute('data-job-index');
     if ( !utils.isNumeric(jobIndex)) throw new Error('createBizResumeDiv: given non-numeric attribute jobIndex');

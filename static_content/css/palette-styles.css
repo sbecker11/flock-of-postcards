@@ -8,161 +8,81 @@
 }
 
 /* Color 0 */
-body [data-color-index].palette-Retro-color-0 {
-    background-color: #FF6F61 !important;
-    color: #000000 !important;
+body [data-color-index].palette-purpley-color-0 {
+    background-color: #532961 !important;
+    color: #FFFFFF !important;
 }
 
-body [data-color-index].palette-Retro-color-0.selected {
-    background-color: #FFA792 !important;
-    color: #000000 !important;
+body [data-color-index].palette-purpley-color-0.selected {
+    background-color: #7D3E92 !important;
+    color: #FFFFFF !important;
 }
 
-body [data-color-index].palette-Retro-color-0:hover:not(.selected) {
-    background-color: #FFA792 !important;
-    color: #000000 !important;
+body [data-color-index].palette-purpley-color-0:hover:not(.selected) {
+    background-color: #7D3E92 !important;
+    color: #FFFFFF !important;
 }
 
 /* Color 1 */
-body [data-color-index].palette-Retro-color-1 {
-    background-color: #FFB400 !important;
+body [data-color-index].palette-purpley-color-1 {
+    background-color: #a93ec1 !important;
     color: #000000 !important;
 }
 
-body [data-color-index].palette-Retro-color-1.selected {
-    background-color: #FFFF00 !important;
+body [data-color-index].palette-purpley-color-1.selected {
+    background-color: #FE5DFF !important;
     color: #000000 !important;
 }
 
-body [data-color-index].palette-Retro-color-1:hover:not(.selected) {
-    background-color: #FFFF00 !important;
+body [data-color-index].palette-purpley-color-1:hover:not(.selected) {
+    background-color: #FE5DFF !important;
     color: #000000 !important;
 }
 
 /* Color 2 */
-body [data-color-index].palette-Retro-color-2 {
-    background-color: #2A4D69 !important;
+body [data-color-index].palette-purpley-color-2 {
+    background-color: #2865d2 !important;
     color: #FFFFFF !important;
 }
 
-body [data-color-index].palette-Retro-color-2.selected {
-    background-color: #3F749E !important;
+body [data-color-index].palette-purpley-color-2.selected {
+    background-color: #3C98FF !important;
     color: #000000 !important;
 }
 
-body [data-color-index].palette-Retro-color-2:hover:not(.selected) {
-    background-color: #3F749E !important;
+body [data-color-index].palette-purpley-color-2:hover:not(.selected) {
+    background-color: #3C98FF !important;
     color: #000000 !important;
 }
 
 /* Color 3 */
-body [data-color-index].palette-Retro-color-3 {
-    background-color: #4B86B4 !important;
+body [data-color-index].palette-purpley-color-3 {
+    background-color: #816190 !important;
     color: #000000 !important;
 }
 
-body [data-color-index].palette-Retro-color-3.selected {
-    background-color: #71C9FF !important;
+body [data-color-index].palette-purpley-color-3.selected {
+    background-color: #C292D8 !important;
     color: #000000 !important;
 }
 
-body [data-color-index].palette-Retro-color-3:hover:not(.selected) {
-    background-color: #71C9FF !important;
+body [data-color-index].palette-purpley-color-3:hover:not(.selected) {
+    background-color: #C292D8 !important;
     color: #000000 !important;
 }
 
 /* Color 4 */
-body [data-color-index].palette-Retro-color-4 {
-    background-color: #F4A261 !important;
+body [data-color-index].palette-purpley-color-4 {
+    background-color: #c9b7c7 !important;
     color: #000000 !important;
 }
 
-body [data-color-index].palette-Retro-color-4.selected {
-    background-color: #FFF392 !important;
+body [data-color-index].palette-purpley-color-4.selected {
+    background-color: #FFFFFF !important;
     color: #000000 !important;
 }
 
-body [data-color-index].palette-Retro-color-4:hover:not(.selected) {
-    background-color: #FFF392 !important;
-    color: #000000 !important;
-}
-
-/* Color 5 */
-body [data-color-index].palette-Retro-color-5 {
-    background-color: #E76F51 !important;
-    color: #000000 !important;
-}
-
-body [data-color-index].palette-Retro-color-5.selected {
-    background-color: #FFA77A !important;
-    color: #000000 !important;
-}
-
-body [data-color-index].palette-Retro-color-5:hover:not(.selected) {
-    background-color: #FFA77A !important;
-    color: #000000 !important;
-}
-
-/* Color 6 */
-body [data-color-index].palette-Retro-color-6 {
-    background-color: #D9BF77 !important;
-    color: #000000 !important;
-}
-
-body [data-color-index].palette-Retro-color-6.selected {
-    background-color: #FFFFB3 !important;
-    color: #000000 !important;
-}
-
-body [data-color-index].palette-Retro-color-6:hover:not(.selected) {
-    background-color: #FFFFB3 !important;
-    color: #000000 !important;
-}
-
-/* Color 7 */
-body [data-color-index].palette-Retro-color-7 {
-    background-color: #264653 !important;
-    color: #FFFFFF !important;
-}
-
-body [data-color-index].palette-Retro-color-7.selected {
-    background-color: #39697D !important;
-    color: #FFFFFF !important;
-}
-
-body [data-color-index].palette-Retro-color-7:hover:not(.selected) {
-    background-color: #39697D !important;
-    color: #FFFFFF !important;
-}
-
-/* Color 8 */
-body [data-color-index].palette-Retro-color-8 {
-    background-color: #9B5DE5 !important;
-    color: #000000 !important;
-}
-
-body [data-color-index].palette-Retro-color-8.selected {
-    background-color: #E98CFF !important;
-    color: #000000 !important;
-}
-
-body [data-color-index].palette-Retro-color-8:hover:not(.selected) {
-    background-color: #E98CFF !important;
-    color: #000000 !important;
-}
-
-/* Color 9 */
-body [data-color-index].palette-Retro-color-9 {
-    background-color: #F15BB5 !important;
-    color: #000000 !important;
-}
-
-body [data-color-index].palette-Retro-color-9.selected {
-    background-color: #FF89FF !important;
-    color: #000000 !important;
-}
-
-body [data-color-index].palette-Retro-color-9:hover:not(.selected) {
-    background-color: #FF89FF !important;
+body [data-color-index].palette-purpley-color-4:hover:not(.selected) {
+    background-color: #FFFFFF !important;
     color: #000000 !important;
 }

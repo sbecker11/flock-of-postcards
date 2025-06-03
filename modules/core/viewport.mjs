@@ -75,8 +75,8 @@ export function updateViewPort() {
     // tell the bullsEye to update the position of its HTML element (using getViewPortCenter()
     bullsEye.updateBullsEyeCenter();
 
-    // console.log("updateViewPort: calling viewAllBizCardDivs()");
-    // viewAllBizCardDivs();
+    console.log("updateViewPort: calling viewAllBizCardDivs()");
+    viewAllBizCardDivs();
 }
 
 export function getViewPortOrigin() {
@@ -151,16 +151,16 @@ export function applyViewRelativeStyling(bizCardDiv) {
     }
 
     const bullsEyeX = viewPortProperties.centerX;
-    console.log("applyViewRelativeStyling: bizCardDiv.id:", bizCardDiv.id, "bullsEyeX:", bullsEyeX);
+    const sceneCenterX = bizCardDiv.getAttribute('data-sceneCenterX');
+    console.log("applyViewRelativeStyling:", bizCardDiv.id, "sceneCenterX:", sceneCenterX, "bullsEyeX:", bullsEyeX);
 
     // transform scene-relative attributes to get view-relative styling
-    const sceneCenterX = parseFloat(bizCardDiv.getAttribute("data-sceneCenterX"));
     const sceneLeft = parseInt(bizCardDiv.getAttribute("data-sceneLeft"));
-    const viewLeft = viewPortProperties.centerX + sceneLeft;
-    console.log("applyViewRelativeStyling: bizCardDiv.id:", bizCardDiv.id, "viewLeft:", viewLeft);
-    const viewWidth = parseInt(bizCardDiv.getAttribute("data-sceneWidth"));
-    const viewTop = parseInt(bizCardDiv.getAttribute("data-sceneTop"));
-    const viewHeight = parseInt(bizCardDiv.getAttribute("data-sceneHeight"));
+    const viewLeft = `${viewPortProperties.centerX + sceneLeft}` + "px";
+    console.log("applyViewRelativeStyling:", bizCardDiv.id, "viewLeft:", viewLeft);
+    const viewWidth = `${parseInt(bizCardDiv.getAttribute("data-sceneWidth"))}` + "px";
+    const viewTop = `${parseInt(bizCardDiv.getAttribute("data-sceneTop"))}` + "px";
+    const viewHeight = `${parseInt(bizCardDiv.getAttribute("data-sceneHeight"))}` + "px";
     const viewZ = parseInt(bizCardDiv.getAttribute("data-sceneZ"));
     //// console.log(`VIEW id:${bizCardDiv.id} sceneCenterX:${sceneCenterX}, sceneLeft:${sceneLeft}, viewLeft:${viewLeft}, viewTop:${viewTop}, viewHeight:${viewHeight}`);
     // apply view-relative styling
@@ -169,7 +169,8 @@ export function applyViewRelativeStyling(bizCardDiv) {
     bizCardDiv.style.width =   `${viewWidth}px`;
     bizCardDiv.style.left =    `${viewLeft}px`;
     bizCardDiv.style.zIndex = zIndex.get_zIndexStr_from_z(viewZ, bizCardDiv.id);
-
+    console.log("bizCardDiv.zIndex:", bizCardDiv.style.zIndex );
+    
     // // console.log(`bizCardDiv view-relativestyling for ${bizCardDiv.id}:`, {
     //     styleLeft: bizCardDiv.style.left,
     //     offsetLeft: bizCardDiv.offsetLeft,

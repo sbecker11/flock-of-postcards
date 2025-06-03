@@ -1,6 +1,7 @@
 // modules/scene/infiniteScrollingContainer.mjs
 
 import { Logger, LogLevel } from '../logger.mjs';
+import * as colorPalettes from '../color/colorPalettes.mjs';
 const log = new Logger("infiniteScrollingContainer", LogLevel.DEBUG);
 
 class InfiniteScrollingContainer {
@@ -119,22 +120,24 @@ class InfiniteScrollingContainer {
   }
 
   positionItems() {
-    // Minimal spacing between items (3px)
-    const spacing = 3;
+    // Minimal spacing between items (5px as requested)
+    const spacing = 5;
     
     // First pass: reset styling for proper measurement
     this.allItems.forEach(item => {
-      // Set explicit width with 10px gap on each side
+      // Set explicit width and positioning with proper gaps
       item.element.style.position = 'absolute';
       item.element.style.height = 'auto';
       item.element.style.minHeight = 'auto';
       item.element.style.overflow = 'visible';
-      item.element.style.width = 'calc(100% - 20px)'; // Create 10px gap on each side
       item.element.style.boxSizing = 'border-box';
-      
-      // Explicit positioning for the gap
-      item.element.style.left = '10px'; // 10px from left
-      item.element.style.right = 'auto'; // Don't set right
+
+      // Use left and right positioning to create gaps - force with setProperty
+      item.element.style.setProperty('left', '10px', 'important');
+      item.element.style.setProperty('right', '10px', 'important');
+      item.element.style.setProperty('width', 'auto', 'important');
+      item.element.style.setProperty('min-width', '0', 'important'); // Allow compression below natural min-width
+      item.element.style.setProperty('max-width', 'none', 'important'); // Remove any max-width constraints
       
       // Minimal padding and margins
       item.element.style.padding = '10px';
@@ -194,12 +197,18 @@ class InfiniteScrollingContainer {
         detailsDiv.style.padding = '5px';
         detailsDiv.style.margin = '0';
         detailsDiv.style.width = '100%';
-        
+        detailsDiv.style.minWidth = '0'; // Allow compression
+        detailsDiv.style.wordWrap = 'break-word';
+        detailsDiv.style.overflowWrap = 'break-word';
+        detailsDiv.style.wordBreak = 'break-word';
+
         // Ensure headers are compact but readable
         const headers = detailsDiv.querySelectorAll('h1, h2, h3, h4, h5, h6');
         headers.forEach(header => {
           header.style.marginBottom = '0.2rem';
           header.style.marginTop = '0.2rem';
+          header.style.minWidth = '0'; // Allow header compression
+          header.style.wordWrap = 'break-word';
         });
       }
       
@@ -221,27 +230,40 @@ class InfiniteScrollingContainer {
         currentTop += spacing;
       }
       
-      // Measure content including overflow
-      const contentHeight = item.element.scrollHeight + 10; // Small buffer
-      
+      // Measure content more precisely
+      const scrollHeight = item.element.scrollHeight;
+      const offsetHeight = item.element.offsetHeight;
+      const clientHeight = item.element.clientHeight;
+
+      // Use the smallest reasonable height to minimize gaps
+      const contentHeight = Math.min(scrollHeight, offsetHeight || scrollHeight);
+
       // Set height based on actual content
       item.element.style.height = `${contentHeight}px`;
       item.element.style.minHeight = `${contentHeight}px`;
-      
+
       // Position
       item.element.style.top = `${currentTop}px`;
-      
+
+      // Force remove any margins that might cause visual gaps
+      item.element.style.margin = '0 !important';
+      item.element.style.marginTop = '0 !important';
+      item.element.style.marginBottom = '0 !important';
+
       // Update item data
       item.top = currentTop;
       item.height = contentHeight;
-      
+
       // Move to next position
       currentTop += contentHeight;
     });
     
     // Set container height
     this.container.style.height = `${currentTop}px`;
-    
+
+    // Reapply color palettes after positioning (colors get lost during style manipulation)
+    this.reapplyColorPalettes();
+
     // Position at start
     this.scrollToIndex(0, false);
   }
@@ -305,14 +327,14 @@ class InfiniteScrollingContainer {
     if (scrollTop < tailCloneHeight - containerHeight / 2) {
       const jumpToPosition = tailCloneHeight + originalItemsHeight - containerHeight;
       this.container.scrollTop = jumpToPosition;
-      log.info('Seamless transition: tail to end');
+      // log.info('Seamless transition: tail to end');
     }
     
     // If we're in the head clone area, jump to the beginning of original items
     else if (scrollTop > tailCloneHeight + originalItemsHeight - containerHeight / 2) {
       const jumpToPosition = tailCloneHeight;
       this.container.scrollTop = jumpToPosition;
-      log.info('Seamless transition: head to beginning');
+      // log.info('Seamless transition: head to beginning');
     }
   }
 
@@ -326,6 +348,52 @@ class InfiniteScrollingContainer {
     return this.allItems
       .filter(item => item.type === 'original')
       .reduce((total, item) => total + item.height, 0);
+  }
+
+  setupResizeObserver() {
+    // Use ResizeObserver to detect when container width changes
+    if (typeof ResizeObserver !== 'undefined') {
+      this.resizeObserver = new ResizeObserver((entries) => {
+        for (let entry of entries) {
+          // Debounce the repositioning to avoid excessive calls
+          clearTimeout(this.resizeTimeout);
+          this.resizeTimeout = setTimeout(() => {
+            this.handleContainerResize();
+          }, 100);
+        }
+      });
+
+      this.resizeObserver.observe(this.container);
+    } else {
+      // Fallback for browsers without ResizeObserver
+      window.addEventListener('resize', () => {
+        clearTimeout(this.resizeTimeout);
+        this.resizeTimeout = setTimeout(() => {
+          this.handleContainerResize();
+        }, 100);
+      });
+    }
+  }
+
+  handleContainerResize() {
+    // Recalculate positions when container size changes
+    if (this.allItems && this.allItems.length > 0) {
+      const currentScrollTop = this.container.scrollTop;
+      this.positionItems();
+      // Restore scroll position
+      this.container.scrollTop = currentScrollTop;
+      // Reapply colors after resize (they may get lost during repositioning)
+      this.reapplyColorPalettes();
+    }
+  }
+
+  reapplyColorPalettes() {
+    // Reapply color palettes to all resume divs after style manipulation
+    this.allItems.forEach(item => {
+      if (item.element && item.element.classList.contains('biz-resume-div')) {
+        colorPalettes.applyCurrentColorPaletteToElement(item.element);
+      }
+    });
   }
 
   bindEvents() {
@@ -346,6 +414,9 @@ class InfiniteScrollingContainer {
 
     // Scroll events for seamless transitions
     this.container.addEventListener('scroll', this.handleScroll.bind(this));
+
+    // Resize observer to handle container width changes
+    this.setupResizeObserver();
   }
 
   handleStart(e) {
@@ -471,25 +542,35 @@ class InfiniteScrollingContainer {
     this.container.removeEventListener('mousedown', this.handleStart.bind(this));
     document.removeEventListener('mousemove', this.handleMove.bind(this));
     document.removeEventListener('mouseup', this.handleEnd.bind(this));
-    
+
     if (this.options.enableTouch) {
       this.container.removeEventListener('touchstart', this.handleStart.bind(this));
       document.removeEventListener('touchmove', this.handleMove.bind(this));
       document.removeEventListener('touchend', this.handleEnd.bind(this));
     }
-    
-    this.container.removeEventListener('wheel', this.handleWheel.bind(this));
 
+    this.container.removeEventListener('wheel', this.handleWheel.bind(this));
     this.container.removeEventListener('scroll', this.handleScroll.bind(this));
-    
+
+    // Clean up resize observer
+    if (this.resizeObserver) {
+      this.resizeObserver.disconnect();
+      this.resizeObserver = null;
+    }
+
+    // Clear timeouts
+    if (this.resizeTimeout) {
+      clearTimeout(this.resizeTimeout);
+    }
+
     // Cancel animations
     if (this.momentumAnimationId) {
       cancelAnimationFrame(this.momentumAnimationId);
     }
-    
+
     // Clear container
     this.container.innerHTML = '';
-    
+
     log.info('InfiniteScrollingContainer destroyed');
   }
 }

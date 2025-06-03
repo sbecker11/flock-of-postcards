@@ -12,6 +12,12 @@ var timelineContainer = null;
 var _timelineYearMin = 0;
 var _timelineYearMax = 0;
 
+/**
+ * initializes the timeLineContainer
+ * @param {*} timelineContainer : HTMLElement
+ * @param {*} minYear : int
+ * @param {*} maxYear : int
+ */
 function initTimelineContainer(timelineContainer, minYear, maxYear) {
     timelineContainer = timelineContainer;
     _timelineYearMin = minYear;
@@ -118,6 +124,15 @@ export function createTimeline(timelineContainer, sceneContainer, minYear, maxYe
             monthTick.style.bottom = `${monthTickBottom}px`;
             monthTick.style.top = `${monthTickBottom - MONTHTICK_FONTSIZE}px`;
             monthTick.innerHTML = `${year}-${monthStr}`;
+            // // DEBUGGING
+            // if ( monthStr === '01' ) {
+            //     monthTick.innerHTML = `${year}-${monthStr}    (<span style="float: right;">${monthTickBottom}px</span>)`;
+            //     monthTick.style.width = '300px'; // Temporary wider width for debugging
+            //     monthTick.style.backgroundColor = 'rgba(0,255,0,1.0)'; // Green background to see bounds
+            //     monthTick.style.textAlign = "right";
+            //     monthTick.style.height = "30px";
+            //     monthTick.style.fontSize = "20pt";
+            // }
             timelineContainer.appendChild(monthTick);
         }
     }

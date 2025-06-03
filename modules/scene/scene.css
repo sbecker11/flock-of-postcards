@@ -36,7 +36,7 @@
     bottom: 0;
     left: 0;
     right: 0;
-    background-image: linear-gradient(to bottom, var(--background-light), var(--background-dark));
+    background-image: linear-gradient(to top, var(--background-light), var(--background-dark));
     pointer-events: none;
     z-index: 2;
   }
@@ -63,30 +63,38 @@
 /* scene/scene.css */
 .biz-card-div,
 .biz-resume-div {
+    position: absolute; /* Required for z-index to work */
     font-size: 12px;
     padding: 0px;
     box-sizing: border-box;
     cursor: pointer;
-    z-index: 4;
+    z-index: 5; /* Changed from 4 to 5 to match BIZCARD_Z_INDEX_MIN */
     transition: all 0s;
     border: 2px solid white;
     border-radius: 25px;
     pointer-events: auto;
 }
 
-.biz-resume-div {
-    position: absolute;
-    width: 100%;
-    margin: 0;
-    padding: 10px;
+/* High specificity rules for biz-resume-div to ensure they override any other styles */
+/* Note: position is now controlled by InfiniteScrollingContainer (absolute positioning) */
+#resume-content-div .biz-resume-div,
+.resume-content-div-child.biz-resume-div {
+    /* position: relative !important; -- REMOVED: Let InfiniteScrollingContainer control positioning */
+    width: 100% !important;
+    max-width: 100% !important;
+    margin: 0 !important; /* Remove all margins - spacing controlled by InfiniteScrollingContainer */
+    padding: 10px !important;
     background-color: transparent;
-    overflow: visible;
+    overflow: visible !important;
     border-radius: 25px;
-    box-sizing: border-box;
+    box-sizing: border-box !important;
     cursor: pointer;
-    z-index: 4;
+    z-index: 5; /* Changed from 4 to 5 to match BIZCARD_Z_INDEX_MIN */
     transition: all 0s;
     border: 1px solid white;
+    min-height: fit-content !important; /* Ensure minimum height fits content */
+    height: auto !important; /* Allow height to adjust to content */
+    display: block !important; /* Ensure block display */
 }
 
 .biz-card-div.hovered, .biz-resume-div.hovered {
@@ -121,19 +129,46 @@
 }
 
 /* Show specific header elements in card view */
-.biz-card-details-div > h2,
-.biz-card-details-div > h3,
-.biz-card-details-div > .biz-defails-dates,
 .biz-card-details-div > .header-text {
+    display: block !important; /* Show header-text elements in bizCardDivs */
+}
+
+/* Hide non-header elements in card view */
+.biz-card-details-div > h2:not(.header-text),
+.biz-card-details-div > h3:not(.header-text),
+.biz-card-details-div > p:not(.header-text),
+.biz-card-details-div > div:not(.header-text),
+.biz-card-details-div > ul:not(.header-text),
+.biz-card-details-div > li:not(.header-text) {
     display: none;
-} 
+}
 
 /* show all .biz-resume-details by default */
 .biz-resume-details-div > * {
     display: block;
 }
 
-/* variance from those shared from biz-card-div */
+/* High specificity rules for details divs to ensure proper text wrapping */
+#resume-content-div .biz-resume-details-div,
+.biz-resume-div .biz-resume-details-div {
+    margin: 0px !important;
+    padding: 5px !important; /* Reduced from 20px to 5px for tighter spacing */
+    background-color: transparent;
+    font-family: Arial, Helvetica, sans-serif;
+    font-weight: normal;
+    font-size: 12px;
+    width: 100% !important;
+    max-width: 100% !important;
+    box-sizing: border-box !important;
+    word-wrap: break-word !important; /* Allow long words to break */
+    overflow-wrap: break-word !important; /* Modern property for word breaking */
+    white-space: normal !important; /* Ensure text wraps normally */
+    overflow: visible !important; /* Keep visible but ensure proper wrapping */
+    hyphens: auto !important; /* Enable automatic hyphenation */
+    word-break: break-word !important; /* Force breaking of long words */
+}
+
+/* Lower specificity fallback for card details */
 .biz-card-details-div, .biz-resume-details-div {
     margin: 0px;
     padding: 10px;
@@ -141,10 +176,10 @@
     font-family: Arial, Helvetica, sans-serif;
     font-weight: normal;
     font-size: 12px;
-}
-.biz-card-details-div, .biz-resume-details-div {
-    padding-top: 0px;
-    padding: 20px;
+    width: 100%;
+    box-sizing: border-box;
+    word-wrap: break-word; /* Allow long words to break */
+    overflow-wrap: break-word; /* Modern property for word breaking */
 }
 
 .biz-card-details-div .header-text, 
@@ -152,10 +187,40 @@
     display: block;
 }
 
+/* High specificity rules for list elements */
+#resume-content-div .biz-resume-details-div .bulleted-job-description-items-ul,
+.biz-resume-div .biz-resume-details-div .bulleted-job-description-items-ul {
+    list-style: none !important;
+    padding-left: 1.5rem !important;
+    margin: 1rem 0 !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    box-sizing: border-box !important;
+    overflow: visible !important;
+}
+
+#resume-content-div .biz-resume-details-div .bulleted-job-description-items-li,
+.biz-resume-div .biz-resume-details-div .bulleted-job-description-items-li {
+    position: relative !important;
+    margin-bottom: 0.5rem !important;
+    line-height: 1.4 !important;
+    display: block !important;
+    word-wrap: break-word !important;
+    overflow-wrap: break-word !important;
+    width: 100% !important;
+    max-width: calc(100% - 1.5rem) !important; /* Account for padding-left */
+    box-sizing: border-box !important;
+    white-space: normal !important;
+    overflow: visible !important;
+}
+
+/* Fallback rules with lower specificity */
 .biz-resume-details-div .bulleted-job-description-items-ul {
     list-style: none;
     padding-left: 1.5rem;
     margin: 1rem 0;
+    width: 100%;
+    box-sizing: border-box;
 }
 
 .biz-resume-details-div .bulleted-job-description-items-li {
@@ -163,6 +228,10 @@
     margin-bottom: 0.5rem;
     line-height: 1.4;
     display: block;
+    word-wrap: break-word;
+    overflow-wrap: break-word;
+    width: 100%;
+    box-sizing: border-box;
 }
 
 .bulleted-job-description-items-li::before {
@@ -172,6 +241,34 @@
     color: var(--text-color);
 }
 
+/* High specificity rules for skills list */
+#resume-content-div .biz-resume-details-div .bulleted-job-skills-ul,
+.biz-resume-div .biz-resume-details-div .bulleted-job-skills-ul {
+    list-style: none !important;
+    padding-left: 0 !important;
+    margin: 0.25rem 0 !important;
+    display: flex !important;
+    flex-wrap: wrap !important;
+    gap: 0.1rem !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    box-sizing: border-box !important;
+    overflow: visible !important;
+}
+
+#resume-content-div .biz-resume-details-div .bulleted-job-skills-li,
+.biz-resume-div .biz-resume-details-div .bulleted-job-skills-li {
+    position: relative !important;
+    padding: 0.1rem 0rem !important;
+    font-size: 0.75rem !important;
+    white-space: nowrap !important;
+    line-height: 1.4 !important;
+    flex-shrink: 0 !important; /* Prevent skills from shrinking too much */
+    max-width: 100% !important;
+    overflow: visible !important;
+}
+
+/* Fallback rules with lower specificity */
 .bulleted-job-skills-ul {
     list-style: none;
     padding-left: 0;
@@ -179,6 +276,8 @@
     display: flex;
     flex-wrap: wrap;
     gap: 0.1rem;
+    width: 100%;
+    box-sizing: border-box;
 }
 
 .bulleted-job-skills-li {
@@ -187,6 +286,7 @@
     font-size: 0.75rem;
     white-space: nowrap;
     line-height: 1.4;
+    flex-shrink: 0; /* Prevent skills from shrinking too much */
 }
 
 .bulleted-job-skills-li::before {
@@ -194,6 +294,33 @@
     margin-right: 0.15rem;
     color: currentColor;
     font-size: 1em;
+}
+
+/* Ensure all text elements within resume details wrap properly */
+#resume-content-div .biz-resume-details-div *,
+.biz-resume-div .biz-resume-details-div * {
+    max-width: 100% !important;
+    word-wrap: break-word !important;
+    overflow-wrap: break-word !important;
+    word-break: break-word !important;
+    box-sizing: border-box !important;
+}
+
+/* Ensure headers wrap properly */
+#resume-content-div .biz-resume-details-div h1,
+#resume-content-div .biz-resume-details-div h2,
+#resume-content-div .biz-resume-details-div h3,
+#resume-content-div .biz-resume-details-div p,
+.biz-resume-div .biz-resume-details-div h1,
+.biz-resume-div .biz-resume-details-div h2,
+.biz-resume-div .biz-resume-details-div h3,
+.biz-resume-div .biz-resume-details-div p {
+    width: 100% !important;
+    max-width: 100% !important;
+    word-wrap: break-word !important;
+    overflow-wrap: break-word !important;
+    white-space: normal !important;
+    margin: 0.5rem 0 !important;
 }
 
 .slide-in-from-top {
@@ -212,5 +339,5 @@
 @keyframes slideFromBottom {
     from { transform: translateY(100%); opacity: 0; }
     to { transform: translateY(0); opacity: 1; }
-} 
+}
 

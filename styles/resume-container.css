@@ -124,18 +124,21 @@
 
 
 #resume-content-div {
-  display: block;
+  display: block !important;
   flex-grow: 1;
   overflow-y: auto;
   overflow-x: hidden;
-  width: 100%;
-  box-sizing: border-box; 
+  width: 100% !important;
+  max-width: 100% !important;
+  box-sizing: border-box !important;
   background-color: var(--background-middle);
   color: black;
-  padding: 0;
-  margin: 0;
-  position: relative;
+  padding: 0 !important;
+  margin: 0 !important;
+  position: relative !important;
   pointer-events: auto;
+  /* Ensure proper layout for children */
+  contain: layout style !important;
 }
 
 .resume-content-div-child {
@@ -144,6 +147,8 @@
   height: auto;
   position: relative;
   box-sizing: border-box;
+  margin-bottom: 0; /* Remove any default margin that might cause spacing issues */
+  overflow: visible; /* Ensure content is not clipped */
 }
 
 #resume-container-footer-div {
@@ -214,6 +219,15 @@
   }
 }
 
+/* Allow window to shrink below 500px by removing min-width constraints */
+@media (max-width: 500px) {
+  .biz-card-control-button {
+      min-width: 30px !important; /* Reduce minimum width */
+      font-size: 10px; /* Smaller font for very narrow widths */
+      padding: 4px 6px; /* Reduce padding */
+  }
+}
+
 #color-palette-container {
   position: relative;
   display: flex;
@@ -281,6 +295,15 @@
 @media (max-width: 50%) {
   #color-palette-selector {
       max-width: 60px; /* 1 button */
+  }
+}
+
+/* Allow window to shrink below 500px by removing min-width constraints */
+@media (max-width: 500px) {
+  #color-palette-selector {
+      min-width: 30px !important; /* Reduce minimum width */
+      font-size: 10px; /* Smaller font for very narrow widths */
+      padding: 4px 6px; /* Reduce padding */
   }
 }
 
