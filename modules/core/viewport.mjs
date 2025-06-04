@@ -150,27 +150,34 @@ export function applyViewRelativeStyling(bizCardDiv) {
         throw new Error(`bizCardDiv is not an HTMLElement: ${bizCardDiv}`);
     }
 
-    const bullsEyeX = viewPortProperties.centerX;
-    const sceneCenterX = bizCardDiv.getAttribute('data-sceneCenterX');
-    console.log("applyViewRelativeStyling:", bizCardDiv.id, "sceneCenterX:", sceneCenterX, "bullsEyeX:", bullsEyeX);
+    const bullsEyeX = bullsEye.getBullsEyeCenter().x;
+    console.log("applyViewRelativeStyling:", bizCardDiv.id, "bullsEyeX:", bullsEyeX);
+
+
+    // extract the static scene-relative geometry
+    const sceneTop = parseInt(bizCardDiv.getAttribute("data-sceneTop"));
+    const sceneLeft = parseInt(bizCardDiv.getAttribute("data-sceneLeft"));
+    const sceneWidth = parseInt(bizCardDiv.getAttribute("data-sceneWidth"));
+    const sceneHeight = parseInt(bizCardDiv.getAttribute("data-sceneHeight"));
+    const sceneZ = parseInt(bizCardDiv.getAttribute("data-sceneZ"));
+    
 
     // transform scene-relative attributes to get view-relative styling
-    const sceneLeft = parseInt(bizCardDiv.getAttribute("data-sceneLeft"));
-    const viewLeft = `${viewPortProperties.centerX + sceneLeft}` + "px";
-    console.log("applyViewRelativeStyling:", bizCardDiv.id, "viewLeft:", viewLeft);
-    const viewWidth = `${parseInt(bizCardDiv.getAttribute("data-sceneWidth"))}` + "px";
-    const viewTop = `${parseInt(bizCardDiv.getAttribute("data-sceneTop"))}` + "px";
-    const viewHeight = `${parseInt(bizCardDiv.getAttribute("data-sceneHeight"))}` + "px";
-    const viewZ = parseInt(bizCardDiv.getAttribute("data-sceneZ"));
-    //// console.log(`VIEW id:${bizCardDiv.id} sceneCenterX:${sceneCenterX}, sceneLeft:${sceneLeft}, viewLeft:${viewLeft}, viewTop:${viewTop}, viewHeight:${viewHeight}`);
+    const viewTop = sceneTop;
+    const viewLeft = sceneLeft + bullsEyeX;
+    const viewWidth = sceneWidth;
+    const viewHeight = sceneHeight;
+    const viewZIndexStr = zIndex.get_zIndexStr_from_z(sceneZ, bizCardDiv.id);
+
+    // console.log(`sceneLeft:${sceneLeft} + bullsEyeX:${bullsEyeX} viewLeft:${viewLeft}`);
+
     // apply view-relative styling
-    bizCardDiv.style.height =  `${viewHeight}px`;
     bizCardDiv.style.top =     `${viewTop}px`;
-    bizCardDiv.style.width =   `${viewWidth}px`;
     bizCardDiv.style.left =    `${viewLeft}px`;
-    bizCardDiv.style.zIndex = zIndex.get_zIndexStr_from_z(viewZ, bizCardDiv.id);
-    console.log("bizCardDiv.zIndex:", bizCardDiv.style.zIndex );
-    
+    bizCardDiv.style.width =   `${viewWidth}px`;
+    bizCardDiv.style.height =  `${viewHeight}px`;
+    bizCardDiv.style.zIndex =   viewZIndexStr;
+
     // // console.log(`bizCardDiv view-relativestyling for ${bizCardDiv.id}:`, {
     //     styleLeft: bizCardDiv.style.left,
     //     offsetLeft: bizCardDiv.offsetLeft,
@@ -180,7 +187,6 @@ export function applyViewRelativeStyling(bizCardDiv) {
     //     sceneLeft,
     //     parsedSceneLeft: parseFloat(sceneLeft)
     // });
-    bizCardDiv.style.display = 'block';
 }
 
 /**

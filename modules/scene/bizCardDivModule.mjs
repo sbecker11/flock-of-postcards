@@ -89,44 +89,13 @@ export function createBizCardDiv(job, jobIndex) {
     scenePlane.appendChild(bizCardDiv);
     bizCardDiv.style.opacity = "0.5";
 
-    // let left = parseInt(bizCardDiv.getAttribute("data-sceneLeft"));
-    // let top = parseInt(bizCardDiv.getAttribute("data-sceneTop"));
-    // let sceneTopSpan = createTopSpan("scene", job, jobIndex, left, top);
-
     // Initialize view-relative styling based on the scene-relative geometry
     if ( !viewPort.viewPortIsInitialized() ) throw new Error('viewPort is not initialized');
     viewPort.applyViewRelativeStyling(bizCardDiv);
 
-    // left = bizCardDiv.offestLeft;
-    // top = bizCardDiv.offsetTop;
-    // let viewTopSpan = createTopSpan("view", job, jobIndex, left, top);    
-    // bizCardDiv.append(viewTopSpan);
-
     return bizCardDiv;
 }
 
-// export function createTopSpan(env, job, jobIndex, left, top) {
-//     console.log("createTopSpan env:",env,"left:",left,"top:",top);
-//     if ( Number.isNaN(left) ) throw new Error("createTopSpan ",env," given NaN left");
-//     if ( Number.isNaN(top) ) throw new Error("createTopSpan ",env," given NaN top");
-//             const topSpan = document.createElement('span');
-//     topSpan.id = `${env}-top-span-${jobIndex}`;
-//     topSpan.innerHTML = `&nbsp;env:${env} employer:${job.employer} top:${top}px end:${job.end}`;
-//     const deltaY = (env=="view") ? 100 : 0;
-//     topSpan.style.top = `${deltaY} px`;
-//     topSpan.style.left = `${left + 300} px`;
-//     topSpan.style.backgroundColor = "yellow";
-//     topSpan.style.color = "black";
-//     topSpan.classList.add("dimension-top");
-//     topSpan.style.display = "block";
-//     topSpan.style.height = "20px";
-//     topSpan.position = "fixed";
-//     topSpan.style.width = "500px";
-//     topSpan.style.zIndex = 100;
-//     topSpan.style.textAlign = "right";
-//     topSpan.style.marginLeft = "20px";
-//     return topSpan;
-// }
 /**
  * Sets the scene-relative geometry of a business card div
  * @param {HTMLElement} bizCardDiv - The business card div
@@ -138,29 +107,36 @@ function setBizCardDivSceneGeometry(bizCardDiv, job) {
 
     // Get vertical positions - based on job start and end dates
     const { sceneTop, sceneBottom } = sceneContainer.getSceneVerticalPositions(job.start, job.end, MIN_BIZCARD_HEIGHT);
-    console.log("setBizCardSceneGeometory:", bizCardDiv.id);
-    console.log("  job.start:", job.start, "sceneTop:", sceneTop);
-    console.log("  job.end:", job.end, "sceneBottom:", sceneBottom);
-    bizCardDiv.setAttribute("data-sceneTop", `${sceneTop}`);
     const sceneHeight = sceneBottom - sceneTop;
-    bizCardDiv.setAttribute("data-sceneHeight", `${sceneHeight}`);
+    const sceneCenterY = sceneTop + sceneHeight/2;
+    bizCardDiv.setAttribute("data-sceneTop", sceneTop);
+    bizCardDiv.setAttribute("data-sceneHeight", sceneHeight);
+    bizCardDiv.setAttribute("data-sceneCenterY", sceneCenterY);
+    console.log("   job.start:", job.start);
+    console.log("     job.end:", job.end);
+    console.log("    sceneTop:", sceneTop);
+    console.log(" sceneBottom:", sceneBottom);
+    console.log("sceneCenterY:", sceneCenterY);
 
     const sceneCenterX = mathUtils.getRandomSignedOffset(MAX_X_OFFSET); // Random offset from scene origin
     const sceneWidth = BIZCARD_MEAN_WIDTH + mathUtils.getRandomSignedOffset(MAX_WIDTH_OFFSET);
     const sceneLeft = sceneCenterX - sceneWidth / 2;
-    bizCardDiv.setAttribute("data-sceneCenterX", `${sceneCenterX}`);
-    bizCardDiv.setAttribute("data-sceneLeft", `${sceneLeft}`);
-    bizCardDiv.setAttribute("data-sceneWidth", `${sceneWidth}`);
+    bizCardDiv.setAttribute("data-sceneLeft", sceneLeft);
+    bizCardDiv.setAttribute("data-sceneWidth", sceneWidth);
+    bizCardDiv.setAttribute("data-sceneCenterX", sceneCenterX);
+    console.log("sceneLeft:", sceneLeft );
+    console.log("sceneWidth:", sceneWidth);
+    console.log("sceneCenterX:", sceneCenterX );
 
     const sceneZ = mathUtils.getRandomInt(zIndex.BIZCARD_Z_MIN, zIndex.BIZCARD_Z_MAX);
     bizCardDiv.setAttribute("data-sceneZ", sceneZ);
 
-    // initialize view-relative positions
-    const viewPortOrigin = viewPort.getViewPortOrigin();
-    bizCardDiv.style.top = `${sceneTop}px`;
-    bizCardDiv.style.left = `${sceneLeft + viewPortOrigin.x}px`;
-    bizCardDiv.style.width = `${sceneWidth}px`;
-    bizCardDiv.style.height = `${sceneHeight}px`;
+    // // initialize view-relative positions
+    // const viewPortOrigin = viewPort.getViewPortOrigin();
+    // bizCardDiv.style.top = `${sceneTop}px`;
+    // bizCardDiv.style.left = `${sceneLeft + viewPortOrigin.x}px`;
+    // bizCardDiv.style.width = `${sceneWidth}px`;
+    // bizCardDiv.style.height = `${sceneHeight}px`;
 }
 
 export function handleClickEvent(element) {

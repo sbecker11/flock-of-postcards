@@ -78,6 +78,7 @@ export function get_z_from_zIndexStr(zIndexStr) {
 /**
  * Converts a z value to a z-index string
  * @param {number} z - The z value to convert
+ * @param {optional string} cardDivId used to check z ranges
  * @returns {string} The corresponding z-index string
  */
 export function get_zIndexStr_from_z(z, cardDivId=null) {
