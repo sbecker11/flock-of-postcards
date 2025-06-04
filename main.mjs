@@ -17,7 +17,6 @@ import * as parallax from './modules/core/parallax.mjs';
 import * as viewPort from './modules/core/viewPort.mjs';
 import * as filters from './modules/core/filters.mjs';
 import * as cardConstants from './modules/scene/cardConstants.mjs';
-import * as autoScroll from './modules/animation/autoScroll.mjs';
 import * as resizeHandle from './modules/core/resizeHandle.mjs';
 import * as bullsEye from './modules/core/bullsEye.mjs';
 import * as aimPoint from './modules/core/aimPoint.mjs';
@@ -80,27 +79,31 @@ async function initialize() {
         // Initialize viewPort and getBullsEyeElement() first, now that containers are sized
         viewPort.initializeViewPort();
 
-        // Get DOM elements for containers
-        const resumeContainerElem = document.getElementById('resume-container');
-        const sceneContainerElem = document.getElementById('scene-container');
+        bullsEye.initializeBullsEye();
 
-        // Update resume container so it is sized before viewport logic
+        resizeHandle.initializeResizeHandle();
+
         resumeContainer.initializeResumeContainer();
-
-        // Now containers should have correct sizes
 
         // Initialize timeline
         const [minTimelineYear, maxTimelineYear] = getMinMaxTimelineYears(jobs);
         const defaultTimelineYear = maxTimelineYear;
-        const _timelineContainer = document.getElementById("timeline-container");
-        timeline.createTimeline(_timelineContainer, sceneContainerElem, minTimelineYear, maxTimelineYear, defaultTimelineYear);
+        timeline.initializeTimeline(minTimelineYear, maxTimelineYear, defaultTimelineYear);
 
         // sanity check for z and z_index functions
         zIndex.test_z_functions();
         // sanity check for color utils
         colorUtils.test_color_utils();
 
-        // Create business cards after viewPort, getBullsEyeElement(), and resizeHandle  and color palette are initialized
+    /**
+        * Create bizCardDivs after the following
+        * have been initialized:
+        * viewPort, 
+        * bullsEye
+        * timeLine
+        * resizeHandle 
+        * colorPalettes 
+        */
         if (!Array.isArray(jobs)) {
             const jobType = typeof jobs;
             ("jobType:", jobType);
@@ -127,29 +130,11 @@ async function initialize() {
         // after bizResumeDivs are created
         bizResumeDivSortingModule.initialize(sortedJobs, bizResumeDivs);
 
-        // Initialize scrollbar controls - cards vertical scrolling
-        //viewPort.initScrollbarControls(sceneContainer);
-
         // Add event listeners
-        sceneContainerElem.addEventListener('wheel', autoScroll.handlesceneContainerWheel, { passive: true });
-        sceneContainerElem.addEventListener('scroll', () => {
-                
-            // Update parallax effects when scrolling (commented out as parallax module is not available)
-            // parallax.renderAllTranslateableDivsAtsceneContainerCenter(sceneContainerElem);
-        });
-
-        window.addEventListener('load', () => {
-            resumeContainer.updateResumeContainer();
-        });
-        window.addEventListener('resize', () => {
-            resumeContainer.updateResumeContainer();
-        });
-
-        // Start auto-scroll
-        autoScroll.startAutoScroll(sceneContainerElem);
+        sceneContainer.initializeSceneContainer();
 
         // Now that everything is initialized, call focalPoint.handleOnWindowLoad()
-        focalPoint.handleOnWindowLoad();
+        focalPoint.initializeFocalPoint();
 
     } catch (error) {
         console.error('Failed to initialize application:', error);

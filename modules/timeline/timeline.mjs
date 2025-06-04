@@ -6,22 +6,23 @@ import * as utils from '../utils/utils.mjs';
 // TimeLine globals 
 
 // @ts-ignore
-var timelineContainer = null;
+var _timelineContainer = null;
+// @ts-ignore
+var _sceneContainer = null;
 
-// initizlized in createTimeline
+// initizlized in initializeTimeline
 var _timelineYearMin = 0;
 var _timelineYearMax = 0;
+var _defaultYear = null;
 
 /**
  * initializes the timeLineContainer
- * @param {*} timelineContainer : HTMLElement
  * @param {*} minYear : int
  * @param {*} maxYear : int
+ * @param {*} defaultYear : any optional
  */
-function initTimelineContainer(timelineContainer, minYear, maxYear) {
-    timelineContainer = timelineContainer;
-    _timelineYearMin = minYear;
-    _timelineYearMax = maxYear;
+export function initializeTimeline(minYear, maxYear, defaultYear=null) {
+    _initializeTimeline(minYear, maxYear, defaultYear);
 }
 
 // the global set of all yearDivBottoms created 
@@ -69,15 +70,31 @@ export function getTimelineHeight() {
     return getTimelineYearMonthBottom(`${_timelineYearMin}`, "01");
 }
 
-// append year-divs and year-dashes into timeline-timelineContainer
-export function createTimeline(timelineContainer, sceneContainer, minYear, maxYear, defaultYear) {
-    if ( timelineContainer == null )
-        timelineContainer = document.getElementById("timeline-timelineContainer");
+/**
+ * append year-divs and year-dashes into timeline-_timelineContainer
+ * @param {number} minYear - The minimum year
+ * @param {number} maxYear - The maximum year
+ * @param {any} defaultYear - The optional default year
+ */
+function _initializeTimeline(minYear, maxYear, defaultYear=null) {
+    _timelineContainer = document.getElementById("timeline-container");
+    if ( !_timelineContainer ) throw new Error("timeline-container not found");
+    _sceneContainer = document.getElementById("scene-container");
+    if ( !_sceneContainer ) throw new Error("sceneContainer not found");
+    _timelineYearMin = minYear;
+    if ( _timelineYearMin === undefined ) throw new Error("_timelineYearMin is undefined"); 
+    _timelineYearMax = maxYear;
+    if ( _timelineYearMax === undefined ) throw new Error("_timelineYearMax is undefined");
+    if ( _timelineYearMin > _timelineYearMax ) throw new Error("_timelineYearMin > _timelineYearMax");  
+    if ( defaultYear === null ) {
+        defaultYear = _timelineYearMax;
+    }
+    if ( defaultYear < _timelineYearMin || defaultYear > _timelineYearMax ) throw new Error("defaultYear out of range"); 
+    _defaultYear = defaultYear;
     
-    initTimelineContainer(timelineContainer, minYear, maxYear);
     inittimelineYearDivBottoms();
 
-    var alignment = timelineContainer.classList.contains("timeline-timelineContainer-left") ? "left" : "right";
+    var alignment = _timelineContainer.classList.contains("timeline-timelineContainer-left") ? "left" : "right";
 
     for (var year = _timelineYearMax; year >= _timelineYearMin; year--) {
         var yearDiv = document.createElement("div");
@@ -100,7 +117,7 @@ export function createTimeline(timelineContainer, sceneContainer, minYear, maxYe
         yearDiv.style.height = `${YEARDIV_FONTSIZE}px`;
         yearDiv.style.bottom = `${yearDivBottom}px`;
         yearDiv.style.top = `${yearDivBottom - YEARDIV_FONTSIZE}px`;
-        timelineContainer.appendChild(yearDiv);
+        _timelineContainer.appendChild(yearDiv);
 
         for (var month = 1; month <= 12; month++) {
             var monthTick = document.createElement("div");
@@ -133,20 +150,20 @@ export function createTimeline(timelineContainer, sceneContainer, minYear, maxYe
             //     monthTick.style.height = "30px";
             //     monthTick.style.fontSize = "20pt";
             // }
-            timelineContainer.appendChild(monthTick);
+            _timelineContainer.appendChild(monthTick);
         }
     }
-    sceneContainerScrollToYear(sceneContainer, defaultYear);
+    sceneContainerScrollToYear(_sceneContainer, defaultYear);
 }
 
-export function sceneContainerScrollToYear(sceneContainer, year) {
+export function sceneContainerScrollToYear(_sceneContainer, year) {
     var totalYears = _timelineYearMax - _timelineYearMin + 1;
     if (!Number.isFinite(totalYears) || totalYears <= 0) {
         console.error("Invalid totalYears:", totalYears, _timelineYearMax, _timelineYearMin);
         return;
     }
-    if (!sceneContainer || typeof sceneContainer.scrollHeight !== 'number' || sceneContainer.scrollHeight <= 0) {
-        console.error("Invalid sceneContainer or scrollHeight:", sceneContainer, sceneContainer && sceneContainer.scrollHeight);
+    if (!_sceneContainer || typeof _sceneContainer.scrollHeight !== 'number' || _sceneContainer.scrollHeight <= 0) {
+        console.error("Invalid _sceneContainer or scrollHeight:", _sceneContainer, _sceneContainer && _sceneContainer.scrollHeight);
         return;
     }
     if (!Number.isFinite(year)) {
@@ -154,10 +171,10 @@ export function sceneContainerScrollToYear(sceneContainer, year) {
         return;
     }
 
-    var leftColumScrollPixelsPerYear = sceneContainer.scrollHeight / totalYears;
+    var leftColumScrollPixelsPerYear = _sceneContainer.scrollHeight / totalYears;
     var newScrollTop = (_timelineYearMax - year) * leftColumScrollPixelsPerYear;
-    newScrollTop = utils.clampInt(newScrollTop, 0, sceneContainer.scrollHeight);
+    newScrollTop = utils.clampInt(newScrollTop, 0, _sceneContainer.scrollHeight);
 
-    sceneContainer.scrollTop = newScrollTop;
+    _sceneContainer.scrollTop = newScrollTop;
 }
 

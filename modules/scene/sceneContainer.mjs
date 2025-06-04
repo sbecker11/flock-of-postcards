@@ -1,7 +1,6 @@
 import * as viewPort from '../core/viewPort.mjs';
 import * as timeline from '../timeline/timeline.mjs';
-
-import * as resizeHandle from '../core/resizeHandle.mjs';
+import * as autoScroll from '../animation/autoScroll.mjs';
 
 export function initializeSceneContainer() {
     console.log("initializeSceneContainer");
@@ -9,6 +8,19 @@ export function initializeSceneContainer() {
     console.log("initializeSceneContainer: sceneContainer:", sceneContainer);
     const rect = sceneContainer.getBoundingClientRect();
     console.log("initializeSceneContainer: sceneContainerRect:", rect);
+
+    // Initialize scrollbar controls - cards vertical scrolling
+    // viewPort.initScrollbarControls(sceneContainer);
+
+    // Start auto-scroll
+    autoScroll.startAutoScroll(sceneContainer);
+    console.log("initializeSceneContainer: autoScroll started");
+
+    sceneContainer.addEventListener('wheel', autoScroll.handlesceneContainerWheel, { passive: true });
+    sceneContainer.addEventListener('scroll', () => {
+        // Update parallax effects when scrolling (commented out as parallax module is not available)
+        // parallax.renderAllTranslateableDivsAtsceneContainerCenter(sceneContainerElem);
+    });
 }
 // called from updateResumeContainer
 export function updateSceneContainer() {

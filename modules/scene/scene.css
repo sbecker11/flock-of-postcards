@@ -107,6 +107,10 @@
     border: 10px solid purple !important;
 }
 
+.biz-card-details-div {
+    border-radius: 25px;
+}
+
 /* hide all biz-card-details-div fields by default */
 .biz-card-details-div > * {
     display: none;

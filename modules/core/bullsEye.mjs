@@ -8,6 +8,9 @@ const logger = new Logger("bullsEye", LogLevel.INFO, LogLevel.TRACE_ON_FAILURE);
 const _bullsEyeElement = document.getElementById("bulls-eye");
 const _bullsEyeRad = _bullsEyeElement.offsetWidth/2;
 
+export function initializeBullsEye() {
+    updateBullsEyeCenter();
+}
 
 // return the center of the viewPort in viewPort coordinates
 export function getBullsEyeCenter() {

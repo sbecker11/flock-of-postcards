@@ -270,3 +270,28 @@ export function clampInt(value, min, max) {
 export function matchPositions(pos1, pos2) {
     return pos1.x === pos2.x && pos1.y === pos2.y;
 }
+
+/**
+ * Utility function to add or remove event listeners from an element
+ * @param {Element} element - The element to add/remove listeners from
+ * @param {string} eventType - The type of event (e.g., 'mousemove', 'mouseup')
+ * @param {Function} listener - The event listener function
+ * @param {Object|boolean} options - Event listener options or boolean for remove
+ */
+export function updateEventListener(element, eventType, listener, options = {}) {
+    if (!element || !eventType || !listener) {
+        logger.error('updateEventListener: Missing required parameters');
+        return;
+    }
+
+    // If options.remove is true, remove the listener
+    if (options.remove === true) {
+        element.removeEventListener(eventType, listener);
+        logger.log(`Removed ${eventType} listener from`, element);
+        return;
+    }
+
+    // Otherwise, add the listener
+    element.addEventListener(eventType, listener, options);
+    logger.log(`Added ${eventType} listener to`, element, 'with options:', options);
+}

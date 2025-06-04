@@ -12,12 +12,12 @@ function onsceneContainerEnter(event) {
 }
 
 // Update container leave handler to focus on aim point
-function onsceneContainerLeave(event) {
+function onSceneContainerLeave(event) {
     const eventPosition = getEventPosition(event);
-    setStatus("leaveContainer", "onsceneContainerLeave", LogLevel.LOG);
+    setStatus("leaveContainer", "onSceneContainerLeave", LogLevel.LOG);
     if (_aimPointMode === AimPointMode.RETURN_TO_BULLS_EYE) {
-        aimPoint.setAimPoint(getBullsEyeElement(), "onsceneContainerLeave");
-        startEasingToBullsEye("onsceneContainerLeave");
+        aimPoint.setAimPoint(getBullsEyeElement(), "onSceneContainerLeave");
+        startEasingToBullsEye("onSceneContainerLeave");
     }
 }
 

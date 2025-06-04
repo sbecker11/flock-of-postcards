@@ -10,17 +10,17 @@ import { targetEnabled, selectForDisabled, disableSelectedForDisabled, restoreSe
 
 // Constants
 const BUTTON_COLUMN_WIDTH = 20; // Width of the button column
-const MIN_WIDTH = BUTTON_COLUMN_WIDTH; // Minimum width (just the button column)
 const DEFAULT_WIDTH_PERCENT = 50; // Default width as percentage of window width
 
 let _resizeManager = null;
 
 // console.log('****************** JS loaded: resizeHandle.mjs');
 
-export function initializeViewPercent(viewPercent) {
-    _sceneContainerElement.style.width = `${viewPercent}%`;
-    const resumePercent = 100 - viewPercent;
-    _resumeContainerElement.style.width = `${resumePercent}%`;
+export function setScenePercent(scenePercent) {
+    if ( !_resizeManager ) {
+        throw new Error("resizeManager not initialized");
+    }
+    _resizeManager.updateLayoutFromPercentage(scenePercent);
 }
 
 /**
@@ -28,21 +28,50 @@ export function initializeViewPercent(viewPercent) {
  * @param {number} left - The current left position of the resize handle
  */
 
-// SCB: Consolidate Resize logic for hardPageRefresh, onLoad, and various events
-// to handle collapse buttons, viewport resizing, and cascading updates.
-
 // Utility: Clamp a value to a range
 function clampToRange(val, min, max) {
     return Math.max(min, Math.min(max, val));
 }
 
 class ResizeManager {
+
+    constructor() {
+        // Prevent direct instantiation
+        if (ResizeManager.instance) {
+            throw new Error('ResizeManager is a singleton. Use ResizeManager.getInstance() instead.');
+        }
+
+        // Initialize default values
+        this.nIncrements = 3;
+        this.hysteresisPixels = 2;
+        this.percentage = DEFAULT_WIDTH_PERCENT;
+        this.isDragging = false;
+        this.debug = false;
+    }
+
+    // Singleton pattern
+    static getInstance() {
+        if (!ResizeManager.instance) {
+            ResizeManager.instance = new ResizeManager();
+            _resizeManager = ResizeManager.instance;
+            _resizeManager._initialize();
+        }
+        return ResizeManager.instance;
+    }
+
+    // Method to reset singleton (useful for testing)
+    static resetInstance() {
+        ResizeManager.instance = null;
+        _resizeManager = null;
+    }
+
     /**
-     * @param {any} s - Unused, kept for compatibility
+     * Private method to initialize the ResizeManager instance
      * @param {number} nIncrements - Number of snap increments
      * @param {number} hysteresisPixels - Hysteresis in pixels
+     * @private
      */
-    constructor(s, nIncrements = 3, hysteresisPixels = 2) {
+    _initialize(nIncrements = 3, hysteresisPixels = 2) {
         this.sceneContainer = document.getElementById('scene-container');
         this.resumeContainer = document.getElementById('resume-container');
         this.resumeContainerLeft = document.getElementById('resume-container-left');
@@ -56,7 +85,7 @@ class ResizeManager {
         this.startX = 0;
         this.clientX = 0;
         this.lastSnapIndex = null;
-        this.percentage = 50; // Default to 50%
+        this.percentage = DEFAULT_WIDTH_PERCENT;
         this.debug = false; // Set to true for debug logs
 
         // Guard all DOM lookups
@@ -69,6 +98,24 @@ class ResizeManager {
         this._boundStopDrag = this.stopDrag.bind(this);
         this._boundHandleMouseLeave = this.handleMouseLeave.bind(this);
         this._debouncedWindowResize = debounce(this.handleWindowResize.bind(this), 50);
+
+        // Initialize listeners and layout
+        this.setupEventListeners();
+        this.updateLayoutFromPercentage(this.percentage);
+    }
+
+    /**
+     * Sets the scene percentage
+     */
+    set scenePercentage(scenePercentage) {
+        this.updateLayoutFromPercentage(scenePercentage);
+    }
+
+    /**
+     * Returns the current scene percentage
+     */
+    get scenePercentage() {
+        return this.percentage;
     }
 
     /**
@@ -78,13 +125,6 @@ class ResizeManager {
         return 100 / this.nIncrements;
     }
 
-    /**
-     * Initializes event listeners and sets initial layout
-     */
-    initialize() {
-        this.setupEventListeners();
-        this.updateLayoutFromPercentage(this.percentage);
-    }
 
     /**
      * Sets up all event listeners
@@ -184,9 +224,8 @@ class ResizeManager {
 
     /**
      * Stops the drag operation
-     * @param {MouseEvent} e
      */
-    stopDrag(e) {
+    stopDrag() {
         this.resumeContainer.style.cursor = '';
         this.isDragging = false;
         document.body.style.userSelect = '';
@@ -277,14 +316,17 @@ function debounce(fn, delay) {
     };
 }
 
-// this is called by sceneContainer.updateSceneContainer
+// this is called by main.mjs initialize()
 export function initializeResizeHandle(nIncrements = 3, hysteresisPixels = 2) {
     // console.log("initializeResizeHandle");
 
-    if ( !_resizeManager ) {
-        // console.log("new ResizeManager created");
-        _resizeManager = new ResizeManager(undefined, nIncrements, hysteresisPixels);
-        _resizeManager.initialize();
+    // Use singleton getInstance() method
+    _resizeManager = ResizeManager.getInstance();
+
+    // Update parameters if different from defaults
+    if (nIncrements !== 3 || hysteresisPixels !== 2) {
+        _resizeManager.nIncrements = nIncrements;
+        _resizeManager.hysteresisPixels = hysteresisPixels;
     }
 }
 
@@ -293,4 +335,14 @@ export function updateResizeHandle() {
         throw new Error("resizeManager not initialized");
     }
     _resizeManager.updateLayoutFromPercentage(_resizeManager.percentage);
+}
+
+// Export function to get the singleton instance
+export function getResizeManager() {
+    return _resizeManager || ResizeManager.getInstance();
+}
+
+// Export function to check if initialized
+export function isResizeManagerInitialized() {
+    return _resizeManager !== null;
 }
