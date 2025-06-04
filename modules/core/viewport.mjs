@@ -75,7 +75,7 @@ export function updateViewPort() {
     // tell the bullsEye to update the position of its HTML element (using getViewPortCenter()
     bullsEye.updateBullsEyeCenter();
 
-    console.log("updateViewPort: calling viewAllBizCardDivs()");
+    // console.log("updateViewPort: calling viewAllBizCardDivs()");
     viewAllBizCardDivs();
 }
 
@@ -151,7 +151,7 @@ export function applyViewRelativeStyling(bizCardDiv) {
     }
 
     const bullsEyeX = bullsEye.getBullsEyeCenter().x;
-    console.log("applyViewRelativeStyling:", bizCardDiv.id, "bullsEyeX:", bullsEyeX);
+    // console.log("applyViewRelativeStyling:", bizCardDiv.id, "bullsEyeX:", bullsEyeX);
 
 
     // extract the static scene-relative geometry
