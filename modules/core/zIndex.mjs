@@ -1,5 +1,9 @@
 // modules/core/zIndex.mjs
 
+import { Logger, LogLevel } from '../logger.mjs';
+const logger = new Logger("zIndex", LogLevel.INFO);
+
+
 // Z-index constants and utility functions
 export const ROOT_Z_INDEX = 0;             // no parallax 
 export const SCENE_Z_INDEX = 1;           // no parallax

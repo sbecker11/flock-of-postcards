@@ -50,7 +50,7 @@ class ResumeManager {
     
     // This is called when the active resume item changes
     // You can use this to sync with the scene view or update other UI elements
-    // log.info(`Active resume item changed to sorted index: ${index}, original index: ${originalIndex}`);
+    // logger.info(`Active resume item changed to sorted index: ${index}, original index: ${originalIndex}`);
     
     // Example: Trigger selection in scene view using original index
     // this.selectBizCardInScene(originalIndex);

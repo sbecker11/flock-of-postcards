@@ -2,7 +2,10 @@
 
 import * as jsonUtils from '../utils/jsonUtils.mjs';
 import { ResumeManager } from '../resume/resumeManager.mjs';
- 
+
+import { Logger, LogLevel } from '../logger.mjs';
+const logger = new Logger("divSyncModule", LogLevel.INFO);
+
 //=======================
 // PAIRED ELEMENTS only works if both elements are in the DOM
 //=======================

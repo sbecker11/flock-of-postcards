@@ -1,13 +1,16 @@
-// modules/core/npm mjs
+// modules/core/viewPort mjs
 
 import { isHTMLElement } from '../utils/domUtils.mjs';
 import * as bullsEye from './bullsEye.mjs';
 import * as utils from '../utils/utils.mjs';    
 import * as zIndex from './zIndex.mjs';
 
+import { Logger, LogLevel } from '../logger.mjs';
+const logger = new Logger("viewPort", LogLevel.INFO);
+
 
 // Constants
-const VIEWPORT_PADDING = 20; // Padding around the viewPortProperties
+const VIEWPORT_PADDING = 100; // Padding around the viewPortProperties
 
 // ViewPort state
 const viewPortProperties = {
@@ -61,12 +64,10 @@ export function updateViewPort() {
     viewPortProperties.padding = VIEWPORT_PADDING;
     viewPortProperties.top = viewPortTop - viewPortProperties.padding;
     viewPortProperties.left = viewPortLeft - viewPortProperties.padding;
-    viewPortProperties.right = viewPortWidth + viewPortProperties.padding;
-    viewPortProperties.bottom = viewPortHeight + viewPortProperties.padding;
+    viewPortProperties.right = viewPortWidth + 2*viewPortProperties.padding;
+    viewPortProperties.bottom = viewPortHeight + 2*viewPortProperties.padding;
     viewPortProperties.centerX = viewPortWidth / 2;
     viewPortProperties.centerY = viewPortHeight / 2;
-    viewPortProperties.width = viewPortWidth + 2*viewPortProperties.padding;
-    viewPortProperties.height = viewPortHeight + 2*viewPortProperties.padding;
     
     // Calculate bullsEye position as midpoint between window left edge (0) and resize handle center
     // If handle is at left edge (initial state), use window width / 2 as initial position
@@ -74,9 +75,6 @@ export function updateViewPort() {
 
     // tell the bullsEye to update the position of its HTML element (using getViewPortCenter()
     bullsEye.updateBullsEyeCenter();
-
-    // console.log("updateViewPort: calling viewAllBizCardDivs()");
-    viewAllBizCardDivs();
 }
 
 export function getViewPortOrigin() {
@@ -88,6 +86,18 @@ export function getViewPortOrigin() {
     return { 
         x: viewPortProperties.centerX, 
         y: viewPortProperties.centerY 
+    };
+}
+
+export function getViewPortRect() {
+    if ( !viewPortIsInitialized() ) {
+        throw new Error("viewPortProperties is not initialized");
+    }
+    return {
+        left: viewPortProperties.left,
+        top: viewPortProperties.top,
+        right: viewPortProperties.right,
+        bottom: viewPortProperties.bottom
     };
 }
 
@@ -107,21 +117,6 @@ export function isBizCardDivWithinViewPort(bizCardDiv) {
         rect.bottom >= viewPortProperties.top &&
         rect.top <= viewPortProperties.bottom
     );
-}
-
-// displays only those bizCardDivs that are within the viewport
-//
-export function viewAllBizCardDivs() {
-    // console.log("viewPort.viewAllBizCardDivs()");
-
-    if ( !viewPortIsInitialized() ) {
-        throw new Error("viewPortProperties is not initialized");
-    }
-    const bizCardDivs = document.getElementsByClassName("biz-card-div");
-    for (const bizCardDiv of bizCardDivs) {
-        applyViewRelativeStyling(bizCardDiv);
-        bizCardDiv.style.display = 'block';
-    }
 }
 
 export function setViewPortWidth(width) {
@@ -188,24 +183,3 @@ export function applyViewRelativeStyling(bizCardDiv) {
     //     parsedSceneLeft: parseFloat(sceneLeft)
     // });
 }
-
-/**
- * Finds all translatable card divs within the viewPort
- * @returns {Array<HTMLElement>} Array of translatable card divs within the viewPort
- */
-export function findAllTranslatableCardsInViewPort() {
-    // console.log("viewPort.findAllTranslatableCardsInViewPort()");
-    if ( !viewPortIsInitialized() ) {
-        throw new Error("viewPortProperties is not initialized");
-    }
-    const allBizCardDivs = document.getElementsByClassName("biz-card-div");
-    return Array.from(allBizCardDivs).filter(div => {
-        const rect = div.getBoundingClientRect();
-        return (
-            rect.top < viewPortProperties.top + viewPortProperties.height &&
-            rect.left < viewPortProperties.left + viewPortProperties.width &&
-            rect.bottom > viewPortProperties.top &&
-            rect.right > viewPortProperties.left
-        );
-    });
-} 

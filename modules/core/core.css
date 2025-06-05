@@ -6,8 +6,8 @@
     border-radius: 50%;
     background-color: red;
     border: 0.5px solid white;
-    z-index: 200;
-    pointer-events: none;
+    z-index: 9998; /* Second highest - below focalPoint, above bullsEye */
+    pointer-events: none; /* Let all events pass through */
     top: 0;
     left: 0;
     transform: translate(-50%, -50%); /* Match bullsEye's centering */
@@ -25,10 +25,10 @@
     height: 50px;
     border-radius: 50%;
     border: 2px solid gray;
-    z-index: 98;
+    z-index: 9997; /* Third highest - below focalPoint and aimPoint */
     pointer-events: none;
     display: flex;
-    align-items: center; 
+    align-items: center;
     justify-content: center;
     font-size: 31px;
     font-weight: 700;
@@ -44,32 +44,36 @@
     height: 25px;
     border-radius: 50%;
     border: 2px solid gray;
-    z-index: 99;
     font-size: 31px;
     font-weight: 700;
     color: gray;
     background-color: transparent;
     display: flex;
-    align-items: center; 
+    align-items: center;
     justify-content: center;
-    z-index: 100;
+    z-index: 9999;  /* Highest z-index - above aimPoint and bullsEye */
     cursor: default;
-    pointer-events: none;  /* Always let events pass through by default */
+    pointer-events: none;  /* Let scroll/wheel events pass through */
   }
-  
+
   #focal-point.focal-point-is-draggable {
     cursor: grab;
     color: green;
-    pointer-events: all;  /* Only capture events when draggable */
+    z-index: 9999;  /* Maintain highest z-index when draggable */
+    /* Keep pointer-events: none to allow scroll/wheel pass-through */
+    pointer-events: none;
   }
-  
+
   #focal-point.focal-point-is-draggable:hover {
-    pointer-events: all;  /* Ensure we can interact when hovering */
+    /* Only enable pointer events on hover for dragging */
+    pointer-events: all;
+    z-index: 9999;  /* Maintain highest z-index when hovering */
   }
-  
+
   #focal-point.focal-point-is-being-dragged {
     cursor: move;
     pointer-events: all;  /* Ensure we maintain interaction while dragging */
+    z-index: 9999;  /* Maintain highest z-index when dragging */
   }
   
   #focal-point.awake {

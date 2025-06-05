@@ -1,5 +1,8 @@
 // modules/utils/jsonUtils.mjs
 
+import { Logger, LogLevel } from '../logger.mjs';
+const logger = new Logger("jsonUtils", LogLevel.INFO);
+
 export function createCirculerTestObject() {
     const circularObject = {
         name: "example",

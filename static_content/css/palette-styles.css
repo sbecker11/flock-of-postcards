@@ -8,177 +8,81 @@
 }
 
 /* Color 0 */
-body [data-color-index].palette-Oceanic-color-0 {
-    background-color: #003087 !important;
+body [data-color-index].palette-jungle-color-0 {
+    background-color: #3f0948 !important;
     color: #FFFFFF !important;
 }
 
-body [data-color-index].palette-Oceanic-color-0.selected {
-    background-color: #0048CB !important;
+body [data-color-index].palette-jungle-color-0.selected {
+    background-color: #5F0E6C !important;
     color: #FFFFFF !important;
 }
 
-body [data-color-index].palette-Oceanic-color-0:hover:not(.selected) {
-    background-color: #0048CB !important;
+body [data-color-index].palette-jungle-color-0:hover:not(.selected) {
+    background-color: #5F0E6C !important;
     color: #FFFFFF !important;
 }
 
 /* Color 1 */
-body [data-color-index].palette-Oceanic-color-1 {
-    background-color: #005B96 !important;
+body [data-color-index].palette-jungle-color-1 {
+    background-color: #0c2836 !important;
     color: #FFFFFF !important;
 }
 
-body [data-color-index].palette-Oceanic-color-1.selected {
-    background-color: #0089E1 !important;
-    color: #000000 !important;
+body [data-color-index].palette-jungle-color-1.selected {
+    background-color: #123C51 !important;
+    color: #FFFFFF !important;
 }
 
-body [data-color-index].palette-Oceanic-color-1:hover:not(.selected) {
-    background-color: #0089E1 !important;
-    color: #000000 !important;
+body [data-color-index].palette-jungle-color-1:hover:not(.selected) {
+    background-color: #123C51 !important;
+    color: #FFFFFF !important;
 }
 
 /* Color 2 */
-body [data-color-index].palette-Oceanic-color-2 {
-    background-color: #0077B6 !important;
+body [data-color-index].palette-jungle-color-2 {
+    background-color: #a62278 !important;
     color: #FFFFFF !important;
 }
 
-body [data-color-index].palette-Oceanic-color-2.selected {
-    background-color: #00B3FF !important;
+body [data-color-index].palette-jungle-color-2.selected {
+    background-color: #F933B4 !important;
     color: #000000 !important;
 }
 
-body [data-color-index].palette-Oceanic-color-2:hover:not(.selected) {
-    background-color: #00B3FF !important;
+body [data-color-index].palette-jungle-color-2:hover:not(.selected) {
+    background-color: #F933B4 !important;
     color: #000000 !important;
 }
 
 /* Color 3 */
-body [data-color-index].palette-Oceanic-color-3 {
-    background-color: #0096C7 !important;
-    color: #000000 !important;
+body [data-color-index].palette-jungle-color-3 {
+    background-color: #335418 !important;
+    color: #FFFFFF !important;
 }
 
-body [data-color-index].palette-Oceanic-color-3.selected {
-    background-color: #00E1FF !important;
-    color: #000000 !important;
+body [data-color-index].palette-jungle-color-3.selected {
+    background-color: #4D7E24 !important;
+    color: #FFFFFF !important;
 }
 
-body [data-color-index].palette-Oceanic-color-3:hover:not(.selected) {
-    background-color: #00E1FF !important;
-    color: #000000 !important;
+body [data-color-index].palette-jungle-color-3:hover:not(.selected) {
+    background-color: #4D7E24 !important;
+    color: #FFFFFF !important;
 }
 
 /* Color 4 */
-body [data-color-index].palette-Oceanic-color-4 {
-    background-color: #00B4D8 !important;
-    color: #000000 !important;
-}
-
-body [data-color-index].palette-Oceanic-color-4.selected {
-    background-color: #00FFFF !important;
-    color: #000000 !important;
-}
-
-body [data-color-index].palette-Oceanic-color-4:hover:not(.selected) {
-    background-color: #00FFFF !important;
-    color: #000000 !important;
-}
-
-/* Color 5 */
-body [data-color-index].palette-Oceanic-color-5 {
-    background-color: #48CAE4 !important;
-    color: #000000 !important;
-}
-
-body [data-color-index].palette-Oceanic-color-5.selected {
-    background-color: #6CFFFF !important;
-    color: #000000 !important;
-}
-
-body [data-color-index].palette-Oceanic-color-5:hover:not(.selected) {
-    background-color: #6CFFFF !important;
-    color: #000000 !important;
-}
-
-/* Color 6 */
-body [data-color-index].palette-Oceanic-color-6 {
-    background-color: #90E0EF !important;
-    color: #000000 !important;
-}
-
-body [data-color-index].palette-Oceanic-color-6.selected {
-    background-color: #D8FFFF !important;
-    color: #000000 !important;
-}
-
-body [data-color-index].palette-Oceanic-color-6:hover:not(.selected) {
-    background-color: #D8FFFF !important;
-    color: #000000 !important;
-}
-
-/* Color 7 */
-body [data-color-index].palette-Oceanic-color-7 {
-    background-color: #006D77 !important;
+body [data-color-index].palette-jungle-color-4 {
+    background-color: #1e6e5a !important;
     color: #FFFFFF !important;
 }
 
-body [data-color-index].palette-Oceanic-color-7.selected {
-    background-color: #00A4B3 !important;
+body [data-color-index].palette-jungle-color-4.selected {
+    background-color: #2DA587 !important;
     color: #000000 !important;
 }
 
-body [data-color-index].palette-Oceanic-color-7:hover:not(.selected) {
-    background-color: #00A4B3 !important;
+body [data-color-index].palette-jungle-color-4:hover:not(.selected) {
+    background-color: #2DA587 !important;
     color: #000000 !important;
-}
-
-/* Color 8 */
-body [data-color-index].palette-Oceanic-color-8 {
-    background-color: #83C5BE !important;
-    color: #000000 !important;
-}
-
-body [data-color-index].palette-Oceanic-color-8.selected {
-    background-color: #C5FFFF !important;
-    color: #000000 !important;
-}
-
-body [data-color-index].palette-Oceanic-color-8:hover:not(.selected) {
-    background-color: #C5FFFF !important;
-    color: #000000 !important;
-}
-
-/* Color 9 */
-body [data-color-index].palette-Oceanic-color-9 {
-    background-color: #EDF6F9 !important;
-    color: #000000 !important;
-}
-
-body [data-color-index].palette-Oceanic-color-9.selected {
-    background-color: #FFFFFF !important;
-    color: #000000 !important;
-}
-
-body [data-color-index].palette-Oceanic-color-9:hover:not(.selected) {
-    background-color: #FFFFFF !important;
-    color: #000000 !important;
-}
-
-/* Color 10 */
-body [data-color-index].palette-Oceanic-color-10 {
-    background-color: #023047 !important;
-    color: #FFFFFF !important;
-}
-
-body [data-color-index].palette-Oceanic-color-10.selected {
-    background-color: #03486B !important;
-    color: #FFFFFF !important;
-}
-
-body [data-color-index].palette-Oceanic-color-10:hover:not(.selected) {
-    background-color: #03486B !important;
-    color: #FFFFFF !important;
 }

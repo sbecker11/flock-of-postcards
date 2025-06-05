@@ -1,11 +1,11 @@
-// modules/utils/utils.mjs
-
+// modules/utils/utils.mjs          
+import * as mathUtils from './mathUtils.mjs';
 import { Logger, LogLevel } from '../logger.mjs';
 const logger = new Logger("utils", LogLevel.INFO);
 
 export const calculateDistance = (x1, y1, x2, y2) => Math.sqrt(Math.pow(x2 - x1, 2) + Math.pow(y2 - y1, 2));
 export const isBetween = (value, min, max) => value >= min && value <= max;
-export const createRect = (x1, y1, x2, y2) => ({ left: Math.min(x1, x2), top: Math.min(y1, y2), right: Math.max(x1, x2), bottom: Math.max(y1, y2) });
+export const createRect = (x1, y1, x2, y2) => ({ left: mathUtils.min(x1, x2), top: mathUtils.min(y1, y2), right: mathUtils.max(x1, x2), bottom: mathUtils.max(y1, y2) });
 export const isPointInsideRect = (x, y, rect) => x >= rect.left && x <= rect.right && y >= rect.top && y <= rect.bottom;
 export const half = (value) => typeof value === 'number' ? Math.floor(value / 2) : (() => { throw new Error(`Value '${value}' is not a number`); })();
 export const toFixedPoint = (value, precision) => +value.toFixed(precision);
@@ -26,6 +26,22 @@ export function isNumeric(obj) {
     const n = parseFloat(obj);
     return Number.isFinite(n);
 };
+
+/**
+ * Test if point x,y is within rect
+ * @param {*} x : float
+ * @param {*} y : float
+ * @param {*} rect : {left, top, right, bottom}
+ * @returns true if point x,y is within rect
+ */
+export function inRect (x, y, rect) {
+    return (
+        x >= rect.left &&
+        x <= rect.right &&
+        y >= rect.top &&
+        y <= rect.bottom
+    );
+}
 
 
 // returns true for "5", "5.2", "5_foreground_only"
@@ -113,7 +129,7 @@ export function acronym(text) {
         }
     }
     if (acro.length == 0)
-        acro = text.slice(0, Math.min(3, text.length));
+        acro = text.slice(0, mathUtils.min(3, text.length));
     return acro;
 }
 
@@ -212,7 +228,7 @@ export class PropStyleCounter {
 
   reportPropStyles() {
     for (const prop_style in this.prop_styles) {
-      logger.log(`${prop_style}: ${this.prop_styles[prop_style]}`);
+      console.log(`${prop_style}: ${this.prop_styles[prop_style]}`);
     }
   }
 }
@@ -255,18 +271,6 @@ export function findNextSiblingWithClass(element, className) {
     return null;
   }
   
-// return the integer value between min and max
-// @param {number} value - The value to clamp
-// @param {number} min - The minimum value
-// @param {number} max - The maximum value
-// @returns {number} The clamped value  
-export function clampInt(value, min, max) {
-    if (typeof value !== 'number' || typeof min !== 'number' || typeof max !== 'number') {
-        throw new Error(`clamp: value:${value}, min:${min}, or max:${max} is not a number`);
-    }
-    return Math.max(min, Math.min(max, value));
-}
-
 export function matchPositions(pos1, pos2) {
     return pos1.x === pos2.x && pos1.y === pos2.y;
 }
@@ -287,11 +291,11 @@ export function updateEventListener(element, eventType, listener, options = {}) 
     // If options.remove is true, remove the listener
     if (options.remove === true) {
         element.removeEventListener(eventType, listener);
-        logger.log(`Removed ${eventType} listener from`, element);
+        console.log(`Removed ${eventType} listener from`, element);
         return;
     }
 
     // Otherwise, add the listener
     element.addEventListener(eventType, listener, options);
-    logger.log(`Added ${eventType} listener to`, element, 'with options:', options);
+    console.log(`Added ${eventType} listener to`, element, 'with options:', options);
 }

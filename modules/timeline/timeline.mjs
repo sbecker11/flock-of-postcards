@@ -1,8 +1,12 @@
 // @ts-check
 
 import * as utils from '../utils/utils.mjs';
+import * as mathUtils from '../utils/mathUtils.mjs';
   
-// --------------------------------------
+import { Logger, LogLevel } from '../logger.mjs';
+const logger = new Logger("timeline", LogLevel.INFO);
+
+//---------------------------------
 // TimeLine globals 
 
 // @ts-ignore
@@ -173,7 +177,7 @@ export function sceneContainerScrollToYear(_sceneContainer, year) {
 
     var leftColumScrollPixelsPerYear = _sceneContainer.scrollHeight / totalYears;
     var newScrollTop = (_timelineYearMax - year) * leftColumScrollPixelsPerYear;
-    newScrollTop = utils.clampInt(newScrollTop, 0, _sceneContainer.scrollHeight);
+    newScrollTop = mathUtils.clampInt(newScrollTop, 0, _sceneContainer.scrollHeight);
 
     _sceneContainer.scrollTop = newScrollTop;
 }

@@ -1,3 +1,8 @@
+// modules/resize/resizeHandler.mjs
+
+import { Logger, LogLevel } from '../logger.mjs';
+const logger = new Logger("resizeHandler", LogLevel.INFO);
+
 // Add this in your resize handle logic where you handle the mousedown event
 function onResizeHandleMouseDown(e) {
   // Your existing mousedown code...

@@ -4,7 +4,6 @@ import * as viewPort from './viewPort.mjs';
 import { Logger, LogLevel } from "../logger.mjs";
 const logger = new Logger("bullsEye", LogLevel.INFO, LogLevel.TRACE_ON_FAILURE);
 
-
 const _bullsEyeElement = document.getElementById("bulls-eye");
 const _bullsEyeRad = _bullsEyeElement.offsetWidth/2;
 
@@ -29,5 +28,5 @@ export function updateBullsEyeCenter() {
     _bullsEyeElement.style.left = `${_centerX}px`;
     _bullsEyeElement.style.top = `${_centerY}px`;
 
-    logger.log("BullsEye position updated:", getBullsEyeCenter());
+    console.log("BullsEye position updated:", getBullsEyeCenter());
 }

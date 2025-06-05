@@ -44,25 +44,25 @@ export function initialize(jobsData, bizResumeDivs) {
 
     if (firstButton) firstButton.addEventListener('click', {
         handleEvent: () => {
-            log.info('firstButton clicked');
+            logger.info('firstButton clicked');
             _resumeManager.goToFirstResumeItem();
         }
     });
     if (prevButton) prevButton.addEventListener('click', {
         handleEvent: () => {
-            log.info('prevButton clicked');
+            logger.info('prevButton clicked');
             _resumeManager.goToPreviousResumeItem();
         }
     });
     if (nextButton) nextButton.addEventListener('click', {
         handleEvent: () => {
-            log.info('nextButton clicked');
+            logger.info('nextButton clicked');
             _resumeManager.goToNextResumeItem();
         }
     });
     if (lastButton) lastButton.addEventListener('click', {
         handleEvent: () => {
-            log.info('lastButton clicked');
+            logger.info('lastButton clicked');
             _resumeManager.goToLastResumeItem();
         }
     });

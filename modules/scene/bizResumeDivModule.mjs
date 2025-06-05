@@ -4,6 +4,9 @@ import * as utils from '../utils/utils.mjs';
 import * as BizDetailsDivModule from './bizDetailsDivModule.mjs';
 import * as colorPalettes from '../color/colorPalettes.mjs';
 
+import { Logger, LogLevel } from '../logger.mjs';
+const logger = new Logger("bizResumeDivModule", LogLevel.INFO);
+
 // BizResumeDiv is the div that contains the resume of the job
 // it is created by resumeManager and is never appended to the DOM. 
 export function createBizResumeDiv(bizCardDiv) {

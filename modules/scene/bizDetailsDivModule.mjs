@@ -1,5 +1,8 @@
 // scene/bizDetailsDivModule.mjs
 
+import { Logger, LogLevel } from '../logger.mjs';
+const logger = new Logger("bizDetailsDivModule", LogLevel.INFO);
+
 // BizDetailsDiv is the div that contains the details of the job
 // and will be added to the bizCard and will be added to the
 // BizResumeDiv which will be added to the resume-content-div.

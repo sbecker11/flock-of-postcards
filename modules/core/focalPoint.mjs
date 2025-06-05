@@ -2,12 +2,14 @@
 
 import * as domUtils from '../utils/domUtils.mjs';
 import * as utils from '../utils/utils.mjs';
+import * as mathUtils from '../utils/mathUtils.mjs';
 import * as viewPort from './viewPort.mjs';
 import * as resizeManager from './resizeHandle.mjs';
 import { getBullsEyeCenter, updateBullsEyeCenter } from './bullsEye.mjs';
 import * as aimPoint from './aimPoint.mjs';
+
 import { Logger, LogLevel } from "../logger.mjs";
-const logger = new Logger("focal_point", LogLevel.INFO, LogLevel.TRACE_ON_FAILURE);
+const logger = new Logger("focalPoint", LogLevel.INFO, LogLevel.TRACE_ON_FAILURE);
 
 /**
  * class to manage the mouse drag state
@@ -75,11 +77,11 @@ function setStatus(new_status, prefix="") {
     _status = new_status;
     if ( _status != _lastStatus ) {
         prefix = `setStatus:${prefix}`;
-        logger.log(prefix, _status);
+        logger.info(prefix, _status);
     }
 }
 
-export function getFocalPointStatus() {
+export function getStatus() {
     return _status;
 }
 
@@ -117,7 +119,7 @@ function getDefaultState() {
     return {
         isDraggable: true,
         isLockedToBullsEye: false,
-        lastPosition: null,
+        _lastPosition: null,
         scenePercentage: 50, // Default 50% split
         selectedPalette: null, // Will be set to first available palette
         lastUpdated: new Date().toISOString(),
@@ -136,7 +138,7 @@ export function saveState() {
         const state = {
             isDraggable: _isDraggable,
             isLockedToBullsEye: _isLockedToBullsEye,
-            lastPosition: getFocalPoint(),
+            _lastPosition: getFocalPoint(),
             // scenePercentage: resizeManager.getInstance().scenePercentage();
             selectedPalette: paletteSelector ? paletteSelector.value : null,
             lastUpdated: new Date().toISOString(),
@@ -267,6 +269,17 @@ export function getFocalPoint() {
     };
 }
 
+export function getSceneRelativeVpRect() {
+    const vpRect = viewPort.getViewPortRect();
+    const scrollTop = _sceneContainer.scrollTop;
+    return {
+        left: vpRect.left,
+        top: vpRect.top + scrollTop,
+        right: vpRect.right,
+        bottom: vpRect.bottom + scrollTop
+    };
+}
+
 /**
  * used to extract the viewPort-relative position from an event
  * @param {} event 
@@ -286,18 +299,37 @@ function getEventPosition(event) {
  * @param {*} prefix - used for verbosity
  * @returns 
  */
+let _lastPosition = { x:0, y:0 };
+
 export function moveFocalPointTo(position, prefix="") {
     if (_isLockedToBullsEye && prefix !== "locked-to-bullsEye") {
-        return; // Don't move if locked to bulls-eye
+        logger.log("moveFocalPointTo ignored while locked to bulls-eye");
+        return;
+    }
+    // calculate distance moved since last call
+    const squaredDist = mathUtils.getPositionsSquaredDistance(position, _lastPosition);
+    _lastPosition = position;
+
+    // skip move if move is too small
+    if ( squaredDist < 0.25 ) { // 0.5 squared
+        setStatus("PAUSED");
+        return; 
+    }
+    else {
+        if ( getStatus() === "PAUSED" ) {
+            setStatus("RUNNING");
+        };
     }
     
+    logger.log("moveFocalPointTo", position);
     // Use viewPort coordinates directly
     _focalPointElement.style.left = `${position.x}px`;
     _focalPointElement.style.top = `${position.y}px`;
 
-    notifyPositionListeners(position, prefix);
+    notifyPositionListeners(position, "moveFocalPointTo", getSceneRelativeVpRect());
     saveState(); // Save state when position changes
 }
+
 /** 
  * initializeFocalPoint's internal settiings
  * as well as _sceneContainer and _focalPointElement.
@@ -361,6 +393,10 @@ export function initializeFocalPoint(focalPointElement) {
     // Add drag event listeners to the focal-point element
     _focalPointElement.addEventListener('mousedown', onMouseDown_startDraggingFocalPoint);
 
+    // Add scroll/wheel pass-through handlers
+    _focalPointElement.addEventListener('wheel', handleScrollPassThrough, { passive: false });
+    _focalPointElement.addEventListener('scroll', handleScrollPassThrough, { passive: false });
+
     aimPoint.setAimPoint(getBullsEyeCenter(), "createFocalPoint");
     moveFocalPointTo(getBullsEyeCenter(), "createFocalPoint");
 
@@ -377,17 +413,18 @@ const _focalPointPositionListeners = [];
 
 /**
  * Notify listeners that the focalPoint has moved
- * @param {} vewPort-relative position of focalPoint center
+ * @param {} viewRelativeFP - viewPort-relative position of focalPoint
  * @param {*} prefix for verbosity
+ * @param {*} sceneRelativeVpRect scene-relative viewport rect
  */
-function notifyPositionListeners(position, prefix="") {
+function notifyPositionListeners(viewRelativeFP, prefix="",sceneRelativeVpRect) {
     for (const listener of _focalPointPositionListeners) {
-        listener(position, prefix);
+        listener(viewRelativeFP, prefix, sceneRelativeVpRect);
     }
 }
 
 /**
- * 
+ * internal function
  */
 export function clearFocalPointPositionListeners() {
     _focalPointPositionListeners.length = 0;
@@ -399,6 +436,7 @@ export function clearFocalPointPositionListeners() {
  */
 export function addFocalPointPositionListener(listener) {
     if (typeof listener === "function") {
+        logger.info("addFocalPointPositionListener", listener.name);
         _focalPointPositionListeners.push(listener);
     } else {
         throw new Error("Listener must be a function");
@@ -525,20 +563,6 @@ function handleArrivedAtAimPoint(position) {
     setStatus("arrivedAtAimPoint", "handleArrivedAtAimPoint");
 }
 
-/**
- * @param {*} pos1 
- * @param {*} pos2 
- * @returns the maximum rectangulare distance between the two positions
- */
-function getPositionsDist(pos1, pos2) {
-    try {
-        return utils.max(utils.abs_diff(pos1.x,pos2.x), utils.abs_diff(pos1.y,pos2.y));
-    } catch (e) {
-        logger.error("getPositionsDist error:", e);
-        return 1000;
-    }
-}
-
 /*
  * draws the animation frame for the focalPoint
  * unless being dragged by mouse
@@ -550,7 +574,7 @@ export function drawFocalPointAnimationFrame() {
 
     const currentPos = getFocalPoint();
     const aimPos = aimPoint.getAimPoint();
-    const dist = getPositionsDist(currentPos, aimPos);
+    const dist = mathUtils.getPositionsEuclideanDistance(currentPos, aimPos);
 
     // logger.log("Animation frame:", {
     //     currentPos,
@@ -617,6 +641,7 @@ function computeAStepCloserToAimSubpixelPrecision(nowPoint, aimPointElement, eas
  * external function used to toggle draggable state
  */
 export function toggleDraggable() {
+    logger.info("********** toggleDraggable called isDraggable:", _isDraggable);
     _isDraggable = !_isDraggable;
     if (_isDraggable) {
         _focalPointElement.classList.add('focal-point-is-draggable');
@@ -626,7 +651,23 @@ export function toggleDraggable() {
         _focalPointElement.style.pointerEvents = 'none';
     }
     saveState();
-    logger.log(`toggleDraggable: ${_isDraggable}`);
+    logger.info(`toggleDraggable: ${_isDraggable}`);
+}
+
+export function toggleLockedToBullsEye() {
+    _isLockedToBullsEye = !_isLockedToBullsEye;
+    if (_isLockedToBullsEye) {
+        moveFocalPointTo(getBullsEyeCenter(), "locked-to-bullsEye");
+        if (_isDraggable) {
+            toggleDraggable();
+        }
+    } else {
+        if (!_isDraggable) {
+            toggleDraggable();
+        }
+    }
+    saveState();
+    logger.info(`toggleLockedToBullsEye: ${_isLockedToBullsEye}`);
 }
 
 /**
@@ -706,29 +747,6 @@ function onMouseUp_stopDraggingFocalPoint(event, prefix="") {
     utils.updateEventListener(document, 'mousemove', onMouseDrag_keepDraggingFocalPoint, { remove: true });
 }
 
-/**
- * function that handles keyboard events
- * @param {*} event 
- */
-export function handleKeyDown(event) {
-    if (event.key === 'b') {
-        _isLockedToBullsEye = !_isLockedToBullsEye;
-        if (_isLockedToBullsEye) {
-                logger.info("Aim point mode: Locked to bulls-eye");
-                moveFocalPointTo(getBullsEyeCenter(), "locked-to-bullsEye");
-            if (_isDraggable) {
-                toggleDraggable();
-            }
-        } else {
-            logger.info("Aim point mode: Free movement");
-            if (!_isDraggable) {
-                toggleDraggable();
-            }
-        }
-        saveState();
-        event.preventDefault();
-    }
-}
 
 /**
  * external function used to toggle followPointerOutsideContainer state
@@ -736,7 +754,7 @@ export function handleKeyDown(event) {
  */ 
 export function toggleFollowPointerOutsideContainer() {
     _followPointerOutsideContainer = !_followPointerOutsideContainer;
-    logger.info(`Aim point mode: ${_followPointerOutsideContainer ? 'Following pointer (window bounds)' : 'Container bounds only'}`);
+    logger.log(`Aim point mode: ${_followPointerOutsideContainer ? 'Following pointer (window bounds)' : 'Container bounds only'}`);
     if (_followPointerOutsideContainer) {
         document.addEventListener('mousemove', onDocumentMouseMove);
         window.addEventListener('mouseleave', onWindowMouseLeave);
@@ -772,7 +790,7 @@ function onWindowMouseLeave(event) {
     if (!_followPointerOutsideContainer || _isBeingDragged) return;
     _pointerIsOutsideWindow = true;
     const exitPosition = getEventPosition(event);
-    logger.info("Pointer left window at position:", exitPosition);
+    logger.log("Pointer left window at position:", exitPosition);
     // Keep the last known position
     aimPoint.setAimPoint(exitPosition, "window.mouseleave");
 }
@@ -786,7 +804,7 @@ function onWindowMouseEnter(event) {
     if (!_followPointerOutsideContainer || _isBeingDragged) return;
     _pointerIsOutsideWindow = false;
     const entryPosition = getEventPosition(event);
-    logger.info("Pointer re-entered window at position:", entryPosition);
+    logger.log("Pointer re-entered window at position:", entryPosition);
     aimPoint.setAimPoint(entryPosition, "window.mouseenter");
     startEasingToAimPoint("window.mouseenter");
 }
@@ -838,6 +856,103 @@ function cleanup() {
 }
 
 /**
+ * Handle scroll/wheel events and pass them through to scene-container
+ * @param {Event} event - The scroll or wheel event
+ */
+function handleScrollPassThrough(event) {
+    // Don't interfere if we're actively dragging
+    if (_isBeingDragged) {
+        return;
+    }
+
+    // Prevent the event from being handled by the focal point
+    event.preventDefault();
+    event.stopPropagation();
+
+    // Get the scene-container element (the scrollable container)
+    const sceneContainer = document.getElementById('scene-container');
+    if (!sceneContainer) {
+        logger.error('scene-container not found for scroll pass-through');
+        return;
+    }
+
+    // For wheel events, manually apply the scroll
+    if (event.type === 'wheel') {
+        const delta = event.deltaY;
+        sceneContainer.scrollTop += delta;
+        logger.log('Passed wheel event to scene-container, delta:', delta);
+    }
+
+    // For scroll events, create and dispatch a new event
+    if (event.type === 'scroll') {
+        const newEvent = new Event('scroll', {
+            bubbles: true,
+            cancelable: true
+        });
+        sceneContainer.dispatchEvent(newEvent);
+        logger.log('Passed scroll event to scene-container');
+    }
+}
+
+/**
+ * Handle scroll top updates from scene container
+ * @param {number} scrollTop - The current scroll top value
+ */
+export function scrollTopUpdated(scrollTop) {
+    // Get current viewport rect
+    const vpRect = viewPort.getViewPortRect();
+
+    // Convert to scene-relative coordinates (vertical only)
+    const sceneRelativeVpRect = {
+        left: vpRect.left,
+        top: vpRect.top + scrollTop,
+        right: vpRect.right,
+        bottom: vpRect.bottom + scrollTop
+    };
+
+    // Get current focal point position
+    const viewRelativeFP = getFocalPoint();
+
+    // Notify all focalPointPositionListeners with the scene-relative rect
+    notifyPositionListeners(viewRelativeFP, "scrollTopUpdated", sceneRelativeVpRect);
+
+    logger.log('FocalPoint: scrollTopUpdated', scrollTop, 'scene-relative rect:', sceneRelativeVpRect);
+}
+
+/**
  * Call cleanup function when the page is unloaded
  */
 window.addEventListener('unload', cleanup);
+
+// ============================================
+// Animation Loop Functions
+// ============================================
+
+let animationId = null;
+
+/**
+ * Start the focal point animation loop
+ */
+export function startFocalPointAnimation() {
+    if (animationId) {
+        return; // Already running
+    }
+
+    function animationLoop() {
+        drawFocalPointAnimationFrame();
+        animationId = requestAnimationFrame(animationLoop);
+    }
+    animationLoop();
+    logger.log("Focal point animation started");
+}
+
+/**
+ * Stop the focal point animation loop
+ */
+export function stopFocalPointAnimation() {
+    if (animationId) {
+        cancelAnimationFrame(animationId);
+        animationId = null;
+        logger.log("Focal point animation stopped");
+    }
+}

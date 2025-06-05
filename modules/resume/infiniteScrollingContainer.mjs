@@ -1,8 +1,9 @@
 // modules/scene/infiniteScrollingContainer.mjs
 
-import { Logger, LogLevel } from '../logger.mjs';
 import * as colorPalettes from '../color/colorPalettes.mjs';
-const log = new Logger("infiniteScrollingContainer", LogLevel.DEBUG);
+
+import { Logger, LogLevel } from '../logger.mjs';
+const logger = new Logger("infiniteScrollingContainer", LogLevel.INFO);
 
 class InfiniteScrollingContainer {
   constructor(containerElement, options = {}) {
@@ -32,7 +33,7 @@ class InfiniteScrollingContainer {
   init() {
     this.setupContainer();
     this.bindEvents();
-    log.info('InfiniteScrollingContainer initialized');
+    logger.info('InfiniteScrollingContainer initialized');
   }
 
   setupContainer() {
@@ -48,7 +49,7 @@ class InfiniteScrollingContainer {
     this.createClonedStructure();
     this.positionItems();
     this.currentIndex = 0;
-    log.info(`InfiniteScrollingContainer: Set ${items.length} items`);
+    logger.info(`InfiniteScrollingContainer: Set ${items.length} items`);
   }
 
   createClonedStructure() {
@@ -327,14 +328,14 @@ class InfiniteScrollingContainer {
     if (scrollTop < tailCloneHeight - containerHeight / 2) {
       const jumpToPosition = tailCloneHeight + originalItemsHeight - containerHeight;
       this.container.scrollTop = jumpToPosition;
-      // log.info('Seamless transition: tail to end');
+      // logger.info('Seamless transition: tail to end');
     }
     
     // If we're in the head clone area, jump to the beginning of original items
     else if (scrollTop > tailCloneHeight + originalItemsHeight - containerHeight / 2) {
       const jumpToPosition = tailCloneHeight;
       this.container.scrollTop = jumpToPosition;
-      // log.info('Seamless transition: head to beginning');
+      // logger.info('Seamless transition: head to beginning');
     }
   }
 
@@ -571,7 +572,7 @@ class InfiniteScrollingContainer {
     // Clear container
     this.container.innerHTML = '';
 
-    log.info('InfiniteScrollingContainer destroyed');
+    logger.info('InfiniteScrollingContainer destroyed');
   }
 }
 

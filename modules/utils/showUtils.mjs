@@ -2,7 +2,7 @@
 
 
 export function showPosition(position, prefix="") {
-    logger.log(prefix, JSON.stringify(position, formatNumbersReplacer, 2));
+    console.log(prefix, JSON.stringify(position, formatNumbersReplacer, 2));
 }
 
 export function showElement(element, prefix="", logLevel=LogLevel.LOG) {

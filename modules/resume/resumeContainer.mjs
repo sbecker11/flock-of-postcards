@@ -1,4 +1,7 @@
+// modules/resume/resumeContainer.mjs
 
+import { Logger, LogLevel } from '../logger.mjs';
+const logger = new Logger("resumeContainer", LogLevel.INFO);
 
 import * as sceneContainer  from '../scene/sceneContainer.mjs';
 import * as resizeHandle from '../core/resizeHandle.mjs';

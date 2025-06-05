@@ -1,12 +1,12 @@
-/**
- * Module for handling the resize handle functionality
- */
+// 
 import * as sceneContainer from '../scene/sceneContainer.mjs';
 import * as resumeContainer from '../resume/resumeContainer.mjs';
-
-import * as utils from '../utils/utils.mjs';
+import * as keyDown from './keyDown.mjs';
 import * as viewPort from './viewPort.mjs';
-import { targetEnabled, selectForDisabled, disableSelectedForDisabled, restoreSelectedForDisabled } from './exclusivePointerEvents.mjs';
+import { targetEnabled, selectForDisabled, disableSelectedForDisabled, restoreSelectedForDisabled } from '../utils/domUtils.mjs';
+
+import { Logger, LogLevel } from '../logger.mjs';
+const logger = new Logger("resizeHandle", LogLevel.INFO);
 
 // Constants
 const BUTTON_COLUMN_WIDTH = 20; // Width of the button column
@@ -14,7 +14,7 @@ const DEFAULT_WIDTH_PERCENT = 50; // Default width as percentage of window width
 
 let _resizeManager = null;
 
-// console.log('****************** JS loaded: resizeHandle.mjs');
+// logger.log('****************** JS loaded: resizeHandle.mjs');
 
 export function setScenePercent(scenePercent) {
     if ( !_resizeManager ) {
@@ -92,6 +92,42 @@ class ResizeManager {
         if (!this.sceneContainer || !this.resumeContainer || !this.resumeContainerLeft || !this.collapseLeftButton || !this.collapseRightButton || !this.sceneVizPercent) {
             throw new Error('ResizeManager: One or more required DOM elements not found.');
         }
+
+        // Add keydown event listener to the left container/resizeHandle
+        // Track mouse hover state
+        let isMouseOverResizeArea = false;
+
+        // Debug: Check if element exists
+        logger.log('resumeContainerLeft element:', this.resumeContainerLeft);
+        logger.log('resumeContainerLeft ID:', this.resumeContainerLeft?.id);
+
+        if (!this.resumeContainerLeft) {
+            logger.error('resumeContainerLeft element not found!');
+            return;
+        }
+
+        this.resumeContainerLeft.addEventListener('mouseenter', () => {
+            isMouseOverResizeArea = true;
+            logger.log('Mouse entered resize area');
+        });
+
+        this.resumeContainerLeft.addEventListener('mouseleave', () => {
+            isMouseOverResizeArea = false;
+            logger.log('Mouse left resize area');
+        });
+
+        // Use document-level keydown listener to avoid focus issues
+        document.addEventListener('keydown', (e) => {
+
+            // Only handle if mouse is over resumeContainerLeft
+            if (isMouseOverResizeArea) {
+                try {
+                    keyDown.handleKeyDown(e);
+                } catch (error) {
+                    logger.error('✗ Error in keyDown.handleKeyDown:', error);
+                }
+            } 
+        });
 
         // Bind drag handlers for document-level events
         this._boundHandleDrag = this.handleDrag.bind(this);
@@ -172,7 +208,7 @@ class ResizeManager {
         viewPort.setViewPortWidth(this.sceneWidth);
         this.updateButtonStates(this.percentage);
         if (this.debug) {
-            console.log('applyLayout:', {
+            logger.log('applyLayout:', {
                 resumeLeft: this.resumeLeft,
                 resumeWidth: this.resumeWidth,
                 sceneWidth: this.sceneWidth,
@@ -318,7 +354,7 @@ function debounce(fn, delay) {
 
 // this is called by main.mjs initialize()
 export function initializeResizeHandle(nIncrements = 3, hysteresisPixels = 2) {
-    // console.log("initializeResizeHandle");
+    // logger.log("initializeResizeHandle");
 
     // Use singleton getInstance() method
     _resizeManager = ResizeManager.getInstance();

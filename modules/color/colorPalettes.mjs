@@ -5,6 +5,9 @@ import * as utils from '../utils/utils.mjs';
 import * as domUtils from '../utils/domUtils.mjs';
 import * as colorPalettes from './colorPalettes.mjs';
 
+import { Logger, LogLevel } from '../logger.mjs';
+const logger = new Logger("colorPalettes", LogLevel.INFO);
+
 // Directory where palette files are stored
 const PALETTE_DIR = './static_content/colorPalettes/';
 const MANIFEST_ENDPOINT = '/api/palette-manifest';
@@ -656,7 +659,7 @@ class PaletteSelector {
         for (const colorSet of this.currentColorSets) {
             try {
                 const RGB = colorUtils.get_RGB_from_Hex(colorSet.normalBg);
-                const value = colorUtils.getEuclideanDistance(RGB, [0, 0, 0]);
+                const value = colorUtils.get_RGB_distance(RGB, [0, 0, 0]);
                 if (value < darkest_value) {
                     this.darkest_bgHexColor = colorSet.normalBg;
                     darkest_value = value;

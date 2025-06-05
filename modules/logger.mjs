@@ -3,8 +3,8 @@
 // Usage:
 // import { Loggera, LogLevel } from "./logger.mjs";
 // const logger = new Logger("focal_point", LogLevel.INFO);
-// logger.log("This ia a trace");    // hidden
-// logger.log("This ia a log");      // hidden
+// console.log("This ia a trace");    // hidden
+// console.log("This ia a log");      // hidden
 // logger.info("This is info");      // shown
 // logger.warn("This is a warning"); // shown
 // logger.error("This is an error"); // shown

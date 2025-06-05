@@ -1,6 +1,10 @@
 import * as viewPort from '../core/viewPort.mjs';
 import * as timeline from '../timeline/timeline.mjs';
 import * as autoScroll from '../animation/autoScroll.mjs';
+import * as focalPoint from '../core/focalPoint.mjs';
+
+import { Logger, LogLevel } from '../logger.mjs';
+const logger = new Logger("sceneContainer", LogLevel.INFO);
 
 export function initializeSceneContainer() {
     console.log("initializeSceneContainer");
@@ -18,8 +22,8 @@ export function initializeSceneContainer() {
 
     sceneContainer.addEventListener('wheel', autoScroll.handlesceneContainerWheel, { passive: true });
     sceneContainer.addEventListener('scroll', () => {
-        // Update parallax effects when scrolling (commented out as parallax module is not available)
-        // parallax.renderAllTranslateableDivsAtsceneContainerCenter(sceneContainerElem);
+        // Notify focalPoint of scroll changes for scene-relative viewport calculations
+        focalPoint.scrollTopUpdated(sceneContainer.scrollTop);
     });
 }
 // called from updateResumeContainer

@@ -16,7 +16,6 @@ import * as zIndex from './modules/core/zIndex.mjs';
 import * as parallax from './modules/core/parallax.mjs';
 import * as viewPort from './modules/core/viewPort.mjs';
 import * as filters from './modules/core/filters.mjs';
-import * as cardConstants from './modules/scene/cardConstants.mjs';
 import * as resizeHandle from './modules/core/resizeHandle.mjs';
 import * as bullsEye from './modules/core/bullsEye.mjs';
 import * as aimPoint from './modules/core/aimPoint.mjs';
@@ -26,6 +25,7 @@ import { ResumeManager } from './modules/resume/resumeManager.mjs';
 
 import { Logger, LogLevel } from "./modules/logger.mjs";
 const logger = new Logger("main", LogLevel.DEBUG);
+
 // --------------------------------------
 // Element reference globals
 
@@ -67,9 +67,20 @@ document.addEventListener('mouseup', function() {
     document.getElementById("scene-container").classList.remove('no-select');
 });
 
+function runSanityTests() {
+    // sanity check for z and z_index functions
+    zIndex.test_z_functions();
+    // sanity check for color utils
+    colorUtils.testColorUtils();
+    // sanity check for math utils
+    mathUtils.testMathUtils();  
+}
 
 // Initialize the application
 async function initialize() {
+
+    runSanityTests();
+
     console.log("loaded job.length:", jobs.length);
 
     try {
@@ -90,10 +101,6 @@ async function initialize() {
         const defaultTimelineYear = maxTimelineYear;
         timeline.initializeTimeline(minTimelineYear, maxTimelineYear, defaultTimelineYear);
 
-        // sanity check for z and z_index functions
-        zIndex.test_z_functions();
-        // sanity check for color utils
-        colorUtils.test_color_utils();
 
     /**
         * Create bizCardDivs after the following
@@ -133,8 +140,14 @@ async function initialize() {
         // Add event listeners
         sceneContainer.initializeSceneContainer();
 
-        // Now that everything is initialized, call focalPoint.handleOnWindowLoad()
+        // Initialize parallax effects
+        parallax.initializeParallax();
+
+        // Initialize focal point after everything else is initialized
         focalPoint.initializeFocalPoint();
+
+        // Start the focal point animation loop for parallax effects
+        focalPoint.startFocalPointAnimation();
 
     } catch (error) {
         console.error('Failed to initialize application:', error);

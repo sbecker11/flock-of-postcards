@@ -1,104 +1,106 @@
 // modules/core/parallax.mjs
 
-import { get_z_from_zIndexStr } from './zIndex.mjs';
-import * as domUtils from '../utils/domUtils.mjs';
+import * as viewPort from './viewPort.mjs';
+import { inRect } from '../utils/utils.mjs';
+import * as focalPoint from './focalPoint.mjs';
+import * as mathUtils from '../utils/mathUtils.mjs';
+
+import { Logger, LogLevel } from '../logger.mjs';
+const logger = new Logger("parallax", LogLevel.ERROR);
 
 // Parallax constants
 export const PARALLAX_X_EXAGGERATION_FACTOR = 0.05;
 export const PARALLAX_Y_EXAGGERATION_FACTOR = 0.1;
 
-/**
- * Gets the current parallax values
- * @returns {{parallaxX: number, parallaxY: number}} The current parallax values
- */
-export function getParallax() {
-    return {
-        parallaxX: window.parallaxX || 0,
-        parallaxY: window.parallaxY || 0
-    };
+const sceneContainer = document.getElementById("scene-container");
+
+export function initializeParallax() {
+    console.log('=== PARALLAX INITIALIZATION ===');
+    console.log('Registering viewAllBizCardDivs as focal point listener');
+    console.log('viewAllBizCardDivs function:', viewAllBizCardDivs);    
+    focalPoint.addFocalPointPositionListener(viewAllBizCardDivs);
 }
 
-/**
- * Gets the z-translate string for a given element
- * @param {number} dh - Horizontal parallax factor
- * @param {number} dv - Vertical parallax factor
- * @param {number} zValue - Z value
- * @param {number} sceneContainer_dx - X offset from scene-plane container
- * @param {number} sceneContainer_dy - Y offset from scene-plane container
- * @returns {string} The z-translate string
- */
-export function getZTranslateStr(dh, dv, zValue, sceneContainer_dx, sceneContainer_dy) {
-    const dx = dh * zValue;
-    const dy = dv * zValue;
-    return `${dx}px ${dy}px`;
+function getSceneRectString( sceneRect ) {
+    const srLeft = sceneRect.left;
+    const srTop = sceneRect.top;
+    const srRight = sceneRect.right;
+    const srBottom = sceneRect.bottom;
+    const sceneRectArray = ["sceneRect:",srLeft,srTop,srRight,srBottom];
+    const sceneRectStr = sceneRectArray.join(",");
+    return sceneRectStr;
 }
 
-/**
- * Applies parallax effect to a card div
- * @param {HTMLElement} skillCardDiv - The card div to apply parallax to
- * @returns {string|null} The translate string used or null if no parallax was applied
- */
-export function applyParallaxToOneCardDiv(skillCardDiv) {
-    const zIndexStr = skillCardDiv.style.zIndex;
-    const savedZ = skillCardDiv.getAttribute("saved_z");
-    
-    if ((savedZ === "") || (zIndexStr == SELECTED_CARD_Z_INDEX)) {
-        return null;
-    }
-
-    if (zIndexStr === null) {
-        return null;
-    }
-
-    const { parallaxX, parallaxY } = getParallax();
-    const sceneContainerX = domUtils.half(sceneContainer.offsetWidth);
-    const sceneContainerY = domUtils.half(sceneContainer.offsetHeight);
-
-    const dh = parallaxX * PARALLAX_X_EXAGGERATION_FACTOR;
-    const dv = parallaxY * PARALLAX_Y_EXAGGERATION_FACTOR;
-
-    const zValue = get_z_from_zIndexStr(zIndexStr);
-
-    const cardDivX = domUtils.half(skillCardDiv.offsetWidth);
-    const cardDivY = domUtils.half(skillCardDiv.offsetHeight);
-
-    const sceneContainer_dx = sceneContainerX - cardDivX;
-    const sceneContainer_dy = sceneContainerY - cardDivY;
-
-    const zTranslateStr = getZTranslateStr(dh, dv, zValue, sceneContainer_dx, sceneContainer_dy);
-
-    try {
-        skillCardDiv.style.translate = zTranslateStr;
-    } catch (error) {
-        // Silently handle errors
-    }
-    return zTranslateStr;
+function getFocalPontString(viewFP) {
+    const {x, y} = viewFP;
+    const viewFpArray = ["viewFP:",x,y];
+    const viewFpStr = viewFpArray.join(",");
+    return viewFpStr;
 }
 
+
 /**
+ * External function called from focalPoint animation loop
+ * registered as a focalPointPositionListener function
  * Applies parallax effect to all card divs in the viewPort
- * @param {HTMLElement} sceneContainer - The scene-plane container element
+ * and nly called when focalPoint has moved whether dragged or not
+ * @param {} viewFP - viewPort-relative position of focalPoint center
+ * @param {*} prefix - used for verbosity
+ * @param {*} sceneRect - scene-relative viewport rect
  */
-export function renderAllTranslateableDivsAtsceneContainerCenter(sceneContainer) {
-    const sceneContainerX = domUtils.half(sceneContainer.offsetWidth);
-    const sceneContainerY = domUtils.half(sceneContainer.offsetHeight);
-    const viewPortGeometry = {
-        top: sceneContainer.getBoundingClientRect().top,
-        left: sceneContainer.getBoundingClientRect().left,
-        width: sceneContainer.offsetWidth,
-        height: sceneContainer.offsetHeight
-    };
-    const translateableDivs = findAllTranslatableCardsInViewPort(viewPortGeometry);
-    
-    for (const div of translateableDivs) {
-        const divWidth = div.offsetWidth;
-        const trans_dx = sceneContainerX - domUtils.half(divWidth);
-        const trans_dy = 0;
-        const translateStr = `${trans_dx}px ${trans_dy}px`;
-        try {
-            div.style.translate = translateStr;
-        } catch (error) {
-            // Silently handle errors
-        }
+export function viewAllBizCardDivs(viewFP, prefix, sceneRect) {
+    if ( !viewPort.viewPortIsInitialized() ) {
+        throw new Error("viewPortProperties is not initialized"); 
     }
-} 
+    const { fpX, fpY } = viewFP; 
+    const { vpX, vpY } = viewPort.getViewPortOrigin();
+    const sceneRectStr = getSceneRectString(sceneRect);
+    const viewFpStr = getFocalPontString(viewFP);
+    logger.info("viewAllBizCardDivs viewFp:", viewFpStr, "sceneRect:", sceneRectStr);
+
+    const dh = (vpX - fpX) * PARALLAX_X_EXAGGERATION_FACTOR;
+    const dv = (vpY - fpY) * PARALLAX_Y_EXAGGERATION_FACTOR;
+
+    const bizCardDivs = document.getElementsByClassName("biz-card-div");
+
+    let numDivs = 0;
+    let inSceneRectCount = 0;
+    let outOfSceneRectCount = 0;
+
+    for (const bizCardDiv of bizCardDivs) {
+
+        // scene-relative position of bizCardDiv center
+        const divX = parseFloat(bizCardDiv.getAttribute("data-sceneCenterX"));
+        const divY = parseFloat(bizCardDiv.getAttribute("data-sceneCenterY"));
+        
+        let inTheSceneRect = inRect(divX, divY,  sceneRect);
+        if ( inTheSceneRect ) {
+            inSceneRectCount++;
+
+            // scene-relative z of bizCardDiv
+            const divZ = parseFloat(bizCardDiv.getAttribute("data-sceneZ"));
+            if ( !divZ ) {
+                logger.error(`divZ is null for ${bizCardDiv.id}`);
+                continue;
+            }
+            // inverse of scene-relative z of bizCardDiv
+            const inv_divZ = 1.0 / divZ;
+
+            const dx = dh + (vpX - divX) * inv_divZ;
+            const dy = dv + (vpY - divY) * inv_divZ;
+
+            const zTranslateStr = `${dx}px ${dy}px`;
+
+            bizCardDiv.style.translate = zTranslateStr;
+
+        } else {
+            outOfSceneRectCount++;
+        }
+
+        numDivs++;
+    }
+
+    // Log the viewport counts
+    console.log(`📊 BizCardDiv Counts: ${inSceneRectCount} in sceneRect, ${outOfSceneRectCount}, ${outOfSceneRectCount} outside sceneRect (Total: ${bizCardDivs.length}) sceneRect:${sceneRectStr}`);
+}
+

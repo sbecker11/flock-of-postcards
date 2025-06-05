@@ -12,7 +12,7 @@ import * as sceneContainer from './sceneContainer.mjs';
 import * as zIndex from '../core/zIndex.mjs';
 
 import { Logger, LogLevel } from '../logger.mjs';
-const log = new Logger("bizCardDivModule", LogLevel.DEBUG);
+const logger = new Logger("bizCardDivModule", LogLevel.DEBUG);
 
 // Business card constants
 export const BIZCARD_MEAN_WIDTH = 200;
@@ -85,7 +85,7 @@ export function createBizCardDiv(job, jobIndex) {
 
     // appending the bizCarDiv to the scenePlane
     const scenePlane = document.getElementById("scene-plane");
-    log.info("bizCardDivModule:createBizCardDiv: appending bizCardDiv.id:", bizCardDiv.id, " to scenePlane");
+    logger.info("bizCardDivModule:createBizCardDiv: appending bizCardDiv.id:", bizCardDiv.id, " to scenePlane");
     scenePlane.appendChild(bizCardDiv);
     bizCardDiv.style.opacity = "0.5";
 
@@ -141,7 +141,7 @@ function setBizCardDivSceneGeometry(bizCardDiv, job) {
 
 export function handleClickEvent(element) {
     if ( !element ) throw new Error('bizCardDivModule:handleClickEvent: given null element');
-    log.info('bizCardDivModule:handleClickEvent: element.id', element.id);
+    logger.info('bizCardDivModule:handleClickEvent: element.id', element.id);
     const jobIndex = element.getAttribute('data-job-index');
     if ( !utils.isNumeric(jobIndex)) throw new Error('bizCardDivModule:handleClickEvent: element non-numeric data-job-index attribute string');
     if ( domUtils.hasClass(element, "selected")) {
@@ -163,7 +163,7 @@ export function handleClickEvent(element) {
 
 export function handleMouseEnterEvent(element) {
     if ( !element ) throw new Error('bizCardDivModule:handleMouseEnterEvent: given null element');
-    log.info('bizCardDivModule:handleMouseEnterEvent: element.id', element.id);
+    logger.info('bizCardDivModule:handleMouseEnterEvent: element.id', element.id);
     const jobIndex = element.getAttribute('data-job-index');
     if ( !utils.isNumeric(jobIndex)) throw new Error('bizCardDivModule:handleMouseEnterEvent: element has non-numeric data-job-index attribute string');
     if ( !domUtils.hasClass(element, "selected")) {
@@ -176,7 +176,7 @@ export function handleMouseEnterEvent(element) {
 }
 export function handleMouseLeaveEvent(element) {
     if ( !element ) throw new Error('bizCardDivModule:handleMouseLeaveEvent: given null element');
-    log.info('bizCardDivModule:handleMouseLeaveEvent: element.id', element.id);
+    logger.info('bizCardDivModule:handleMouseLeaveEvent: element.id', element.id);
     const jobIndex = element.getAttribute('data-job-index');
     if ( !utils.isNumeric(jobIndex) ) throw new Error('bizCardDivModule:handleMouseLeaveEvent: element has non-numeric data-job-index attribute string');
     if ( !domUtils.hasClass(element, "selected")) {

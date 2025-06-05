@@ -1,5 +1,8 @@
 // /modules/core/filters.mjs
 
+import { Logger, LogLevel } from '../logger.mjs';
+const logger = new Logger("filters", LogLevel.INFO);
+
 import { linearInterp } from '../utils/mathUtils.mjs';
 
 // Filter constants
