@@ -31,11 +31,15 @@ function getSceneRectString( sceneRect ) {
     return sceneRectStr;
 }
 
-function getFocalPontString(viewFP) {
+function getFocalPointString(viewFP) {
     const {x, y} = viewFP;
     const viewFpArray = ["viewFP:",x,y];
     const viewFpStr = viewFpArray.join(",");
     return viewFpStr;
+}
+
+function inBounds(top, bottom, rect) {
+    return ( bottom >= rect.top || top <= rect.bottom );
 }
 
 
@@ -55,7 +59,7 @@ export function viewAllBizCardDivs(viewFP, prefix, sceneRect) {
     const { fpX, fpY } = viewFP; 
     const { vpX, vpY } = viewPort.getViewPortOrigin();
     const sceneRectStr = getSceneRectString(sceneRect);
-    const viewFpStr = getFocalPontString(viewFP);
+    const viewFpStr = getFocalPointString(viewFP);
     logger.info("viewAllBizCardDivs viewFp:", viewFpStr, "sceneRect:", sceneRectStr);
 
     const dh = (vpX - fpX) * PARALLAX_X_EXAGGERATION_FACTOR;
@@ -68,14 +72,22 @@ export function viewAllBizCardDivs(viewFP, prefix, sceneRect) {
     let outOfSceneRectCount = 0;
 
     for (const bizCardDiv of bizCardDivs) {
-
+        // hidden by default
+        bizCardDiv.style.display = "none";
+    
         // scene-relative position of bizCardDiv center
         const divX = parseFloat(bizCardDiv.getAttribute("data-sceneCenterX"));
         const divY = parseFloat(bizCardDiv.getAttribute("data-sceneCenterY"));
+        const divTop = parseFloat(bizCardDiv.getAttribute("data-sceneTop"));
+        const divBtm = parseFloat(bizCardDiv.getAttribute("data-sceneBottom"));
         
-        let inTheSceneRect = inRect(divX, divY,  sceneRect);
+        // scene-relative position of bizCardDiv center`
+        let inTheSceneRect = inBounds(divTop, divBtm, sceneRect);
         if ( inTheSceneRect ) {
             inSceneRectCount++;
+
+            // bizCardDiv is visible when inside the sceneRect
+            bizCardDiv.style.display = "block";
 
             // scene-relative z of bizCardDiv
             const divZ = parseFloat(bizCardDiv.getAttribute("data-sceneZ"));
@@ -101,6 +113,6 @@ export function viewAllBizCardDivs(viewFP, prefix, sceneRect) {
     }
 
     // Log the viewport counts
-    console.log(`📊 BizCardDiv Counts: ${inSceneRectCount} in sceneRect, ${outOfSceneRectCount}, ${outOfSceneRectCount} outside sceneRect (Total: ${bizCardDivs.length}) sceneRect:${sceneRectStr}`);
+    console.log(`📊 BizCardDiv Counts: ${inSceneRectCount} in, ${outOfSceneRectCount} out`);
 }
 
