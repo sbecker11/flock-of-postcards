@@ -26,19 +26,23 @@ const viewPortProperties = {
 };
 
 
-let _isInitialized = false;
+let _isViewPortInitialIzed = false;
 
 const _sceneContainer = document.getElementById("scene-container");
 const _resumeContainer = document.getElementById("resume-container");
 
 export function initializeViewPort() {
+    if ( _isViewPortInitialIzed == true ) {
+        console.warn("duplicate all to viewPort.initializeViewPort() ignored");
+        return;
+    }
     console.log("initializeViewPort");
-    _isInitialized = true;
+    _isViewPortInitialIzed = true;
     updateViewPort();
 }
 
-export function viewPortIsInitialized() {
-    return _isInitialized;
+export function isViewPortInitialized() {
+    return _isViewPortInitialIzed;
 }
 
 /**
@@ -49,7 +53,7 @@ export function viewPortIsInitialized() {
  */
 export function updateViewPort() {
     // console.log("updateViewPort");
-    if ( !viewPortIsInitialized() ) {
+    if ( !isViewPortInitialized() ) {
         throw new Error("viewPortProperties is not initialized");
     }
     const sceneContainerRect = _sceneContainer.getBoundingClientRect();
@@ -74,12 +78,12 @@ export function updateViewPort() {
     // const handleLeft = resizeHandle.getResizeHandleRect.left || window.innerWidth / 2;
 
     // tell the bullsEye to update the position of its HTML element (using getViewPortCenter()
-    bullsEye.updateBullsEyeCenter();
+    bullsEye.updateBullsEye();
 }
 
 export function getViewPortOrigin() {
     // console.log("viewPort.getViewPortOrigin()");
-    if ( !viewPortIsInitialized() ) {
+    if ( !isViewPortInitialized() ) {
         throw new Error("viewPortProperties is not initialized");
     }
     //console.log("^^^^^^^^^ getViewPortOrigin: viewPortProperties.centerX:", viewPortProperties.centerX);
@@ -90,7 +94,7 @@ export function getViewPortOrigin() {
 }
 
 export function getViewPortRect() {
-    if ( !viewPortIsInitialized() ) {
+    if ( !isViewPortInitialized() ) {
         throw new Error("viewPortProperties is not initialized");
     }
     return {
@@ -107,7 +111,7 @@ export function getViewPortRect() {
  * @returns {boolean} True if the card div is within the viewPortProperties
  */
 export function isBizCardDivWithinViewPort(bizCardDiv) {
-    if ( !viewPortIsInitialized() ) {
+    if ( !isViewPortInitialized() ) {
         throw new Error("viewPortProperties is not initialized");
     }
     const rect = bizCardDiv.getBoundingClientRect();
@@ -121,7 +125,7 @@ export function isBizCardDivWithinViewPort(bizCardDiv) {
 
 export function setViewPortWidth(width) {
     // console.log("viewPort.setViewPortWidth:", width );
-    if ( !viewPortIsInitialized() ) {
+    if ( !isViewPortInitialized() ) {
         throw new Error("viewPort not yet initialized");
     }
     if ( !utils.isNumber(width) ) {
@@ -138,14 +142,14 @@ export function setViewPortWidth(width) {
  * @param {HTMLElement} bizCardDiv - The card div
  */
 export function applyViewRelativeStyling(bizCardDiv) {
-    if ( !viewPortIsInitialized() ) {
+    if ( !isViewPortInitialized() ) {
         throw new Error("viewPortProperties is not initialized");
     }
     if ( !isHTMLElement(bizCardDiv) ) {
         throw new Error(`bizCardDiv is not an HTMLElement: ${bizCardDiv}`);
     }
 
-    const bullsEyeX = bullsEye.getBullsEyeCenter().x;
+    const bullsEyeX = bullsEye.getBullsEye().x;
     // console.log("applyViewRelativeStyling:", bizCardDiv.id, "bullsEyeX:", bullsEyeX);
 
 

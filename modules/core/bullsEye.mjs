@@ -6,27 +6,34 @@ const logger = new Logger("bullsEye", LogLevel.INFO, LogLevel.TRACE_ON_FAILURE);
 
 const _bullsEyeElement = document.getElementById("bulls-eye");
 const _bullsEyeRad = _bullsEyeElement.offsetWidth/2;
+let _isBullsEyeInitialized = false;
 
 export function initializeBullsEye() {
-    updateBullsEyeCenter();
+    if ( _isBullsEyeInitialized ) {
+        console.warn("duplicate bullsEye.initializeBullsEye() ignored");
+    }
+    updateBullsEye();
+    _isBullsEyeInitialized = true;
+}
+
+export function isBullsEyeInitialized() {
+    return _isBullsEyeInitialized;
 }
 
 // return the center of the viewPort in viewPort coordinates
-export function getBullsEyeCenter() {
-    if ( !viewPort.viewPortIsInitialized() ) {
+export function getBullsEye() {
+    if ( !viewPort.isViewPortInitialized() ) {
         throw new Error("viewPortProperties is not initialized");
     }
     return viewPort.getViewPortOrigin()
 }
 
 // update the position of the HTML element based on the viewPortProperties
-export function updateBullsEyeCenter() {
-    const {x:_centerX, y:_centerY} = getBullsEyeCenter();
+export function updateBullsEye() {
+    const {x:_centerX, y:_centerY} = viewPort.getViewPortOrigin();
 
     // _bullsEyeElement.style.left = `${_centerX - _bullsEyeRad}px`;
     // _bullsEyeElement.style.top = `${_centerY - _bullsEyeRad}px`;
     _bullsEyeElement.style.left = `${_centerX}px`;
     _bullsEyeElement.style.top = `${_centerY}px`;
-
-    console.log("BullsEye position updated:", getBullsEyeCenter());
 }

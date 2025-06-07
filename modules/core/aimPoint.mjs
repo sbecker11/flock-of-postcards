@@ -50,7 +50,7 @@ export function setAimPoint(position, prefix="") {
         _aimPointElement.classList.remove('hidden');
     }
     if (prefix != "") {
-        console.log(`setAimPoint:${prefix}`, position);
+        //console.log(`setAimPoint:${prefix}`, position);
     }
 }
 
@@ -88,11 +88,11 @@ export function toggleAimPointMode() {
 // Add setter/getter for the mode
 export function setAimPointMode(mode) {
     if (!Object.values(AimPointMode).includes(mode)) {
-        logger.error(`Invalid aim point mode: ${mode}`);
+        console.error(`Invalid aim point mode: ${mode}`);
         return;
     }
     _aimPointMode = mode;
-    logger.info(`AimPoint mode: ${mode}`);
+    //console.info(`AimPoint mode: ${mode}`);
     saveState();
 }
 
@@ -112,7 +112,7 @@ function handleScrollPassThrough(event) {
     // Get the scene-container element (the scrollable container)
     const sceneContainer = document.getElementById('scene-container');
     if (!sceneContainer) {
-        logger.error('scene-container not found for scroll pass-through');
+        console.error('scene-container not found for scroll pass-through');
         return;
     }
 

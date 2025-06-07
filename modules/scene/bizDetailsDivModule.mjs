@@ -27,7 +27,7 @@ export function createBizResumeDetailsDiv(bizResumeDiv, bizCardDiv) {
     bizResumeDetailsDiv.id = `biz-resume-details-div-${jobIndex}`;
 
     // see createBizDetailsDiv::34  colorIndex format <number>
-    console.log("createBizResumeDetailsDiv: colorIndex:", colorIndex);
+    // console.log("createBizResumeDetailsDiv: colorIndex:", colorIndex);
     bizResumeDetailsDiv.setAttribute("data-color-index", colorIndex);
     bizResumeDetailsDiv.classList.add('color-index-foreground-only');
 
@@ -40,7 +40,7 @@ export function createBizResumeDetailsDiv(bizResumeDiv, bizCardDiv) {
 export function createBizCardDetailsDiv(bizCardDiv, job) {
     if ( !bizCardDiv ) throw new Error('createBizDetailsDiv: given null bizCardDiv');
     if ( !job ) throw new Error('createBizDetailsDiv: given null job');
-    console.log("createBizDetailsDiv: job:", job);
+    // console.log("createBizDetailsDiv: job:", job);
     const bizCardDetailsDiv = document.createElement('div');
     const jobIndex = bizCardDiv.getAttribute('data-job-index');
     if ( !utils.isNumeric(jobIndex) ) throw new Error(' createBizCardDetailsDiv: given non-numeric jobIndex attribute string');

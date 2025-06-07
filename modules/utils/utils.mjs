@@ -19,9 +19,11 @@ export const isNumber = (value) => typeof value === 'number' && !Number.isNaN(va
 export const validateKey = (obj, key) => { if (!(key in obj)) throw new Error(`Key '${key}' not found in object`); };
 export const validateString = (str) => { if (typeof str === 'undefined' || str === null || typeof str !== 'string' || str.trim().length === 0) throw new Error(`Invalid string:[${str}]`); };
 export const validateIntArrayLength = (arr, length) => { if (typeof arr === 'undefined' || arr === null || !Array.isArray(arr) || arr.some(item => !Number.isInteger(item)) || (typeof length !== 'undefined' && arr.length !== length)) throw new Error('Invalid array of integers or length mismatch'); };
+export const validateNumber = (num) => { if (typeof num === 'undefined' || num === null || typeof num !== 'number' || !Number.isFinite(num)) throw new Error('Invalid number'); };
 export const validateFloat = (num) => { if (typeof num === 'undefined' || num === null || typeof num !== 'number' || !Number.isFinite(num)) throw new Error('Invalid floating-point number'); };
 export const validateFloatInRange = (num, min, max) => { if (typeof num === 'undefined' || num === null || typeof num !== 'number' || !Number.isFinite(num) || num < min || num > max) throw new Error(`Invalid floating-point number:[${num}] out of range:[${min}..${max}]`); };
-
+export const validatePosition = (position) => { validateFloat(position.x) && validateFloat(position.y) };
+export const validateRect = (domRect) => { validateFloat(domRect.top) && validateFloat(domRect.left) && validateFloat(domRect.right) && validateFloat(domRect.bottom) };
 export function isNumeric(obj) {
     const n = parseFloat(obj);
     return Number.isFinite(n);
@@ -43,6 +45,29 @@ export function inRect (x, y, rect) {
     );
 }
 
+/**
+ * Create a position string
+ * @param {x:number, y:number} pos - the position
+ * @param {string} sep - the separator string, e.g. ',\n'
+ * @returns {string} - the position string
+ */
+export function getPositionAsString(pos, sep=',') {
+    const posArray = [`x:${pos.x}`,`y:${pos.y}`];
+    const posString = '{' + sep.join(rectArray) + '}';
+    return posString;
+}
+
+/**
+ * Create a rect string
+ * @param {top:number, left:number, right:number, bottom:number} rect - the DOMRect
+ * @param {string} sep - the separator string, e.g. ',\n'
+ * @returns {string} - the rect string
+ */
+export function getRectAsString(rect, sep='') {
+    const rectArray = [`top:${rect.top}`,`left:${rect.left}`,`right:${rect.right}`,`bottom:${rect.bottom}`];
+    const rectString = "{" + sep.join(rectArray) + "}";
+    return rectString;
+}
 
 // returns true for "5", "5.2", "5_foreground_only"
 // returns false for "abc", "5abc", "5_foreground_only"

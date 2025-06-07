@@ -108,6 +108,23 @@ export function getSquaredDistance(arr1, arr2) {
 export function getEuclideanDistance(arr1, arr2) {
     return Math.sqrt(getSquaredDistance(arr1, arr2));
 }
+
+/**
+ * Returns the sum of differences among all 
+ * properties of the DOMRec object
+ * @param {DOMRect} rect1 
+ * @param {DOMRect} rect2 
+ */
+export function getRectSquaredDifference(rect1, rect2) {
+    const squared_diff = (val1, val2) => { return (val1-val2)*(val1-val2); }
+    let diff = 0;
+    diff += squared_diff(rect1.top, rect2.top);
+    diff += squared_diff(rect1.left, rect2.left); 
+    diff += squared_diff(rect1.right, rect2.right);
+    diff += squared_diff(rect1.bottom, rect2.bottom);
+    return diff;
+}
+
 /**
  * Gets a random int number between minVal and maxVal (inclusive)
  * @param {number} minVal - Minimum int value

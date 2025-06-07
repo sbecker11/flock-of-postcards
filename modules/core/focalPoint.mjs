@@ -5,7 +5,7 @@ import * as utils from '../utils/utils.mjs';
 import * as mathUtils from '../utils/mathUtils.mjs';
 import * as viewPort from './viewPort.mjs';
 import * as resizeManager from './resizeHandle.mjs';
-import { getBullsEyeCenter, updateBullsEyeCenter } from './bullsEye.mjs';
+import * as bullsEye from './bullsEye.mjs';
 import * as aimPoint from './aimPoint.mjs';
 
 import { Logger, LogLevel } from "../logger.mjs";
@@ -47,6 +47,9 @@ const EASE_FACTOR = 0.15;
 const EPSILON = EASE_FACTOR / 2.0;
 const MAX_NEAR_DISTANCE = 0.5;
 
+const FOCALPOINT_EPSILON = 1.0;
+const SCENERECT_EPSILON = 1.0;
+
 var _isFocalPointInitialized = false;
 var _sceneContainer = document.getElementById("scene-container")
 var _focalPointElement = document.getElementById("focal-point");
@@ -67,6 +70,9 @@ let _isLockedToBullsEye = false;
 let _followPointerOutsideContainer = false;
 let _pointerIsOutsideWindow = false;  // New state to track if pointer is outside window
 
+let _lastFocalPoint = {x:0, y:0};
+let _lastSceneRect = { top:0, left:0, right:0, bottom:0 };
+
 /**
  * sets the focalPoint's status
  * @param {*} new_status 
@@ -77,7 +83,7 @@ function setStatus(new_status, prefix="") {
     _status = new_status;
     if ( _status != _lastStatus ) {
         prefix = `setStatus:${prefix}`;
-        logger.info(prefix, _status);
+        //console.info(prefix, _status);
     }
 }
 
@@ -145,7 +151,7 @@ export function saveState() {
             version: "1.0"
         };
         localStorage.setItem(STORAGE_KEY, JSON.stringify(state, null, 2));
-        logger.log('Saved focalPoint state:', state);
+        //console.log('Saved focalPoint state:', state);
     } catch (e) {
         logger.error('Failed to save focalPoint state:', e);
     }
@@ -162,7 +168,7 @@ function loadState() {
             return getDefaultState();
         }
         const state = JSON.parse(saved);
-        logger.log('Loaded focalPoint state:', state);
+        //console.log('Loaded focalPoint state:', state);
         return state;
     } catch (e) {
         logger.error('Failed to load focalPoint state:', e);
@@ -187,7 +193,7 @@ function initializeState() {
     //     resizeHandle.setScenePercent(scenePercent);
 
     //     // Update bulls-eye position after setting the divider
-    //     // updateBullsEyeCenter();
+    //     // updateBullsEye();
     // }
 
     // Apply palette selection if available
@@ -215,7 +221,7 @@ export function getCurrentState() {
  * on windwo load
  */
 export function handleOnWindowLoad() {
-    logger.log("focalPoint handlingOnWindowLoad");
+    //console.log("focalPoint handlingOnWindowLoad");
     startEasingToBullsEye("handleOnWindowLoad");
 }
 
@@ -229,7 +235,7 @@ export function set_isBeingDragged_true(eventPosition) {
     _isEasingToBullsEye = false;
     aimPoint.setAimPoint(eventPosition, "set_isBeingDragged_true");
     _mouseDrag.setStartPosition(eventPosition);
-    logger.log("set _isBeingDragged:", _isBeingDragged, "eventPosition:", eventPosition);
+    //console.log("set _isBeingDragged:", _isBeingDragged, "eventPosition:", eventPosition);
 }
 
 /**
@@ -243,7 +249,7 @@ export function set_isBeingDragged_false(eventPosition) {
     aimPoint.setAimPoint(eventPosition, "set_isBeingDragged_false");
     _mouseDrag.setEndPosition(eventPosition);
     moveFocalPointTo(eventPosition);
-    logger.log("set _isBeingDragged:", _isBeingDragged, "eventPosition:", eventPosition);
+    //console.log("set _isBeingDragged:", _isBeingDragged, "eventPosition:", eventPosition);
 }
 
 
@@ -251,27 +257,28 @@ export function set_isBeingDragged_false(eventPosition) {
  * called on window resize
  */
 export function handleOnWindowResize() {
-    logger.log("focalPoint handlingOnWindowLoad");
+    //console.log("focalPoint handlingOnWindowLoad");
    startEasingToBullsEye("handleOnWindowResize");
 }
 
 /**
- * @returns the focalPoint viewPort-relative center
+ * @returns the current viewPort-relative position of the focalPoint center
  */
 export function getFocalPoint() {
-    if ( !_focalPointElement ) {
+    if ( !isFocalPointInitialized() ) {
         return null;
     }
     const rect = _focalPointElement.getBoundingClientRect();
     return {
-        x: rect.left + (rect.width / 2),
-        y: rect.top + (rect.height / 2)
-    };
+        x: rect.left + _focalPointRadius,
+        y: rect.top + _focalPointRadius
+    }
 }
 
 export function getSceneRelativeVpRect() {
     const vpRect = viewPort.getViewPortRect();
     const scrollTop = _sceneContainer.scrollTop;
+
     return {
         left: vpRect.left,
         top: vpRect.top + scrollTop,
@@ -303,7 +310,7 @@ let _lastPosition = { x:0, y:0 };
 
 export function moveFocalPointTo(position, prefix="") {
     if (_isLockedToBullsEye && prefix !== "locked-to-bullsEye") {
-        logger.log("moveFocalPointTo ignored while locked to bulls-eye");
+        //console.log("moveFocalPointTo ignored while locked to bulls-eye");
         return;
     }
     // calculate distance moved since last call
@@ -321,13 +328,17 @@ export function moveFocalPointTo(position, prefix="") {
         };
     }
     
-    logger.log("moveFocalPointTo", position);
+    //console.log("moveFocalPointTo", position);
     // Use viewPort coordinates directly
     _focalPointElement.style.left = `${position.x}px`;
     _focalPointElement.style.top = `${position.y}px`;
 
-    notifyPositionListeners(position, "moveFocalPointTo", getSceneRelativeVpRect());
+    notifyPositionListeners("moveFocalPointTo");
     saveState(); // Save state when position changes
+}
+
+export function isFocalPointInitialized() {
+    return _isFocalPointInitialized;
 }
 
 /** 
@@ -336,7 +347,7 @@ export function moveFocalPointTo(position, prefix="") {
  */
 export function initializeFocalPoint(focalPointElement) {
     if ( _isFocalPointInitialized ) {
-        console("focalPoint ignoring duplicate initialization request");
+        console.info("focalPoint ignoring duplicate initialization request");
         return;
     }
     _isFocalPointInitialized = true;
@@ -344,9 +355,6 @@ export function initializeFocalPoint(focalPointElement) {
     _focalPointElement = document.getElementById("focal-point");
     if ( !_focalPointElement ) throw new Error("initializeFocalPoint focal-point element not found");
     _focalPointRadius = _focalPointElement.getBoundingClientRect().width / 2.0;
-
-    // Initialize state from storage
-    const state = initializeState();
     
     _focalPointNowSubpixelPrecision = getFocalPoint();
     _isAwake = true;
@@ -364,13 +372,11 @@ export function initializeFocalPoint(focalPointElement) {
 
     // Initialize resize observer before any other operations
     initializeResizeObserver();
-    
-    logger.log("Scene-div container initialized:", {
-        exists: !!_sceneContainer,
-        width: _sceneContainer.offsetWidth,
-        left: _sceneContainer.offsetLeft,
-        state: state
-    });
+
+    // Add window resize listener
+    window.addEventListener('resize', () => handleViewPortChange("window-resize"));
+
+    console.log('✅ ViewPort change listeners added');
 
     // Add scene-plane container event listeners
     _sceneContainer.addEventListener("mouseenter", onsceneContainerEnter);
@@ -397,12 +403,12 @@ export function initializeFocalPoint(focalPointElement) {
     _focalPointElement.addEventListener('wheel', handleScrollPassThrough, { passive: false });
     _focalPointElement.addEventListener('scroll', handleScrollPassThrough, { passive: false });
 
-    aimPoint.setAimPoint(getBullsEyeCenter(), "createFocalPoint");
-    moveFocalPointTo(getBullsEyeCenter(), "createFocalPoint");
+    aimPoint.setAimPoint(bullsEye.getBullsEye(), "createFocalPoint");
+    moveFocalPointTo(aimPoint.getAimPoint(), "createFocalPoint");
 
     // Update bulls-eye position again after any CSS transitions complete
     // setTimeout(() => {
-    //     updateBullsEyeCenter();
+    //     updateBullsEye();
     // }, 310); // Match the transition duration from CSS
 }
 
@@ -412,14 +418,69 @@ export function initializeFocalPoint(focalPointElement) {
 const _focalPointPositionListeners = [];
 
 /**
- * Notify listeners that the focalPoint has moved
- * @param {} viewRelativeFP - viewPort-relative position of focalPoint
- * @param {*} prefix for verbosity
- * @param {*} sceneRelativeVpRect scene-relative viewport rect
+ * Detects change of focalPoint or sceneRect
+ * @returns true if position has sufficient motion
  */
-function notifyPositionListeners(viewRelativeFP, prefix="",sceneRelativeVpRect) {
-    for (const listener of _focalPointPositionListeners) {
-        listener(viewRelativeFP, prefix, sceneRelativeVpRect);
+function positionsChanged() {
+    // Get values once
+    const focalPoint = getFocalPoint();
+    const sceneRect = getSceneRelativeVpRect();
+
+    // validate once
+    utils.validatePosition(focalPoint);
+    utils.validateRect(sceneRect);
+
+    let moved = false;
+
+    const focalPointDist = mathUtils.getPositionsSquaredDistance(focalPoint, _lastFocalPoint);
+    if ( focalPointDist >= FOCALPOINT_EPSILON ) {
+        moved = true;
+        _lastFocalPoint = focalPoint;
+    }
+
+    const sceneRectsDiff = mathUtils.getRectSquaredDifference(sceneRect,_lastSceneRect);
+    if ( sceneRectsDiff > SCENERECT_EPSILON ) {
+        moved = true;
+        _lastSceneRect = sceneRect;
+    }
+
+    if ( !moved ) {
+        console.log("focalPoint.notifyPositionListeners: no motion detected");
+        return false;
+    }
+    return true;
+}
+
+/**
+ * Notify listeners that the focalPoint or the sceneRelativeVpRect has moved
+ * and both have been initialized
+ * @param {position} viewRelativeFP - viewPort-relative position of focalPoint
+ * @param {string} optional prefix for verbosity
+ * @param {DOMRect} sceneRelativeVpRect scene-relative viewport rect
+ */
+function notifyPositionListeners(prefix="") {
+
+    // Check global conditions once
+    if (!isFocalPointInitialized() || !viewPort.isViewPortInitialized() ) {
+        console.warn("notifyPositionListeners: System not initialized");
+        return;
+    }
+    // check for motion detected
+    if ( !positionsChanged() ) {
+        return;
+    }
+
+    // load once
+    const focalPoint = getFocalPoint();
+    const sceneRect = getSceneRelativeVpRect();
+
+    // notify all listeners
+    for ( const listener of _focalPointPositionListeners ) {
+        try {
+            listener( focalPoint, prefix, sceneRect );
+        } catch (e) {
+            console.error("focalPoint.notifyPositionListeners:", e);
+        }
     }
 }
 
@@ -436,12 +497,14 @@ export function clearFocalPointPositionListeners() {
  */
 export function addFocalPointPositionListener(listener) {
     if (typeof listener === "function") {
-        logger.info("addFocalPointPositionListener", listener.name);
+        //console.info("addFocalPointPositionListener", listener.name);
         _focalPointPositionListeners.push(listener);
     } else {
         throw new Error("Listener must be a function");
     }
 }
+
+
 
 /**
  * called when the pointer enters the scene-plane
@@ -470,7 +533,7 @@ function onSceneContainerLeave(event) {
     const eventPosition = getEventPosition(event);
     setStatus("leaveContainer", "onSceneContainerLeave", LogLevel.LOG);        
     if (!_followPointerOutsideContainer && !_isBeingDragged) {
-        aimPoint.setAimPoint(getBullsEyeCenter(), "onSceneContainerLeave");
+        aimPoint.setAimPoint(bullsEye.getBullsEye(), "onSceneContainerLeave");
         startEasingToBullsEye("onSceneContainerLeave");
     }
 }
@@ -481,7 +544,7 @@ function onSceneContainerLeave(event) {
 */
 export function startEasingToAimPoint(prefix="") {
     if ( _isBeingDragged ) {
-        logger.log(prefix, "startEasingToAimPoint ignored while _isBeingDragged");
+        //console.log(prefix, "startEasingToAimPoint ignored while _isBeingDragged");
         return;
     }
     setStatus("easingToAimPoint", `startEasingToAimPoint:${prefix}`, LogLevel.LOG);
@@ -500,11 +563,11 @@ export function startEasingToAimPoint(prefix="") {
  */
 export function startEasingToBullsEye(prefix="") {
     if (_isBeingDragged) {
-        logger.log("startEasingToBullsEye ignored while _isBeingDragged");
+        //console.log("startEasingToBullsEye ignored while _isBeingDragged");
         return;
     }
 
-    aimPoint.setAimPoint(getBullsEyeCenter(), `startEasingToBullsEye:${prefix}`);
+    aimPoint.setAimPoint(bullsEye.getBullsEye(), `startEasingToBullsEye:${prefix}`);
     _isEasingToAimPoint = true;
     _isEasingToBullsEye = true;
     _isAwake = true;
@@ -576,7 +639,7 @@ export function drawFocalPointAnimationFrame() {
     const aimPos = aimPoint.getAimPoint();
     const dist = mathUtils.getPositionsEuclideanDistance(currentPos, aimPos);
 
-    // logger.log("Animation frame:", {
+    // //console.log("Animation frame:", {
     //     currentPos,
     //     aimPos,
     //     dist,
@@ -606,7 +669,7 @@ export function drawFocalPointAnimationFrame() {
             x: Math.round(_focalPointNowSubpixelPrecision.x),
             y: Math.round(_focalPointNowSubpixelPrecision.y)
         };
-        //logger.log("Moving to new position:", newPos);
+        //console.log("Moving to new position:", newPos);
         moveFocalPointTo(newPos);
     }
 }
@@ -641,7 +704,7 @@ function computeAStepCloserToAimSubpixelPrecision(nowPoint, aimPointElement, eas
  * external function used to toggle draggable state
  */
 export function toggleDraggable() {
-    logger.info("********** toggleDraggable called isDraggable:", _isDraggable);
+    //console.info("********** toggleDraggable called isDraggable:", _isDraggable);
     _isDraggable = !_isDraggable;
     if (_isDraggable) {
         _focalPointElement.classList.add('focal-point-is-draggable');
@@ -651,13 +714,13 @@ export function toggleDraggable() {
         _focalPointElement.style.pointerEvents = 'none';
     }
     saveState();
-    logger.info(`toggleDraggable: ${_isDraggable}`);
+    //console.info(`toggleDraggable: ${_isDraggable}`);
 }
 
 export function toggleLockedToBullsEye() {
     _isLockedToBullsEye = !_isLockedToBullsEye;
     if (_isLockedToBullsEye) {
-        moveFocalPointTo(getBullsEyeCenter(), "locked-to-bullsEye");
+        moveFocalPointTo(bullsEye.getBullsEye(), "locked-to-bullsEye");
         if (_isDraggable) {
             toggleDraggable();
         }
@@ -667,7 +730,7 @@ export function toggleLockedToBullsEye() {
         }
     }
     saveState();
-    logger.info(`toggleLockedToBullsEye: ${_isLockedToBullsEye}`);
+    //console.info(`toggleLockedToBullsEye: ${_isLockedToBullsEye}`);
 }
 
 /**
@@ -754,7 +817,7 @@ function onMouseUp_stopDraggingFocalPoint(event, prefix="") {
  */ 
 export function toggleFollowPointerOutsideContainer() {
     _followPointerOutsideContainer = !_followPointerOutsideContainer;
-    logger.log(`Aim point mode: ${_followPointerOutsideContainer ? 'Following pointer (window bounds)' : 'Container bounds only'}`);
+    //console.log(`Aim point mode: ${_followPointerOutsideContainer ? 'Following pointer (window bounds)' : 'Container bounds only'}`);
     if (_followPointerOutsideContainer) {
         document.addEventListener('mousemove', onDocumentMouseMove);
         window.addEventListener('mouseleave', onWindowMouseLeave);
@@ -790,7 +853,7 @@ function onWindowMouseLeave(event) {
     if (!_followPointerOutsideContainer || _isBeingDragged) return;
     _pointerIsOutsideWindow = true;
     const exitPosition = getEventPosition(event);
-    logger.log("Pointer left window at position:", exitPosition);
+    //console.log("Pointer left window at position:", exitPosition);
     // Keep the last known position
     aimPoint.setAimPoint(exitPosition, "window.mouseleave");
 }
@@ -804,7 +867,7 @@ function onWindowMouseEnter(event) {
     if (!_followPointerOutsideContainer || _isBeingDragged) return;
     _pointerIsOutsideWindow = false;
     const entryPosition = getEventPosition(event);
-    logger.log("Pointer re-entered window at position:", entryPosition);
+    //console.log("Pointer re-entered window at position:", entryPosition);
     aimPoint.setAimPoint(entryPosition, "window.mouseenter");
     startEasingToAimPoint("window.mouseenter");
 }
@@ -815,6 +878,51 @@ function onWindowMouseEnter(event) {
  */
 window.addEventListener('resize', handleOnWindowResize);
 
+// Add debounce utility variables
+let _resizeTimeout = null;
+const RESIZE_DEBOUNCE_DELAY = 150; // ms
+
+// Immediate parallax update (smooth)
+function handleViewPortChangeImmediate(source = "unknown") {
+    console.log(`🔄 Immediate ViewPort change from: ${source}`);
+
+    if (!isFocalPointInitialized() || !viewPort.isViewPortInitialized()) {
+        return;
+    }
+
+    const sceneContainer = document.getElementById('scene-container');
+    if (!sceneContainer) return;
+
+    // Update focal point position if locked to bulls-eye
+    if (_isLockedToBullsEye) {
+        moveFocalPointTo(bullsEye.getBullsEye(), `viewport-change-${source}`);
+    }
+
+    // Trigger parallax update with current dimensions
+    scrollTopUpdated(sceneContainer.scrollTop);
+}
+
+// Debounced resize completion (for heavy operations)
+function handleViewPortChangeComplete(source = "unknown") {
+    console.log(`✅ ViewPort resize completed from: ${source}`);
+
+    // Trigger bizResumeDiv resizing here
+    // You can call your bizResumeDiv resize function here
+    // Example: bizResumeDivSortingModule.resizeAllBizResumeDivs();
+}
+
+// Main function that handles both immediate and debounced updates
+function handleViewPortChange(source = "unknown") {
+    // Immediate parallax update for smooth movement
+    handleViewPortChangeImmediate(source);
+
+    // Debounced completion handler for heavy operations
+    clearTimeout(_resizeTimeout);
+    _resizeTimeout = setTimeout(() => {
+        handleViewPortChangeComplete(source);
+    }, RESIZE_DEBOUNCE_DELAY);
+}
+
 // Function to initialize resize observer
 function initializeResizeObserver() {
     if (_resizeObserver) {
@@ -824,18 +932,14 @@ function initializeResizeObserver() {
     _resizeObserver = new ResizeObserver((entries) => {
         for (const entry of entries) {
             if (entry.target === _sceneContainer) {
-            //     updateBullsEyeCenter();
-                // If focalPoint is locked to bulls-eye, update its position too
-                if (_isLockedToBullsEye) {
-                    moveFocalPointTo(getBullsEyeCenter(), "resize-observer");
-                }
+                handleViewPortChange("container-resize");
             }
         }
     });
 
     if (_sceneContainer) {
         _resizeObserver.observe(_sceneContainer);
-        logger.log("ResizeObserver initialized for scene-plane container");
+        //console.log("ResizeObserver initialized for scene-plane container");
     }
 }
 
@@ -880,7 +984,7 @@ function handleScrollPassThrough(event) {
     if (event.type === 'wheel') {
         const delta = event.deltaY;
         sceneContainer.scrollTop += delta;
-        logger.log('Passed wheel event to scene-container, delta:', delta);
+        //console.log('Passed wheel event to scene-container, delta:', delta);
     }
 
     // For scroll events, create and dispatch a new event
@@ -890,7 +994,7 @@ function handleScrollPassThrough(event) {
             cancelable: true
         });
         sceneContainer.dispatchEvent(newEvent);
-        logger.log('Passed scroll event to scene-container');
+        //console.log('Passed scroll event to scene-container');
     }
 }
 
@@ -914,9 +1018,9 @@ export function scrollTopUpdated(scrollTop) {
     const viewRelativeFP = getFocalPoint();
 
     // Notify all focalPointPositionListeners with the scene-relative rect
-    notifyPositionListeners(viewRelativeFP, "scrollTopUpdated", sceneRelativeVpRect);
+    notifyPositionListeners("scrollTopUpdated");
 
-    logger.log('FocalPoint: scrollTopUpdated', scrollTop, 'scene-relative rect:', sceneRelativeVpRect);
+    //console.log('FocalPoint: scrollTopUpdated', scrollTop, 'scene-relative rect:', sceneRelativeVpRect);
 }
 
 /**
@@ -943,7 +1047,7 @@ export function startFocalPointAnimation() {
         animationId = requestAnimationFrame(animationLoop);
     }
     animationLoop();
-    logger.log("Focal point animation started");
+    //console.log("Focal point animation started");
 }
 
 /**
@@ -953,6 +1057,6 @@ export function stopFocalPointAnimation() {
     if (animationId) {
         cancelAnimationFrame(animationId);
         animationId = null;
-        logger.log("Focal point animation stopped");
+        //console.log("Focal point animation stopped");
     }
 }

@@ -90,10 +90,17 @@ export function createBizCardDiv(job, jobIndex) {
     bizCardDiv.style.opacity = "0.5";
 
     // Initialize view-relative styling based on the scene-relative geometry
-    if ( !viewPort.viewPortIsInitialized() ) throw new Error('viewPort is not initialized');
+    if ( !viewPort.isViewPortInitialized() ) throw new Error('viewPort is not initialized');
     viewPort.applyViewRelativeStyling(bizCardDiv);
 
     return bizCardDiv;
+}
+
+function setAndVerifyAttribute(bizCardDiv,attributeName, value) {
+    bizCardDiv.setAttribute(`data-${attributeName}`, value);
+    const checkValue = parseFloat(bizCardDiv.getAttribute(`data-${attributeName}`));
+    if ( !utils.isNumber(checkValue) ) throw new Error(`check${attributeName} is not a number`);
+    // console.log(`   ${attributeName}:`, checkValue);
 }
 
 /**
@@ -109,27 +116,27 @@ function setBizCardDivSceneGeometry(bizCardDiv, job) {
     const { sceneTop, sceneBottom } = sceneContainer.getSceneVerticalPositions(job.start, job.end, MIN_BIZCARD_HEIGHT);
     const sceneHeight = sceneBottom - sceneTop;
     const sceneCenterY = sceneTop + sceneHeight/2;
-    bizCardDiv.setAttribute("data-sceneTop", sceneTop);
-    bizCardDiv.setAttribute("data-sceneHeight", sceneHeight);
-    bizCardDiv.setAttribute("data-sceneCenterY", sceneCenterY);
-    console.log("   job.start:", job.start);
-    console.log("     job.end:", job.end);
-    console.log("    sceneTop:", sceneTop);
-    console.log(" sceneBottom:", sceneBottom);
-    console.log("sceneCenterY:", sceneCenterY);
+
+    setAndVerifyAttribute(bizCardDiv, "sceneTop", sceneTop);
+    setAndVerifyAttribute(bizCardDiv, "sceneBottom", sceneBottom);
+    setAndVerifyAttribute(bizCardDiv, "sceneCenterY", sceneCenterY);
+
+    // console.log("   job.start:", job.start);
+    // console.log("     job.end:", job.end);
+    // console.log("    sceneTop:", sceneTop);
+    // console.log(" sceneBottom:", sceneBottom);
+    // console.log("sceneCenterY:", sceneCenterY);
 
     const sceneCenterX = mathUtils.getRandomSignedOffset(MAX_X_OFFSET); // Random offset from scene origin
     const sceneWidth = BIZCARD_MEAN_WIDTH + mathUtils.getRandomSignedOffset(MAX_WIDTH_OFFSET);
     const sceneLeft = sceneCenterX - sceneWidth / 2;
-    bizCardDiv.setAttribute("data-sceneLeft", sceneLeft);
-    bizCardDiv.setAttribute("data-sceneWidth", sceneWidth);
-    bizCardDiv.setAttribute("data-sceneCenterX", sceneCenterX);
-    console.log("sceneLeft:", sceneLeft );
-    console.log("sceneWidth:", sceneWidth);
-    console.log("sceneCenterX:", sceneCenterX );
+
+    setAndVerifyAttribute(bizCardDiv, "sceneLeft", sceneLeft);
+    setAndVerifyAttribute(bizCardDiv, "sceneWidth", sceneWidth);
+    setAndVerifyAttribute(bizCardDiv, "sceneCenterX", sceneCenterX);
 
     const sceneZ = mathUtils.getRandomInt(zIndex.BIZCARD_Z_MIN, zIndex.BIZCARD_Z_MAX);
-    bizCardDiv.setAttribute("data-sceneZ", sceneZ);
+    setAndVerifyAttribute(bizCardDiv, "sceneZ", sceneZ);
 
     // // initialize view-relative positions
     // const viewPortOrigin = viewPort.getViewPortOrigin();

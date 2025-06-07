@@ -360,7 +360,7 @@ class InfiniteScrollingContainer {
           clearTimeout(this.resizeTimeout);
           this.resizeTimeout = setTimeout(() => {
             this.handleContainerResize();
-          }, 100);
+          }, 200);
         }
       });
 
@@ -371,7 +371,7 @@ class InfiniteScrollingContainer {
         clearTimeout(this.resizeTimeout);
         this.resizeTimeout = setTimeout(() => {
           this.handleContainerResize();
-        }, 100);
+        }, 200);
       });
     }
   }
