@@ -2,29 +2,30 @@
 'use strict';
 
 import { jobs } from './static_content/jobs/jobs.mjs';
-import * as domUtils from './modules/utils/domUtils.mjs';
-import * as mathUtils from './modules/utils/mathUtils.mjs';
-import * as timeline from './modules/timeline/timeline.mjs';
-import * as focalPoint from './modules/core/focalPoint.mjs';
-import * as colorPalettes from './modules/color/colorPalettes.mjs';
-import * as colorUtils from './modules/color/colorUtils.mjs';
+import { ResumeManager } from './modules/resume/resumeManager.mjs';
 import * as bizCardDivModule from './modules/scene/bizCardDivModule.mjs';
 import * as bizResumeDivModule from './modules/scene/bizResumeDivModule.mjs';
-// import * as divSyncModule from './modules/scene/divSyncModule.mjs';
 import * as bizResumeDivSortingModule from './modules/scene/bizResumeDivSortingModule.mjs';
-import * as zIndex from './modules/core/zIndex.mjs';
-import * as parallax from './modules/core/parallax.mjs';
-import * as viewPort from './modules/core/viewPort.mjs';
-import * as filters from './modules/core/filters.mjs';
-import * as resizeHandle from './modules/core/resizeHandle.mjs';
 import * as bullsEye from './modules/core/bullsEye.mjs';
-import * as aimPoint from './modules/core/aimPoint.mjs';
+import * as colorPalettes from './modules/colors/colorPalettes.mjs';
+import * as focalPoint from './modules/core/focalPoint.mjs';
+import * as parallax from './modules/core/parallax.mjs';
+import * as resizeHandle from './modules/core/resizeHandle.mjs';
 import * as resumeContainer from './modules/resume/resumeContainer.mjs';
 import * as sceneContainer from './modules/scene/sceneContainer.mjs';
-import { ResumeManager } from './modules/resume/resumeManager.mjs';
+import * as timeline from './modules/timeline/timeline.mjs';
+import * as viewPort from './modules/core/viewPort.mjs';
+import * as tests from './modules/tests/tests.mjs';
 
 import { Logger, LogLevel } from "./modules/logger.mjs";
 const logger = new Logger("main", LogLevel.DEBUG);
+
+// --------------------------------------
+// Constants
+
+// Job loading constants
+const MAX_JOB_LOADING_ATTEMPTS = 10;
+const JOB_LOADING_DELAY_MS = 300;
 
 // --------------------------------------
 // Element reference globals
@@ -55,6 +56,36 @@ function getMinMaxTimelineYears(jobs) {
     return [minYear, maxYear];
 }
 
+/**
+ * Wait for jobs to be fully loaded
+ * @returns {Promise<Array>} - The loaded jobs array
+ */
+async function waitForJobs() {
+    return new Promise((resolve, reject) => {
+        let attempts = 0;
+        
+        const checkJobs = () => {
+            attempts++;
+            console.log(`Checking for jobs (attempt ${attempts}/${MAX_JOB_LOADING_ATTEMPTS})...`);
+            
+            if (jobs && jobs.length > 0) {
+                console.log(`Jobs loaded successfully: ${jobs.length} jobs found`);
+                resolve(jobs);
+                return;
+            }
+            
+            if (attempts >= MAX_JOB_LOADING_ATTEMPTS) {
+                reject(new Error(`Failed to load jobs after ${MAX_JOB_LOADING_ATTEMPTS} attempts`));
+                return;
+            }
+            
+            console.log(`Jobs not loaded yet, waiting ${JOB_LOADING_DELAY_MS}ms...`);
+            setTimeout(checkJobs, JOB_LOADING_DELAY_MS);
+        };
+        
+        checkJobs();
+    });
+}
 
 // Default mouse behavior: prevent selections while mouse is down
 document.addEventListener('mousedown', function() {
@@ -67,88 +98,66 @@ document.addEventListener('mouseup', function() {
     document.getElementById("scene-container").classList.remove('no-select');
 });
 
-function runSanityTests() {
-    // sanity check for z and z_index functions
-    zIndex.test_z_functions();
-    // sanity check for color utils
-    colorUtils.testColorUtils();
-    // sanity check for math utils
-    mathUtils.testMathUtils();  
-}
-
 // Initialize the application
 async function initialize() {
-
-    runSanityTests();
-
-    console.log("loaded job.length:", jobs.length);
+    tests.runSanityTests();
 
     try {
-        // load color palettes for the palette selector
-        paletteSelector = await colorPalettes.initializePaletteSelectorInstance();
-
-        // Initialize viewPort and getBullsEyeElement() first, now that containers are sized
+        // Initialize core components first
         viewPort.initializeViewPort();
-
         bullsEye.initializeBullsEye();
-
         resizeHandle.initializeResizeHandle();
-
         resumeContainer.initializeResumeContainer();
-
+        sceneContainer.initializeSceneContainer();
+        
+        // Load color palettes
+        paletteSelector = await colorPalettes.initializePaletteSelectorInstance();
+        
+        // Wait for jobs to be loaded
+        const loadedJobs = await waitForJobs();
+        console.log("Jobs loaded successfully:", loadedJobs.length);
+        
         // Initialize timeline
-        const [minTimelineYear, maxTimelineYear] = getMinMaxTimelineYears(jobs);
+        const [minTimelineYear, maxTimelineYear] = getMinMaxTimelineYears(loadedJobs);
         const defaultTimelineYear = maxTimelineYear;
         timeline.initializeTimeline(minTimelineYear, maxTimelineYear, defaultTimelineYear);
-
-
-    /**
-        * Create bizCardDivs after the following
-        * have been initialized:
-        * viewPort, 
-        * bullsEye
-        * timeLine
-        * resizeHandle 
-        * colorPalettes 
-        */
-        if (!Array.isArray(jobs)) {
-            const jobType = typeof jobs;
-            ("jobType:", jobType);
-            logger.error("jobType:", jobType);
-        }
-        const sortedJobs = [...jobs].sort((a, b) => new Date(b.start) - new Date(a.start));
-
-        // Create all bizCards
+        
+        // Sort jobs by date
+        const sortedJobs = [...loadedJobs].sort((a, b) => {
+            return new Date(b.start) - new Date(a.start);
+        });
+        
+        // Create all bizCards BEFORE initializing parallax
         const bizResumeDivs = [];
-        sortedJobs.forEach((job, index) => { // jobs loader
-            // Create the bizCardDiv
-            if ( !job ) throw new Error('createBizCardDiv: given null job');
-            if ( !Number.isInteger(index) ) throw new Error('createBizCardDiv: given non-integer index');
+        sortedJobs.forEach((job, index) => {
+            if (!job) throw new Error('createBizCardDiv: given null job');
+            if (!Number.isInteger(index)) throw new Error('createBizCardDiv: given non-integer index');
+            
             const bizCardDiv = bizCardDivModule.createBizCardDiv(job, index);
             const bizCardDivId = bizCardDiv.id;
             const checkBizCardDiv = document.getElementById(bizCardDivId);
-            if (!checkBizCardDiv) throw new Error("bizCardDiv is not found for bizCardDivId:", bizCardDivId);
+            if (!checkBizCardDiv) throw new Error(`bizCardDiv is not found for bizCardDivId: ${bizCardDivId}`);
 
             const bizResumeDiv = bizResumeDivModule.createBizResumeDiv(bizCardDiv);
-            if ( !bizResumeDiv ) throw new Error('createBizResumeDiv: given null bizResumeDiv');
+            if (!bizResumeDiv) throw new Error('createBizResumeDiv: given null bizResumeDiv');
             bizResumeDivs.push(bizResumeDiv);
         });
-
-        // after bizResumeDivs are created
+        
+        // Initialize sorting after all divs are created
         bizResumeDivSortingModule.initialize(sortedJobs, bizResumeDivs);
+        
+        // Add this after creating all bizCardDivs - explicitly pass sortedJobs
+        bizCardDivModule.setGeometryForAllBizCardDivs(sortedJobs);
+        console.log("Verified geometry for all bizCardDivs");
 
-        // Add event listeners
-        sceneContainer.initializeSceneContainer();
-
-        // Initialize parallax effects
+        // Then initialize parallax
         parallax.initializeParallax();
-
-        // Initialize focal point after everything else is initialized
+        
+        // Initialize focal point last
         focalPoint.initializeFocalPoint();
-
-        // Start the focal point animation loop for parallax effects
+        
+        // Start animation loop
         focalPoint.startFocalPointAnimation();
-
     } catch (error) {
         console.error('Failed to initialize application:', error);
     }

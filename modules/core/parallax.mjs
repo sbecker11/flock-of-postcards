@@ -3,13 +3,15 @@
 import * as utils from '../utils/utils.mjs';
 import * as viewPort from './viewPort.mjs';
 import * as focalPoint from './focalPoint.mjs';
+import * as zUtils from '../utils/zUtils.mjs';
+import * as filters from './filters.mjs';
 
 import { Logger, LogLevel } from '../logger.mjs';
 const logger = new Logger("parallax", LogLevel.LOG);
 
 // Parallax constants
-export const PARALLAX_X_EXAGGERATION_FACTOR = 0.05;
-export const PARALLAX_Y_EXAGGERATION_FACTOR = 0.1;
+export const PARALLAX_X_EXAGGERATION_FACTOR = 5.0;
+export const PARALLAX_Y_EXAGGERATION_FACTOR = 4.0;
 
 const PARANOID = true;
 
@@ -18,10 +20,34 @@ const PARANOID = true;
  * called from main.mjs
  */
 export function initializeParallax() {
-    // console.log('=== PARALLAX INITIALIZATION ===');
-    // console.log('Registering viewAllBizCardDivs as focal point listener');
-    // console.log('viewAllBizCardDivs function:', viewAllBizCardDivs);    
+    console.log("Initializing parallax...");
+    
+    // Check if any bizCardDivs exist
+    const bizCardDivs = document.getElementsByClassName("biz-card-div");
+    console.log(`Found ${bizCardDivs.length} bizCardDivs for parallax`);
+    
+    // Check if they have the required attributes
+    let missingAttributesCount = 0;
+    for (const bizCardDiv of bizCardDivs) {
+        if (!hasRequiredAttributes(bizCardDiv)) {
+            missingAttributesCount++;
+        }
+    }
+    
+    if (missingAttributesCount > 0) {
+        console.warn(`${missingAttributesCount} bizCardDivs are missing required attributes for parallax`);
+        console.warn("You may need to call bizCardDivModule.setGeometryForAllBizCardDivs()");
+    } else {
+        console.log("All bizCardDivs have required attributes for parallax");
+    }
+    
+    // Register as a focalPoint position listener
+    // The viewAllBizCardDivs function will receive:
+    // 1. focalPoint - viewPort-relative position of focalPoint center
+    // 2. prefix - used for verbosity
+    // 3. sceneRect - scene-relative viewport rect
     focalPoint.addFocalPointPositionListener(viewAllBizCardDivs);
+    console.log("Parallax initialized and registered with focalPoint");
 }
 
 function inBounds(top, bottom, rect) {
@@ -39,10 +65,11 @@ function inBounds(top, bottom, rect) {
  * @param {*} sceneRect - scene-relative viewport rect
  */
 export function viewAllBizCardDivs(focalPoint, prefix, sceneRect) {
-    if ( !viewPort.isViewPortInitialized() ) {
+    if (!viewPort.isViewPortInitialized()) {
         throw new Error("viewPortProperties is not initialized"); 
     }
-    if (PARANOID) if (PARANOID) utils.validatePosition(focalPoint);
+    
+    if (PARANOID) utils.validatePosition(focalPoint);
     if (PARANOID) utils.validatePosition(viewPort.getViewPortOrigin());
     if (PARANOID) utils.validateRect(sceneRect);
 
@@ -51,22 +78,41 @@ export function viewAllBizCardDivs(focalPoint, prefix, sceneRect) {
     if (PARANOID) utils.validateNumber(fpX);
     if (PARANOID) utils.validateNumber(fpY);
     if (PARANOID) utils.validateNumber(vpX);
-    if (PARANOID) utils.validateNumber(vpY)
+    if (PARANOID) utils.validateNumber(vpY);
     
-    // const sceneRectStr = utils.getRectAsString(sceneRect);
-    // const focalPointStr = utils.getPositionAsString(focalPoint);
-
+    // Get the scene container for scroll information
+    const sceneContainer = document.getElementById('scene-container');
+    if (!sceneContainer) {
+        console.error("Scene container not found");
+        return;
+    }
+    
+    // Get current scroll position
+    const scrollTop = sceneContainer.scrollTop;
+    
     const dh = (vpX - fpX) * PARALLAX_X_EXAGGERATION_FACTOR;
     const dv = (vpY - fpY) * PARALLAX_Y_EXAGGERATION_FACTOR;
     if (PARANOID) utils.validateNumber(dh);
     if (PARANOID) utils.validateNumber(dv);
 
     const bizCardDivs = document.getElementsByClassName("biz-card-div");
-
     let numDivs = 0;
     let inSceneRectCount = 0;
     let outOfSceneRectCount = 0;
-    for (const bizCardDiv of bizCardDivs) {
+    let missingAttributesCount = 0;
+
+    for (let i = 0; i < bizCardDivs.length; i++) {
+        const bizCardDiv = bizCardDivs[i];
+        if (!bizCardDiv || !bizCardDiv.parentNode) {
+            console.log(`viewAllBizCardDivs: bizCardDiv is null or has no parent`);
+            continue;
+        }
+
+        // Check if bizCardDiv has all required attributes
+        if (!hasRequiredAttributes(bizCardDiv)) {
+            missingAttributesCount++;
+            continue;
+        }
 
         // hidden by default
         bizCardDiv.style.display = "none";
@@ -76,118 +122,118 @@ export function viewAllBizCardDivs(focalPoint, prefix, sceneRect) {
         const divY = parseFloat(bizCardDiv.getAttribute("data-sceneCenterY"));
         const divTop = parseFloat(bizCardDiv.getAttribute("data-sceneTop"));
         const divBtm = parseFloat(bizCardDiv.getAttribute("data-sceneBottom"));
+        const divLeft = parseFloat(bizCardDiv.getAttribute("data-sceneLeft"));
+        const divRight = parseFloat(bizCardDiv.getAttribute("data-sceneRight"));
+        const divWidth = parseFloat(bizCardDiv.getAttribute("data-sceneWidth"));
+        const divHeight = parseFloat(bizCardDiv.getAttribute("data-sceneHeight"));
+        const divZ = parseFloat(bizCardDiv.getAttribute("data-sceneZ"));
+
         if (PARANOID) utils.validateNumber(divX);
         if (PARANOID) utils.validateNumber(divY);
         if (PARANOID) utils.validateNumber(divTop);
         if (PARANOID) utils.validateNumber(divBtm);
-                
+        if (PARANOID) utils.validateNumber(divLeft);
+        if (PARANOID) utils.validateNumber(divRight);
+        if (PARANOID) utils.validateNumber(divWidth);
+        if (PARANOID) utils.validateNumber(divHeight);
+        if (PARANOID) utils.validateNumber(divZ);
+
         // check to see if bizCardDiv is visible in 
         // the sceneRect (the scene-relative viewPoint bounds)
         let inTheSceneRect = inBounds(divTop, divBtm, sceneRect);
 
-        if ( inTheSceneRect ) {
-
-            inSceneRectCount++;
+        if (inTheSceneRect) {
 
             // bizCardDiv is visible when inside the sceneRect
             bizCardDiv.style.display = "block";
 
-            // scene-relative z of bizCardDiv
-            const divZ = parseFloat(bizCardDiv.getAttribute("data-sceneZ"));
+            let viewLeft = divLeft + vpX;
+            let viewRight = divRight + vpX;
+            let viewTop = divTop;
+            let viewBtm = divBtm;
+            let viewWidth = divWidth;
+            let viewHeight = divHeight;
+            const zIndexStr = zUtils.get_zIndexStr_from_z(divZ);
+            const zFilterStr = filters.get_filterStr_from_z(divZ);
+
+            if (viewHeight < 200) {
+                viewHeight = 200;
+                viewBtm = viewTop + viewHeight;
+            }
+
+            bizCardDiv.style.setProperty('top', `${viewTop}px`);
+            bizCardDiv.style.setProperty('bottom', `${viewBtm}px`);
+            bizCardDiv.style.setProperty('left', `${viewLeft}px`);
+            bizCardDiv.style.setProperty('right', `${viewRight}px`);
+            bizCardDiv.style.setProperty('width', `${viewWidth}px`);
+            bizCardDiv.style.setProperty('height', `${viewHeight}px`);
+            bizCardDiv.style.setProperty('z-index', zIndexStr, 'important');
+            bizCardDiv.style.setProperty('filter', zFilterStr, 'important');
+
+            const computedStyle = window.getComputedStyle(bizCardDiv);
+            console.log(`viewTop:${computedStyle.getPropertyValue('top')}`);
+            console.log(`viewBtm:${computedStyle.getPropertyValue('bottom')}`);
+            console.log(`viewLeft:${computedStyle.getPropertyValue('left')}`);
+            console.log(`viewRight:${computedStyle.getPropertyValue('right')}`);
+            console.log(`viewWidth:${computedStyle.getPropertyValue('width')}`);
+            console.log(`viewHeight:${computedStyle.getPropertyValue('height')}`);
+            console.log(`zIndex:${computedStyle.getPropertyValue('z-index')}`);
+            console.log(`filter:${computedStyle.getPropertyValue('filter')}`);
+
+            // Position the card using absolute positioning
+            bizCardDiv.style.setProperty('position', 'absolute', 'important');
+
             // inverse of scene-relative z of bizCardDiv
             const inv_divZ = 1.0 / divZ;
-            if (PARANOID) utils.validateNumber(divZ);
             if (PARANOID) utils.validateNumber(inv_divZ);
 
-            let dx = dh + (vpX - divX) * inv_divZ;
-            let dy = dv + (vpY - divY) * inv_divZ;
+            let dx = dh * inv_divZ;
+            let dy = dv * inv_divZ;
             if (PARANOID) utils.validateNumber(dx); 
             if (PARANOID) utils.validateNumber(dy);
 
-            if (bizCardDiv && bizCardDiv.parentNode) {
+            // Apply parallax transform
+            bizCardDiv.style.transform = `translate(${dx}px, ${dy}px)`;
 
-                const zTranslateStr = `${dx}px ${dy}px`;
-                
-                // const computedStyle = getComputedStyle(bizCardDiv);
-
-                //console.log("biz bizCardDiv.id:", bizCardDiv.id);
-                // console.log("  biz position:", computedStyle.position);
-                // console.log("  biz transform:", computedStyle.transform);
-                // console.log("  biz left:", computedStyle.left);
-                // console.log("  biz top:", computedStyle.top);
-                // console.log("  biz display:", computedStyle.display);
-                // console.log("  biz visibility:", computedStyle.visibility);
-                // console.log("  biz opacity:", computedStyle.opacity);
-                // console.log("  biz overflow:", computedStyle.overflow);
-                // console.log("  biz z-index:", computedStyle.zIndex);
-                // console.log("  biz Current transform:", getComputedStyle(bizCardDiv).transform);
-                // console.log("  biz zTranslateStr:", zTranslateStr);
-
-                // Add this debugging:
-                // console.log("+OVERRIDE TEST for", bizCardDiv.id);
-                // console.log("+Before rect:", bizCardDiv.getBoundingClientRect().left);
-                // console.log("+Applied transform:", `translate(${dx}px, ${dy}px)`);
-                // console.log("+Computed transform:", getComputedStyle(bizCardDiv).transform);
-
-
-                //bizCardDiv.style.translate = zTranslateStr;
-                //bizCardDiv.style.setProperty('transform', `translate(${dx}px, ${dy}px)`, 'important');
-                
-                bizCardDiv.style.transition = 'none';
-                bizCardDiv.style.animation = 'none';
-                // bizCardDiv.style.transform = `translate(${dx}px, ${dy}px)`;
-
-                let debug=false;
-                let id=0;
-
-                if (bizCardDiv.id.includes("div-1")) {
-                    debug = true; id = 1;
-                }
-                else if (bizCardDiv.id.includes("div-2")) {
-                    debug = true; id = 2;
-                }
-                
-                if (debug) {
-                
-                    // Right before applying transform
-                    console.log("🎯 TRANSFORM DEBUG for", bizCardDiv.id);
-                    console.log("  dx:", dx, "dy:", dy);
-                    console.log("  Transform string:", `translate(${dx}px, ${dy}px)`);
-
-                    // Get position before
-                    const rectBefore = bizCardDiv.getBoundingClientRect();
-                    console.log("  Position before:", rectBefore.left, rectBefore.top);
-                } // debug
-
-                // Apply transform
-                bizCardDiv.style.transform = `translate(${dx}px, ${dy}px)`;
-
-                if ( debug ) {
-                    // Check immediately after
-                    console.log("  Computed transform:", getComputedStyle(bizCardDiv).transform);
-
-                    // Check position after a frame
-                    requestAnimationFrame(() => {
-                        const rectAfter = bizCardDiv.getBoundingClientRect();
-                        console.log("  Position after:", rectAfter.left, rectAfter.top);
-                        console.log("  Movement:", rectAfter.left - rectBefore.left, rectAfter.top - rectBefore.top);
-                    });("+biz",id," after transform:", bizCardDiv.getBoundingClientRect().left);
-                    
-                } // debug
-
-            } else {
-                // element is out of sceneRect;
-                continue;
-            }
-     
-        } else {
+            inSceneRectCount++;
+        } 
+        else {
             outOfSceneRectCount++;
         }
-
         numDivs++;
     }
 
     // Log the viewport counts
-    // console.log(`📊 Counts:${numDivs} total, ${inSceneRectCount} in, ${outOfSceneRectCount} out`);
+    if (missingAttributesCount > 0) {
+        console.log(`📊 Counts: ${numDivs} total, ${inSceneRectCount} in, ${outOfSceneRectCount} out, ${missingAttributesCount} missing attributes`);
+    }
+}
+
+/**
+ * Check if a bizCardDiv has all required attributes for parallax
+ * @param {HTMLElement} bizCardDiv - The business card div to check
+ * @returns {boolean} - True if all required attributes are present
+ */
+function hasRequiredAttributes(bizCardDiv) {
+    const requiredAttributes = [
+        "data-sceneCenterX", 
+        "data-sceneCenterY", 
+        "data-sceneTop", 
+        "data-sceneBottom",
+        "data-sceneZ"
+    ];
+    
+    for (const attr of requiredAttributes) {
+        if (!bizCardDiv.hasAttribute(attr)) {
+            // Only log once per div per attribute
+            if (!bizCardDiv.hasAttribute(`data-logged-missing-${attr}`)) {
+                console.warn(`${bizCardDiv.id} missing required attribute: ${attr}`);
+                bizCardDiv.setAttribute(`data-logged-missing-${attr}`, "true");
+            }
+            return false;
+        }
+    }
+    
+    return true;
 }
 

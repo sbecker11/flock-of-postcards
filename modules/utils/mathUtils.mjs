@@ -1,75 +1,6 @@
-// modules/utils/arrayUtils.mjs
+// modules/utils/mathUils.mjs
 
-import { isNumeric } from './utils.mjs';
-
-import { Logger, LogLevel } from "../logger.mjs";
-const logger = new Logger("mathUtils", LogLevel.DEBUG);
-
-
-// Array and Vector Utilities
-export function abs(val) {
-    if ( typeof val !== 'number' ) {
-        throw new Error(`abs: val:${val} is not a number`);
-    }
-    return val < 0 ? -val : val; 
-}
-
-export function abs_diff(val1, val2) {
-    if ( typeof val1 !== 'number' || typeof val2 !== 'number' ) {
-        throw new Error(`abs_diff: val1:${val1} or val2:${val2} is not a number`);
-    }
-    return val1 < val2 ? val2 - val1 : val1 - val2; 
-}
-
-export function min(val1, val2) {
-    if ( typeof val1 !== 'number' || typeof val2 !== 'number' ) {
-        throw new Error(`min: val1:${val1} or val2:${val2} is not a number`);
-    }
-    return val1 < val2 ? val1 : val2;
-}
-
-export function max(val1, val2) {
-    if ( typeof val1 !== 'number' || typeof val2 !== 'number' ) {
-        throw new Error(`max: val1:${val1} or val2:${val2} is not a number`);
-    }
-    return val1 > val2 ? val1 : val2;
-}
-
-// return the numeric value between minVal and maxVal
-// @param {number} value - The value to clamp
-// @param {number} minVal - The minimum value
-// @param {number} maxVal - The maximum value
-// @returns {number} The clamped value  
-export function clamp(value, minVal, maxVal) {
-    if (typeof value !== 'number' || typeof minVal !== 'number' || typeof maxVal !== 'number') {
-        throw new Error(`clamp: value:${value}, minVal:${minVal}, or maxVal:${maxVal} is not a number`);
-    }
-    return max(minVal, min(maxVal, value));
-}
-
-// return the integer value between minVal and maxVal
-// @param {number} value - The value to clamp
-// @param {number} minVal - The minimum value
-// @param {number} maxVal - The maximum value
-// @returns {number} The clamped value  
-export function clampInt(value, minVal, maxVal) {
-    if (typeof value !== 'number' || typeof minVal !== 'number' || typeof maxVal !== 'number') {
-        throw new Error(`clampInt: value:${value}, minVal:${minVal}, or maxVal:${maxVal} is not a number`);
-    }
-    // First convert all values to integers, then apply clamping
-    const intValue = Math.floor(value);
-    const intMinVal = Math.floor(minVal);
-    const intMaxVal = Math.floor(maxVal);
-    
-    return Math.max(intMinVal, Math.min(intMaxVal, intValue));
-}
-
-export function max3(val1, val2, val3) {
-    if ( typeof val1 !== 'number' || typeof val2 !== 'number' || typeof val3 !== 'number' ) {
-        throw new Error(`max3: val1:${val1} or val2:${val2} or val3:${val3} is not a number`);
-    }
-    return max(max(val1, val2), val3);
-}
+import * as utils from './utils.mjs';
 
 /**
  * Return the euccidean distance between two positions
@@ -179,7 +110,7 @@ export const isNumericArray = (arr) => {
         return false;
     }
     for (const element of arr) {
-        if (!isNumeric(element)) {
+        if (!isNumericString(element)) {
             return false;
         }
     }
@@ -213,6 +144,33 @@ export function validateIsArrayOfArrays(obj) {
     obj.forEach(element => {
         validateIsArray(element);
     });
+}
+
+
+export function formatNumber(num, format) {
+    // Parse the format string
+    const [wholeDigits, decimalDigits] = format.split('.').map(Number);
+  
+    // Separate the number into whole and decimal parts
+    let wholePart = Math.floor(num); // Keep the sign for the whole part
+    let decimalPart = num % 1;
+  
+    // Convert the whole part to a string and include the minus sign in the count if the number is negative
+    let wholePartStr = wholePart.toString();
+    let lengthToCheck = num < 0 ? wholePartStr.length - 1 : wholePartStr.length; // Subtract 1 if the number is negative
+  
+    // Check if the length exceeds the specified number of digits
+    if (lengthToCheck > wholeDigits) {
+      throw new Error(`Format error: the number ${num} has a whole part larger than ${wholeDigits} digits.`);
+    }
+  
+    // Format the whole part
+    let formattedWhole = wholePartStr.padStart(wholeDigits, '0');
+  
+    // Format the decimal part
+    let formattedDecimal = decimalPart.toFixed(decimalDigits).substring(2);
+  
+    return `${formattedWhole}.${formattedDecimal}`;
 }
 
 /** ---------------------------------------
@@ -360,7 +318,7 @@ function testRandomOffset() {
  * tests mathUtils functions 
  * reporting only test failures
  */
-export function testMathUtils() {
+export function test_mathutils() {
     clearErrs();
     testMinMaxAbs();
     testClamps();

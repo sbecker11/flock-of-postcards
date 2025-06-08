@@ -1,9 +1,8 @@
-// modules/colorPalettes.mjs
+// modules/colors/colorPalettes.mjs
 
 import * as colorUtils from './colorUtils.mjs';
 import * as utils from '../utils/utils.mjs';
 import * as domUtils from '../utils/domUtils.mjs';
-import * as colorPalettes from './colorPalettes.mjs';
 
 import { Logger, LogLevel } from '../logger.mjs';
 const logger = new Logger("colorPalettes", LogLevel.INFO);
@@ -22,8 +21,6 @@ const FALLBACK_BLACK_HEX = '#000000';
 // Add localStorage key constant
 const LOCAL_STORAGE_PALETTE_KEY = 'lastSelectedPalette';
 
-// Add these constants at the top with other constants
-const HOVER_CLASS = 'color-hover';
 const SELECTED_CLASS = 'color-selected';
 
 // Constants for CSS class names and selectors
@@ -458,7 +455,7 @@ class PaletteSelector {
      * Applies the appropriate CSS classes to an element
      * @param {HTMLElement} element - The element to update
      */
-    applyCurrentColorPaletteToElement(element) {
+    async applyCurrentColorPaletteToElement(element) {
         if (!element || !(element instanceof HTMLElement)) return;
 
         const colorIndex = this.getColorIndex(element);
@@ -813,142 +810,6 @@ class PaletteSelector {
         }
     }
 
-    // getCurrentPalette() {
-    //     return this.current_color_palette;
-    // }
-
-    // // Method to add hover and selection handlers to an element
-    // addElementStateHandlers(element) {
-    //     if (!element || !element.colorSet) return;
-
-    //     // Remove existing listeners to prevent duplicates
-    //     element.removeEventListener('mouseenter', element._hoverHandler);
-    //     element.removeEventListener('mouseleave', element._hoverHandler);
-    //     element.removeEventListener('click', element._clickHandler);
-
-    //     // Create hover handler using new showHoverState method
-    //     element._hoverHandler = (event) => {
-    //         this.showHoverState(element, event.type === 'mouseenter');
-    //     };
-
-    //     // Create click handler using new toggleSelection method
-    //     element._clickHandler = () => {
-    //         this.toggleSelection(element);
-    //     };
-
-    //     // Add the listeners
-    //     element.addEventListener('mouseenter', element._hoverHandler);
-    //     element.addEventListener('mouseleave', element._hoverHandler);
-    //     element.addEventListener('click', element._clickHandler);
-    // }
-
-    // // Method to set selection state without triggering events
-    // setElementSelected(element, isSelected) {
-    //     if (!element || !element.colorSet) return;
-        
-    //     if (isSelected) {
-    //         element.classList.remove(HOVER_CLASS);
-    //         element.classList.add(SELECTED_CLASS);
-    //     } else {
-    //         element.classList.remove(SELECTED_CLASS);
-    //         // Check if we should keep hover state
-    //         if (element.matches(':hover')) {
-    //             element.classList.add(HOVER_CLASS);
-    //         }
-    //     }
-    //     this.toggleElementState(element, isSelected);
-    // }
-
-    // // Method to get all selected elements - now using classList
-    // getSelectedElements() {
-    //     return document.getElementsByClassName(SELECTED_CLASS);
-    // }
-
-    // // Method to clear all selections - now using classList
-    // clearAllSelections() {
-    //     const selectedElements = this.getSelectedElements();
-    //     // Convert to array since we're modifying the live HTMLCollection
-    //     Array.from(selectedElements).forEach(element => {
-    //         this.setElementSelected(element, false);
-    //     });
-    // }
-
-    // // Method to get all hovered elements - if needed
-    // getHoveredElements() {
-    //     return document.getElementsByClassName(HOVER_CLASS);
-    // }
-
-    // Add these utility methods to the PaletteSelector class
-
-    // /**
-    //  * Unselects all elements of a given class that are descendants of a container element
-    //  * @param {HTMLElement} containerElement - The container to search within
-    //  * @param {string} className - The class to search for
-    //  */
-    // unselectDescendants(containerElement, className) {
-    //     if (!containerElement) return;
-        
-    //     // Fast query for selected elements of the given class within the container
-    //     const selector = `${className}.${SELECTED_CLASS}`;
-    //     const selectedElements = containerElement.getElementsByClassName(SELECTED_CLASS);
-        
-    //     // Convert to array since we're modifying the live HTMLCollection
-    //     Array.from(selectedElements).forEach(element => {
-    //         if (element.classList.contains(className)) {
-    //             this.setElementSelected(element, false);
-    //         }
-    //     });
-    // }
-
-    // /**
-    //  * Shows/hides hover state without changing selection
-    //  * @param {HTMLElement} element - The element to show/hide hover on
-    //  * @param {boolean} showHover - Whether to show or hide hover state
-    //  */
-    // showHoverState(element, showHover) {
-    //     if (!element || !element.colorSet) return;
-
-    //     // Don't modify actual selection state
-    //     const isSelected = element.classList.contains(SELECTED_CLASS);
-        
-    //     if (showHover && !isSelected) {
-    //         element.classList.add(HOVER_CLASS);
-    //         this.toggleElementState(element, true);
-    //     } else if (!showHover && !isSelected) {
-    //         element.classList.remove(HOVER_CLASS);
-    //         this.toggleElementState(element, false);
-    //     }
-    //     // If selected, do nothing to preserve selection state
-    // }
-
-    // /**
-    //  * Toggles selection state of an element
-    //  * @param {HTMLElement} element - The element to toggle
-    //  * @param {boolean} [forceState] - Optional state to force (true=selected, false=unselected)
-    //  * @returns {boolean} The new selection state
-    //  */
-    // toggleSelection(element, forceState) {
-    //     if (!element || !element.colorSet) return false;
-
-    //     const currentlySelected = element.classList.contains(SELECTED_CLASS);
-    //     const newState = (forceState !== undefined) ? forceState : !currentlySelected;
-
-    //     if (newState !== currentlySelected) {
-    //         this.setElementSelected(element, newState);
-            
-    //         // Dispatch event for other components
-    //         element.dispatchEvent(new CustomEvent('selectionChanged', {
-    //             detail: { 
-    //                 isSelected: newState,
-    //                 element: element
-    //             },
-    //             bubbles: true
-    //         }));
-    //     }
-
-    //     return newState;
-    // }
-
     /**
      * Gets all selected elements of a given class within a container
      * @param {HTMLElement} containerElement - The container to search within
@@ -973,114 +834,6 @@ class PaletteSelector {
     isElementSelected(element) {
         return element && element.classList.contains(SELECTED_CLASS);
     }
-
-    // /**
-    //  * Utility to check if an element is being hovered
-    //  * @param {HTMLElement} element - The element to check
-    //  * @returns {boolean} Whether the element is being hovered
-    //  */
-    // isElementHovered(element) {
-    //     return element && element.classList.contains(HOVER_CLASS);
-    // }
-
-    // /**
-    //  * Creates a color manager for a new element
-    //  */
-    // createElementColorManager(element) {
-    //     if (!element) throw new Error("createElementColorManager: element is null");
-    //     const data_color_index_str = element.getAttribute("data-color-index")
-    //     if (!isNumeric(data_color_index_str)) throw new Error(`createElementColorManager: element has non-numeric data-color-index attribute string: ${data_color_index}`);
-    //     const data_color_index = parseInt(data_color_index_str);
-    //     if (!this.currentColorSets || this.current_palette_num_colors === 0) throw new Error("createElementColorManager: currentColorSets is null or empty");
-
-    //     // here's the mapping from data_color_index to color_set_index
-    //     const color_set_index = data_color_index % this.currentColorSetsLength;
-
-    //     const colorSet = this.currentColorSets[color_set_index];
-    //     if (!colorSet || !colorSet.normalBg) {
-    //         console.warn("colorPalettes:createElementColorManager: no colorSet for colorINdex:", colorIndex, this.currentColorSets);
-    //         return;
-    //     }
-    //     const manager = new ElementColorManager(element, colorSet);
-        
-    //     // Apply initial colors immediately
-    //     manager.applyInitialColors();
-        
-    //     return manager;
-    // }
-
-    // /**
-    //  * Updates all element colors when palette changes
-    //  */
-    // updateElementManagers(elementManagers) {
-    //     for (const [element, manager] of elementManagers) {
-    //         const data_color_index = parseInt(element.getAttribute("data-color-index"));
-    //         const color_set_index = data_color_index % this.current_palette_num_colors;
-    //         manager.updateColorSet(this.currentColorSets[color_set_index]);
-    //     }
-    // }
-
-    // /**
-    //  * Gets the current palette's color set for an index
-    //  * @param {number} index - The color index
-    //  * @returns {ColorSet} The color set for this index
-    //  */
-    // getColorSetForIndex(index) {
-    //     if (!this.currentColorSets || this.current_palette_num_colors === 0) return null;
-    //     return this.currentColorSets[index % this.current_palette_num_colors];
-    // }
-
-    // // Add these example methods to demonstrate hover usage
-
-    // /**
-    //  * Example of how to add hover handlers to an element
-    //  * @param {HTMLElement} element - The element to add hover to
-    //  */
-    // addHoverHandlers(element) {
-    //     // Removed - hover is now handled entirely by CSS
-    //     console.warn('addHoverHandlers is deprecated - hover is now handled by CSS');
-    // }
-
-    // /**
-    //  * Get the CSS rules needed for an element's hover state
-    //  * @param {HTMLElement} element - The element to get hover colors for
-    //  * @returns {string} CSS rules for the element
-    //  */
-    // getElementHoverCSS(element) {
-    //     if (!element || !element.colorSet) return '';
-        
-    //     const colorIndex = element.getAttribute('data-color-index');
-    //     return `
-    //         [data-color-index="${colorIndex}"]:not(.color-selected):hover {
-    //             background-color: ${element.colorSet.selectedBg} !important;
-    //             color: ${element.colorSet.selectedFg} !important;
-    //         }
-    //     `;
-    // }
-
-    // /**
-    //  * Add hover styles to the document for all color-managed elements
-    //  */
-    // addHoverStyles() {
-    //     // Create or get the style element for our hover rules
-    //     let styleEl = document.getElementById('color-hover-styles');
-    //     if (!styleEl) {
-    //         styleEl = document.createElement('style');
-    //         styleEl.id = 'color-hover-styles';
-    //         document.head.appendChild(styleEl);
-    //     }
-
-    //     // Build all hover rules
-    //     const rules = [];
-    //     document.querySelectorAll('[data-color-index]').forEach(element => {
-    //         if (element.colorSet) {
-    //             rules.push(this.getElementHoverCSS(element));
-    //         }
-    //     });
-
-    //     // Apply all hover rules at once
-    //     styleEl.textContent = rules.join('\n');
-    // }
 
     /**
      * Adjusts the brightness of a hex color
@@ -1111,30 +864,59 @@ export async function initializePaletteSelectorInstance() {
  * Then apply the color index to the HTML element and its children recursively
  */
 export function assignColorIndex(element, jobIndex) {
-    if (!element || !(element instanceof HTMLElement) ) {
+    if (!element || !(element instanceof HTMLElement)) {
         console.warn("skipping element that is null or is not an instance of HTMLElement");
         return;
     }
     element.setAttribute('data-color-index', jobIndex.toString());
-    console.log("colorPalettes:assignColorIndex: assigned data-color-index:", jobIndex, "to element:", element.id);
-    colorPalettes.applyCurrentColorPaletteToElement(element);
-    for ( const child of Array.from(element.children) ) {
-        if ( child instanceof HTMLElement ) {
-            assignColorIndex(child, jobIndex);
+    // console.log("colorPalettes:assignColorIndex: assigned data-color-index:", jobIndex, "to element:", element.id);
+    
+    // Use the singleton instance to apply colors
+    const selector = _selectorInstance;
+    if (selector) {
+        selector.applyCurrentColorPaletteToElement(element);
+    } else {
+        console.warn("No palette selector instance available yet");
+    }
+    
+    // Apply to children recursively
+    for (const child of Array.from(element.children)) {
+        if (child instanceof HTMLElement) {
+            // Set the color index but don't apply colors yet (will be done by parent)
+            child.setAttribute('data-color-index', jobIndex.toString());
         }
     }
 }
 
 /**
- * @param {*} str 
- * @returns true if str is a valid Numeric string
+ * Apply current color palette to an element
+ * @param {HTMLElement} element - The element to apply colors to
  */
-export function isColorIndexString(str) {
-    // Accepts strings like "5" or "5_foreground_only"
-    return typeof str === "string" && utils.isNumeric(str);
+export function applyCurrentColorPaletteToElement(element) {
+    try {
+        const selector = _selectorInstance;
+        if (selector) {
+            selector.applyCurrentColorPaletteToElement(element);
+        } else {
+            console.warn("No palette selector instance available yet");
+        }
+    } catch (error) {
+        console.error("Error applying color palette to element:", error);
+    }
 }
 
-export async function applyCurrentColorPaletteToElement(element) {
-    const selector = await getOrCreatePaletteSelectorSingletonInstance();
-    selector.applyCurrentColorPaletteToElement(element);
+/**
+ * Checks if a string is a valid color index
+ * @param {string} colorIndex - The color index to check
+ * @returns {boolean} True if the string is a valid color index
+ */
+export function isColorIndexString(colorIndex) {
+    if (typeof colorIndex !== 'string') return false;
+    
+    // Check if it's a numeric string
+    if (!/^\d+$/.test(colorIndex)) return false;
+    
+    // Convert to number and check if it's a valid integer
+    const num = parseInt(colorIndex, 10);
+    return Number.isInteger(num) && num >= 0;
 }

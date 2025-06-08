@@ -1,18 +1,14 @@
-// modules/utils/jsonUtils.mjs
+// modules/utils/stringUtils.mjs
 
-import { Logger, LogLevel } from '../logger.mjs';
-const logger = new Logger("jsonUtils", LogLevel.INFO);
-
-export function createCirculerTestObject() {
+export function createCircularObject() {
     const circularObject = {
-        name: "example",
         circularReference: null,
     };
     circularObject.circularReference = circularObject;
     return circularObject;
 }
 
-export function stringifyCircular(obj, seen = new Set()) {
+export function stringifyCircular1(obj, seen = new Set()) {
     if (typeof obj !== "object" || obj === null) {
       return obj;
     }
@@ -23,16 +19,15 @@ export function stringifyCircular(obj, seen = new Set()) {
     const result = Array.isArray(obj) ? [] : {};
     for (const key in obj) {
       if (Object.hasOwn(obj, key)) {
-        result[key] = stringifyCircular(obj[key], seen);
+        result[key] = stringifyCircular1(obj[key], seen);
       }
     }
     return result;
   }
   
-  // can be used to parse the result of stringifyCircular
-  // but note that it does not map to the original referenced objects
+  // can be used to parse the result of stringifyCircular1
   // https://stackoverflow.com/questions/18471683/how-to-stringify-circular-objects-in-javascript
-  export function parseCircular(obj) {
+  export function parseCircular1(obj) {
     if (typeof obj !== 'object' || obj === null) {
       return obj;
     }
@@ -63,12 +58,12 @@ export function stringifyCircular(obj, seen = new Set()) {
     return revive(obj)
   }
   
-  export function testCircular() {
-    console.log("testCircular");
-    const circularObject = createCirculerTestObject();
-    const stringified = stringifyCircular(circularObject);
+  export function testCircular1() {
+    console.log("testCircular1");
+    const circularObject = createCircularObject();
+    const stringified = stringifyCircular1(circularObject);
     console.log(stringified); // Output: '{"self":"[Circular Reference]"}'
-    const parsed = parseCircular(stringified);
+    const parsed = parseCircular1(stringified);
     console.log(parsed); // Output: '{"self":"[Circular Reference]"}'
   }
 
@@ -124,7 +119,7 @@ export function stringifyCircular(obj, seen = new Set()) {
 
   export function testCircular2() {
     console.log("testCircular2");
-    const circularObject = createCirculerTestObject();
+    const circularObject = createCircularObject();
     const stringified = stringifyCircular2(circularObject);
     console.log(stringified); // Output: '{"self":"[Circular Reference]"}'
     const parsed = parseCircular2(stringified);
@@ -148,8 +143,7 @@ export function testCircular3() {
         return value;
     }
 
-    const jsonString = JSON.stringify(obj, replacer=replacer);
-
+    const jsonString = JSON.stringify(obj, replacer);
     console.log(jsonString);
     // Expected output: {"name":"example","circularReference":"[Circular]"}
 
@@ -160,7 +154,7 @@ export function testCircular3() {
 
 export function tryCircularTests() {
     try {
-        testCircular();
+        testCircular1();
     } catch (error) {
         console.error(error);
     }
@@ -181,14 +175,15 @@ export function tryCircularTests() {
 // Immediately Invoked Function Expression (IIFE), 
 // is a function that is executed immediately after it is defined.
 // It is a design pattern that is used to create a new scope for variables.
-// This is only executed when the file is run, not when it is imported.
-// Examples: 
-// 1). cd modules/utils; node stringUtils.mjs or
-// 2). node modules/utils/stringUtils.mjs
+
 // (function() {
 //     tryCircularTests();
-// })();
+//   })();
 
-export function test_jsonUtils() {
-  
+
+/**
+ * test all stringUtils functions
+ */
+export function test_stringutils() {
+
 }

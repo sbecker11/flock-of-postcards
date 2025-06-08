@@ -1,9 +1,9 @@
 // modules/core/viewPort mjs
 
-import { isHTMLElement } from '../utils/domUtils.mjs';
-import * as bullsEye from './bullsEye.mjs';
 import * as utils from '../utils/utils.mjs';    
-import * as zIndex from './zIndex.mjs';
+
+import * as domUtils from '../utils/domUtils.mjs';
+import * as bullsEye from './bullsEye.mjs';
 
 import { Logger, LogLevel } from '../logger.mjs';
 const logger = new Logger("viewPort", LogLevel.INFO);
@@ -136,54 +136,54 @@ export function setViewPortWidth(width) {
     updateViewPort();
 }
 
-/**
- * Applies view-relative styling for a bizCardDiv 
- * with scene-plane relative coordinates
- * @param {HTMLElement} bizCardDiv - The card div
- */
-export function applyViewRelativeStyling(bizCardDiv) {
-    if ( !isViewPortInitialized() ) {
-        throw new Error("viewPortProperties is not initialized");
-    }
-    if ( !isHTMLElement(bizCardDiv) ) {
-        throw new Error(`bizCardDiv is not an HTMLElement: ${bizCardDiv}`);
-    }
+// /**
+//  * Applies view-relative styling for a bizCardDiv 
+//  * with scene-plane relative coordinates
+//  * @param {HTMLElement} bizCardDiv - The card div
+//  */
+// export function applyViewRelativeStyling(bizCardDiv) {
+//     if ( !isViewPortInitialized() ) {
+//         throw new Error("viewPortProperties is not initialized");
+//     }
+//     if ( !isHTMLElement(bizCardDiv) ) {
+//         throw new Error(`bizCardDiv is not an HTMLElement: ${bizCardDiv}`);
+//     }
 
-    const bullsEyeX = bullsEye.getBullsEye().x;
-    // console.log("applyViewRelativeStyling:", bizCardDiv.id, "bullsEyeX:", bullsEyeX);
+//     const bullsEyeX = bullsEye.getBullsEye().x;
+//     // console.log("applyViewRelativeStyling:", bizCardDiv.id, "bullsEyeX:", bullsEyeX);
 
 
-    // extract the static scene-relative geometry
-    const sceneTop = parseInt(bizCardDiv.getAttribute("data-sceneTop"));
-    const sceneLeft = parseInt(bizCardDiv.getAttribute("data-sceneLeft"));
-    const sceneWidth = parseInt(bizCardDiv.getAttribute("data-sceneWidth"));
-    const sceneHeight = parseInt(bizCardDiv.getAttribute("data-sceneHeight"));
-    const sceneZ = parseInt(bizCardDiv.getAttribute("data-sceneZ"));
+//     // extract the static scene-relative geometry
+//     const sceneTop = parseInt(bizCardDiv.getAttribute("data-sceneTop"));
+//     const sceneLeft = parseInt(bizCardDiv.getAttribute("data-sceneLeft"));
+//     const sceneWidth = parseInt(bizCardDiv.getAttribute("data-sceneWidth"));
+//     const sceneHeight = parseInt(bizCardDiv.getAttribute("data-sceneHeight"));
+//     const sceneZ = parseInt(bizCardDiv.getAttribute("data-sceneZ"));
     
 
-    // transform scene-relative attributes to get view-relative styling
-    const viewTop = sceneTop;
-    const viewLeft = sceneLeft + bullsEyeX;
-    const viewWidth = sceneWidth;
-    const viewHeight = sceneHeight;
-    const viewZIndexStr = zIndex.get_zIndexStr_from_z(sceneZ, bizCardDiv.id);
+//     // transform scene-relative attributes to get view-relative styling
+//     const viewTop = sceneTop;
+//     const viewLeft = sceneLeft + bullsEyeX;
+//     const viewWidth = sceneWidth;
+//     const viewHeight = sceneHeight;
+//     const viewZIndexStr = zUtils.get_zIndexStr_from_z(sceneZ, bizCardDiv.id);
 
-    // console.log(`sceneLeft:${sceneLeft} + bullsEyeX:${bullsEyeX} viewLeft:${viewLeft}`);
+//     // console.log(`sceneLeft:${sceneLeft} + bullsEyeX:${bullsEyeX} viewLeft:${viewLeft}`);
 
-    // apply view-relative styling
-    bizCardDiv.style.top =     `${viewTop}px`;
-    bizCardDiv.style.left =    `${viewLeft}px`;
-    bizCardDiv.style.width =   `${viewWidth}px`;
-    bizCardDiv.style.height =  `${viewHeight}px`;
-    bizCardDiv.style.zIndex =   viewZIndexStr;
+//     // apply view-relative styling
+//     bizCardDiv.style.top =     `${viewTop}px`;
+//     bizCardDiv.style.left =    `${viewLeft}px`;
+//     bizCardDiv.style.width =   `${viewWidth}px`;
+//     bizCardDiv.style.height =  `${viewHeight}px`;
+//     bizCardDiv.style.zIndex =   viewZIndexStr;
 
-    // // console.log(`bizCardDiv view-relativestyling for ${bizCardDiv.id}:`, {
-    //     styleLeft: bizCardDiv.style.left,
-    //     offsetLeft: bizCardDiv.offsetLeft,
-    //     boundingLeft: bizCardDiv.getBoundingClientRect().left,
-    //     viewLeft,
-    //     bullsEyeX,
-    //     sceneLeft,
-    //     parsedSceneLeft: parseFloat(sceneLeft)
-    // });
-}
+//     // // console.log(`bizCardDiv view-relativestyling for ${bizCardDiv.id}:`, {
+//     //     styleLeft: bizCardDiv.style.left,
+//     //     offsetLeft: bizCardDiv.offsetLeft,
+//     //     boundingLeft: bizCardDiv.getBoundingClientRect().left,
+//     //     viewLeft,
+//     //     bullsEyeX,
+//     //     sceneLeft,
+//     //     parsedSceneLeft: parseFloat(sceneLeft)
+//     // });
+// }

@@ -2,7 +2,7 @@
 
 import * as utils from '../utils/utils.mjs';
 import * as BizDetailsDivModule from './bizDetailsDivModule.mjs';
-import * as colorPalettes from '../color/colorPalettes.mjs';
+import * as colorPalettes from '../colors/colorPalettes.mjs';
 
 import { Logger, LogLevel } from '../logger.mjs';
 const logger = new Logger("bizResumeDivModule", LogLevel.INFO);
@@ -16,7 +16,7 @@ export function createBizResumeDiv(bizCardDiv) {
     bizResumeDiv.classList.add("resume-content-div-child"); // Add the required class for proper styling
     bizResumeDiv.id = createBizResumeDivId(bizCardDiv.id);
     const jobIndex = bizCardDiv.getAttribute('data-job-index');
-    if ( !utils.isNumeric(jobIndex)) throw new Error('createBizResumeDiv: given non-numeric attribute jobIndex');
+    if ( !utils.isNumericString(jobIndex)) throw new Error('createBizResumeDiv: given non-numeric attribute jobIndex');
     bizResumeDiv.setAttribute('data-job-index', jobIndex);
 
     // Apply the same color palette as the biz card

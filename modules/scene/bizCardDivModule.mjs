@@ -2,26 +2,24 @@
 
 import * as viewPort from '../core/viewPort.mjs';
 import * as BizDetailsDivModule from './bizDetailsDivModule.mjs';
-import * as BizResumeDivModule from './bizResumeDivModule.mjs';
-// import * as divSyncModule from './divSyncModule.mjs';
 import * as domUtils from '../utils/domUtils.mjs';
-import * as colorPalettes from '../color/colorPalettes.mjs';
+import * as colorPalettes from '../colors/colorPalettes.mjs';
 import * as utils from '../utils/utils.mjs';
 import * as mathUtils from '../utils/mathUtils.mjs';
 import * as sceneContainer from './sceneContainer.mjs';
-import * as zIndex from '../core/zIndex.mjs';
+import * as zUtils from '../utils/zUtils.mjs';
+import * as timeline from '../timeline/timeline.mjs';
+import * as dateUtils from '../utils/dateUtils.mjs';
 
 import { Logger, LogLevel } from '../logger.mjs';
-const logger = new Logger("bizCardDivModule", LogLevel.DEBUG);
+const logger = new Logger("bizCardDivModule", LogLevel.INFO);
 
 // Business card constants
+export const BIZCARD_MIN_HEIGHT = 200;
 export const BIZCARD_MEAN_WIDTH = 200;
-export const BIZCARD_INDENT = 29;
-export const MIN_BIZCARD_HEIGHT = 200;
-export const MIN_BRIGHTNESS_PERCENT = 70;
-export const BLUR_Z_SCALE_FACTOR = 0.1;
-export const MAX_WIDTH_OFFSET = 40; // Maximum random width offset in pixels
-export const MAX_X_OFFSET = 100; // Maximum random horizontal offset in pixels
+export const BIZCARD_MAX_WIDTH_OFFSET = 40; // Maximum random width offset in pixels
+export const BIZCARD_MAX_X_OFFSET = 100; // Maximum random horizontal offset in pixels
+export const BIZCARD_MIN_Z_DIFF = 2; // Minimum difference in Z between adjacent bizCardDivs
 
 // global selected element
 let globalSelectedElement = null;
@@ -38,11 +36,7 @@ export function createBizCardDivId(jobIndex) {
 }
 
 // scrolls the bizDetailsEmployer of the bizCardDiv into view
-export function scrollBizCardDivIntoView(element) {
-    // if (!divSyncModule.isPairedElement(element)) {
-    //     throw new Error(`element is undefined or not a pairedElement`);
-    // }
-    // const bizCardDiv = divSyncModule.getBizCardDiv(element);
+export function scrollBizCardDivIntoView(bizCardDiv) {
     const bizDetailsDiv = bizCardDiv.querySelector('.biz-details-div');
     if (!bizDetailsDiv) throw new Error(`bizDetailsDiv not found for ${bizCardDiv.id}`);
     const bizDetailsClass = '.biz-details-employer';
@@ -60,39 +54,30 @@ export function scrollBizCardDivIntoView(element) {
  * @returns {HTMLElement} The created business card div
  */
 export function createBizCardDiv(job, jobIndex) {
-    if ( !job ) throw new Error('createBizCardDiv: given null job');
-    if ( !Number.isInteger(jobIndex )) throw new Error('createBizCardDiv: given non-integer jobIndex');
+    // Create the bizCardDiv element first
     const bizCardDiv = document.createElement("div");
-    if ( ! (bizCardDiv instanceof HTMLElement) ) throw new Error (`bizCardDiv is not an instance of HTMLElement`);
-    bizCardDiv.classList.add("biz-card-div");
-    bizCardDiv.id = createBizCardDivId(jobIndex);
-    if ( bizCardDiv.id.indexOf('undefined') >= 0 ) throw new Error(`bizCardDiv.id:${bizCardDiv.id} includes 'undefined' for jobIndex:${jobIndex}`);
-    bizCardDiv.setAttribute("data-job-index", jobIndex );
-
-    // Position the scene-relative geometry of the bizCardDiv
+    bizCardDiv.id = `biz-card-div-${jobIndex}`;
+    bizCardDiv.className = "biz-card-div";
+    bizCardDiv.setAttribute("data-job-index", jobIndex.toString());
+    
+    // Set scene geometry BEFORE appending to DOM
     setBizCardDivSceneGeometry(bizCardDiv, job);
-
+    
     // Assign color index
     colorPalettes.assignColorIndex(bizCardDiv, jobIndex);
-    if ( bizCardDiv.getAttribute('data-color-index') !== String(jobIndex) ) throw new Error('bizCardDiv data-color-ubdex attribute not saved?');
     
-    // create and append bizCardDetails after setting data-color-index
+    // create and append bizCardDetails
     const bizCardDetailsDiv = BizDetailsDivModule.createBizCardDetailsDiv(bizCardDiv, job);
     bizCardDiv.appendChild(bizCardDetailsDiv);
     
-    // and apply the color set to bizCardDiv after appending bizCardDetails
+    // Apply the color set to bizCardDiv
     colorPalettes.applyCurrentColorPaletteToElement(bizCardDiv);
-
-    // appending the bizCarDiv to the scenePlane
+    
+    // Append to scene plane
     const scenePlane = document.getElementById("scene-plane");
-    logger.info("bizCardDivModule:createBizCardDiv: appending bizCardDiv.id:", bizCardDiv.id, " to scenePlane");
     scenePlane.appendChild(bizCardDiv);
     bizCardDiv.style.opacity = "0.5";
-
-    // Initialize view-relative styling based on the scene-relative geometry
-    if ( !viewPort.isViewPortInitialized() ) throw new Error('viewPort is not initialized');
-    viewPort.applyViewRelativeStyling(bizCardDiv);
-
+    
     return bizCardDiv;
 }
 
@@ -103,54 +88,143 @@ function setAndVerifyAttribute(bizCardDiv,attributeName, value) {
     // console.log(`   ${attributeName}:`, checkValue);
 }
 
+let lastSceneZ = -1;
+let lastSceneTop = -1;
+let lastSceneBottom = -1;
 /**
  * Sets the scene-relative geometry of a business card div
  * @param {HTMLElement} bizCardDiv - The business card div
+ * @param {Object} job - The job object
  */
 function setBizCardDivSceneGeometry(bizCardDiv, job) {
-    if ( !job ) {
-        throw new Error(`job not found for bizCardDiv ${bizCardDiv.id}`);
+    console.log(`Setting geometry for ${bizCardDiv.id} with job:`, job);
+    
+    if (!job) {
+        console.error(`Job not found for bizCardDiv ${bizCardDiv.id}`);
+        return;
+    }
+        
+    try {
+        // Validate job dates
+        if (!job.start || !job.end) {
+            throw new Error(`Job ${bizCardDiv.id} is missing start or end date`);
+        }
+        
+        console.log(`Job dates: start=${job.start}, end=${job.end}`);
+        
+        
+        // Get vertical positions - based on job start and end dates
+        const start_year_str = job.start.split("-")[0];
+        const start_month_str = job.start.split("-")[1];
+        const sceneBottom = timeline.getTimelineYearMonthBottom(start_year_str, start_month_str);
+
+        let sceneTop = "";
+        if ( job.end == "CURRENT_DATE" ) {
+            const end_YYYY_MM_DD = dateUtils.formatISO8601DateOnly(new Date());
+            const end_year_str = end_YYYY_MM_DD.split("-")[0];
+            const end_month_str = end_YYYY_MM_DD.split("-")[1];
+            sceneTop = timeline.getTimelineYearMonthBottom(end_year_str, end_month_str);
+        } else {
+            const end_year_str = job.end.split("-")[0];
+            const end_month_str = job.end.split("-")[1];
+            sceneTop = timeline.getTimelineYearMonthBottom(end_year_str, end_month_str);
+        }
+        const sceneHeight = sceneBottom - sceneTop;
+        const sceneCenterY = sceneTop + sceneHeight/2;
+        
+        // Set data attributes for scene geometry (used by parallax)
+        bizCardDiv.setAttribute("data-sceneTop", sceneTop);
+        bizCardDiv.setAttribute("data-sceneBottom", sceneBottom);
+        bizCardDiv.setAttribute("data-sceneHeight", sceneHeight);
+        bizCardDiv.setAttribute("data-sceneCenterY", sceneCenterY);
+        
+        const sceneCenterX = mathUtils.getRandomSignedOffset(BIZCARD_MAX_X_OFFSET);
+        const sceneWidth = BIZCARD_MEAN_WIDTH + mathUtils.getRandomSignedOffset(BIZCARD_MAX_WIDTH_OFFSET);
+        const sceneLeft = sceneCenterX - sceneWidth / 2;
+        const sceneRight = sceneCenterX + sceneWidth / 2;
+        
+        bizCardDiv.setAttribute("data-sceneLeft", sceneLeft);
+        bizCardDiv.setAttribute("data-sceneRight", sceneRight);
+        bizCardDiv.setAttribute("data-sceneWidth", sceneWidth);
+        bizCardDiv.setAttribute("data-sceneCenterX", sceneCenterX);
+        
+        let sceneZ = 0;
+        while (true) {
+            sceneZ = mathUtils.getRandomInt(zUtils.ALL_CARDS_Z_MIN, zUtils.ALL_CARDS_Z_MAX);
+            if (utils.abs_diff(sceneZ, lastSceneZ) >= BIZCARD_MIN_Z_DIFF) {
+                lastSceneZ = sceneZ;
+                break;
+            }
+        }
+        utils.validateNumberInRange(sceneZ, zUtils.ALL_CARDS_Z_MIN, zUtils.ALL_CARDS_Z_MAX);
+        bizCardDiv.setAttribute("data-sceneZ", sceneZ);
+        
+        console.log(`Set geometry for ${bizCardDiv.id}:`);
+        console.log(` sceneTop: ${sceneTop}`);
+        console.log(` sceneBottom: ${sceneBottom}`);
+        console.log(` sceneHeight: ${sceneHeight}`);
+        console.log(` sceneCenterY: ${sceneCenterY}`);
+
+        console.log(` sceneLeft: ${sceneLeft}`);
+        console.log(` sceneRight: ${sceneRight}`);
+        console.log(` sceneWidth: ${sceneWidth}`);
+        console.log(` sceneCenterX: ${sceneCenterX}`);
+
+        console.log(` sceneZ: ${sceneZ}`);
+        console.log(` zIndex: ${zUtils.get_zIndexStr_from_z(sceneZ)}`);
+        
+        function verifyAttribute(attrName, sceneValue) {
+            const attrValue = parseFloat(bizCardDiv.getAttribute(`data-${attrName}`));
+            if (isNaN(attrValue)) {
+                console.error(`Failed to set ${attrName} for ${bizCardDiv.id}`);
+            }
+            const checkValue = parseFloat(bizCardDiv.getAttribute(`data-${attrName}`));
+            if ( !utils.isNumber(checkValue) ) throw new Error(`check${attrName} is not a number`);
+            if (checkValue !== sceneValue) throw new Error("Attribute mismatch: set sceneValue=${sceneValue}, got ${checkValue} for ${attrName}");
+        }
+        verifyAttribute("sceneTop", sceneTop);
+        verifyAttribute("sceneBottom", sceneBottom);
+        verifyAttribute("sceneHeight", sceneHeight);
+        verifyAttribute("sceneCenterY", sceneCenterY);
+        verifyAttribute("sceneLeft", sceneLeft);
+        verifyAttribute("sceneRight", sceneRight);
+        verifyAttribute("sceneWidth", sceneWidth);
+        verifyAttribute("sceneCenterX", sceneCenterX);
+        verifyAttribute("sceneZ", sceneZ);
+    } catch (error) {
+        console.error(`Error setting geometry for ${bizCardDiv.id}:`, error);
+    }
+    
+    // Verify attributes were set
+    const requiredAttributes = [
+        "data-sceneCenterX", 
+        "data-sceneCenterY", 
+        "data-sceneTop", 
+        "data-sceneBottom",
+        "data-sceneLeft",
+        "data-sceneRight",
+        "data-sceneWidth",
+        "data-sceneZ"
+    ];
+    
+    let numErrors = 0;
+    for (const attr of requiredAttributes) {
+        if (!bizCardDiv.hasAttribute(attr)) {
+            console.error(`Failed to set ${attr} for ${bizCardDiv.id}`);
+            numErrors++;
+        }
+    }
+    if ( numErrors !== 0 ) {
+        throw new Error("numErrors:", numErrors);
     }
 
-    // Get vertical positions - based on job start and end dates
-    const { sceneTop, sceneBottom } = sceneContainer.getSceneVerticalPositions(job.start, job.end, MIN_BIZCARD_HEIGHT);
-    const sceneHeight = sceneBottom - sceneTop;
-    const sceneCenterY = sceneTop + sceneHeight/2;
-
-    setAndVerifyAttribute(bizCardDiv, "sceneTop", sceneTop);
-    setAndVerifyAttribute(bizCardDiv, "sceneBottom", sceneBottom);
-    setAndVerifyAttribute(bizCardDiv, "sceneCenterY", sceneCenterY);
-
-    // console.log("   job.start:", job.start);
-    // console.log("     job.end:", job.end);
-    // console.log("    sceneTop:", sceneTop);
-    // console.log(" sceneBottom:", sceneBottom);
-    // console.log("sceneCenterY:", sceneCenterY);
-
-    const sceneCenterX = mathUtils.getRandomSignedOffset(MAX_X_OFFSET); // Random offset from scene origin
-    const sceneWidth = BIZCARD_MEAN_WIDTH + mathUtils.getRandomSignedOffset(MAX_WIDTH_OFFSET);
-    const sceneLeft = sceneCenterX - sceneWidth / 2;
-
-    setAndVerifyAttribute(bizCardDiv, "sceneLeft", sceneLeft);
-    setAndVerifyAttribute(bizCardDiv, "sceneWidth", sceneWidth);
-    setAndVerifyAttribute(bizCardDiv, "sceneCenterX", sceneCenterX);
-
-    const sceneZ = mathUtils.getRandomInt(zIndex.BIZCARD_Z_MIN, zIndex.BIZCARD_Z_MAX);
-    setAndVerifyAttribute(bizCardDiv, "sceneZ", sceneZ);
-
-    // // initialize view-relative positions
-    // const viewPortOrigin = viewPort.getViewPortOrigin();
-    // bizCardDiv.style.top = `${sceneTop}px`;
-    // bizCardDiv.style.left = `${sceneLeft + viewPortOrigin.x}px`;
-    // bizCardDiv.style.width = `${sceneWidth}px`;
-    // bizCardDiv.style.height = `${sceneHeight}px`;
 }
 
 export function handleClickEvent(element) {
     if ( !element ) throw new Error('bizCardDivModule:handleClickEvent: given null element');
-    logger.info('bizCardDivModule:handleClickEvent: element.id', element.id);
+    //console.log('bizCardDivModule:handleClickEvent: element.id', element.id);
     const jobIndex = element.getAttribute('data-job-index');
-    if ( !utils.isNumeric(jobIndex)) throw new Error('bizCardDivModule:handleClickEvent: element non-numeric data-job-index attribute string');
+    if ( !utils.isNumericString(jobIndex)) throw new Error('bizCardDivModule:handleClickEvent: element non-numeric data-job-index attribute string');
     if ( domUtils.hasClass(element, "selected")) {
         const selectedElements = querySelectorAll('.selected');
         for (const selectedElement of selectedElements) {
@@ -170,9 +244,9 @@ export function handleClickEvent(element) {
 
 export function handleMouseEnterEvent(element) {
     if ( !element ) throw new Error('bizCardDivModule:handleMouseEnterEvent: given null element');
-    logger.info('bizCardDivModule:handleMouseEnterEvent: element.id', element.id);
+    //console.log('bizCardDivModule:handleMouseEnterEvent: element.id', element.id);
     const jobIndex = element.getAttribute('data-job-index');
-    if ( !utils.isNumeric(jobIndex)) throw new Error('bizCardDivModule:handleMouseEnterEvent: element has non-numeric data-job-index attribute string');
+    if ( !utils.isNumericString(jobIndex)) throw new Error('bizCardDivModule:handleMouseEnterEvent: element has non-numeric data-job-index attribute string');
     if ( !domUtils.hasClass(element, "selected")) {
         domUtils.addClass(element, "hovered");
         resumeManager.addClassItem(jobIndex,'hovered');
@@ -183,14 +257,53 @@ export function handleMouseEnterEvent(element) {
 }
 export function handleMouseLeaveEvent(element) {
     if ( !element ) throw new Error('bizCardDivModule:handleMouseLeaveEvent: given null element');
-    logger.info('bizCardDivModule:handleMouseLeaveEvent: element.id', element.id);
+    //console.log('bizCardDivModule:handleMouseLeaveEvent: element.id', element.id);
     const jobIndex = element.getAttribute('data-job-index');
-    if ( !utils.isNumeric(jobIndex) ) throw new Error('bizCardDivModule:handleMouseLeaveEvent: element has non-numeric data-job-index attribute string');
+    if ( !utils.isNumericString(jobIndex) ) throw new Error('bizCardDivModule:handleMouseLeaveEvent: element has non-numeric data-job-index attribute string');
     if ( !domUtils.hasClass(element, "selected")) {
         domUtils.removeClass(element, "hovered");
         resumeManager.removeClassItem(jobIndex, "hovered");
         console.log("element:",element.id,"unhovered");
     } else {
         console.log("element:",element.id,"not unhovered");
+    }
+}
+
+/**
+ * Emergency function to set geometry for all existing bizCardDivs
+ * Call this if cards are missing attributes
+ * @param {Array} jobsArray - The array of job objects
+ */
+export function setGeometryForAllBizCardDivs(jobsArray) {
+    if (!jobsArray || !Array.isArray(jobsArray)) {
+        console.error("setGeometryForAllBizCardDivs: jobsArray is not defined or not an array");
+        throw new Error("jobsArray is required and must be an array");
+    }
+    
+    const bizCardDivs = document.getElementsByClassName("biz-card-div");
+    console.log(`Setting geometry for ${bizCardDivs.length} existing bizCardDivs with ${jobsArray.length} jobs`);
+    
+    for (let i = 0; i < bizCardDivs.length; i++) {
+        const bizCardDiv = bizCardDivs[i];
+        const jobIndex = parseInt(bizCardDiv.getAttribute("data-job-index"), 10) || i;
+        
+        // Get the corresponding job
+        if (jobIndex >= jobsArray.length) {
+            console.error(`Job index ${jobIndex} is out of bounds (max: ${jobsArray.length - 1})`);
+            continue;
+        }
+        
+        const job = jobsArray[jobIndex];
+        if (!job) {
+            console.error(`Job at index ${jobIndex} is null or undefined`);
+            continue;
+        }
+        
+        // Set geometry
+        setBizCardDivSceneGeometry(bizCardDiv, job);
+        
+        // Verify
+        console.log(`Verified ${bizCardDiv.id} has sceneCenterX:`, 
+            bizCardDiv.getAttribute("data-sceneCenterX"));
     }
 }

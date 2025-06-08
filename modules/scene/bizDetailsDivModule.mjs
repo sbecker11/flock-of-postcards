@@ -9,20 +9,28 @@ const logger = new Logger("bizDetailsDivModule", LogLevel.INFO);
 // BizDetailsDivs do not add themselves to a bizCardDiv or 
 // a bizResumeDiv.
 
-import * as colorPalettes from '../color/colorPalettes.mjs';
+import * as colorPalettes from '../colors/colorPalettes.mjs';
 import * as utils from '../utils/utils.mjs';
 import * as sceneContainer from './sceneContainer.mjs';
 import { BULLET } from '../constants/ui.mjs';
 
 export function createBizResumeDetailsDiv(bizResumeDiv, bizCardDiv) {
-    if ( !bizResumeDiv ) throw new Error('createBizResumeDetailsDiv: given null bizResumeDiv');
-    if ( !bizCardDiv ) throw new Error('createBizResumeDetailsDiv: given null bizCardDiv');
+    if (!bizResumeDiv) throw new Error('createBizResumeDetailsDiv: given null bizResumeDiv');
+    if (!bizCardDiv) throw new Error('createBizResumeDetailsDiv: given null bizCardDiv');
     let colorIndex = bizResumeDiv.getAttribute('data-color-index');
-    if ( !colorPalettes.isColorIndexString(colorIndex) ) throw new Error('createBizResumeDetailsDiv: given non-colorIndexString colorIndex from bizResumeDiv:', bizResumeDiv.id);
+    
+    // Use utils.isNumeric as a fallback if colorPalettes.isColorIndexString is not available
+    if (!colorPalettes.isColorIndexString && utils.isNumeric) {
+        if (!utils.isNumericString(colorIndex)) {
+            throw new Error('createBizResumeDetailsDiv: given non-numeric colorIndex from bizResumeDiv: ' + bizResumeDiv.id);
+        }
+    } else if (!colorPalettes.isColorIndexString(colorIndex)) {
+        throw new Error('createBizResumeDetailsDiv: given non-colorIndexString colorIndex from bizResumeDiv: ' + bizResumeDiv.id);
+    }
 
     const bizResumeDetailsDiv = document.createElement('div');
     const jobIndex = bizResumeDiv.getAttribute('data-job-index');
-    if ( !utils.isNumeric(jobIndex) ) throw new Error('createBizResumeDetailsDiv: given non-numeric attriubute string jobIndex');
+    if ( !utils.isNumericString(jobIndex) ) throw new Error('createBizResumeDetailsDiv: given non-numeric attriubute string jobIndex');
     bizResumeDetailsDiv.classList.add('biz-resume-details-div');
     bizResumeDetailsDiv.id = `biz-resume-details-div-${jobIndex}`;
 
@@ -38,18 +46,27 @@ export function createBizResumeDetailsDiv(bizResumeDiv, bizCardDiv) {
 }
 
 export function createBizCardDetailsDiv(bizCardDiv, job) {
-    if ( !bizCardDiv ) throw new Error('createBizDetailsDiv: given null bizCardDiv');
-    if ( !job ) throw new Error('createBizDetailsDiv: given null job');
+    if (!bizCardDiv) throw new Error('createBizDetailsDiv: given null bizCardDiv');
+    if (!job) throw new Error('createBizDetailsDiv: given null job');
     // console.log("createBizDetailsDiv: job:", job);
     const bizCardDetailsDiv = document.createElement('div');
     const jobIndex = bizCardDiv.getAttribute('data-job-index');
-    if ( !utils.isNumeric(jobIndex) ) throw new Error(' createBizCardDetailsDiv: given non-numeric jobIndex attribute string');
+    if (!utils.isNumericString(jobIndex)) throw new Error(' createBizCardDetailsDiv: given non-numeric jobIndex attribute string');
     bizCardDetailsDiv.classList.add('biz-card-details-div');
     bizCardDetailsDiv.id = `biz-card-details-div-${jobIndex}`;
 
     // see createBizDetailsDiv::34  colorIndex format <number>
     let colorIndex = bizCardDiv.getAttribute('data-color-index');
-    if ( !colorPalettes.isColorIndexString(colorIndex) ) throw new Error('createBizDetailsDiv: given non-colorIndexString colorIndex');
+    
+    // Use utils.isNumeric as a fallback if colorPalettes.isColorIndexString is not available
+    if (!colorPalettes.isColorIndexString && utils.isNumeric) {
+        if (!utils.isNumericString(colorIndex)) {
+            throw new Error('createBizDetailsDiv: given non-numeric colorIndex');
+        }
+    } else if (!colorPalettes.isColorIndexString(colorIndex)) {
+        throw new Error('createBizDetailsDiv: given non-colorIndexString colorIndex');
+    }
+    
     bizCardDetailsDiv.setAttribute("data-color-index", colorIndex);
     bizCardDetailsDiv.classList.add('color-index-foreground-only');
 

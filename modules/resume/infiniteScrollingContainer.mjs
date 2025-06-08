@@ -1,6 +1,6 @@
 // modules/scene/infiniteScrollingContainer.mjs
 
-import * as colorPalettes from '../color/colorPalettes.mjs';
+import * as colorPalettes from '../colors/colorPalettes.mjs';
 
 import { Logger, LogLevel } from '../logger.mjs';
 const logger = new Logger("infiniteScrollingContainer", LogLevel.INFO);

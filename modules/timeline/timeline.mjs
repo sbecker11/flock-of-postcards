@@ -19,6 +19,12 @@ var _timelineYearMin = 0;
 var _timelineYearMax = 0;
 var _defaultYear = null;
 
+let _timelineIsInitialized = false;
+
+export function isTimelineInitialized() {
+    return _timelineIsInitialized;
+}
+
 /**
  * initializes the timeLineContainer
  * @param {*} minYear : int
@@ -26,12 +32,18 @@ var _defaultYear = null;
  * @param {*} defaultYear : any optional
  */
 export function initializeTimeline(minYear, maxYear, defaultYear=null) {
+    if ( isTimelineInitialized() ) {
+        console.log("ignoring duplicate call to initializeTimeline")
+        return;
+    }
     _initializeTimeline(minYear, maxYear, defaultYear);
+    _timelineIsInitialized = true;
 }
 
 // the global set of all yearDivBottoms created 
 // from _timelineYearMax down to _timelineYearMin
 var timelineYearDivBottoms = {};
+
 function inittimelineYearDivBottoms() {
     timelineYearDivBottoms = {}
 }
@@ -49,22 +61,42 @@ const MONTHTICK_FONTSIZE = 9;
 // take care to always append "px" for pixels
 
 /**
- * Gets the bottom position of a year and month in the timeline
- * @param {string} yearStr - The year in YYYY format
- * @param {string} monthStr - The month in MM format
- * @returns {number} The bottom position in pixels
+ * Used to initialize timelineYearDivBottoms
+ * @param {string} yearStr 
+ * @return {number} - pixels from sceneTop
  */
-export function getTimelineYearMonthBottom(yearStr, monthStr) {
-    const yearBottomPx = timelineYearDivBottoms[yearStr];
-    if ( yearBottomPx === undefined ) {
-        throw new Error('yearBottomPx is undefined');
-    }
-    const month = parseInt(monthStr, 10);
-    const monthBackupPx = (month - 1) * YEAR_BOTTOM_TO_BOTTOM / 12;
-    const yearMonthBottomPx = yearBottomPx - monthBackupPx;
-    return yearMonthBottomPx;
+export function getTimelineYearBottom(yearStr) {
+    const yearNum = parseInt(yearStr, 10);
+    utils.validateFloat(yearNum);
+    utils.validateFloat(_timelineYearMin);
+    utils.validateFloat(_timelineYearMax);
+    const yearOffset = (_timelineYearMax - (yearNum-1)) * YEAR_BOTTOM_TO_BOTTOM;
+    return yearOffset;
 }
 
+/**
+ * Used to initialize timelineYearMonthDivBottoms
+ * @param {string} yearStr 
+ * @param {string} monthStr
+ * @return {number} - pixels from sceneTop for given year and month
+ */
+export function getTimelineYearMonthBottom(yearStr, monthStr) {
+    const yearOffset = getTimelineYearBottom(yearStr);
+    const monthNum = parseInt(monthStr,10);
+    const monthOffset = (monthNum-1) * YEAR_BOTTOM_TO_BOTTOM/12;
+    const yearMonthOffset = yearOffset - monthOffset;
+    return yearMonthOffset;
+}
+
+
+/**
+ * Return the height in pixels for a given span of years
+ * @param {number} numYears 
+ * @returns {number} pixels used for numYears
+ */
+export function getTimelineYearsHeight(numYears) {
+    return numYears * YEAR_BOTTOM_TO_BOTTOM;
+}
 /**
  * Gets the height of the timeline in pixels
  * @returns {number} The height in pixels
@@ -100,6 +132,7 @@ function _initializeTimeline(minYear, maxYear, defaultYear=null) {
 
     var alignment = _timelineContainer.classList.contains("timeline-timelineContainer-left") ? "left" : "right";
 
+    // year starts at the top at the maxYear
     for (var year = _timelineYearMax; year >= _timelineYearMin; year--) {
         var yearDiv = document.createElement("div");
         yearDiv.classList.add("year-div");
@@ -115,7 +148,13 @@ function _initializeTimeline(minYear, maxYear, defaultYear=null) {
 
         var row = _timelineYearMax - year;
         var yearDivBottom = (row + 1) * YEAR_BOTTOM_TO_BOTTOM;
-        timelineYearDivBottoms[`${year}`] = yearDivBottom;
+        const yearStr = `${year}`;
+        timelineYearDivBottoms[yearStr] = yearDivBottom;
+        const checkYearDivBottom = getTimelineYearBottom(yearStr);
+        if ( checkYearDivBottom != yearDivBottom ) {
+            console.error(`checkYearBtm:${checkYearDivBottom} != calcYearBtm:${yearDivBottom} `);
+        }
+        console.assert(checkYearDivBottom == yearDivBottom);
 
         yearDiv.style.fontSize = `${YEARDIV_FONTSIZE}px`;
         yearDiv.style.height = `${YEARDIV_FONTSIZE}px`;
@@ -132,13 +171,8 @@ function _initializeTimeline(minYear, maxYear, defaultYear=null) {
                 monthTick.classList.add("month-tick-right");
             var monthStr = utils.zeroPad(month, 2);
             var monthTickBottom = getTimelineYearMonthBottom(year.toString(), monthStr);
-            var check = yearDivBottom - (month - 1) * YEAR_BOTTOM_TO_BOTTOM / 12;
-            if (monthTickBottom != check) {
-                // console.log(`WARNING: monthTickBottom:${monthTickBottom} != check:${check}`);
-            }
-            if (getTimelineYearMonthBottom(year.toString(), "01") != timelineYearDivBottoms[`${year}`]) {
-                // console.log("WARNING: year-01 != year");
-            }
+            var checkYearMonthTick = yearDivBottom - (month - 1) * YEAR_BOTTOM_TO_BOTTOM / 12;
+            console.assert(checkYearMonthTick == monthTickBottom);
 
             monthTick.style.fontSize = `${MONTHTICK_FONTSIZE}px`;
             monthTick.style.height = `${MONTHTICK_FONTSIZE}px`;
@@ -155,8 +189,8 @@ function _initializeTimeline(minYear, maxYear, defaultYear=null) {
             //     monthTick.style.fontSize = "20pt";
             // }
             _timelineContainer.appendChild(monthTick);
-        }
-    }
+        } // month
+    } // year
     sceneContainerScrollToYear(_sceneContainer, defaultYear);
 }
 
@@ -177,7 +211,7 @@ export function sceneContainerScrollToYear(_sceneContainer, year) {
 
     var leftColumScrollPixelsPerYear = _sceneContainer.scrollHeight / totalYears;
     var newScrollTop = (_timelineYearMax - year) * leftColumScrollPixelsPerYear;
-    newScrollTop = mathUtils.clampInt(newScrollTop, 0, _sceneContainer.scrollHeight);
+    newScrollTop = utils.clampInt(newScrollTop, 0, _sceneContainer.scrollHeight);
 
     _sceneContainer.scrollTop = newScrollTop;
 }

@@ -6,10 +6,10 @@ const logger = new Logger("filters", LogLevel.INFO);
 import { linearInterp } from '../utils/mathUtils.mjs';
 
 // Filter constants
-export const MIN_BRIGHTNESS_PERCENT = 75;
-export const BLUR_Z_SCALE_FACTOR = 4;
-export const CARD_MIN_Z = 1;
-export const CARD_MAX_Z = 8;
+export const MIN_BRIGHTNESS_PERCENT = 100;
+export const BLUR_Z_SCALE_FACTOR = 10;
+export const CARD_MIN_Z = 10;
+export const CARD_MAX_Z = 20-1;
 
 /**
  * Gets the brightness value from a z value

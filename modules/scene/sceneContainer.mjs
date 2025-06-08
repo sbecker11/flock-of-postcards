@@ -2,30 +2,32 @@ import * as viewPort from '../core/viewPort.mjs';
 import * as timeline from '../timeline/timeline.mjs';
 import * as autoScroll from '../animation/autoScroll.mjs';
 import * as focalPoint from '../core/focalPoint.mjs';
+import * as dateUtils from '../utils/dateUtils.mjs';
+import * as utils from '../utils/utils.mjs';
 
 import { Logger, LogLevel } from '../logger.mjs';
 const logger = new Logger("sceneContainer", LogLevel.INFO);
 
+let isInitialized = false;
+
 export function initializeSceneContainer() {
-    console.log("initializeSceneContainer");
-    const sceneContainer = document.getElementById("scene-container");
-    console.log("initializeSceneContainer: sceneContainer:", sceneContainer);
-    const rect = sceneContainer.getBoundingClientRect();
-    console.log("initializeSceneContainer: sceneContainerRect:", rect);
-
-    // Initialize scrollbar controls - cards vertical scrolling
-    // viewPort.initScrollbarControls(sceneContainer);
-
-    // Start auto-scroll
-    autoScroll.startAutoScroll(sceneContainer);
-    console.log("initializeSceneContainer: autoScroll started");
-
-    sceneContainer.addEventListener('wheel', autoScroll.handlesceneContainerWheel, { passive: true });
-    sceneContainer.addEventListener('scroll', () => {
-        // Notify focalPoint of scroll changes for scene-relative viewport calculations
-        focalPoint.scrollTopUpdated(sceneContainer.scrollTop);
-    });
+    // Set up the scene container
+    const sceneContainer = document.getElementById('scene-container');
+    if (!sceneContainer) {
+        throw new Error('Scene container element not found');
+    }
+    
+    // Initialize any scene-related properties
+    // ...
+    
+    isInitialized = true;
+    console.log("Scene container initialized");
 }
+
+export function isSceneContainerInitialized() {
+    return isInitialized;
+}
+
 // called from updateResumeContainer
 export function updateSceneContainer() {
     // console.log("updateSceneContainer");
@@ -64,43 +66,119 @@ export function formatDateRange(start, end) {
  */
 
 /**
- * Gets the vertical position for a given date
- * @param {Date} date - Date in YYYY-MM-DD format
+ * Gets the vertical position for a given date string
+ * @param {string} dateStr - Date in "YYYY-MM-DD" or "YYYY-MM" format, or "CURRENT_DATE"
  * @returns {number} Vertical position
  */
-export function getSceneVerticalPositionForDate(date) {
+export function getSceneVerticalPositionForDateString(dateStr) {
+    let date;
+    
+    // Validate that input is a string
+    if (typeof dateStr !== 'string') {
+        throw new Error(`getSceneVerticalPositionForDateString expects a date string, received ${typeof dateStr}: ${dateStr}`);
+    }
+    
+    if (dateStr === "CURRENT_DATE") {
+        date = new Date();
+    } else if (/^\d{4}-\d{2}$/.test(dateStr)) {
+        // If format is YYYY-MM, append -01 to make it YYYY-MM-01
+        date = new Date(`${dateStr}-01`);
+        if (isNaN(date.getTime())) {
+            throw new Error(`Invalid date: ${dateStr}-01`);
+        }
+    } else if (/^\d{4}-\d{2}-\d{2}$/.test(dateStr)) {
+        // If format is already YYYY-MM-DD
+        date = new Date(dateStr);
+        if (isNaN(date.getTime())) {
+            throw new Error(`Invalid date: ${dateStr}`);
+        }
+    } else {
+        throw new Error(`Invalid date string format: ${dateStr}. Expected "CURRENT_DATE", "YYYY-MM-DD", or "YYYY-MM"`);
+    }
+    
     const yearString = date.getFullYear().toString();
-    const monthString = (date.getMonth() + 1).toString();
-    return timeline.getTimelineYearMonthBottom(yearString, monthString);
+    const monthString = (date.getMonth() + 1).toString().padStart(2, '0');
+    // Get position from timeline
+    const position = timeline.getTimelineYearMonthBottom(yearString, monthString);
+    console.log(`******* yearString:${yearString} monthString:${monthString} -> position:${position}`);
+
+    // Add debug logging
+    //console.log(`Date: ${dateStr} -> Year: ${yearString}, Month: ${monthString} -> Position: ${position}`);
+    
+    return position;
 }
 
 /**
  * Formats returns top and bottom scene values 
  * for a given start and end date and a minimum height
- * @param {string} startDateString - Start date in YYYY-MM-DD format
- * @param {string} endDateString - End date in YYYY-MM-DD format or "CURRENT_DATE"
+ * @param {string} startDateString - Date in "YYYY-MM-DD" or "YYYY-MM" format
+ * @param {string} endDateString - Date in "YYYY-MM-DD" or "YYYY-MM" format, or "CURRENT_DATE"
  * @param {number} minHeight - Minimum height if > 0
- * @returns {Object} Object containing sceneTop and sceneBottom  values
+ * @returns {Object} Object containing sceneTop and sceneBottom values
  */
-export function getSceneVerticalPositions(startDateString, endDateString,  minHeight=100) {
-    const startDate = new Date(startDateString);
-    const endDate = endDateString === "CURRENT_DATE" ? 
-        new Date(): 
-        new Date(endDateString); 
-    const sceneTop = getSceneVerticalPositionForDate(endDate);
-    const sceneBottom = getSceneVerticalPositionForDate(startDate);
-    const sceneHeight = sceneBottom - sceneTop;
-    // Apply minHeight rule if needed
-    if (minHeight > 0) {
-        if (sceneHeight < minHeight) {
-            const diff = minHeight - sceneHeight;
-            const adjustedSceneTop = sceneTop - diff / 2;
-            const adjustedSceneHeight = sceneHeight + diff;
-            const adjustedSceneBottom = adjustedSceneTop + adjustedSceneHeight;
-            return { sceneTop: adjustedSceneTop, sceneBottom: adjustedSceneBottom };
-        }
+export function getSceneVerticalPositions(startDateStr, endDateStr, minHeight=0) {
+    if (!isInitialized) {
+        console.warn("getSceneVerticalPositions called before initialization");
+        initializeSceneContainer(); // Auto-initialize if needed
     }
-    console.log(`**** getSceneVerticalPositions: endDate:${endDate}, startDate:${startDate}`);
-    console.log(`****getSceneVerticalPositions: sceneTop:${sceneTop}, sceneBottom:${sceneBottom}`);
-    return { sceneTop: sceneTop, sceneBottom: sceneBottom };
+    
+    // Calculate vertical positions based on dates
+    let sceneTop = getSceneVerticalPositionForDateString(startDateStr);
+    let sceneBottom = getSceneVerticalPositionForDateString(endDateStr);
+    let sceneHeight = sceneBottom - sceneTop;
+    const centerY = (sceneTop + sceneBottom) / 2;
+    if (minHeight > 0 && sceneHeight < minHeight) {
+        sceneHeight = minHeight;
+        console.warn(`getSceneVerticalPositions: sceneHeight:${sceneHeight} < minHeight:${minHeight}`);
+    }
+    const halfHeight = sceneHeight / 2;
+    sceneTop = centerY - halfHeight;
+    sceneBottom = centerY + halfHeight;
+
+    // compare sceneHeight with expected pixels 
+    // between startDate and endDate
+    const startDate = dateUtils.parseFlexibleDateString(startDateStr);
+    if (!(startDate instanceof Date)) {
+        throw new Error(`getSceneVerticalPositions: startDate:${startDate} is not a valid Date`);
+    }
+    
+    const today_YYYY_MM_DD = dateUtils.formatISO8601DateOnly(new Date());
+    const endDate = endDateStr === "CURRENT_DATE" ? new Date() : 
+        dateUtils.parseFlexibleDateString(endDateStr);
+    
+    if (!(endDate instanceof Date)) {
+        throw new Error(`getSceneVerticalPositions: endDate:${endDate} is not a valid Date`);
+    }
+        
+    // Get date difference as an object with years, months, days properties
+    const dateDiff = dateUtils.getDateDifference(startDate, endDate);
+    
+    // Check if dateDiff is an object with the expected properties
+    if (!dateDiff || typeof dateDiff !== 'object' || !('years' in dateDiff) || !('months' in dateDiff)) {
+        throw new Error(`getDateDifference returned invalid result: ${JSON.stringify(dateDiff)}`);
+    }
+    
+    // Extract years and months from the date difference object
+    const { years, months } = dateDiff;
+    
+    // Calculate years as a fraction
+    const years_fraction = years + months/12;
+    
+    // Calculate expected pixel height based on the date difference
+    const expectedPixels = years_fraction * timeline.YEAR_BOTTOM_TO_BOTTOM;
+    
+    // Calculate the absolute difference between actual and expected pixel heights
+    const pixelDiff = utils.abs_diff(expectedPixels, sceneHeight);
+    
+    // Calculate pixels per month for comparison
+    const pixelsPerMonth = timeline.YEAR_BOTTOM_TO_BOTTOM/12;
+    
+    // Log an error if the difference is greater than one month's worth of pixels
+    if (pixelDiff > pixelsPerMonth) {
+        console.error(`Date range pixel mismatch: startDate:${startDate} endDate:${endDate} - Expected:${expectedPixels}px, Actual:${sceneHeight}px, Diff:${pixelDiff}px > pixelsPerMonth:${pixelsPerMonth}px`);
+    } else {
+        console.log(`Date range pixel match: startDate:${startDate} endDate:${endDate} - Expected:${expectedPixels}px, Actual:${sceneHeight}px, Diff:${pixelDiff}px`);
+    }
+    
+    return { sceneTop, sceneBottom };
 }

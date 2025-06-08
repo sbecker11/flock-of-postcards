@@ -1,4 +1,4 @@
-// modules/utils/colorUtils.mjs
+// modules/colors/colorUtils.mjs
 
 import * as mathUtils from '../utils/mathUtils.mjs';
 import * as utils from '../utils/utils.mjs';
@@ -41,10 +41,10 @@ export function validateHexColorString(hexColorStr) {
 export function getHexDifference(hexStr1, hexStr2) {
     const rgb1 = get_RGB_from_Hex(hexStr1);
     const rgb2 = get_RGB_from_Hex(hexStr2);
-    const rDist = mathUtils.abs(rgb1[0] - rgb2[0]);
-    const gDist = mathUtils.abs(rgb1[1] - rgb2[1]);
-    const bDist = mathUtils.abs(rgb1[2] - rgb2[2]);
-    return mathUtils.max3(rDist, gDist, bDist);
+    const rDist = utils.abs(rgb1[0] - rgb2[0]);
+    const gDist = utils.abs(rgb1[1] - rgb2[1]);
+    const bDist = utils.abs(rgb1[2] - rgb2[2]);
+    return utils.max3(rDist, gDist, bDist);
 }
 
 
@@ -61,7 +61,7 @@ export function clampDegrees(value) {
     while ( value > 360.0 ) {
         value -= 360.0;
     }
-    return mathUtils.clampInt(value, 0, 360);
+    return utils.clampInt(value, 0, 360);
 }
 
 /**
@@ -70,7 +70,7 @@ export function clampDegrees(value) {
  * @param {number} brightness 
  * @returns {number[]} a brightness adjusted RGB array
  */
-export const adjustRgbBrightness = (rgb, brightness) => { utils.validateIntArrayLength(rgb, 3); return rgb.map(channel => mathUtils.clampInt(Math.round(channel * brightness), 0, 255)); }; // 1.0 is normal brightness
+export const adjustRgbBrightness = (rgb, brightness) => { utils.validateIntArrayLength(rgb, 3); return rgb.map(channel => utils.clampInt(Math.round(channel * brightness), 0, 255)); }; // 1.0 is normal brightness
 
 /**
  * Adjusts the brightness of a hex color string
@@ -174,8 +174,8 @@ export function get_HSV_from_RGB([R, G, B]) {
     const g = G/255.0;
     const b = B/255.0;
   
-    const max = mathUtils.max(r, g, b);
-    const min = mathUtils.min(r, g, b);
+    const max = Math.max(r, g, b);
+    const min = Math.min(r, g, b);
     const delta = max - min;
   
     let h, s, v = max;
@@ -196,8 +196,8 @@ export function get_HSV_from_RGB([R, G, B]) {
       h /= 6;
     }
     const H = clampDegrees(h * 360);
-    const S = mathUtils.clampInt(s * 100.0, 0, 100);
-    const V = mathUtils.clampInt(v * 100.0, 0, 100);
+    const S = utils.clampInt(s * 100.0, 0, 100);
+    const V = utils.clampInt(v * 100.0, 0, 100);
     const HSV = [H,S,V];
     validateHSV(HSV);
 
@@ -210,7 +210,7 @@ export function get_HSV_from_RGB([R, G, B]) {
  * @returns {number{}} RGB array clamped to [0,255]
  */
 function clampRGBtoRange(RGB) {
-    return RGB.map(channel => mathUtils.clampInt(channel, 0, 255));
+    return RGB.map(channel => utils.clampInt(channel, 0, 255));
 }
 
 /**
@@ -226,7 +226,7 @@ export const get_RGB_from_HSV = (HSV) => {
     const v = HSV[2] / 100.0;
     function f(n) {
         const k = (n + h / 60) % 6;
-        const factor = mathUtils.max(mathUtils.min(k, 4 - k, 1), 0);
+        const factor = Math.max(Math.min(k, 4 - k, 1), 0);
         return v - v * s * factor;
     }
     let RGB = [ 255.0 * f(5), 255.0 * f(3),255.0 *  f(1) ].map(Math.round);
@@ -496,7 +496,7 @@ export function normalizeHexColorString(hexColorStr) {
  * @returns the clamped HSV array
  */
 export function clampHSV(colorHSV) {
-    return [clampDegrees(colorHSV[0]), mathUtils.clampInt(colorHSV[1],0,100), mathUtils.clampInt(colorHSV[2],0,100)];
+    return [clampDegrees(colorHSV[0]), utils.clampInt(colorHSV[1],0,100), utils.clampInt(colorHSV[2],0,100)];
 }
 
 /**
@@ -598,7 +598,7 @@ export function adjustBrightness(hexColor, factor) {
     }
     const rgb = get_RGB_from_Hex(hexColor);
     const adjustedRgb = rgb.map(channel => 
-        mathUtils.clampInt(Math.round(channel * factor), 0, 255)
+        utils.clampInt(Math.round(channel * factor), 0, 255)
     );
     return get_Hex_from_RGB(adjustedRgb);
 }     
@@ -633,7 +633,7 @@ export function testColorFunctions() {
     test_RGB_ColorStr_functions();
 }
 
-export function testColorUtils() {
+export function test_colorUtils() {
     test_HSV_RGB_Hex_functions();
     test_RGB_RgbStr_functions();
     test_RGB_ColorStr_functions();

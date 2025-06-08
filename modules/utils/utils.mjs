@@ -1,11 +1,9 @@
 // modules/utils/utils.mjs          
-import * as mathUtils from './mathUtils.mjs';
-import { Logger, LogLevel } from '../logger.mjs';
-const logger = new Logger("utils", LogLevel.INFO);
 
+// calculation and logic functions throw no Errors
 export const calculateDistance = (x1, y1, x2, y2) => Math.sqrt(Math.pow(x2 - x1, 2) + Math.pow(y2 - y1, 2));
 export const isBetween = (value, min, max) => value >= min && value <= max;
-export const createRect = (x1, y1, x2, y2) => ({ left: mathUtils.min(x1, x2), top: mathUtils.min(y1, y2), right: mathUtils.max(x1, x2), bottom: mathUtils.max(y1, y2) });
+export const createRect = (x1, y1, x2, y2) => ({ left: Math.min(x1, x2), top: Math.min(y1, y2), right: Math.max(x1, x2), bottom: Math.max(y1, y2) });
 export const isPointInsideRect = (x, y, rect) => x >= rect.left && x <= rect.right && y >= rect.top && y <= rect.bottom;
 export const half = (value) => typeof value === 'number' ? Math.floor(value / 2) : (() => { throw new Error(`Value '${value}' is not a number`); })();
 export const toFixedPoint = (value, precision) => +value.toFixed(precision);
@@ -16,18 +14,83 @@ export const zeroPad = (num, places) => num.toString().padStart(places, "0");
 export const isString = (value) => (typeof value === 'string' || value instanceof String);
 export const isNonEmptyString = (value) => (isString(value) && (value.length > 0));
 export const isNumber = (value) => typeof value === 'number' && !Number.isNaN(value);
+
+// validation util functions throw Errors
 export const validateKey = (obj, key) => { if (!(key in obj)) throw new Error(`Key '${key}' not found in object`); };
 export const validateString = (str) => { if (typeof str === 'undefined' || str === null || typeof str !== 'string' || str.trim().length === 0) throw new Error(`Invalid string:[${str}]`); };
 export const validateIntArrayLength = (arr, length) => { if (typeof arr === 'undefined' || arr === null || !Array.isArray(arr) || arr.some(item => !Number.isInteger(item)) || (typeof length !== 'undefined' && arr.length !== length)) throw new Error('Invalid array of integers or length mismatch'); };
-export const validateNumber = (num) => { if (typeof num === 'undefined' || num === null || typeof num !== 'number' || !Number.isFinite(num)) throw new Error('Invalid number'); };
-export const validateFloat = (num) => { if (typeof num === 'undefined' || num === null || typeof num !== 'number' || !Number.isFinite(num)) throw new Error('Invalid floating-point number'); };
-export const validateFloatInRange = (num, min, max) => { if (typeof num === 'undefined' || num === null || typeof num !== 'number' || !Number.isFinite(num) || num < min || num > max) throw new Error(`Invalid floating-point number:[${num}] out of range:[${min}..${max}]`); };
+export const validateNumbersArray = (arr) => { try { return Array.isArray(arr) && arr.every(item => (validateNumber(item), true)); } catch { return false; } };
+export const validateNumber = (num) => { if (typeof num === 'undefined' || num === null || typeof num !== 'number' || !Number.isFinite(num)) throw new Error(`Invalid number:${num}`); };
+export const validateNumberInRange = (num, min, max) => { if ( !validateNumbersArray([num, min, max]) || num < min || num > max) throw new Error(`Invalid number:[${num}] out of range:[${min}..${max}]`); };
+export const validateIsNumericString = (str) => { if (! isNumericString(str) ) throw new Error(`str:${str} not isNumericString`)}
+export const validateFloat = (num) => validateNumber(num);
+export const validateFloatInRange = (num, min, max) => validateNumberInRange(num, min, max);
 export const validatePosition = (position) => { validateFloat(position.x) && validateFloat(position.y) };
 export const validateRect = (domRect) => { validateFloat(domRect.top) && validateFloat(domRect.left) && validateFloat(domRect.right) && validateFloat(domRect.bottom) };
-export function isNumeric(obj) {
-    const n = parseFloat(obj);
-    return Number.isFinite(n);
-};
+
+export function abs(val) {
+    if ( typeof val !== 'number' ) {
+        throw new Error(`abs: val:${val} is not a number`);
+    }
+    return val < 0 ? -val : val; 
+}
+
+export function abs_diff(val1, val2) {
+    if ( typeof val1 !== 'number' || typeof val2 !== 'number' ) {
+        throw new Error(`abs_diff: val1:${val1} or val2:${val2} is not a number`);
+    }
+    return val1 < val2 ? val2 - val1 : val1 - val2; 
+}
+
+export function min(val1, val2) {
+    if ( typeof val1 !== 'number' || typeof val2 !== 'number' ) {
+        throw new Error(`min: val1:${val1} or val2:${val2} is not a number`);
+    }
+    return val1 < val2 ? val1 : val2;
+}
+
+export function max(val1, val2) {
+    if ( typeof val1 !== 'number' || typeof val2 !== 'number' ) {
+        throw new Error(`max: val1:${val1} or val2:${val2} is not a number`);
+    }
+    return val1 > val2 ? val1 : val2;
+}
+
+// return the numeric value between minVal and maxVal
+// @param {number} value - The value to clamp
+// @param {number} minVal - The minimum value
+// @param {number} maxVal - The maximum value
+// @returns {number} The clamped value  
+export function clamp(value, minVal, maxVal) {
+    if (typeof value !== 'number' || typeof minVal !== 'number' || typeof maxVal !== 'number') {
+        throw new Error(`clamp: value:${value}, minVal:${minVal}, or maxVal:${maxVal} is not a number`);
+    }
+    return max(minVal, min(maxVal, value));
+}
+
+// return the integer value between minVal and maxVal
+// @param {number} value - The value to clamp
+// @param {number} minVal - The minimum value
+// @param {number} maxVal - The maximum value
+// @returns {number} The clamped value  
+export function clampInt(value, minVal, maxVal) {
+    if (typeof value !== 'number' || typeof minVal !== 'number' || typeof maxVal !== 'number') {
+        throw new Error(`clampInt: value:${value}, minVal:${minVal}, or maxVal:${maxVal} is not a number`);
+    }
+    // First convert all values to integers, then apply clamping
+    const intValue = Math.floor(value);
+    const intMinVal = Math.floor(minVal);
+    const intMaxVal = Math.floor(maxVal);
+    
+    return Math.max(intMinVal, Math.min(intMaxVal, intValue));
+}
+
+export function max3(val1, val2, val3) {
+    if ( typeof val1 !== 'number' || typeof val2 !== 'number' || typeof val3 !== 'number' ) {
+        throw new Error(`max3: val1:${val1} or val2:${val2} or val3:${val3} is not a number`);
+    }
+    return max(max(val1, val2), val3);
+}
 
 /**
  * Test if point x,y is within rect
@@ -45,6 +108,7 @@ export function inRect (x, y, rect) {
     );
 }
 
+// String-related utility functions
 /**
  * Create a position string
  * @param {x:number, y:number} pos - the position
@@ -105,222 +169,34 @@ export function getNumericValue(str) {
 }
 
 export const validateIsNumeric = (obj) => {
-    if (!isNumeric(obj)) {
+    if (!isNumericString(obj)) {
         throw new Error(`ValueError: Input is not a number, but it is a(n) ${typeof obj} with value ${obj}`);
     }
-};
+}
 
 export function validateIsBoolean(arg) {
     if (typeof arg !== 'boolean') {
         throw new Error(`Argument is not a boolean. but it is a(n) ${typeof arg} with value ${arg}`);
     }
 }
+
 export function isPlainObject(obj) {
     if (typeof obj !== 'object' || obj === null) return false;
     if (Array.isArray(obj) || obj instanceof Date || obj instanceof RegExp) return false;
     return true;
 }
+
 export function validateIsPlainObject(obj) {
     if (!isPlainObject(obj)) {
         throw new Error(`Error: argument is not a plain object, it is a(n) ${typeof obj} with value ${obj}`);
     }
 }
-// --------------------------------------
-// Javascript hacks
-
-// const left = getOffset(element).left; 
-// const {top,left} = getOffset(element); 
-export function getOffset(el) {
-    var _x = 0;
-    var _y = 0;
-    while (el && !Number.isNaN(el.offsetLeft) && !Number.isNaN(el.offsetTop)) {
-        _x += el.offsetLeft - el.scrollLeft;
-        _y += el.offsetTop - el.scrollTop;
-        el = el.offsetParent;
-    }
-    return { top: _y, left: _x };
-}
-
-// return "ABC" given "(apples),  !bananas#, & ~cherries"
-export function acronym(text) {
-    var acro = "";
-    text = text.replace(/[.,\/#!@$%\^&\*;:{}=\-_`~()]/g, "").toUpperCase();
-    var parts = text.trim().split(" ");
-    for (var i = 0; i < parts.length; i++) {
-        var part = parts[ i ].trim()
-        if (part.length > 0) {
-            // add first char
-            acro += part[ 0 ];
-        }
-    }
-    if (acro.length == 0)
-        acro = text.slice(0, mathUtils.min(3, text.length));
-    return acro;
-}
-
-export function formatNumber(num, format) {
-    // Parse the format string
-    const [wholeDigits, decimalDigits] = format.split('.').map(Number);
-  
-    // Separate the number into whole and decimal parts
-    let wholePart = Math.floor(num); // Keep the sign for the whole part
-    let decimalPart = num % 1;
-  
-    // Convert the whole part to a string and include the minus sign in the count if the number is negative
-    let wholePartStr = wholePart.toString();
-    let lengthToCheck = num < 0 ? wholePartStr.length - 1 : wholePartStr.length; // Subtract 1 if the number is negative
-  
-    // Check if the length exceeds the specified number of digits
-    if (lengthToCheck > wholeDigits) {
-      throw new Error(`Format error: the number ${num} has a whole part larger than ${wholeDigits} digits.`);
-    }
-  
-    // Format the whole part
-    let formattedWhole = wholePartStr.padStart(wholeDigits, '0');
-  
-    // Format the decimal part
-    let formattedDecimal = decimalPart.toFixed(decimalDigits).substring(2);
-  
-    return `${formattedWhole}.${formattedDecimal}`;
-}
-
-export function findScrollableAncestor(element) {
-    while (element && element.parentNode) {
-        element = element.parentNode;
-        if (element === document.body) {
-            // document.body is the default scrollable ancestor
-            return document.body;
-        }
-        const overflowY = window.getComputedStyle(element).overflowY;
-        const isScrollable = overflowY === 'auto' || overflowY === 'scroll';
-        const canScroll = element.scrollHeight > element.clientHeight;
-
-        if (isScrollable && canScroll) {
-            return element;
-        }
-    }
-    return null;
-}
-
-export function getObjectAsString(obj) {
-    let str = "";
-    for (let key in obj) {
-        let comma = (str === "") ? "" : ", ";
-        str += `${comma}${key}:${obj[key]}`;
-    }
-    return str;
-}
-
-export function getAttributesAsObject(element) {
-    let attributes = {};
-    for (let attribute of element.attributes) {
-        attributes[attribute.name] = attribute.value;
-    }
-    return attributes;
-}
-export function getAttributesAsString(element) {
-    let attributes = getAttributesAsObject(element);
-    return getObjectAsString(attributes);
-}
-
-export function getDatasetAsString(element) {
-    let dataset = element.dataset;
-    return getObjectAsString(dataset);
-}
-
-// counts all styles of prop strings
-export class PropStyleCounter {
-  constructor() {
-    this.prop_styles = {};
-  }
-
-  prop_style( prop )  {
-    if ( isNonEmptyString(prop) ) {
-        // remove all numbers from prop
-        return prop.replace(/\d/g, '');
-    }
-    return 'none';
-  }
-
-  addProp( prop ) {
-    const prop_style = this.prop_style(prop);
-    if (!this.prop_styles[prop_style]) {
-        this.prop_styles[prop_style] = 1;
-    } else {
-        this.prop_styles[prop_style] += 1;
-    }
-  }
-
-  reportPropStyles() {
-    for (const prop_style in this.prop_styles) {
-      console.log(`${prop_style}: ${this.prop_styles[prop_style]}`);
-    }
-  }
-}
 
 
-export const formatNumbersReplacer = (key, value) => {
-    if (typeof value === 'number') {
-        return Number(value.toFixed(2));
-    }
-    return value;
-}
 
 /**
- * Finds the next sibling element of a given element that has a specific CSS class.
- *
- * @param {Element} element The starting element.
- * @param {string} className The CSS class name to search for.
- * @returns {Element|null} The first matching next sibling element, or null if none is found.
+ * called by modules/tests/tests.mjs::runSanityTests()
  */
-export function findNextSiblingWithClass(element, className) {
-    if (!element || !className) {
-      logger.error("findNextSiblingWithClass: Invalid element or className provided.");
-      return null;
-    }
-  
-    // Start with the immediately following sibling ELEMENT
-    let nextElement = element.nextElementSibling;
-  
-    // Loop through subsequent sibling elements
-    while (nextElement) {
-      // Check if the current sibling element has the specified class
-      if (nextElement.classList.contains(className)) {
-        return nextElement; // Found a match!
-      }
-      // Move to the next sibling ELEMENT
-      nextElement = nextElement.nextElementSibling;
-    }
-  
-    // If the loop finishes without finding a match
-    return null;
-  }
-  
-export function matchPositions(pos1, pos2) {
-    return pos1.x === pos2.x && pos1.y === pos2.y;
-}
+export function test_utils() {
 
-/**
- * Utility function to add or remove event listeners from an element
- * @param {Element} element - The element to add/remove listeners from
- * @param {string} eventType - The type of event (e.g., 'mousemove', 'mouseup')
- * @param {Function} listener - The event listener function
- * @param {Object|boolean} options - Event listener options or boolean for remove
- */
-export function updateEventListener(element, eventType, listener, options = {}) {
-    if (!element || !eventType || !listener) {
-        logger.error('updateEventListener: Missing required parameters');
-        return;
-    }
-
-    // If options.remove is true, remove the listener
-    if (options.remove === true) {
-        element.removeEventListener(eventType, listener);
-        console.log(`Removed ${eventType} listener from`, element);
-        return;
-    }
-
-    // Otherwise, add the listener
-    element.addEventListener(eventType, listener, options);
-    console.log(`Added ${eventType} listener to`, element, 'with options:', options);
 }

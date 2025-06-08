@@ -472,7 +472,9 @@ function notifyPositionListeners(prefix="") {
 
     // load once
     const focalPoint = getFocalPoint();
+    utils.validatePosition(focalPoint);
     const sceneRect = getSceneRelativeVpRect();
+    utils.validateRect(sceneRect);
 
     // notify all listeners
     for ( const listener of _focalPointPositionListeners ) {
