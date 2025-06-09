@@ -366,9 +366,16 @@ export function initializeFocalPoint(focalPointElement) {
         _focalPointElement.classList.add('focal-point-is-draggable');
     }
     
+    _sceneContainer = document.getElementById("scene-container");
     if (!_sceneContainer) {
         throw new Error("sceneContainer not initialized");
     }
+
+    // Add scroll event listener to scene container
+    _sceneContainer.addEventListener('scroll', function(event) {
+        scrollTopUpdated(_sceneContainer.scrollTop);
+    });
+    console.log("Added scroll event listener to scene container");
 
     // Initialize resize observer before any other operations
     initializeResizeObserver();
@@ -444,11 +451,13 @@ function positionsChanged() {
         _lastSceneRect = sceneRect;
     }
 
-    if ( !moved ) {
-        console.log("focalPoint.notifyPositionListeners: no motion detected");
-        return false;
+    // Always return true for scroll events to ensure updates happen
+    if (sceneRect.top !== _lastSceneRect.top || sceneRect.bottom !== _lastSceneRect.bottom) {
+        moved = true;
+        _lastSceneRect = sceneRect;
     }
-    return true;
+
+    return moved;
 }
 
 /**
@@ -459,14 +468,17 @@ function positionsChanged() {
  * @param {DOMRect} sceneRelativeVpRect scene-relative viewport rect
  */
 function notifyPositionListeners(prefix="") {
-
     // Check global conditions once
-    if (!isFocalPointInitialized() || !viewPort.isViewPortInitialized() ) {
+    if (!isFocalPointInitialized() || !viewPort.isViewPortInitialized()) {
         console.warn("notifyPositionListeners: System not initialized");
         return;
     }
-    // check for motion detected
-    if ( !positionsChanged() ) {
+    
+    // Remove special case for scroll events since it's handled in parallax.mjs
+    // if (prefix === "scroll-event") {...}
+    
+    // For all events, check for motion detected
+    if (!positionsChanged()) {
         return;
     }
 
@@ -477,9 +489,9 @@ function notifyPositionListeners(prefix="") {
     utils.validateRect(sceneRect);
 
     // notify all listeners
-    for ( const listener of _focalPointPositionListeners ) {
+    for (const listener of _focalPointPositionListeners) {
         try {
-            listener( focalPoint, prefix, sceneRect );
+            listener(focalPoint, prefix, sceneRect);
         } catch (e) {
             console.error("focalPoint.notifyPositionListeners:", e);
         }
@@ -1016,13 +1028,13 @@ export function scrollTopUpdated(scrollTop) {
         bottom: vpRect.bottom + scrollTop
     };
 
-    // Get current focal point position
-    const viewRelativeFP = getFocalPoint();
-
-    // Notify all focalPointPositionListeners with the scene-relative rect
+    // Update the last scene rect to trigger a notification
+    _lastSceneRect = { ...sceneRelativeVpRect };
+    
+    // Force notification to all listeners with the updated scene-relative rect
     notifyPositionListeners("scrollTopUpdated");
-
-    //console.log('FocalPoint: scrollTopUpdated', scrollTop, 'scene-relative rect:', sceneRelativeVpRect);
+    
+    console.log(`Scroll updated: top=${sceneRelativeVpRect.top.toFixed(0)}, bottom=${sceneRelativeVpRect.bottom.toFixed(0)}`);
 }
 
 /**

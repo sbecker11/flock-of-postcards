@@ -42,18 +42,40 @@ export function initializeParallax() {
     }
     
     // Register as a focalPoint position listener
-    // The viewAllBizCardDivs function will receive:
-    // 1. focalPoint - viewPort-relative position of focalPoint center
-    // 2. prefix - used for verbosity
-    // 3. sceneRect - scene-relative viewport rect
     focalPoint.addFocalPointPositionListener(viewAllBizCardDivs);
     console.log("Parallax initialized and registered with focalPoint");
+    
+    // Add direct scroll event listener to scene container
+    const sceneContainer = document.getElementById('scene-container');
+    if (sceneContainer) {
+        sceneContainer.addEventListener('scroll', function(event) {
+            // Get the current scroll position
+            const scrollTop = sceneContainer.scrollTop;
+            
+            // Get the viewport rect
+            const vpRect = viewPort.getViewPortRect();
+            
+            // Create scene-relative viewport rect
+            const sceneRect = {
+                left: vpRect.left,
+                top: vpRect.top + scrollTop,
+                right: vpRect.right,
+                bottom: vpRect.bottom + scrollTop
+            };
+            
+            // Call viewAllBizCardDivs directly with current focal point
+            const currentFocalPoint = focalPoint.getFocalPoint();
+            viewAllBizCardDivs(currentFocalPoint, "direct-scroll", sceneRect);
+        });
+        console.log("Added direct scroll event listener to scene container in parallax");
+    }
 }
 
 function inBounds(top, bottom, rect) {
     const inBnds = ( bottom >= rect.top && top <= rect.bottom );
     return inBnds;
 }
+
 
 /**
  * External function called from focalPoint animation loop
@@ -65,6 +87,9 @@ function inBounds(top, bottom, rect) {
  * @param {*} sceneRect - scene-relative viewport rect
  */
 export function viewAllBizCardDivs(focalPoint, prefix, sceneRect) {
+    console.log(`viewAllBizCardDivs called from "${prefix}"`);
+    console.log(`sceneRect: top=${sceneRect.top.toFixed(0)}, bottom=${sceneRect.bottom.toFixed(0)}`);
+    
     if (!viewPort.isViewPortInitialized()) {
         throw new Error("viewPortProperties is not initialized"); 
     }
@@ -79,7 +104,7 @@ export function viewAllBizCardDivs(focalPoint, prefix, sceneRect) {
     if (PARANOID) utils.validateNumber(fpY);
     if (PARANOID) utils.validateNumber(vpX);
     if (PARANOID) utils.validateNumber(vpY);
-    
+        
     // Get the scene container for scroll information
     const sceneContainer = document.getElementById('scene-container');
     if (!sceneContainer) {
@@ -87,14 +112,14 @@ export function viewAllBizCardDivs(focalPoint, prefix, sceneRect) {
         return;
     }
     
-    // Get current scroll position
-    const scrollTop = sceneContainer.scrollTop;
-    
     const dh = (vpX - fpX) * PARALLAX_X_EXAGGERATION_FACTOR;
     const dv = (vpY - fpY) * PARALLAX_Y_EXAGGERATION_FACTOR;
     if (PARANOID) utils.validateNumber(dh);
     if (PARANOID) utils.validateNumber(dv);
-
+    
+    // Log parallax values
+    console.log(`Parallax offsets: dh=${dh.toFixed(2)}, dv=${dv.toFixed(2)}`);
+    
     const bizCardDivs = document.getElementsByClassName("biz-card-div");
     let numDivs = 0;
     let inSceneRectCount = 0;
@@ -170,7 +195,7 @@ export function viewAllBizCardDivs(focalPoint, prefix, sceneRect) {
             bizCardDiv.style.setProperty('z-index', zIndexStr, 'important');
             bizCardDiv.style.setProperty('filter', zFilterStr, 'important');
 
-            const computedStyle = window.getComputedStyle(bizCardDiv);
+            // const computedStyle = window.getComputedStyle(bizCardDiv);
             // console.log(`viewTop:${computedStyle.getPropertyValue('top')}`);
             // console.log(`viewBtm:${computedStyle.getPropertyValue('bottom')}`);
             // console.log(`viewLeft:${computedStyle.getPropertyValue('left')}`);
@@ -203,10 +228,7 @@ export function viewAllBizCardDivs(focalPoint, prefix, sceneRect) {
         numDivs++;
     }
 
-    // Log the viewport counts
-    if (missingAttributesCount > 0) {
-        console.log(`📊 Counts: ${numDivs} total, ${inSceneRectCount} in, ${outOfSceneRectCount} out, ${missingAttributesCount} missing attributes`);
-    }
+    console.log(`in:${inSceneRectCount} out:${outOfSceneRectCount}`);
 }
 
 /**
