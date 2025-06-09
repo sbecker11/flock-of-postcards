@@ -21,8 +21,13 @@ export const BIZCARD_MAX_WIDTH_OFFSET = 40; // Maximum random width offset in pi
 export const BIZCARD_MAX_X_OFFSET = 100; // Maximum random horizontal offset in pixels
 export const BIZCARD_MIN_Z_DIFF = 2; // Minimum difference in Z between adjacent bizCardDivs
 
-// global selected element
-let globalSelectedElement = null;
+// Track the currently selected element
+let currentSelected = null;
+
+// Constants for element states
+const ELEMENT_STATE = {
+    SELECTED: 'selected'
+};
 
 export function isBizCardDiv(obj) {
     return obj && domUtils.isDivElement(obj) && obj.classList.contains('biz-card-div');
@@ -35,14 +40,22 @@ export function createBizCardDivId(jobIndex) {
     return bizCardDivId;
 }
 
-// scrolls the bizDetailsEmployer of the bizCardDiv into view
+// scrolls the bizCardDiv into view
 export function scrollBizCardDivIntoView(bizCardDiv) {
+    if (!bizCardDiv) return;
+    
+    // Scroll the biz card div into view
+    bizCardDiv.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    
+    // Also scroll to the employer section if it exists
     const bizDetailsDiv = bizCardDiv.querySelector('.biz-details-div');
-    if (!bizDetailsDiv) throw new Error(`bizDetailsDiv not found for ${bizCardDiv.id}`);
-    const bizDetailsClass = '.biz-details-employer';
-    const bizDetailsElement = bizDetailsDiv.querySelector(bizDetailsClass);
-    if (!bizDetailsElement) throw new Error(`${bizDetailsClass} not found for ${bizCardDiv.id} / biz-details-div`);
-    bizDetailsElement.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    if (bizDetailsDiv) {
+        const bizDetailsClass = '.biz-details-employer';
+        const bizDetailsElement = bizDetailsDiv.querySelector(bizDetailsClass);
+        if (bizDetailsElement) {
+            bizDetailsElement.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+        }
+    }
 }
 
 /**
@@ -220,26 +233,116 @@ function setBizCardDivSceneGeometry(bizCardDiv, job) {
 
 }
 
+// Handle click events on biz card divs
 export function handleClickEvent(element) {
-    if ( !element ) throw new Error('bizCardDivModule:handleClickEvent: given null element');
-    //console.log('bizCardDivModule:handleClickEvent: element.id', element.id);
-    const jobIndex = element.getAttribute('data-job-index');
-    if ( !utils.isNumericString(jobIndex)) throw new Error('bizCardDivModule:handleClickEvent: element non-numeric data-job-index attribute string');
-    if ( domUtils.hasClass(element, "selected")) {
-        const selectedElements = querySelectorAll('.selected');
-        for (const selectedElement of selectedElements) {
-            domUtils.removeClass(selectedElement, "selected");
-            const selectedJobIndex = selectedElement.getAttribute('data-job-index');
-            resumeManager.removeClassItems(selectedJobIndex, 'selected');
-        }
-        globalSelectedElement = null;
-        console.log("element:",element.id,"unselected");
-    } else {
-        domUtils.addClass(element, "selected");
-        globalSelectedElement = element;
-        resumeManager.addClassItem(jobIndex, 'selected');
-        console.log("element:",element.id,"selected");
+    if (!element) return;
+    
+    // If the element is already selected, unselect it
+    if (element.classList.contains(ELEMENT_STATE.SELECTED)) {
+        console.log(`bizCardDivModule: Unselecting element ${element.id}`);
+        clearSelected();
+        return;
     }
+
+    // Otherwise, select the element
+    console.log(`bizCardDivModule: Selecting element ${element.id}`);
+    selectBizCardDiv(element);
+}
+
+// Select a biz card div and its paired resume div
+export function selectBizCardDiv(bizCardDiv) {
+    if (!bizCardDiv) return;
+    
+    // Clear any existing selection
+    clearSelected();
+    
+    // Set as selected
+    bizCardDiv.classList.add(ELEMENT_STATE.SELECTED);
+    currentSelected = bizCardDiv;
+    
+    // Find the corresponding resume div
+    const pairedId = bizCardDiv.getAttribute('data-paired-id');
+    if (pairedId) {
+        const bizResumeDiv = document.getElementById(pairedId);
+        if (bizResumeDiv) {
+            bizResumeDiv.classList.add(ELEMENT_STATE.SELECTED);
+            
+            // Get the job index
+            const jobIndex = parseInt(bizCardDiv.getAttribute('data-job-index'), 10);
+            if (!isNaN(jobIndex)) {
+                // Get the resume manager and scroll to the correct resume div
+                const resumeManager = getResumeManager();
+                if (resumeManager) {
+                    resumeManager.syncWithSceneSelection(jobIndex);
+                    console.log(`Scrolled resume div ${bizResumeDiv.id} into view`);
+                }
+            }
+        }
+    }
+}
+
+// Clear all selections
+export function clearSelected() {
+    if (!currentSelected) return;
+    
+    // Remove selected class from current element
+    currentSelected.classList.remove(ELEMENT_STATE.SELECTED);
+    
+    // Find and unselect the paired element
+    const pairedId = currentSelected.getAttribute('data-paired-id');
+    if (pairedId) {
+        const pairedElement = document.getElementById(pairedId);
+        if (pairedElement) {
+            pairedElement.classList.remove(ELEMENT_STATE.SELECTED);
+        }
+    }
+    
+    // Find and clear all selected elements (as a safety measure)
+    document.querySelectorAll(`.${ELEMENT_STATE.SELECTED}`).forEach(element => {
+        element.classList.remove(ELEMENT_STATE.SELECTED);
+    });
+    
+    // Reset the current selection
+    currentSelected = null;
+    console.log('bizCardDivModule: Selection cleared');
+}
+
+// Set up the scene plane click handler for unselection
+export function setupScenePlaneClickHandler() {
+    const scenePlane = document.getElementById('scene-plane');
+    if (!scenePlane) {
+        console.error('bizCardDivModule: setupScenePlaneClickHandler: scene-plane not found');
+        return;
+    }
+    
+    // Remove any existing click handler to avoid duplicates
+    scenePlane.removeEventListener('click', handleScenePlaneClick);
+    
+    // Add the click handler
+    scenePlane.addEventListener('click', handleScenePlaneClick);
+    console.log('bizCardDivModule: Added scene plane click handler for unselection');
+}
+
+// Handle clicks on the scene plane
+function handleScenePlaneClick(event) {
+    // Only handle direct clicks on the scene plane, not on its children
+    if (event.target.id !== 'scene-plane') {
+        return;
+    }
+    
+    console.log('scene-plane click detected');
+    
+    // If there's a current selection, clear it
+    if (currentSelected) {
+        clearSelected();
+    }
+}
+
+// Get the resume manager instance
+function getResumeManager() {
+    // This should be implemented based on how your application manages the resume manager
+    // For example, it might be stored in a global variable or accessible through another module
+    return window.resumeManager; // Adjust as needed
 }
 
 export function handleMouseEnterEvent(element) {

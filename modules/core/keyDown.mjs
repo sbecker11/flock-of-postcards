@@ -15,6 +15,10 @@ export function handleKeyDown(event) {
     event.preventDefault();
     switch (key) {
         case 'b':
+            // If focal point is being dragged, first stop dragging
+            if (focalPoint.isBeingDragged()) {
+                focalPoint.set_isBeingDragged_false(focalPoint.getFocalPoint());
+            }
             focalPoint.toggleLockedToBullsEye();
             break;
         case 'd':

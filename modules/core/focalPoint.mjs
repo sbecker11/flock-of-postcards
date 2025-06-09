@@ -528,6 +528,15 @@ function onsceneContainerEnter(event) {
     const eventPosition = getEventPosition(event);
     setStatus("startEasingToAimPoint", "onsceneContainerEnter", LogLevel.LOG);
     awaken(eventPosition);
+    
+    // If being dragged, ease to the current mouse position
+    if (_isBeingDragged) {
+        aimPoint.setAimPoint(eventPosition, "onsceneContainerEnter-dragged");
+        startEasingToAimPoint("onsceneContainerEnter-dragged");
+        return;
+    }
+    
+    // Normal behavior for non-dragged state
     startEasingToAimPoint("onsceneContainerEnter");
 }
 
@@ -546,7 +555,18 @@ function onSceneContainerMove(event) {
 function onSceneContainerLeave(event) {
     const eventPosition = getEventPosition(event);
     setStatus("leaveContainer", "onSceneContainerLeave", LogLevel.LOG);        
-    if (!_followPointerOutsideContainer && !_isBeingDragged) {
+    
+    // If being dragged, keep it in dragged state but move to bullsEye
+    if (_isBeingDragged) {
+        // Move to bullsEye but maintain dragged state
+        aimPoint.setAimPoint(bullsEye.getBullsEye(), "onSceneContainerLeave-dragged");
+        moveFocalPointTo(bullsEye.getBullsEye(), "onSceneContainerLeave-dragged");
+        // Don't change _isBeingDragged state
+        return;
+    }
+    
+    // Normal behavior for non-dragged state
+    if (!_followPointerOutsideContainer) {
         aimPoint.setAimPoint(bullsEye.getBullsEye(), "onSceneContainerLeave");
         startEasingToBullsEye("onSceneContainerLeave");
     }
@@ -630,6 +650,13 @@ export function awaken(position) {
  */
 export function isDraggable() {
     return _isDraggable;
+}
+
+/**
+ * @returns true if the focalPoint is being dragged
+ */
+export function isBeingDragged() {
+    return _isBeingDragged;
 }
 
 /**
@@ -734,6 +761,11 @@ export function toggleDraggable() {
 export function toggleLockedToBullsEye() {
     _isLockedToBullsEye = !_isLockedToBullsEye;
     if (_isLockedToBullsEye) {
+        // If we're locking to bullsEye, also stop any dragging
+        if (_isBeingDragged) {
+            set_isBeingDragged_false(bullsEye.getBullsEye());
+        }
+        
         moveFocalPointTo(bullsEye.getBullsEye(), "locked-to-bullsEye");
         if (_isDraggable) {
             toggleDraggable();
@@ -753,9 +785,58 @@ export function toggleLockedToBullsEye() {
  * draggable and is not already being dragged
  * */ 
 function onMouseDown_startDraggingFocalPoint(event) {
+    // Only handle the event if the focal point is draggable
     if (!_isDraggable) {
+        // Pass the event through to elements underneath
+        const elementUnder = document.elementFromPoint(
+            event.clientX, 
+            event.clientY
+        );
+        
+        // Temporarily hide the focal point to find what's underneath
+        const originalVisibility = _focalPointElement.style.visibility;
+        _focalPointElement.style.visibility = 'hidden';
+        
+        // Get the element under the focal point
+        const elementUnderFocalPoint = document.elementFromPoint(
+            event.clientX, 
+            event.clientY
+        );
+        
+        // Restore focal point visibility
+        _focalPointElement.style.visibility = originalVisibility;
+        
+        // If there's an element underneath, dispatch a new mouse event to it
+        if (elementUnderFocalPoint) {
+            console.log("Passing mousedown event to:", elementUnderFocalPoint.id || elementUnderFocalPoint.tagName);
+            
+            // Create and dispatch a new mousedown event
+            const newEvent = new MouseEvent('mousedown', {
+                bubbles: true,
+                cancelable: true,
+                view: window,
+                clientX: event.clientX,
+                clientY: event.clientY,
+                screenX: event.screenX,
+                screenY: event.screenY,
+                button: event.button,
+                buttons: event.buttons
+            });
+            
+            elementUnderFocalPoint.dispatchEvent(newEvent);
+        }
+        
         return;
     }
+    
+    // If already being dragged, just update the position
+    if (_isBeingDragged) {
+        const eventPosition = getEventPosition(event);
+        moveFocalPointTo(eventPosition);
+        return;
+    }
+    
+    // If draggable but not being dragged, start dragging
     const eventPosition = getEventPosition(event);
     event.preventDefault(); // prevent default browser behavior
     event.stopPropagation(); // Stop the event from reaching the scene-plane
@@ -772,8 +853,8 @@ function onMouseDown_startDraggingFocalPoint(event) {
     // Ensure pointer events stay enabled during drag
     _focalPointElement.style.pointerEvents = 'all';
 
-    utils.updateEventListener(document, 'mousemove', onMouseDrag_keepDraggingFocalPoint);
-    utils.updateEventListener(document, 'mouseup', onMouseUp_stopDraggingFocalPoint, { once: true });
+    domUtils.updateEventListener(document, 'mousemove', onMouseDrag_keepDraggingFocalPoint);
+    domUtils.updateEventListener(document, 'mouseup', onMouseUp_stopDraggingFocalPoint, { once: true });
 }
 
 /**

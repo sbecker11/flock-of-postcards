@@ -421,6 +421,13 @@ class InfiniteScrollingContainer {
   }
 
   handleStart(e) {
+    // Special handling for clicks on bizResumeDivs
+    if (e.target.closest('.biz-resume-div')) {
+      console.log("InfiniteScrollingContainer: Click on bizResumeDiv detected, NOT preventing default");
+      // Don't prevent default for clicks on bizResumeDivs
+      return;
+    }
+    
     e.preventDefault();
     this.isDragging = true;
     this.startY = this.getEventY(e);
