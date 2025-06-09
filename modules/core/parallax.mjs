@@ -171,14 +171,14 @@ export function viewAllBizCardDivs(focalPoint, prefix, sceneRect) {
             bizCardDiv.style.setProperty('filter', zFilterStr, 'important');
 
             const computedStyle = window.getComputedStyle(bizCardDiv);
-            console.log(`viewTop:${computedStyle.getPropertyValue('top')}`);
-            console.log(`viewBtm:${computedStyle.getPropertyValue('bottom')}`);
-            console.log(`viewLeft:${computedStyle.getPropertyValue('left')}`);
-            console.log(`viewRight:${computedStyle.getPropertyValue('right')}`);
-            console.log(`viewWidth:${computedStyle.getPropertyValue('width')}`);
-            console.log(`viewHeight:${computedStyle.getPropertyValue('height')}`);
-            console.log(`zIndex:${computedStyle.getPropertyValue('z-index')}`);
-            console.log(`filter:${computedStyle.getPropertyValue('filter')}`);
+            // console.log(`viewTop:${computedStyle.getPropertyValue('top')}`);
+            // console.log(`viewBtm:${computedStyle.getPropertyValue('bottom')}`);
+            // console.log(`viewLeft:${computedStyle.getPropertyValue('left')}`);
+            // console.log(`viewRight:${computedStyle.getPropertyValue('right')}`);
+            // console.log(`viewWidth:${computedStyle.getPropertyValue('width')}`);
+            // console.log(`viewHeight:${computedStyle.getPropertyValue('height')}`);
+            // console.log(`zIndex:${computedStyle.getPropertyValue('z-index')}`);
+            // console.log(`filter:${computedStyle.getPropertyValue('filter')}`);
 
             // Position the card using absolute positioning
             bizCardDiv.style.setProperty('position', 'absolute', 'important');

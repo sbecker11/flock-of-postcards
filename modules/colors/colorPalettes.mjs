@@ -456,10 +456,16 @@ class PaletteSelector {
      * @param {HTMLElement} element - The element to update
      */
     async applyCurrentColorPaletteToElement(element) {
-        if (!element || !(element instanceof HTMLElement)) return;
+        if (!element || !(element instanceof HTMLElement)) {
+            console.warn("skipping element that is null or is not an instance of HTMLElement");
+            return;
+        }
 
         const colorIndex = this.getColorIndex(element);
-        if (colorIndex === null) return;
+        if (colorIndex === null) {
+            console.warn(`Invalid color index for element:`, element);
+            return;
+        }
 
         // Get the colorSet for this index
         const color_set_index = colorIndex % this.currentColorSetsLength;
@@ -469,23 +475,20 @@ class PaletteSelector {
             return;
         }   
         const normalBg = colorSet.normalBg;
-        if ( !normalBg ) {
+        if (!normalBg) {
             console.warn("colorPalettes:applyCurrentColorPaletteToElement: no normalBg for colorSet:", colorSet);
             return;
         }
-        // console.log("normalBg:", normalBg);
+        
         const normalFg = this.getContrastingColor(normalBg);
-        if ( !normalFg ) {
+        if (!normalFg) {
             console.warn("colorPalettes:applyCurrentColorPaletteToElement: no normalFg for colorSet:", colorSet);
             return;
         }
-        const foreground_only = domUtils.hasClass(element, 'color-index-foreground-only');
-        // console.log("normalFg:", normalFg, "normalBg:", normalBg, "foreground_only:", foreground_only);
+        const foreground_only = element.classList.contains('color-index-foreground-only');
 
-        // Apply colors directly as inline styles
-        // don't apply the  background-color when foreground_only is true
-
-        if ( !foreground_only ) {
+        // Apply colors directly as inline styles with !important
+        if (!foreground_only) {
             element.style.setProperty('background-color', normalBg, 'important');
         }
         element.style.setProperty('color', normalFg, 'important');
@@ -500,14 +503,8 @@ class PaletteSelector {
         const baseClass = generateClassName(this.current_value, colorIndex);
         element.classList.add(baseClass);
 
-        // Log for debugging removed to reduce noise
-        // console.log(`Applied colors to element:`, {
-        //     element: element,
-        //     colorIndex: colorIndex,
-        //     backgroundColor: normalBg,
-        //     color: normalFg,
-        //     class: baseClass
-        // });
+        // Force a repaint on this element
+        void element.offsetHeight;
     }
 
     /**
@@ -537,25 +534,141 @@ class PaletteSelector {
             return;
         }
 
+        console.log(`Selecting palette: ${selected_value}`);
+        
+        // Store the selection in localStorage
+        localStorage.setItem(LOCAL_STORAGE_PALETTE_KEY, selected_value);
+
+        // Update palette properties
         this.current_value = selected_value;
         this.current_color_palette = _color_palettes[selected_value];
         this.current_palette_num_colors = this.current_color_palette.length;
 
-        // Update all elements with new palette classes and colors
-        console.log(`Applying palette ${selected_value} to all elements...`);
-        const elements = document.querySelectorAll('[data-color-index]');
-        console.log(`Found ${elements.length} elements to update`);
-        elements.forEach(element => this.applyCurrentColorPaletteToElement(element));
+        // Reinitialize color sets with the new palette
+        this.initializeColorSet();
+        
+        // Update document background colors
+        this.updateDocumentBackgroundColors();
+        
+        // Force repaint on background elements
+        this.forceRepaintOnBackgroundElements();
+        
+        // Update all elements with data-color-index attribute
+        this.updateAllColorIndexedElements();
+        
+        // Update palette styles
+        this.updatePaletteStyles();
+        
+        // Dispatch an event to notify other components
+        document.dispatchEvent(new CustomEvent('paletteChanged', {
+            detail: { palette: selected_value }
+        }));
+        
+        console.log(`Palette selection complete: ${selected_value}`);
+        return true;
+    }
 
-        // Save selection and notify
+    // Method to update document background colors
+    updateDocumentBackgroundColors() {
+        const root = document.documentElement;
+        
         try {
-            localStorage.setItem(LOCAL_STORAGE_PALETTE_KEY, selected_value);
-            window.dispatchEvent(new CustomEvent('paletteChangeComplete', {
-                detail: { palette: selected_value }
-            }));
+            // Calculate background colors from the darkest color in the palette
+            this.initializeDarkestBgHexColor();
+            const darkHex = this.darkest_bgHexColor || "#333333";
+            
+            let darkRGB = colorUtils.get_RGB_from_Hex(darkHex);
+            let darkHSV = colorUtils.get_HSV_from_RGB(darkRGB);
+
+            // Calculate darker
+            let darkerHSV = [...darkHSV]; // Clone
+            darkerHSV[2] *= 0.75; // Reduce brightness less drastically
+            const darkerHex = colorUtils.get_Hex_from_HSV(darkerHSV);
+
+            // Calculate darkest
+            let darkestHSV = [...darkHSV]; // Clone
+            darkestHSV[2] *= 0.35; // Reduce brightness more
+            const darkestHex = colorUtils.get_Hex_from_HSV(darkestHSV);
+            const darkerRGB = colorUtils.get_RGB_from_Hex(darkerHex);
+            const darkestRGB = colorUtils.get_RGB_from_Hex(darkestHex);
+
+            const darkerRGBA = `rgba(${darkerRGB[0]}, ${darkerRGB[1]}, ${darkerRGB[2]}, 1.0)`;
+            const darkestRGBA = `rgba(${darkestRGB[0]}, ${darkestRGB[1]}, ${darkestRGB[2]}, 1.0)`;
+
+            // Set CSS variables
+            root.style.setProperty('--background-light', darkerRGBA);
+            root.style.setProperty('--background-dark', darkestRGBA);
+            
+            console.log('colorPalettes:updateDocumentBackgroundColors: --background-light:', darkerRGBA);
+            console.log('colorPalettes:updateDocumentBackgroundColors: --background-dark:', darkestRGBA);
         } catch (error) {
-            console.warn('Failed to save palette selection:', error);
+            console.error("Error updating document background colors:", error);
+            // Apply fallback defaults
+            root.style.setProperty('--background-light', 'rgba(40, 40, 40, 1.0)');
+            root.style.setProperty('--background-dark', 'rgba(20, 20, 20, 1.0)');
         }
+    }
+
+    // Method to update all elements with data-color-index
+    updateAllColorIndexedElements() {
+        console.log(`Updating all elements with data-color-index...`);
+        
+        // Get ALL elements with data-color-index
+        const elements = document.querySelectorAll('[data-color-index]');
+        console.log(`Found ${elements.length} elements with data-color-index to update`);
+        
+        // Apply colors to all elements immediately
+        for (const element of elements) {
+            try {
+                this.applyCurrentColorPaletteToElement(element);
+            } catch (error) {
+                console.error("Error applying currentColorSet to element:", element, error);
+            }
+        }
+        
+        console.log(`Finished updating all ${elements.length} elements with data-color-index`);
+    }
+
+    // Method to force repaint on background elements
+    forceRepaintOnBackgroundElements() {
+        // List of elements that use the CSS variables
+        const elementsToRepaint = [
+            document.getElementById('scene-container'),
+            document.getElementById('scene-plane'),
+            document.getElementById('scene-plane-top-gradient'),
+            document.getElementById('scene-plane-btm-gradient'),
+            document.body,
+            document.documentElement
+        ];
+        
+        console.log(`Forcing repaint on background elements...`);
+        
+        // Force repaint on each element
+        elementsToRepaint.forEach(element => {
+            if (element) {
+                // Method 1: Toggle display
+                const originalDisplay = element.style.display;
+                element.style.display = 'none';
+                // Force reflow
+                void element.offsetHeight;
+                element.style.display = originalDisplay;
+                
+                // Method 2: Add a temporary class and remove it
+                element.classList.add('force-repaint');
+                setTimeout(() => {
+                    element.classList.remove('force-repaint');
+                }, 0);
+                
+                // Method 3: Update a non-visual property
+                element.dataset.repaintTimestamp = Date.now().toString();
+                console.log(`Repainted element: ${element.id || 'unnamed'}`);
+            }
+        });
+        
+        // Also try to force a repaint on the entire document
+        const style = document.createElement('style');
+        document.head.appendChild(style);
+        document.head.removeChild(style);
     }
 
     /**
@@ -725,19 +838,65 @@ class PaletteSelector {
             const darkerRGBA = colorUtils.get_RGBA_from_RGB(darkerRGB, 1.0) || fallbackLightRGBA;
             const darkestRGBA = colorUtils.get_RGBA_from_RGB(darkestRGB, 1.0) || fallbackDarkRGBA;
 
-            root.style.setProperty('--background-light', darkerRGBA );
-            root.style.setProperty('--background-dark', darkestRGBA );
+            root.style.setProperty('--background-light', darkerRGBA);
+            root.style.setProperty('--background-dark', darkestRGBA);
             console.log('colorPalettes:applyCurrentPaletteToDocument: --background-light:', darkerRGBA);
             console.log('colorPalettes:applyCurrentPaletteToDocument: --background-dark:', darkestRGBA);
+
+            // Force repaint on elements using these CSS variables
+            this.forceRepaintOnBackgroundElements();
 
         } catch (error) {
             console.error("Error applying palette to document background:", error);
             // Apply fallBack defaults directly
             root.style.setProperty('--background-light', FALLBACK_LIGHT_RGBA);
             root.style.setProperty('--background-dark', FALLBACK_DARK_RGBA);
+            
+            // Still try to force repaint
+            this.forceRepaintOnBackgroundElements();
         }
 
         this.applyCurrentPaletteToElements();
+    }
+
+    // Add this new method to force repaint on elements using CSS variables
+    forceRepaintOnBackgroundElements() {
+        // List of elements that use the CSS variables
+        const elementsToRepaint = [
+            document.getElementById('scene-container'),
+            document.getElementById('scene-plane'),
+            document.getElementById('scene-plane-top-gradient'),
+            document.getElementById('scene-plane-btm-gradient'),
+            document.body,
+            document.documentElement
+        ];
+        
+        // Force repaint on each element
+        elementsToRepaint.forEach(element => {
+            if (element) {
+                // Method 1: Toggle display
+                const originalDisplay = element.style.display;
+                element.style.display = 'none';
+                // Force reflow
+                void element.offsetHeight;
+                element.style.display = originalDisplay;
+                
+                // Method 2: Add a temporary class and remove it
+                element.classList.add('force-repaint');
+                setTimeout(() => {
+                    element.classList.remove('force-repaint');
+                }, 0);
+                
+                // Method 3: Update a non-visual property
+                element.dataset.repaintTimestamp = Date.now().toString();
+                console.log(`colorPalettes:forceRepaintOnBackgroundElements: ${element.id} element.dataset.repaintTimestamp:`, element.dataset.repaintTimestamp);
+            }
+        });
+        
+        // Also try to force a repaint on the entire document
+        const style = document.createElement('style');
+        document.head.appendChild(style);
+        document.head.removeChild(style);
     }
 
     // async refreshPalettes() {

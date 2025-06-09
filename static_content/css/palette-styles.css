@@ -8,81 +8,17 @@
 }
 
 /* Color 0 */
-body [data-color-index].palette-jungle-color-0 {
-    background-color: #3f0948 !important;
-    color: #FFFFFF !important;
-}
-
-body [data-color-index].palette-jungle-color-0.selected {
-    background-color: #5F0E6C !important;
-    color: #FFFFFF !important;
-}
-
-body [data-color-index].palette-jungle-color-0:hover:not(.selected) {
-    background-color: #5F0E6C !important;
-    color: #FFFFFF !important;
-}
-
-/* Color 1 */
-body [data-color-index].palette-jungle-color-1 {
-    background-color: #0c2836 !important;
-    color: #FFFFFF !important;
-}
-
-body [data-color-index].palette-jungle-color-1.selected {
-    background-color: #123C51 !important;
-    color: #FFFFFF !important;
-}
-
-body [data-color-index].palette-jungle-color-1:hover:not(.selected) {
-    background-color: #123C51 !important;
-    color: #FFFFFF !important;
-}
-
-/* Color 2 */
-body [data-color-index].palette-jungle-color-2 {
-    background-color: #a62278 !important;
-    color: #FFFFFF !important;
-}
-
-body [data-color-index].palette-jungle-color-2.selected {
-    background-color: #F933B4 !important;
+body [data-color-index].palette-White-Monotone-color-0 {
+    background-color: #DDDDDD !important;
     color: #000000 !important;
 }
 
-body [data-color-index].palette-jungle-color-2:hover:not(.selected) {
-    background-color: #F933B4 !important;
+body [data-color-index].palette-White-Monotone-color-0.selected {
+    background-color: #FFFFFF !important;
     color: #000000 !important;
 }
 
-/* Color 3 */
-body [data-color-index].palette-jungle-color-3 {
-    background-color: #335418 !important;
-    color: #FFFFFF !important;
-}
-
-body [data-color-index].palette-jungle-color-3.selected {
-    background-color: #4D7E24 !important;
-    color: #FFFFFF !important;
-}
-
-body [data-color-index].palette-jungle-color-3:hover:not(.selected) {
-    background-color: #4D7E24 !important;
-    color: #FFFFFF !important;
-}
-
-/* Color 4 */
-body [data-color-index].palette-jungle-color-4 {
-    background-color: #1e6e5a !important;
-    color: #FFFFFF !important;
-}
-
-body [data-color-index].palette-jungle-color-4.selected {
-    background-color: #2DA587 !important;
-    color: #000000 !important;
-}
-
-body [data-color-index].palette-jungle-color-4:hover:not(.selected) {
-    background-color: #2DA587 !important;
+body [data-color-index].palette-White-Monotone-color-0:hover:not(.selected) {
+    background-color: #FFFFFF !important;
     color: #000000 !important;
 }

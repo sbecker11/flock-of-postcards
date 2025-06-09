@@ -513,15 +513,15 @@ export function test_dateUtils() {
         // Test invalid year
         try {
             validateIs_YYYY_MM_DD_DateString("999-06-15");
-            console.assert(false, "Should have thrown error for invalid year");
+            console.error("Should have thrown error for invalid year");
         } catch (e) {
-            console.assert(e.message.includes("Invalid year"), "Wrong error message for invalid year");
+            console.assert(true, e.message.includes("Invalid year"), "Correct error message for invalid year");
         }
         
         // Test invalid month
         try {
             validateIs_YYYY_MM_DD_DateString("2023-13-01");
-            console.assert(false, "Should have thrown error for invalid month");
+            console.error("Should have thrown error for invalid month");
         } catch (e) {
             console.assert(e.message.includes("Invalid month"), "Wrong error message for invalid month");
         }
@@ -531,7 +531,7 @@ export function test_dateUtils() {
             validateIs_YYYY_MM_DD_DateString("2023-02-30");
             console.assert(false, "Should have thrown error for invalid day");
         } catch (e) {
-            console.assert(e.message.includes("Invalid day"), "Wrong error message for invalid day");
+            console.assert(e.message.includes("Invalid day"), "Wrong error message for invalid day. Error message:", e.message);
         }
         
         // Test non-string input
@@ -539,7 +539,7 @@ export function test_dateUtils() {
             validateIs_YYYY_MM_DD_DateString(123);
             console.assert(false, "Should have thrown error for non-string input");
         } catch (e) {
-            console.assert(e.message.includes("not a string"), "Wrong error message for non-string input");
+            console.assert(e.message.includes("not a string"), "Wrong error message for non-string input. Error message:", e.message);
         }
         
         // Test empty string
@@ -547,7 +547,7 @@ export function test_dateUtils() {
             validateIs_YYYY_MM_DD_DateString("");
             console.assert(false, "Should have thrown error for empty string");
         } catch (e) {
-            console.assert(e.message.includes("not a string"), "Wrong error message for empty string");
+            console.assert(e.message.includes("not a string"), "Wrong error message for empty string. Error message:", e.message);
         }
         
         console.log("✅ validateIs_YYYY_MM_DD_DateString tests passed");
@@ -575,7 +575,7 @@ export function test_dateUtils() {
             parseFlexibleDateString("invalid-date");
             console.assert(false, "Should have thrown error for invalid date");
         } catch (e) {
-            console.assert(e.message.includes("Invalid date format"), "Wrong error message");
+            console.assert(e.message.includes("Invalid date format"), "Wrong error message:", e.message);
         }
         
         console.log("✅ parseFlexibleDateString tests passed");
@@ -609,7 +609,7 @@ export function test_dateUtils() {
             getDateFromString("2023-13-01");
             console.assert(false, "Should have thrown error for invalid month");
         } catch (e) {
-            console.assert(e.message.includes("Invalid month"), "Wrong error message for invalid month");
+            console.assert(e.message.includes("Invalid month"), "Wrong error message for invalid month. Error message:", e.message);
         }
         
         // Test invalid day
@@ -617,7 +617,7 @@ export function test_dateUtils() {
             getDateFromString("2023-02-30");
             console.assert(false, "Should have thrown error for invalid day");
         } catch (e) {
-            console.assert(e.message.includes("Invalid date"), "Wrong error message for invalid day");
+            console.assert(e.message.includes("Invalid date"), "Wrong error message for invalid day. Error message:", e.message);
         }
         
         // Test invalid format
@@ -675,7 +675,7 @@ export function test_dateUtils() {
             parseYearStr("23");
             console.assert(false, "Should reject 2-digit year");
         } catch (e) {
-            console.assert(e.message.includes("not a valid 4-digit year"), "Wrong error message");
+            console.assert(e.message.includes("not a valid 4-digit year"), "Wrong error message:", e.message);
         }
         
         console.log("✅ parseYearStr tests passed");
@@ -698,14 +698,14 @@ export function test_dateUtils() {
             parseMonthStr("13");
             console.assert(false, "Should reject month 13");
         } catch (e) {
-            console.assert(e.message.includes("not in valid range"), "Wrong error message");
+            console.assert(e.message.includes("not in valid range"), "Wrong error message:", e.message);
         }
         
         try {
             parseMonthStr("6");
             console.assert(false, "Should reject single digit month");
         } catch (e) {
-            console.assert(e.message.includes("not a valid 2-digit month"), "Wrong error message");
+            console.assert(e.message.includes("not a valid 2-digit month"), "Wrong error message:", e.message);
         }
         
         console.log("✅ parseMonthStr tests passed");

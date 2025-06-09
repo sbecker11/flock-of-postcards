@@ -97,7 +97,7 @@ let lastSceneBottom = -1;
  * @param {Object} job - The job object
  */
 function setBizCardDivSceneGeometry(bizCardDiv, job) {
-    console.log(`Setting geometry for ${bizCardDiv.id} with job:`, job);
+    // console.log(`Setting geometry for ${bizCardDiv.id} with job:`, job);
     
     if (!job) {
         console.error(`Job not found for bizCardDiv ${bizCardDiv.id}`);
@@ -110,7 +110,7 @@ function setBizCardDivSceneGeometry(bizCardDiv, job) {
             throw new Error(`Job ${bizCardDiv.id} is missing start or end date`);
         }
         
-        console.log(`Job dates: start=${job.start}, end=${job.end}`);
+        // console.log(`Job dates: start=${job.start}, end=${job.end}`);
         
         
         // Get vertical positions - based on job start and end dates
@@ -159,19 +159,19 @@ function setBizCardDivSceneGeometry(bizCardDiv, job) {
         utils.validateNumberInRange(sceneZ, zUtils.ALL_CARDS_Z_MIN, zUtils.ALL_CARDS_Z_MAX);
         bizCardDiv.setAttribute("data-sceneZ", sceneZ);
         
-        console.log(`Set geometry for ${bizCardDiv.id}:`);
-        console.log(` sceneTop: ${sceneTop}`);
-        console.log(` sceneBottom: ${sceneBottom}`);
-        console.log(` sceneHeight: ${sceneHeight}`);
-        console.log(` sceneCenterY: ${sceneCenterY}`);
+        // console.log(`Set geometry for ${bizCardDiv.id}:`);
+        // console.log(` sceneTop: ${sceneTop}`);
+        // console.log(` sceneBottom: ${sceneBottom}`);
+        // console.log(` sceneHeight: ${sceneHeight}`);
+        // console.log(` sceneCenterY: ${sceneCenterY}`);
 
-        console.log(` sceneLeft: ${sceneLeft}`);
-        console.log(` sceneRight: ${sceneRight}`);
-        console.log(` sceneWidth: ${sceneWidth}`);
-        console.log(` sceneCenterX: ${sceneCenterX}`);
+        // console.log(` sceneLeft: ${sceneLeft}`);
+        // console.log(` sceneRight: ${sceneRight}`);
+        // console.log(` sceneWidth: ${sceneWidth}`);
+        // console.log(` sceneCenterX: ${sceneCenterX}`);
 
-        console.log(` sceneZ: ${sceneZ}`);
-        console.log(` zIndex: ${zUtils.get_zIndexStr_from_z(sceneZ)}`);
+        // console.log(` sceneZ: ${sceneZ}`);
+        // console.log(` zIndex: ${zUtils.get_zIndexStr_from_z(sceneZ)}`);
         
         function verifyAttribute(attrName, sceneValue) {
             const attrValue = parseFloat(bizCardDiv.getAttribute(`data-${attrName}`));
@@ -281,7 +281,7 @@ export function setGeometryForAllBizCardDivs(jobsArray) {
     }
     
     const bizCardDivs = document.getElementsByClassName("biz-card-div");
-    console.log(`Setting geometry for ${bizCardDivs.length} existing bizCardDivs with ${jobsArray.length} jobs`);
+    // console.log(`Setting geometry for ${bizCardDivs.length} existing bizCardDivs with ${jobsArray.length} jobs`);
     
     for (let i = 0; i < bizCardDivs.length; i++) {
         const bizCardDiv = bizCardDivs[i];
@@ -303,7 +303,7 @@ export function setGeometryForAllBizCardDivs(jobsArray) {
         setBizCardDivSceneGeometry(bizCardDiv, job);
         
         // Verify
-        console.log(`Verified ${bizCardDiv.id} has sceneCenterX:`, 
-            bizCardDiv.getAttribute("data-sceneCenterX"));
+        // console.log(`Verified ${bizCardDiv.id} has sceneCenterX:`, 
+        //     bizCardDiv.getAttribute("data-sceneCenterX"));
     }
 }
