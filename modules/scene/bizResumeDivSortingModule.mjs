@@ -3,7 +3,7 @@
 import * as resumeManager from '../resume/resumeManager.mjs';
 
 import { Logger, LogLevel } from '../logger.mjs';
-const log = new Logger("bizResumeDivSortingModule", LogLevel.DEBUG);
+const logger = new Logger("bizResumeDivSortingModule", LogLevel.DEBUG);
 
 export function initialize(jobsData, bizResumeDivs) {
 
@@ -44,25 +44,25 @@ export function initialize(jobsData, bizResumeDivs) {
 
     if (firstButton) firstButton.addEventListener('click', {
         handleEvent: () => {
-            logger.info('firstButton clicked');
+            console.log('firstButton clicked');
             _resumeManager.goToFirstResumeItem();
         }
     });
     if (prevButton) prevButton.addEventListener('click', {
         handleEvent: () => {
-            logger.info('prevButton clicked');
+            console.log('prevButton clicked');
             _resumeManager.goToPreviousResumeItem();
         }
     });
     if (nextButton) nextButton.addEventListener('click', {
         handleEvent: () => {
-            logger.info('nextButton clicked');
+            console.log('nextButton clicked');
             _resumeManager.goToNextResumeItem();
         }
     });
     if (lastButton) lastButton.addEventListener('click', {
         handleEvent: () => {
-            logger.info('lastButton clicked');
+            console.log('lastButton clicked');
             _resumeManager.goToLastResumeItem();
         }
     });

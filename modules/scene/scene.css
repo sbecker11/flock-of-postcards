@@ -95,25 +95,48 @@
     min-height: fit-content !important; /* Ensure minimum height fits content */
     height: auto !important; /* Allow height to adjust to content */
     display: block !important; /* Ensure block display */
+    pointer-events: auto !important; /* Ensure clicks are captured by the bizResumeDiv */
 }
 
-.biz-card-div.hovered, .biz-resume-div.hovered {
-    filter: brightness(1.25);
+/* Ensure hover states are always visible with high specificity */
+.biz-card-div.hovered, 
+.biz-resume-div.hovered,
+#scene-container .biz-card-div.hovered,
+#scene-container .biz-resume-div.hovered,
+body.focal-point-locked .biz-card-div.hovered,
+body.focal-point-locked .biz-resume-div.hovered,
+.biz-card-div[data-hovered="true"],
+.biz-resume-div[data-hovered="true"],
+#scene-container .biz-card-div[data-hovered="true"],
+#scene-container .biz-resume-div[data-hovered="true"],
+body.focal-point-locked .biz-card-div[data-hovered="true"],
+body.focal-point-locked .biz-resume-div[data-hovered="true"] {
+    filter: brightness(1.25) !important;
     border: 3px solid blue !important;
+    transition: none !important;
+    z-index: 10 !important; /* Ensure hovered elements are above others */
 }
 
-.biz-card-div.selected, .biz-resume-div.selected {
-    filter: brightness(1.5);
+.biz-card-div.selected, 
+.biz-resume-div.selected,
+#scene-container .biz-card-div.selected,
+#scene-container .biz-resume-div.selected,
+body.focal-point-locked .biz-card-div.selected,
+body.focal-point-locked .biz-resume-div.selected {
+    filter: brightness(1.5) !important;
     border: 10px solid purple !important;
+    transition: none !important;
 }
 
 .biz-card-details-div {
     border-radius: 25px;
+    pointer-events: none;
 }
 
 /* hide all biz-card-details-div fields by default */
 .biz-card-details-div > * {
     display: none;
+    pointer-events: none;
 }
 
 /* display headers for both div-card-details and div-resume-details */
@@ -135,6 +158,7 @@
 /* Show specific header elements in card view */
 .biz-card-details-div > .header-text {
     display: block !important; /* Show header-text elements in bizCardDivs */
+    pointer-events: none;
 }
 
 /* Hide non-header elements in card view */
@@ -145,11 +169,13 @@
 .biz-card-details-div > ul:not(.header-text),
 .biz-card-details-div > li:not(.header-text) {
     display: none;
+    pointer-events: none;
 }
 
 /* show all .biz-resume-details by default */
 .biz-resume-details-div > * {
     display: block;
+    pointer-events: none;
 }
 
 /* High specificity rules for details divs to ensure proper text wrapping */
@@ -168,8 +194,12 @@
     overflow-wrap: break-word !important; /* Modern property for word breaking */
     white-space: normal !important; /* Ensure text wraps normally */
     overflow: visible !important; /* Keep visible but ensure proper wrapping */
-    hyphens: auto !important; /* Enable automatic hyphenation */
-    word-break: break-word !important; /* Force breaking of long words */
+    pointer-events: none !important; /* Ensure clicks pass through to the parent bizResumeDiv */
+}
+
+/* Ensure all children of biz-resume-details-div also have pointer-events: none */
+.biz-resume-details-div * {
+    pointer-events: none !important;
 }
 
 /* Lower specificity fallback for card details */
@@ -184,11 +214,13 @@
     box-sizing: border-box;
     word-wrap: break-word; /* Allow long words to break */
     overflow-wrap: break-word; /* Modern property for word breaking */
+    pointer-events: none;
 }
 
 .biz-card-details-div .header-text, 
 .biz-resume-details-div .header-text {
     display: block;
+    pointer-events: none;
 }
 
 /* High specificity rules for list elements */
@@ -343,5 +375,33 @@
 @keyframes slideFromBottom {
     from { transform: translateY(100%); opacity: 0; }
     to { transform: translateY(0); opacity: 1; }
+}
+
+/* Ensure bizCardDivs always have pointer events enabled with maximum specificity */
+.biz-card-div,
+.biz-card-div *,
+body .biz-card-div,
+body .biz-card-div *,
+body.focal-point-locked .biz-card-div,
+body.focal-point-locked .biz-card-div *,
+#scene-container .biz-card-div,
+#scene-container .biz-card-div *,
+#scene-container.focal-point-locked .biz-card-div,
+#scene-container.focal-point-locked .biz-card-div * {
+    pointer-events: auto !important;
+}
+
+/* Same for bizResumeDivs */
+.biz-resume-div,
+.biz-resume-div *,
+body .biz-resume-div,
+body .biz-resume-div *,
+body.focal-point-locked .biz-resume-div,
+body.focal-point-locked .biz-resume-div *,
+#resume-container .biz-resume-div,
+#resume-container .biz-resume-div *,
+#resume-container.focal-point-locked .biz-resume-div,
+#resume-container.focal-point-locked .biz-resume-div * {
+    pointer-events: auto !important;
 }
 

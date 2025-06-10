@@ -57,23 +57,27 @@
   }
 
   #focal-point.focal-point-is-draggable {
-    cursor: grab;
+    cursor: grab !important; /* Open hand cursor indicating it can be grabbed */
     color: green;
-    z-index: 9999;  /* Maintain highest z-index when draggable */
-    /* Keep pointer-events: none to allow scroll/wheel pass-through */
-    pointer-events: none;
-  }
-
-  #focal-point.focal-point-is-draggable:hover {
-    /* Only enable pointer events on hover for dragging */
-    pointer-events: all;
-    z-index: 9999;  /* Maintain highest z-index when hovering */
+    border-color: green;
+    z-index: 9999;
+    pointer-events: all; /* Enable pointer events when draggable */
   }
 
   #focal-point.focal-point-is-being-dragged {
-    cursor: move;
-    pointer-events: all;  /* Ensure we maintain interaction while dragging */
-    z-index: 9999;  /* Maintain highest z-index when dragging */
+    cursor: grabbing !important; /* Closed hand cursor indicating it's being dragged */
+    color: blue;
+    border-color: blue;
+    pointer-events: all; /* Keep pointer events enabled while dragging */
+    z-index: 9999;
+  }
+
+  /* Ensure these classes are mutually exclusive in appearance */
+  #focal-point.focal-point-is-draggable.focal-point-is-being-dragged {
+    /* This should never happen, but just in case */
+    cursor: grabbing !important;
+    color: purple;
+    border-color: purple;
   }
   
   #focal-point.awake {
@@ -87,6 +91,60 @@
   
   .focal-point-is-being-dragged {
     cursor: move;
+  }
+
+  /* Add styles for scene elements when focal point is being dragged */
+  .biz-card-div:hover {
+    cursor: pointer;
+  }
+
+  #scene-plane:hover {
+    cursor: default;
+  }
+
+  /* Ensure the focal point cursor styles take precedence */
+  #focal-point.focal-point-is-draggable {
+    cursor: grab !important; /* Open hand cursor indicating it can be grabbed */
+    color: green;
+    border-color: green;
+    z-index: 9999;
+  }
+
+  #focal-point.focal-point-is-being-dragged {
+    cursor: grabbing !important; /* Closed hand cursor indicating it's being dragged */
+    color: blue;
+    border-color: blue;
+    pointer-events: none;  /* Disable pointer events while dragging to allow clicks to pass through */
+    z-index: 9999;
+  }
+
+  /* Cursor styles for dragging over different elements */
+  body.hovering-biz-card-while-dragging {
+    cursor: pointer !important;
+  }
+
+  body.hovering-scene-plane-while-dragging {
+    cursor: crosshair !important;
+  }
+
+  /* Make sure these cursor styles take precedence */
+  body.hovering-biz-card-while-dragging *,
+  body.hovering-scene-plane-while-dragging * {
+    cursor: inherit !important;
+  }
+
+  /* Style for when focal point is locked to bulls eye - changed from red to light green */
+  #focal-point.locked-to-bulls-eye {
+    color: lightgreen !important;
+    border-color: lightgreen !important;
+    font-weight: bold;
+    pointer-events: none;
+  }
+
+  /* Add a visual indicator to the bulls eye when focal point is locked to it - changed from red to light green */
+  #bulls-eye.focal-point-locked {
+    color: lightgreen !important;
+    font-weight: bold;
   }
   
   

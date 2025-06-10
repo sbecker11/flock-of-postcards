@@ -103,12 +103,22 @@ async function initialize() {
     tests.runSanityTests();
 
     try {
-        // Initialize core components first
+        // STEP 1: Initialize viewPort first as it's a fundamental dependency
         viewPort.initializeViewPort();
+        console.log("ViewPort initialized");
+        
+        // STEP 2: Initialize bullsEye which depends on viewPort
         bullsEye.initializeBullsEye();
+        console.log("BullsEye initialized");
+        
+        // STEP 3: Initialize other core components
         resizeHandle.initializeResizeHandle();
         resumeContainer.initializeResumeContainer();
         sceneContainer.initializeSceneContainer();
+        
+        // STEP 4: Initialize bizCardDivModule
+        bizCardDivModule.initializeBizCardDivModule();
+        console.log("BizCardDivModule initialized");
         
         // Load color palettes
         paletteSelector = await colorPalettes.initializePaletteSelectorInstance();
@@ -127,7 +137,11 @@ async function initialize() {
             return new Date(b.start) - new Date(a.start);
         });
         
-        // Create all bizCards BEFORE initializing parallax
+        // STEP 5: Initialize focal point (depends on viewPort and bullsEye)
+        focalPoint.initializeFocalPoint();
+        console.log("Focal point initialized");
+        
+        // STEP 6: Create all bizCards (depends on viewPort for positioning)
         const bizResumeDivs = [];
         sortedJobs.forEach((job, index) => {
             if (!job) throw new Error('createBizCardDiv: given null job');
@@ -143,19 +157,29 @@ async function initialize() {
             bizResumeDivs.push(bizResumeDiv);
         });
         
-        // Initialize sorting after all divs are created
+        // STEP 7: Set up event listeners for bizResumeDivs
+        bizResumeDivModule.setupEventListeners();
+        console.log("Set up event listeners for all bizResumeDivs");
+
+        // STEP 8: Initialize sorting after all divs are created
         bizResumeDivSortingModule.initialize(sortedJobs, bizResumeDivs);
-        
-        // Add this after creating all bizCardDivs - explicitly pass sortedJobs
+
+        // STEP 9: Set geometry for all bizCardDivs
         bizCardDivModule.setGeometryForAllBizCardDivs(sortedJobs);
         console.log("Verified geometry for all bizCardDivs");
 
-        // Then initialize parallax
+        // STEP 10: Initialize parallax (depends on viewPort, focalPoint, and bizCardDivs)
         parallax.initializeParallax();
-        
-        // Initialize focal point last
-        focalPoint.initializeFocalPoint();
-        
+        console.log("Parallax initialized");
+
+        // STEP 11: Ensure bizCardDivs always have pointer events enabled
+        bizCardDivModule.setupPointerEventsObserver();
+
+        // Force an initial parallax update
+        setTimeout(() => {
+            parallax.updateParallax("initial-load", true);
+        }, 100);
+
         // Start animation loop
         focalPoint.startFocalPointAnimation();
     } catch (error) {

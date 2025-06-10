@@ -103,6 +103,58 @@ class ResumeManager {
     }
   }
 
+  // Sync with a selection in the scene view
+  syncWithSceneSelection(jobIndex) {
+    console.log(`ResumeManager: Syncing with scene selection for job index ${jobIndex}`);
+    
+    // Find the sorted index for this job index
+    const sortedIndex = this.sortedIndices.indexOf(jobIndex);
+    if (sortedIndex === -1) {
+      console.error(`ResumeManager: Job index ${jobIndex} not found in sortedIndices`);
+      return false;
+    }
+    
+    console.log(`ResumeManager: Found sorted index ${sortedIndex} for job index ${jobIndex}`);
+    
+    // If we have an infinite scroller, use it to scroll to the item
+    if (this.infiniteScroller) {
+      console.log(`ResumeManager: Using infiniteScroller to scroll to sorted index ${sortedIndex}`);
+      this.infiniteScroller.scrollToItem(sortedIndex);
+      
+      // Also trigger a click on the bizResumeDiv
+      setTimeout(() => {
+        console.log(`ResumeManager: Triggering click on bizResumeDiv for sorted index ${sortedIndex}`);
+        this.infiniteScroller.triggerBizResumeDivClick(sortedIndex);
+      }, 100);
+      
+      return true;
+    } else {
+      console.error("ResumeManager: infiniteScroller not available");
+      
+      // Fallback: try to find the bizResumeDiv directly
+      const bizResumeDivId = `biz-resume-div-${jobIndex}`;
+      const bizResumeDiv = document.getElementById(bizResumeDivId);
+      
+      if (bizResumeDiv) {
+        console.log(`ResumeManager: Found bizResumeDiv ${bizResumeDivId}, scrolling into view`);
+        bizResumeDiv.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        
+        // Also select it
+        import('../scene/bizResumeDivModule.mjs').then(module => {
+          console.log(`ResumeManager: Calling bizResumeDivModule.handleClickEvent for ${bizResumeDivId}`);
+          module.handleClickEvent(bizResumeDiv);
+        }).catch(error => {
+          console.error("Error importing bizResumeDivModule:", error);
+        });
+        
+        return true;
+      } else {
+        console.error(`ResumeManager: Could not find bizResumeDiv with ID ${bizResumeDivId}`);
+        return false;
+      }
+    }
+  }
+
   // Sorting functionality
   applySortRule(sortRule) {
     // sortRule format: { field: 'employer'|'startDate'|'endDate'|'role'|'original', direction: 'asc'|'desc' }
@@ -236,12 +288,67 @@ class ResumeManager {
 
   // Get original index from current sorted position
   getOriginalIndexFromSorted(sortedIndex) {
-    return this.sortedIndices[sortedIndex];
+    // Validate input
+    if (sortedIndex === null || sortedIndex === undefined) {
+      console.error(`getOriginalIndexFromSorted: Invalid sorted index: ${sortedIndex}`);
+      return -1;
+    }
+    
+    // Convert to number if it's a string
+    const numericIndex = parseInt(sortedIndex, 10);
+    if (isNaN(numericIndex)) {
+      console.error(`getOriginalIndexFromSorted: Sorted index is not a number: ${sortedIndex}`);
+      return -1;
+    }
+    
+    // Check if sortedIndices is initialized
+    if (!this.sortedIndices || !Array.isArray(this.sortedIndices)) {
+      console.error("getOriginalIndexFromSorted: sortedIndices is not properly initialized");
+      return -1;
+    }
+    
+    // Check if the index is in range
+    if (numericIndex < 0 || numericIndex >= this.sortedIndices.length) {
+      console.error(`getOriginalIndexFromSorted: Sorted index ${numericIndex} is out of range (0-${this.sortedIndices.length - 1})`);
+      return -1;
+    }
+    
+    // Get the original index
+    const originalIndex = this.sortedIndices[numericIndex];
+    
+    // Log the result
+    console.log(`getOriginalIndexFromSorted: Sorted index ${numericIndex} maps to original index ${originalIndex}`);
+    
+    return originalIndex;
   }
 
   // Get sorted position from original index
   getSortedIndexFromOriginal(originalIndex) {
-    return this.sortedIndices.indexOf(originalIndex);
+    try {
+        // Convert to number if it's a string
+        const numericIndex = parseInt(originalIndex, 10);
+        
+        // Check if sortedIndices exists
+        if (!this.sortedIndices || !Array.isArray(this.sortedIndices)) {
+            console.error(`getSortedIndexFromOriginal: sortedIndices is not an array`);
+            return -1;
+        }
+        
+        // Find the index
+        const sortedIndex = this.sortedIndices.indexOf(numericIndex);
+        
+        // Log the result
+        if (sortedIndex === -1) {
+            console.warn(`getSortedIndexFromOriginal: Original index ${numericIndex} not found in sortedIndices`);
+        } else {
+            console.log(`getSortedIndexFromOriginal: Original index ${numericIndex} maps to sorted index ${sortedIndex}`);
+        }
+        
+        return sortedIndex;
+    } catch (error) {
+        console.error(`ResumeManager: Error in getSortedIndexFromOriginal:`, error);
+        return -1;
+    }
   }
 
   destroy() {
@@ -251,19 +358,53 @@ class ResumeManager {
     }
   }
 
-  addClassItem(jobIndex, className ) {
-    const sortedIndex = this.getSortedIndexFromOriginal(jobIndex);
-    const resumeDiv = this.infiniteScroller.getItemAtIndex(sortedIndex);
-    if ( resumeDiv ) {
-      domUtils.addClass(resumeDiv, className);
+  addClassItem(jobIndex, className) {
+    try {
+        const sortedIndex = this.getSortedIndexFromOriginal(jobIndex);
+        if (sortedIndex === -1) {
+            console.warn(`ResumeManager: Original index ${jobIndex} not found in sortedIndices`);
+            return;
+        }
+        
+        if (!this.infiniteScroller) {
+            console.warn(`ResumeManager: infiniteScroller is not initialized`);
+            return;
+        }
+        
+        const resumeDiv = this.infiniteScroller.getItemAtIndex(sortedIndex);
+        if (resumeDiv) {
+            resumeDiv.classList.add(className);
+            console.log(`ResumeManager: Added class ${className} to item at index ${sortedIndex}`);
+        } else {
+            console.warn(`ResumeManager: Could not find item at sorted index ${sortedIndex}`);
+        }
+    } catch (error) {
+        console.error(`ResumeManager: Error in addClassItem:`, error);
     }
   }
 
-  removeClassItem(jobIndex, className ) {
-    const sortedIndex = this.getSortedIndexFromOriginal(jobIndex);
-    const resumeDiv = this.infiniteScroller.getItemAtIndex(sortedIndex);
-    if ( resumeDiv ) {
-      domUtils.removeClass(resumeDiv, className);
+  removeClassItem(jobIndex, className) {
+    try {
+        const sortedIndex = this.getSortedIndexFromOriginal(jobIndex);
+        if (sortedIndex === -1) {
+            console.warn(`ResumeManager: Original index ${jobIndex} not found in sortedIndices`);
+            return;
+        }
+        
+        if (!this.infiniteScroller) {
+            console.warn(`ResumeManager: infiniteScroller is not initialized`);
+            return;
+        }
+        
+        const resumeDiv = this.infiniteScroller.getItemAtIndex(sortedIndex);
+        if (resumeDiv) {
+            resumeDiv.classList.remove(className);
+            console.log(`ResumeManager: Removed class ${className} from item at index ${sortedIndex}`);
+        } else {
+            console.warn(`ResumeManager: Could not find item at sorted index ${sortedIndex}`);
+        }
+    } catch (error) {
+        console.error(`ResumeManager: Error in removeClassItem:`, error);
     }
   }
 }

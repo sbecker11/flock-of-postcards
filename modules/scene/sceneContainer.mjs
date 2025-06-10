@@ -182,3 +182,32 @@ export function getSceneVerticalPositions(startDateStr, endDateStr, minHeight=0)
     
     return { sceneTop, sceneBottom };
 }
+
+/**
+ * Ensure the scene container and its children have proper pointer events
+ * This is especially important when the focal point is locked
+ */
+export function ensurePointerEvents() {
+    const sceneContainer = document.getElementById('scene-container');
+    if (!sceneContainer) {
+        console.error("Scene container not found");
+        return;
+    }
+    
+    // Ensure scene container has pointer events
+    if (sceneContainer.style.pointerEvents !== 'auto') {
+        console.log("Fixing scene container pointer-events");
+        sceneContainer.style.pointerEvents = 'auto';
+    }
+    
+    // Ensure all bizCardDivs have pointer events
+    const bizCardDivs = sceneContainer.querySelectorAll('.biz-card-div');
+    bizCardDivs.forEach(div => {
+        if (div.style.pointerEvents !== 'auto') {
+            console.log(`Fixing pointer-events for ${div.id}`);
+            div.style.pointerEvents = 'auto';
+        }
+    });
+    
+    console.log("Scene container and bizCardDivs pointer events fixed");
+}

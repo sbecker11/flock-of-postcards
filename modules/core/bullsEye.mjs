@@ -9,11 +9,20 @@ const _bullsEyeRad = _bullsEyeElement.offsetWidth/2;
 let _isBullsEyeInitialized = false;
 
 export function initializeBullsEye() {
-    if ( _isBullsEyeInitialized ) {
+    if (_isBullsEyeInitialized) {
         console.warn("duplicate bullsEye.initializeBullsEye() ignored");
+        return;
     }
+    
+    // Check dependency on viewPort
+    if (!viewPort.isViewPortInitialized()) {
+        throw new Error("Cannot initialize bullsEye: viewPort not initialized");
+    }
+    
+    console.log("Initializing bullsEye...");
     updateBullsEye();
     _isBullsEyeInitialized = true;
+    console.log("bullsEye initialized successfully");
 }
 
 export function isBullsEyeInitialized() {

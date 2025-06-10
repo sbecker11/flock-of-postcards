@@ -28,6 +28,9 @@ class InfiniteScrollingContainer {
     this.momentumAnimationId = null;
 
     this.init();
+    
+    // Make this instance available globally for debugging
+    window.infiniteScrollingContainer = this;
   }
 
   init() {
@@ -50,6 +53,9 @@ class InfiniteScrollingContainer {
     this.positionItems();
     this.currentIndex = 0;
     logger.info(`InfiniteScrollingContainer: Set ${items.length} items`);
+    
+    // Ensure click handlers are added
+    this.addDirectClickHandlers();
   }
 
   createClonedStructure() {
@@ -94,6 +100,9 @@ class InfiniteScrollingContainer {
         cloneIndex: i
       });
     }
+    
+    // Add direct click handlers to all items
+    this.addDirectClickHandlers();
   }
 
   cloneItem(originalElement, originalIndex, cloneType) {
@@ -405,16 +414,16 @@ class InfiniteScrollingContainer {
 
     // Touch events
     if (this.options.enableTouch) {
-      this.container.addEventListener('touchstart', this.handleStart.bind(this));
+      this.container.addEventListener('touchstart', this.handleStart.bind(this), { passive: true });
       document.addEventListener('touchmove', this.handleMove.bind(this), { passive: false });
-      document.addEventListener('touchend', this.handleEnd.bind(this));
+      document.addEventListener('touchend', this.handleEnd.bind(this), { passive: true });
     }
 
     // Mouse wheel events
     this.container.addEventListener('wheel', this.handleWheel.bind(this), { passive: false });
 
     // Scroll events for seamless transitions
-    this.container.addEventListener('scroll', this.handleScroll.bind(this));
+    this.container.addEventListener('scroll', this.handleScroll.bind(this), { passive: true });
 
     // Resize observer to handle container width changes
     this.setupResizeObserver();
@@ -422,13 +431,22 @@ class InfiniteScrollingContainer {
 
   handleStart(e) {
     // Special handling for clicks on bizResumeDivs
-    if (e.target.closest('.biz-resume-div')) {
-      console.log("InfiniteScrollingContainer: Click on bizResumeDiv detected, NOT preventing default");
-      // Don't prevent default for clicks on bizResumeDivs
-      return;
+    const bizResumeDiv = e.target.closest('.biz-resume-div');
+    if (bizResumeDiv) {
+        console.log("InfiniteScrollingContainer: Click on bizResumeDiv detected:", bizResumeDiv.id);
+        console.log("- Target:", e.target.tagName, e.target.className);
+        console.log("- Has direct click handler:", !!bizResumeDiv._directClickHandler);
+        console.log("- Has data-has-direct-click-handler:", bizResumeDiv.getAttribute('data-has-direct-click-handler'));
+        
+        // Don't try to prevent default for touchstart events when using passive listeners
+        return;
     }
     
-    e.preventDefault();
+    // For non-touch events, we can still prevent default
+    if (!e.type.includes('touch')) {
+        e.preventDefault();
+    }
+    
     this.isDragging = true;
     this.startY = this.getEventY(e);
     this.startScrollTop = this.container.scrollTop;
@@ -438,8 +456,8 @@ class InfiniteScrollingContainer {
     
     // Cancel any ongoing momentum
     if (this.momentumAnimationId) {
-      cancelAnimationFrame(this.momentumAnimationId);
-      this.momentumAnimationId = null;
+        cancelAnimationFrame(this.momentumAnimationId);
+        this.momentumAnimationId = null;
     }
   }
 
@@ -580,6 +598,120 @@ class InfiniteScrollingContainer {
     this.container.innerHTML = '';
 
     logger.info('InfiniteScrollingContainer destroyed');
+  }
+
+  addDirectClickHandlers() {
+    // Add direct click handlers to all bizResumeDivs
+    this.allItems.forEach(item => {
+      if (item.element && item.element.classList.contains('biz-resume-div')) {
+        // Remove any existing click handlers to avoid duplicates
+        if (item.element._directClickHandler) {
+          item.element.removeEventListener('click', item.element._directClickHandler);
+        }
+        
+        // Create a new click handler
+        const clickHandler = (e) => {
+          console.log(`Direct click on ${item.element.id}`);
+          e.stopPropagation(); // Prevent event from bubbling
+          
+          // Import bizResumeDivModule and call handleClickEvent
+          import('../scene/bizResumeDivModule.mjs').then(module => {
+            console.log(`Calling bizResumeDivModule.handleClickEvent for ${item.element.id}`);
+            module.handleClickEvent(item.element);
+          }).catch(error => {
+            console.error("Error importing bizResumeDivModule:", error);
+          });
+        };
+        
+        // Store the handler for later removal
+        item.element._directClickHandler = clickHandler;
+        
+        // Add the click handler
+        item.element.addEventListener('click', clickHandler);
+        
+        // Add a data attribute to confirm handler was attached
+        item.element.setAttribute('data-has-direct-click-handler', 'true');
+        
+        console.log(`Added direct click handler to ${item.element.id}`);
+      }
+    });
+  }
+
+  // Public method to manually trigger a click on a bizResumeDiv
+  triggerBizResumeDivClick(index) {
+    if (index < 0 || index >= this.originalItems.length) {
+        console.error(`Invalid index: ${index}`);
+        return false;
+    }
+    
+    // Find the item in allItems
+    const item = this.allItems.find(item => 
+        item.type === 'original' && item.originalIndex === index
+    );
+    
+    if (!item || !item.element) {
+        console.error(`Item not found for index: ${index}`);
+        return false;
+    }
+    
+    console.log(`Manually triggering click on ${item.element.id}`);
+    
+    // Import bizResumeDivModule and call handleClickEvent
+    import('../scene/bizResumeDivModule.mjs').then(module => {
+        console.log(`Calling bizResumeDivModule.handleClickEvent for ${item.element.id}`);
+        module.handleClickEvent(item.element);
+        return true;
+    }).catch(error => {
+        console.error("Error importing bizResumeDivModule:", error);
+        return false;
+    });
+  }
+
+  // Scroll to a specific item by index
+  scrollToItem(index) {
+    if (index < 0 || index >= this.originalItems.length) {
+      console.error(`Invalid index: ${index}`);
+      return false;
+    }
+    
+    console.log(`InfiniteScrollingContainer: Scrolling to item at index ${index}`);
+    
+    // Find the item in allItems
+    const item = this.allItems.find(item => 
+      item.type === 'original' && item.originalIndex === index
+    );
+    
+    if (!item || !item.element) {
+      console.error(`Item not found for index: ${index}`);
+      return false;
+    }
+    
+    console.log(`Found item: ${item.element.id}`);
+    
+    // Calculate the scroll position
+    const containerRect = this.container.getBoundingClientRect();
+    const itemRect = item.element.getBoundingClientRect();
+    
+    // Calculate the scroll position to center the item in the viewport
+    const scrollTop = this.container.scrollTop + (itemRect.top - containerRect.top) - (containerRect.height / 2) + (itemRect.height / 2);
+    
+    console.log(`Scrolling to position: ${scrollTop}`);
+    
+    // Scroll to the item
+    this.container.scrollTo({
+      top: scrollTop,
+      behavior: 'smooth'
+    });
+    
+    // Update the active item
+    this.activeItemIndex = index;
+    
+    // Call the onItemChange callback
+    if (this.options.onItemChange) {
+      this.options.onItemChange(index, item.element);
+    }
+    
+    return true;
   }
 }
 

@@ -14,25 +14,27 @@ import * as utils from '../utils/utils.mjs';
 import * as sceneContainer from './sceneContainer.mjs';
 import { BULLET } from '../constants/ui.mjs';
 
+/**
+ * Creates a business resume details div
+ * @param {HTMLElement} bizResumeDiv - The business resume div
+ * @param {HTMLElement} bizCardDiv - The business card div
+ * @returns {HTMLElement} The created business resume details div
+ */
 export function createBizResumeDetailsDiv(bizResumeDiv, bizCardDiv) {
     if (!bizResumeDiv) throw new Error('createBizResumeDetailsDiv: given null bizResumeDiv');
     if (!bizCardDiv) throw new Error('createBizResumeDetailsDiv: given null bizCardDiv');
-    let colorIndex = bizResumeDiv.getAttribute('data-color-index');
     
-    // Use utils.isNumeric as a fallback if colorPalettes.isColorIndexString is not available
-    if (!colorPalettes.isColorIndexString && utils.isNumeric) {
-        if (!utils.isNumericString(colorIndex)) {
-            throw new Error('createBizResumeDetailsDiv: given non-numeric colorIndex from bizResumeDiv: ' + bizResumeDiv.id);
-        }
-    } else if (!colorPalettes.isColorIndexString(colorIndex)) {
-        throw new Error('createBizResumeDetailsDiv: given non-colorIndexString colorIndex from bizResumeDiv: ' + bizResumeDiv.id);
-    }
-
+    const colorIndex = bizResumeDiv.getAttribute('data-color-index');
+    if (!colorPalettes.isColorIndexString(colorIndex)) throw new Error('createBizResumeDetailsDiv: given non-colorIndexString colorIndex');
+    
     const bizResumeDetailsDiv = document.createElement('div');
     const jobIndex = bizResumeDiv.getAttribute('data-job-index');
-    if ( !utils.isNumericString(jobIndex) ) throw new Error('createBizResumeDetailsDiv: given non-numeric attriubute string jobIndex');
+    if (!utils.isNumericString(jobIndex)) throw new Error('createBizResumeDetailsDiv: given non-numeric attriubute string jobIndex');
     bizResumeDetailsDiv.classList.add('biz-resume-details-div');
     bizResumeDetailsDiv.id = `biz-resume-details-div-${jobIndex}`;
+
+    // Set pointer-events to none so clicks pass through to the parent bizResumeDiv
+    bizResumeDetailsDiv.style.pointerEvents = 'none';
 
     // see createBizDetailsDiv::34  colorIndex format <number>
     // console.log("createBizResumeDetailsDiv: colorIndex:", colorIndex);
@@ -40,7 +42,7 @@ export function createBizResumeDetailsDiv(bizResumeDiv, bizCardDiv) {
     bizResumeDetailsDiv.classList.add('color-index-foreground-only');
 
     const bizCardDetailsDiv = bizCardDiv.querySelector('.biz-card-details-div');
-    if ( !bizCardDetailsDiv ) throw new Error('createBizResumeDetailsDiv: given null bizCardDetailsDiv');
+    if (!bizCardDetailsDiv) throw new Error('createBizResumeDetailsDiv: given null bizCardDetailsDiv');
     bizResumeDetailsDiv.innerHTML = bizCardDetailsDiv.innerHTML;
     return bizResumeDetailsDiv;
 }

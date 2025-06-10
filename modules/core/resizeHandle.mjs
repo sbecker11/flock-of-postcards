@@ -196,6 +196,10 @@ class ResizeManager {
             this.resumeLeft = this.sceneWidth;
         }
         this.applyLayout();
+        
+        // Trigger parallax update after layout change
+        // Use requestAnimationFrame to ensure DOM updates have completed
+        requestAnimationFrame(() => this.triggerParallaxUpdate());
     }
 
     /**
@@ -247,6 +251,9 @@ class ResizeManager {
         let newResumeLeft = clampToRange(this.startResumeLeft + dx, 0, window.innerWidth - BUTTON_COLUMN_WIDTH);
         let newPercentage = Math.round(newResumeLeft / (window.innerWidth - BUTTON_COLUMN_WIDTH) * 100);
         this.updateLayoutFromPercentage(newPercentage);
+        
+        // Trigger parallax update after resize - don't force during drag
+        this.triggerParallaxUpdate(false);
     }
 
     /**
@@ -272,6 +279,9 @@ class ResizeManager {
         document.removeEventListener('mousemove', this._boundHandleDrag);
         document.removeEventListener('mouseup', this._boundStopDrag);
         document.removeEventListener('mouseleave', this._boundHandleMouseLeave);
+        
+        // Final parallax update after drag ends - force update
+        this.triggerParallaxUpdate(true);
     }
 
     /**
@@ -299,6 +309,9 @@ class ResizeManager {
         let currentIndex = this.getCurrentSnapIndex();
         let nextIndex = Math.max(0, currentIndex - 1);
         this.setToSnapIndex(nextIndex);
+        
+        // Trigger parallax update after collapse
+        this.triggerParallaxUpdate();
     }
 
     /**
@@ -308,6 +321,9 @@ class ResizeManager {
         let currentIndex = this.getCurrentSnapIndex();
         let nextIndex = Math.min(this.nIncrements, currentIndex + 1);
         this.setToSnapIndex(nextIndex);
+        
+        // Trigger parallax update after collapse
+        this.triggerParallaxUpdate();
     }
 
     /**
@@ -339,6 +355,27 @@ class ResizeManager {
             this.resumeContainer.classList.add('w-resize-cursor');
         } else {
             this.resumeContainer.classList.remove('w-resize-cursor');
+        }
+    }
+
+    /**
+     * Triggers parallax update after resize
+     * @param {boolean} force - Force update even if within throttle interval
+     */
+    triggerParallaxUpdate(force = false) {
+        // Store previous dimensions to check for actual changes
+        if (!this._prevSceneWidth) {
+            this._prevSceneWidth = this.sceneWidth;
+        }
+        
+        // Only trigger update if scene width actually changed
+        if (force || this._prevSceneWidth !== this.sceneWidth) {
+            this._prevSceneWidth = this.sceneWidth;
+            
+            // Import parallax module dynamically to avoid circular dependencies
+            import('../core/parallax.mjs').then(parallaxModule => {
+                parallaxModule.updateParallax("resize-handle-drag", force);
+            });
         }
     }
 }

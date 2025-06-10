@@ -111,6 +111,18 @@ If the app is already running, it will re-load the `jobs.mjs` file.
 # Behold your own glorious flock of postcards
 
 
+Module Management
+
+see modules/core/moduleManager.mjs
+
+Initialization Sequence:
+1. viewPort
+2. bullsEye
+3. resizeHandle
+4. resumeContainer
+5. sceneContainer
+6. focalPoint (depends on viewPort, bullsEye)
+7. parallax (depends on viewPort, focalPoint)
 
 
 ### Future work

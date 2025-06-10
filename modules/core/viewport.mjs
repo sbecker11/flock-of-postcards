@@ -26,23 +26,26 @@ const viewPortProperties = {
 };
 
 
-let _isViewPortInitialIzed = false;
+let _isViewPortInitialized = false;
 
 const _sceneContainer = document.getElementById("scene-container");
 const _resumeContainer = document.getElementById("resume-container");
 
 export function initializeViewPort() {
-    if ( _isViewPortInitialIzed == true ) {
-        console.warn("duplicate all to viewPort.initializeViewPort() ignored");
+    if (_isViewPortInitialized) {
+        console.warn("viewPort.initializeViewPort: already initialized");
         return;
     }
-    console.log("initializeViewPort");
-    _isViewPortInitialIzed = true;
+    
+    console.log("Initializing viewPort...");
+    
+    _isViewPortInitialized = true;
     updateViewPort();
+    console.log("viewPort initialized successfully");
 }
 
 export function isViewPortInitialized() {
-    return _isViewPortInitialIzed;
+    return _isViewPortInitialized;
 }
 
 /**

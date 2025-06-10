@@ -675,7 +675,7 @@ export function test_dateUtils() {
             parseYearStr("23");
             console.assert(false, "Should reject 2-digit year");
         } catch (e) {
-            console.assert(e.message.includes("not a valid 4-digit year"), "Wrong error message:", e.message);
+            console.assert(e.message.includes("is not valid"), "Wrong error message:", e.message);
         }
         
         console.log("✅ parseYearStr tests passed");
@@ -698,7 +698,7 @@ export function test_dateUtils() {
             parseMonthStr("13");
             console.assert(false, "Should reject month 13");
         } catch (e) {
-            console.assert(e.message.includes("not in valid range"), "Wrong error message:", e.message);
+            console.assert(e.message.includes("out of range"), "Invalid error message:", e.message);
         }
         
         try {

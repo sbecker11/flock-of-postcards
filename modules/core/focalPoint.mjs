@@ -4,12 +4,26 @@ import * as domUtils from '../utils/domUtils.mjs';
 import * as utils from '../utils/utils.mjs';
 import * as mathUtils from '../utils/mathUtils.mjs';
 import * as viewPort from './viewPort.mjs';
-import * as resizeManager from './resizeHandle.mjs';
 import * as bullsEye from './bullsEye.mjs';
 import * as aimPoint from './aimPoint.mjs';
+import * as eventBus from '../core/eventBus.mjs';
 
 import { Logger, LogLevel } from "../logger.mjs";
 const logger = new Logger("focalPoint", LogLevel.INFO, LogLevel.TRACE_ON_FAILURE);
+
+const FOCAL_POINT_STATE = {
+    ASLEEP: "asleep",
+    AWAKE: "awake",
+    FOLLOWING: "following",
+    EASING_TO_AIM_POINT: "easingToAimPoint",
+    EASING_TO_BULLS_EYE: "easingToBullsEye",
+    ARRIVED_AT_AIM_POINT: "arrivedAtAimPoint",
+    ARRIVED_AT_BULLS_EYE: "arrivedAtBullsEye",
+    LOCKED_TO_BULLS_EYE: "lockedToBullsEye",
+    BEING_DRAGGED: "beingDragged",
+    PAUSED: "paused",
+    RUNNING: "running"
+};
 
 /**
  * class to manage the mouse drag state
@@ -51,8 +65,9 @@ const FOCALPOINT_EPSILON = 1.0;
 const SCENERECT_EPSILON = 1.0;
 
 var _isFocalPointInitialized = false;
-var _sceneContainer = document.getElementById("scene-container")
-var _focalPointElement = document.getElementById("focal-point");
+var _isSceneRectInitialized = false;
+var _sceneContainer = null;
+var _focalPointElement = null;
 var _focalPointNowSubpixelPrecision;
 var _isEasingToAimPoint = false;
 var _isEasingToBullsEye = false;
@@ -66,13 +81,10 @@ let _resizeObserver = null;
 let _status = "asleep";
 let _lastStatus = "asleep";
 
-let _isLockedToBullsEye = false;
-let _followPointerOutsideContainer = false;
-let _pointerIsOutsideWindow = false;  // New state to track if pointer is outside window
+let _isLockedToBullsEye = false;// New state to track if pointer is outside window
 
-let _lastFocalPoint = {x:0, y:0};
-let _lastSceneRect = { top:0, left:0, right:0, bottom:0 };
-
+let _lastFocalPoint = null;
+let _lastSceneRect = null;
 /**
  * sets the focalPoint's status
  * @param {*} new_status 
@@ -81,7 +93,7 @@ let _lastSceneRect = { top:0, left:0, right:0, bottom:0 };
 function setStatus(new_status, prefix="") {
     _lastStatus = _status;
     _status = new_status;
-    if ( _status != _lastStatus ) {
+    if ( _status !== _lastStatus ) {
         prefix = `setStatus:${prefix}`;
         //console.info(prefix, _status);
     }
@@ -125,7 +137,8 @@ function getDefaultState() {
     return {
         isDraggable: true,
         isLockedToBullsEye: false,
-        _lastPosition: null,
+        _lastFocalPoint: null,
+        _lastSceneRect: null,
         scenePercentage: 50, // Default 50% split
         selectedPalette: null, // Will be set to first available palette
         lastUpdated: new Date().toISOString(),
@@ -144,8 +157,8 @@ export function saveState() {
         const state = {
             isDraggable: _isDraggable,
             isLockedToBullsEye: _isLockedToBullsEye,
-            _lastPosition: getFocalPoint(),
-            // scenePercentage: resizeManager.getInstance().scenePercentage();
+            _lastFocalPoint: getFocalPoint(),
+            _lastSceneRect: getSceneRect(),
             selectedPalette: paletteSelector ? paletteSelector.value : null,
             lastUpdated: new Date().toISOString(),
             version: "1.0"
@@ -184,17 +197,8 @@ function initializeState() {
     _isDraggable = state.isDraggable;
     _isLockedToBullsEye = state.isLockedToBullsEye;
     
-    // Apply the sceneResizeHandle position
-    // resizeManager.getInstance().setScenePercentage(state.resizeScenePercentage);
     const sceneContainer = document.getElementById('scene-container');
     const resumeContainer = document.getElementById('resume-container');
-    // if (sceneContainer && resumeContainer) {
-    //     const scenePercent = state.resizeScenePercentage;
-    //     resizeHandle.setScenePercent(scenePercent);
-
-    //     // Update bulls-eye position after setting the divider
-    //     // updateBullsEye();
-    // }
 
     // Apply palette selection if available
     const paletteSelector = document.getElementById('color-palette-selector');
@@ -230,11 +234,24 @@ export function handleOnWindowLoad() {
  * @param {*} eventPosition 
  */
 export function set_isBeingDragged_true(eventPosition) {
+    // Only allow dragging if draggable
+    if (!_isDraggable) {
+        console.log("Cannot start dragging - focal point is not draggable");
+        return;
+    }
+    
     _isBeingDragged = true;
     _isEasingToAimPoint = false;
     _isEasingToBullsEye = false;
+    
+    // Temporarily disable draggable while being dragged
+    // This ensures we can't be both draggable and being dragged
+    _focalPointElement.classList.remove('focal-point-is-draggable');
+    _focalPointElement.classList.add('focal-point-is-being-dragged');
+    
     aimPoint.setAimPoint(eventPosition, "set_isBeingDragged_true");
     _mouseDrag.setStartPosition(eventPosition);
+    setStatus(FOCAL_POINT_STATE.BEING_DRAGGED, "set_isBeingDragged_true");
     //console.log("set _isBeingDragged:", _isBeingDragged, "eventPosition:", eventPosition);
 }
 
@@ -246,6 +263,13 @@ export function set_isBeingDragged_false(eventPosition) {
     _isBeingDragged = false;
     _isEasingToAimPoint = false;  // Prevent animation from starting
     _isEasingToBullsEye = false;  // Prevent animation from starting
+    
+    // Restore draggable state if it was previously draggable
+    if (_isDraggable) {
+        _focalPointElement.classList.add('focal-point-is-draggable');
+    }
+    _focalPointElement.classList.remove('focal-point-is-being-dragged');
+    
     aimPoint.setAimPoint(eventPosition, "set_isBeingDragged_false");
     _mouseDrag.setEndPosition(eventPosition);
     moveFocalPointTo(eventPosition);
@@ -275,7 +299,7 @@ export function getFocalPoint() {
     }
 }
 
-export function getSceneRelativeVpRect() {
+export function getSceneRect() {
     const vpRect = viewPort.getViewPortRect();
     const scrollTop = _sceneContainer.scrollTop;
 
@@ -352,6 +376,10 @@ export function initializeFocalPoint(focalPointElement) {
     }
     _isFocalPointInitialized = true;
 
+    // Clear any existing listeners to prevent duplicates
+    clearFocalPointOnlyListeners();
+    clearFocalPointAndSceneRectListeners();
+
     _focalPointElement = document.getElementById("focal-point");
     if ( !_focalPointElement ) throw new Error("initializeFocalPoint focal-point element not found");
     _focalPointRadius = _focalPointElement.getBoundingClientRect().width / 2.0;
@@ -365,31 +393,14 @@ export function initializeFocalPoint(focalPointElement) {
     if (_isDraggable) {
         _focalPointElement.classList.add('focal-point-is-draggable');
     }
-    
-    _sceneContainer = document.getElementById("scene-container");
-    if (!_sceneContainer) {
-        throw new Error("sceneContainer not initialized");
+
+    if (_focalPointElement) {
+        _focalPointElement.removeEventListener('mousedown', onMouseDown_startDraggingFocalPoint);
+        _focalPointElement.removeEventListener('wheel', handleScrollPassThrough);
+        _focalPointElement.removeEventListener('scroll', handleScrollPassThrough);
     }
 
-    // Add scroll event listener to scene container
-    _sceneContainer.addEventListener('scroll', function(event) {
-        scrollTopUpdated(_sceneContainer.scrollTop);
-    });
-    console.log("Added scroll event listener to scene container");
-
-    // Initialize resize observer before any other operations
-    initializeResizeObserver();
-
-    // Add window resize listener
-    window.addEventListener('resize', () => handleViewPortChange("window-resize"));
-
-    console.log('✅ ViewPort change listeners added');
-
-    // Add scene-plane container event listeners
-    _sceneContainer.addEventListener("mouseenter", onsceneContainerEnter);
-    _sceneContainer.addEventListener("mousemove", onSceneContainerMove);
-    _sceneContainer.addEventListener("mouseleave", onSceneContainerLeave);
-
+    
     // Add hover listeners to the focal-point element
     _focalPointElement.addEventListener('mouseenter', () => {
         if (_isDraggable) {
@@ -410,123 +421,328 @@ export function initializeFocalPoint(focalPointElement) {
     _focalPointElement.addEventListener('wheel', handleScrollPassThrough, { passive: false });
     _focalPointElement.addEventListener('scroll', handleScrollPassThrough, { passive: false });
 
+    initializeSceneRect();
+
     aimPoint.setAimPoint(bullsEye.getBullsEye(), "createFocalPoint");
     moveFocalPointTo(aimPoint.getAimPoint(), "createFocalPoint");
 
-    // Update bulls-eye position again after any CSS transitions complete
-    // setTimeout(() => {
-    //     updateBullsEye();
-    // }, 310); // Match the transition duration from CSS
+    // Emit event when initialization is complete
+    eventBus.emit('focalPoint:initialized', {});
+}
+
+
+export function isSceneRectInitialized() {
+    return _isSceneRectInitialized;
+}
+
+function initializeSceneRect() {
+    if ( _isSceneRectInitialized ) {
+        console.info("focalPoint ignoring duplicate sceneRect initialization request");
+        return;
+    }
+    _isSceneRectInitialized = true;
+
+    _sceneContainer = document.getElementById("scene-container");
+    if (!_sceneContainer) {
+        throw new Error("sceneContainer not initialized");
+    }
+
+    // Add scroll event listener to scene container
+    _sceneContainer.addEventListener('scroll', function(event) {
+        scrollTopUpdated(_sceneContainer.scrollTop);
+    });
+    // console.log("Added scroll event listener to scene container");
+    
+    // Clean up resize observer
+    if (_resizeObserver) {
+        _resizeObserver.disconnect();
+        _resizeObserver = null;
+    }
+    
+    // Initialize resize observer before any other operations
+    initializeResizeObserver();
+
+    // Add window resize listener
+    window.addEventListener('resize', () => handleViewPortChange("window-resize"));
+
+    _sceneContainer = document.getElementById("scene-container");
+    if (!_sceneContainer) {
+        throw new Error("sceneContainer not initialized");
+    }
+
+    // Add scroll event listener to scene container
+    _sceneContainer.addEventListener('scroll', function(event) {
+        scrollTopUpdated(_sceneContainer.scrollTop);
+    });
+    // console.log("Added scroll event listener to scene container");
+
+    // Initialize resize observer before any other operations
+    initializeResizeObserver();
+
+    // Add window resize listener
+    window.addEventListener('resize', () => handleViewPortChange("window-resize"));
+
+    // console.log('✅ ViewPort change listeners added');
+
+    // Add scene-plane container event listeners
+    _sceneContainer.addEventListener("mouseenter", onsceneContainerEnter);
+    _sceneContainer.addEventListener("mousemove", onSceneContainerMove);
+    _sceneContainer.addEventListener("mouseleave", onSceneContainerLeave)
 }
 
 /**
  * internal list of listeners
  */
-const _focalPointPositionListeners = [];
+const _focalPointOnlyListeners = [];
+const _focalPointAndSceneRectListeners = [];
 
 /**
- * Detects change of focalPoint or sceneRect
+ * Detects change of focalPoint
  * @returns true if position has sufficient motion
  */
-function positionsChanged() {
-    // Get values once
+function focalPointChanged() {
     const focalPoint = getFocalPoint();
-    const sceneRect = getSceneRelativeVpRect();
-
-    // validate once
+    if (!focalPoint) {
+        console.warn("focalPointChanged: getFocalPoint returned null");
+        return false;
+    }
+    
     utils.validatePosition(focalPoint);
-    utils.validateRect(sceneRect);
-
     let moved = false;
-
-    const focalPointDist = mathUtils.getPositionsSquaredDistance(focalPoint, _lastFocalPoint);
-    if ( focalPointDist >= FOCALPOINT_EPSILON ) {
+    var dist = 10000;
+    
+    if (_lastFocalPoint !== null) {
+        try {
+            dist = mathUtils.getPositionsSquaredDistance(focalPoint, _lastFocalPoint);
+            // console.log("focalPointChanged: distance calculation:", {
+            //     focalPoint,
+            //     _lastFocalPoint,
+            //     dist,
+            //     FOCALPOINT_EPSILON
+            // });
+        } catch (e) {
+            console.error("Error calculating distance:", e);
+            // Reset _lastFocalPoint if it's invalid
+            _lastFocalPoint = null;
+            return true; // Force update
+        }
+    } else {
+        // console.log("focalPointChanged: _lastFocalPoint is null, considering as moved");
+        moved = true;
+        _lastFocalPoint = focalPoint;
+        return moved;
+    }
+    
+    if (dist >= FOCALPOINT_EPSILON) {
         moved = true;
         _lastFocalPoint = focalPoint;
     }
+    
+    // console.log("focalPointChanged result:", moved);
+    return moved;
+}
 
-    const sceneRectsDiff = mathUtils.getRectSquaredDifference(sceneRect,_lastSceneRect);
-    if ( sceneRectsDiff > SCENERECT_EPSILON ) {
+/**
+ * Detects change of sceneRect
+ * @returns true if position has sufficient motion
+ */
+function sceneRectChanged() {
+    const sceneRect = getSceneRect();
+    utils.validateRect(sceneRect);
+    let moved = false;
+    var diff = 10000;
+    if ( _lastSceneRect !== null ) {
+        diff = mathUtils.getRectSquaredDifference(sceneRect,_lastSceneRect);
+    }
+    if ( diff > SCENERECT_EPSILON ) {
         moved = true;
         _lastSceneRect = sceneRect;
     }
 
-    // Always return true for scroll events to ensure updates happen
-    if (sceneRect.top !== _lastSceneRect.top || sceneRect.bottom !== _lastSceneRect.bottom) {
-        moved = true;
-        _lastSceneRect = sceneRect;
-    }
+    // // Always return true for scroll events to ensure updates happen
+    // if (sceneRect.top !== _lastSceneRect.top || sceneRect.bottom !== _lastSceneRect.bottom) {
+    //     moved = true;
+    //     _lastSceneRect = sceneRect;
+    // }
 
     return moved;
 }
 
 /**
- * Notify listeners that the focalPoint or the sceneRelativeVpRect has moved
- * and both have been initialized
- * @param {position} viewRelativeFP - viewPort-relative position of focalPoint
- * @param {string} optional prefix for verbosity
- * @param {DOMRect} sceneRelativeVpRect scene-relative viewport rect
+ * Notify listeners that only the focalPoint has moved
+ * @param {position} focalPoint - viewPort-relative position of focalPoint
+ * @param {string} prefix - optional prefix for verbosity
  */
-function notifyPositionListeners(prefix="") {
+function notifyFocalPointOnlyListeners(focalPoint, prefix="") {
+    // console.log("notifyFocalPointOnlyListenersTotal focalPoint-only listeners:", _focalPointOnlyListeners.length);
+
     // Check global conditions once
-    if (!isFocalPointInitialized() || !viewPort.isViewPortInitialized()) {
-        console.warn("notifyPositionListeners: System not initialized");
+    if (!isFocalPointInitialized()) {
+        console.warn("notifyFocalPointOnlyListeners: System not initialized");
         return;
     }
     
-    // Remove special case for scroll events since it's handled in parallax.mjs
-    // if (prefix === "scroll-event") {...}
-    
-    // For all events, check for motion detected
-    if (!positionsChanged()) {
-        return;
-    }
-
-    // load once
-    const focalPoint = getFocalPoint();
+    // Validate the focal point
     utils.validatePosition(focalPoint);
-    const sceneRect = getSceneRelativeVpRect();
-    utils.validateRect(sceneRect);
-
-    // notify all listeners
-    for (const listener of _focalPointPositionListeners) {
+    
+    // Notify all listeners
+    for (const listener of _focalPointOnlyListeners) {
         try {
-            listener(focalPoint, prefix, sceneRect);
+            // console.log("notifyFocalPointOnlyListeners: listener:", listener);
+            listener(focalPoint, prefix);
         } catch (e) {
-            console.error("focalPoint.notifyPositionListeners:", e);
+            console.error("focalPoint.notifyFocalPointOnlyListeners:", e);
         }
     }
 }
 
 /**
- * internal function
+ * Notify listeners that the focalPoint or the sceneRect has moved
+ * and both have been initialized
+ * @param {position} focalPoint - viewPort-relative position of focalPoint
+ * @param {string} prefix - optional prefix for verbosity
+ * @param {DOMRect} sceneRect - scene-relative viewport rect
  */
-export function clearFocalPointPositionListeners() {
-    _focalPointPositionListeners.length = 0;
-}
+function notifyFocalPointAndSceneRectListeners(focalPoint, prefix="", sceneRect) {
+    // Check global conditions once
+    if (!isFocalPointInitialized() || !viewPort.isViewPortInitialized()) {
+        console.warn("notifyFocalPointAndSceneRectListeners: System not initialized");
+        return;
+    }
+    
+    // For all events, check for motion detected
+    if (!focalPointChanged() || !sceneRectChanged()) {
+        return;
+    }
 
-/**
- * external function used to add a listener for focalPoint position changes
- * @param {*} listener 
- */
-export function addFocalPointPositionListener(listener) {
-    if (typeof listener === "function") {
-        //console.info("addFocalPointPositionListener", listener.name);
-        _focalPointPositionListeners.push(listener);
-    } else {
-        throw new Error("Listener must be a function");
+    // load once
+    utils.validatePosition(focalPoint);
+    utils.validateRect(sceneRect);
+
+    // notify all listeners
+    for (const listener of _focalPointAndSceneRectListeners) {
+        try {
+            listener(focalPoint, prefix, sceneRect);
+        } catch (e) {
+            console.error("focalPoint.notifyFocalPointAndSceneRectListeners:", e);
+        }
     }
 }
 
+/**
+ * Notify all listeners (both types) about position changes
+ * @param {string} prefix - optional prefix for verbosity
+ */
+function notifyPositionListeners(prefix="") {
+    const fpChanged = focalPointChanged();
+    // console.log("notifyPositionListeners: ",prefix,"focalPointChanged:", fpChanged);
+    const srChanged = sceneRectChanged();
+    // console.log("notifyPositionListeners: ",prefix,"sceneRectChanged:", srChanged);
+    const fpInitialized = isFocalPointInitialized();
+    const srInitialized = isSceneRectInitialized();
+    
+    // console.log("notifyPositionListeners conditions:", {
+    //     fpChanged,
+    //     srChanged,
+    //     fpInitialized,
+    //     srInitialized,
+    //     focalPointOnlyListenersCount: _focalPointOnlyListeners.length,
+    //     focalPointAndSceneRectListenersCount: _focalPointAndSceneRectListeners.length
+    // });
+    
+    if ( fpChanged && !srChanged ) {
+        if (!fpInitialized) {
+            console.warn("notifyFocalPointOnlyListeners: FocalPoint not initialized");
+            return;
+        }
+        // console.log("notifyPositionListeners: calling notifyFocalPointOnlyListeners");
+        notifyFocalPointOnlyListeners(getFocalPoint(), prefix);
+        return;
+    } else if (fpChanged || srChanged) {
+        if (!fpInitialized || !srInitialized) {
+            console.warn("notifyFocalPointAndSceneRectListeners: FocalPoint or sceneRect not initialized");
+            return;
+        }
+        // console.log("notifyPositionListeners: calling notifyFocalPointAndSceneRectListeners");
+        notifyFocalPointAndSceneRectListeners(getFocalPoint(), prefix, getSceneRect());
+        return;
+    } else {
+        // console.warn("notifyPositionListeners: No changes detected, not notifying listeners");
+    }
+}
 
+/**
+ * Add a listener function to be called when only the focalPoint position changes
+ * @param {Function} listener - Function to be called with (focalPoint, prefix)
+ */
+export function addFocalPointOnlyListener(listener) {
+    // Check if the listener is already added to prevent duplicates
+    if (_focalPointOnlyListeners.includes(listener)) {
+        console.warn("Listener already added to focalPoint-only listeners");
+        return;
+    }
+    _focalPointOnlyListeners.push(listener);
+    // console.log("Added focalPoint-only listener:", listener.name || "anonymous function");
+    // console.log("Total focalPoint-only listeners:", _focalPointOnlyListeners.length);
+}
+
+/**
+ * Remove a specific listener from the focalPoint-only listeners
+ * @param {Function} listener - The listener function to remove
+ */
+export function removeFocalPointOnlyListener(listener) {
+    const index = _focalPointOnlyListeners.indexOf(listener);
+    if (index !== -1) {
+        _focalPointOnlyListeners.splice(index, 1);
+    }
+}
+
+/**
+ * Add a listener function to be called when the focalPoint position or sceneRect changes
+ * @param {Function} listener - Function to be called with (focalPoint, prefix, sceneRect)
+ */
+export function addFocalPointAndSceneRectListener(listener) {
+    // Check if the listener is already added to prevent duplicates
+    if (_focalPointAndSceneRectListeners.includes(listener)) {
+        console.warn("Listener already added to focalPoint and sceneRect listeners");
+        return;
+    }
+    _focalPointAndSceneRectListeners.push(listener);
+}
+
+/**
+ * Remove a specific listener from the focalPoint and sceneRect listeners
+ * @param {Function} listener - The listener function to remove
+ */
+export function removeFocalPointAndSceneRectListener(listener) {
+    const index = _focalPointAndSceneRectListeners.indexOf(listener);
+    if (index !== -1) {
+        _focalPointAndSceneRectListeners.splice(index, 1);
+    }
+}
+
+/**
+ * Clear all listeners (both types)
+ */
+function clearFocalPointOnlyListeners() {
+    _focalPointOnlyListeners.length = 0;
+}
+function clearFocalPointAndSceneRectListeners() {
+    _focalPointAndSceneRectListeners.length = 0;
+}
 
 /**
  * called when the pointer enters the scene-plane
  * @param {} event 
  */
 function onsceneContainerEnter(event) {
+    // If locked to bulls eye, don't respond to mouse enter
+    if (_isLockedToBullsEye) {
+        return;
+    }
+    
     const eventPosition = getEventPosition(event);
-    setStatus("startEasingToAimPoint", "onsceneContainerEnter", LogLevel.LOG);
+    setStatus(FOCAL_POINT_STATE.FOLLOWING, "onsceneContainerEnter", LogLevel.LOG);
     awaken(eventPosition);
     
     // If being dragged, ease to the current mouse position
@@ -545,6 +761,11 @@ function onsceneContainerEnter(event) {
  * @param {} event 
  */
 function onSceneContainerMove(event) {
+    // If locked to bulls eye, don't respond to mouse movement
+    if (_isLockedToBullsEye) {
+        return;
+    }
+    
     const eventPosition = getEventPosition(event);
     aimPoint.setAimPoint(eventPosition, "onSceneContainerMove");
 }
@@ -565,11 +786,6 @@ function onSceneContainerLeave(event) {
         return;
     }
     
-    // Normal behavior for non-dragged state
-    if (!_followPointerOutsideContainer) {
-        aimPoint.setAimPoint(bullsEye.getBullsEye(), "onSceneContainerLeave");
-        startEasingToBullsEye("onSceneContainerLeave");
-    }
 }
 
 /*
@@ -581,7 +797,7 @@ export function startEasingToAimPoint(prefix="") {
         //console.log(prefix, "startEasingToAimPoint ignored while _isBeingDragged");
         return;
     }
-    setStatus("easingToAimPoint", `startEasingToAimPoint:${prefix}`, LogLevel.LOG);
+    setStatus(FOCAL_POINT_STATE.EASING_TO_AIM_POINT, `startEasingToAimPoint:${prefix}`);
 
     // setAimPoint( position, `startEasingToAimPoint:${prefix}`);
     _isEasingToAimPoint = true;
@@ -606,7 +822,7 @@ export function startEasingToBullsEye(prefix="") {
     _isEasingToBullsEye = true;
     _isAwake = true;
 
-    setStatus("easingToBullsEye", `startEasingToBullsEye:${prefix}`);
+    setStatus(FOCAL_POINT_STATE.EASING_TO_BULLS_EYE, `startEasingToBullsEye:${prefix}`);
 }
 
 /**
@@ -614,7 +830,7 @@ export function startEasingToBullsEye(prefix="") {
  * @param {*} eventPosition 
  */
 export function handleArrivedAtBullsEye(eventPosition) {
-    setStatus("arrivedAtBullsEye", "handleArrivedAtBullsEye", LogLevel.LOG);
+    setStatus(FOCAL_POINT_STATE.ARRIVED_AT_BULLS_EYE, "handleArrivedAtBullsEye");
     goToSleep(eventPosition);
 }
 
@@ -628,7 +844,7 @@ export function goToSleep(position) {
     _isEasingToAimPoint = false;
     _isEasingToBullsEye = false;
 
-    setStatus("asleep", "goToSleep", LogLevel.LOG);
+    setStatus(FOCAL_POINT_STATE.ASLEEP, "goToSleep");
 }
 
 /**
@@ -642,7 +858,7 @@ export function awaken(position) {
     _isEasingToAimPoint = false;
     _isEasingToBullsEye = false;
 
-    setStatus("awake", "awaken", LogLevel.LOG);
+    setStatus(FOCAL_POINT_STATE.AWAKE, "awaken");
 }
 
 /**
@@ -705,7 +921,7 @@ export function drawFocalPointAnimationFrame() {
         EPSILON
     );
 
-    if (_focalPointNowSubpixelPrecision != null) {
+    if (_focalPointNowSubpixelPrecision !== null) {
         const newPos = {
             x: Math.round(_focalPointNowSubpixelPrecision.x),
             y: Math.round(_focalPointNowSubpixelPrecision.y)
@@ -747,36 +963,211 @@ function computeAStepCloserToAimSubpixelPrecision(nowPoint, aimPointElement, eas
 export function toggleDraggable() {
     //console.info("********** toggleDraggable called isDraggable:", _isDraggable);
     _isDraggable = !_isDraggable;
+    
     if (_isDraggable) {
+        // If we're enabling draggable, ensure we're not being dragged
+        _isBeingDragged = false;
+        
         _focalPointElement.classList.add('focal-point-is-draggable');
-        _focalPointElement.style.pointerEvents = 'all';
+        
+        // Only enable pointer events on hover (CSS will handle this)
+        // But make sure it's not 'none' which would prevent hover detection
+        _focalPointElement.style.pointerEvents = 'auto';
+        
+        // If we were locked to bulls eye, unlock
+        if (_isLockedToBullsEye) {
+            _isLockedToBullsEye = false;
+            setStatus(FOCAL_POINT_STATE.FOLLOWING, "toggleDraggable");
+        }
     } else {
         _focalPointElement.classList.remove('focal-point-is-draggable');
         _focalPointElement.style.pointerEvents = 'none';
+        
+        // If we were being dragged, stop dragging
+        if (_isBeingDragged) {
+            set_isBeingDragged_false(getFocalPoint());
+        }
     }
+    
     saveState();
     //console.info(`toggleDraggable: ${_isDraggable}`);
 }
 
+/**
+ * Toggle whether the focal point is locked to the bulls eye
+ */
 export function toggleLockedToBullsEye() {
     _isLockedToBullsEye = !_isLockedToBullsEye;
+    
+    // Get the bulls eye element
+    const bullsEyeElement = document.getElementById('bulls-eye');
+    
     if (_isLockedToBullsEye) {
+        // Add class to body to indicate locked state
+        document.body.classList.add('focal-point-locked');
+        
         // If we're locking to bullsEye, also stop any dragging
         if (_isBeingDragged) {
             set_isBeingDragged_false(bullsEye.getBullsEye());
         }
         
+        // Force move to bulls eye
         moveFocalPointTo(bullsEye.getBullsEye(), "locked-to-bullsEye");
+        
+        // Add classes to indicate locked state
+        _focalPointElement.classList.add('locked-to-bulls-eye');
+        if (bullsEyeElement) {
+            bullsEyeElement.classList.add('focal-point-locked');
+        }
+        
+        // If draggable, disable it
         if (_isDraggable) {
-            toggleDraggable();
+            _isDraggable = false;
+            _focalPointElement.classList.remove('focal-point-is-draggable');
+            _focalPointElement.style.pointerEvents = 'none';
         }
+        
+        // Cancel any ongoing animations or movements
+        _isEasingToAimPoint = false;
+        _isEasingToBullsEye = false;
+        
+        // CRITICAL: Force enable pointer events on all bizCardDivs
+        forceEnablePointerEvents();
+        
+        // Import and call sceneContainer.ensurePointerEvents
+        import('../scene/sceneContainer.mjs').then(module => {
+            module.ensurePointerEvents();
+        });
+        
+        setStatus(FOCAL_POINT_STATE.LOCKED_TO_BULLS_EYE, "toggleLockedToBullsEye");
+        console.log("Focal point LOCKED to bulls eye - will not follow mouse or be draggable");
     } else {
-        if (!_isDraggable) {
-            toggleDraggable();
+        // Remove class from body
+        document.body.classList.remove('focal-point-locked');
+        
+        // Remove locked classes
+        _focalPointElement.classList.remove('locked-to-bulls-eye');
+        if (bullsEyeElement) {
+            bullsEyeElement.classList.remove('focal-point-locked');
         }
+        
+        // Re-enable draggable state
+        _isDraggable = true;
+        _focalPointElement.classList.add('focal-point-is-draggable');
+        _focalPointElement.style.pointerEvents = 'auto';
+        
+        setStatus(FOCAL_POINT_STATE.FOLLOWING, "toggleLockedToBullsEye");
+        console.log("Focal point UNLOCKED from bulls eye - will follow mouse and is draggable");
     }
+    
     saveState();
-    //console.info(`toggleLockedToBullsEye: ${_isLockedToBullsEye}`);
+}
+
+/**
+ * Force enable pointer events on all bizCardDivs
+ * This is a more aggressive approach to ensure they receive mouse events
+ */
+function forceEnablePointerEvents() {
+    // console.log("Forcing pointer events on all bizCardDivs");
+    
+    // Get all bizCardDivs
+    const bizCardDivs = document.querySelectorAll('.biz-card-div');
+    
+    // Force enable pointer events on each one
+    bizCardDivs.forEach(div => {
+        // Remove any inline style that might be disabling pointer events
+        div.style.removeProperty('pointer-events');
+        
+        // Force enable pointer events
+        div.style.setProperty('pointer-events', 'auto', 'important');
+        
+        // Log the current state
+        // console.log(`${div.id} pointer-events: ${getComputedStyle(div).pointerEvents}`);
+        
+        // Add direct mouse event listeners
+        addDirectMouseListeners(div);
+    });
+    
+    // Also ensure the scene container has pointer events enabled
+    const sceneContainer = document.getElementById('scene-container');
+    if (sceneContainer) {
+        sceneContainer.style.removeProperty('pointer-events');
+        sceneContainer.style.setProperty('pointer-events', 'auto', 'important');
+    }
+}
+
+/**
+ * Add direct mouse event listeners to a bizCardDiv
+ * This ensures it receives mouse events even if pointer-events is not working
+ */
+function addDirectMouseListeners(element) {
+    // Remove any existing listeners to avoid duplicates
+    if (element._directMouseListeners) {
+        element.removeEventListener('mouseenter', element._directMouseListeners.enter);
+        element.removeEventListener('mouseleave', element._directMouseListeners.leave);
+        element.removeEventListener('click', element._directMouseListeners.click);
+    }
+    
+    // Create new listeners
+    const listeners = {
+        enter: (e) => {
+            // console.log(`Direct mouseenter on ${element.id}`);
+            // Import bizCardDivModule and call simpleMouseEnterHandler
+            import('../scene/bizCardDivModule.mjs').then(module => {
+                try {
+                    module.simpleMouseEnterHandler(element);
+                } catch (error) {
+                    console.error(`Error in simpleMouseEnterHandler for ${element.id}:`, error);
+                    // Fallback: just add the class directly
+                    element.classList.add("hovered");
+                }
+            }).catch(error => {
+                console.error("Error importing bizCardDivModule:", error);
+                // Fallback: just add the class directly
+                element.classList.add("hovered");
+            });
+        },
+        leave: (e) => {
+            // console.log(`Direct mouseleave on ${element.id}`);
+            // Import bizCardDivModule and call simpleMouseLeaveHandler
+            import('../scene/bizCardDivModule.mjs').then(module => {
+                try {
+                    module.simpleMouseLeaveHandler(element);
+                } catch (error) {
+                    console.error(`Error in simpleMouseLeaveHandler for ${element.id}:`, error);
+                    // Fallback: just remove the class directly
+                    element.classList.remove("hovered");
+                }
+            }).catch(error => {
+                console.error("Error importing bizCardDivModule:", error);
+                // Fallback: just remove the class directly
+                element.classList.remove("hovered");
+            });
+        },
+        click: (e) => {
+            // console.log(`Direct click on ${element.id}`);
+            // Import bizCardDivModule and call handleClickEvent
+            import('../scene/bizCardDivModule.mjs').then(module => {
+                try {
+                    module.handleClickEvent(element);
+                } catch (error) {
+                    console.error(`Error in handleClickEvent for ${element.id}:`, error);
+                }
+            }).catch(error => {
+                console.error("Error importing bizCardDivModule:", error);
+            });
+        }
+    };
+    
+    // Add the listeners
+    element.addEventListener('mouseenter', listeners.enter);
+    element.addEventListener('mouseleave', listeners.leave);
+    element.addEventListener('click', listeners.click);
+    
+    // Store the listeners for later removal
+    element._directMouseListeners = listeners;
+    
+    // console.log(`Added direct mouse listeners to ${element.id}`);
 }
 
 /**
@@ -803,27 +1194,12 @@ function onMouseDown_startDraggingFocalPoint(event) {
             event.clientY
         );
         
-        // Restore focal point visibility
+        // Restore visibility
         _focalPointElement.style.visibility = originalVisibility;
         
-        // If there's an element underneath, dispatch a new mouse event to it
-        if (elementUnderFocalPoint) {
-            console.log("Passing mousedown event to:", elementUnderFocalPoint.id || elementUnderFocalPoint.tagName);
-            
-            // Create and dispatch a new mousedown event
-            const newEvent = new MouseEvent('mousedown', {
-                bubbles: true,
-                cancelable: true,
-                view: window,
-                clientX: event.clientX,
-                clientY: event.clientY,
-                screenX: event.screenX,
-                screenY: event.screenY,
-                button: event.button,
-                buttons: event.buttons
-            });
-            
-            elementUnderFocalPoint.dispatchEvent(newEvent);
+        // If there's an element underneath, simulate a click on it
+        if (elementUnderFocalPoint && elementUnderFocalPoint !== _focalPointElement) {
+            elementUnderFocalPoint.click();
         }
         
         return;
@@ -849,10 +1225,8 @@ function onMouseDown_startDraggingFocalPoint(event) {
 
     // Don't disable pointer events on scene-plane container to allow scrolling
     document.body.style.userSelect = 'none';
-    _focalPointElement.classList.add('focal-point-is-being-dragged');
-    // Ensure pointer events stay enabled during drag
-    _focalPointElement.style.pointerEvents = 'all';
-
+    
+    // Use domUtils.updateEventListener instead of utils.updateEventListener
     domUtils.updateEventListener(document, 'mousemove', onMouseDrag_keepDraggingFocalPoint);
     domUtils.updateEventListener(document, 'mouseup', onMouseUp_stopDraggingFocalPoint, { once: true });
 }
@@ -864,7 +1238,7 @@ function onMouseDown_startDraggingFocalPoint(event) {
  * @returns 
  */
 function onMouseDrag_keepDraggingFocalPoint(event) {
-    if (!_isDraggable || !_isBeingDragged) {
+    if (!_isBeingDragged) {
         return;
     }
     const eventPosition = getEventPosition(event);
@@ -877,14 +1251,12 @@ function onMouseDrag_keepDraggingFocalPoint(event) {
 }
 
 /**
- * function to handle the case when the mouse is released
- * while dragging the focalPoint
+ * internal function called when mouse is released
+ * after dragging the focalPoint
  * @param {*} event 
- * @param {*} prefix 
- * @returns 
  */
-function onMouseUp_stopDraggingFocalPoint(event, prefix="") {
-    if (!_isDraggable) {
+function onMouseUp_stopDraggingFocalPoint(event) {
+    if (!_isBeingDragged) {
         return;
     }
     
@@ -898,74 +1270,12 @@ function onMouseUp_stopDraggingFocalPoint(event, prefix="") {
     set_isBeingDragged_false(eventPosition);
 
     // Cleanup
-    _focalPointElement.style.pointerEvents = 'all';  // Keep pointer events enabled if still draggable
     document.body.style.userSelect = 'auto';
-    _focalPointElement.classList.remove('focal-point-is-being-dragged');
 
-    utils.updateEventListener(document, 'mousemove', onMouseDrag_keepDraggingFocalPoint, { remove: true });
+    // Use domUtils.updateEventListener instead of utils.updateEventListener
+    domUtils.updateEventListener(document, 'mousemove', onMouseDrag_keepDraggingFocalPoint, { remove: true });
 }
 
-
-/**
- * external function used to toggle followPointerOutsideContainer state
- * be sure  this function before the handleKeyDown function
- */ 
-export function toggleFollowPointerOutsideContainer() {
-    _followPointerOutsideContainer = !_followPointerOutsideContainer;
-    //console.log(`Aim point mode: ${_followPointerOutsideContainer ? 'Following pointer (window bounds)' : 'Container bounds only'}`);
-    if (_followPointerOutsideContainer) {
-        document.addEventListener('mousemove', onDocumentMouseMove);
-        window.addEventListener('mouseleave', onWindowMouseLeave);
-        window.addEventListener('mouseenter', onWindowMouseEnter);
-    } else {
-        document.removeEventListener('mousemove', onDocumentMouseMove);
-        window.removeEventListener('mouseleave', onWindowMouseLeave);
-        window.removeEventListener('mouseenter', onWindowMouseEnter);
-        if (!_isBeingDragged) {
-            startEasingToBullsEye("toggleFollowPointerOutsideContainer");
-        }
-    }
-}
-
-/**
- * called when the pointer moves within the document
- * @param {*} event 
- * @returns 
- */
-function onDocumentMouseMove(event) {
-    if (!_followPointerOutsideContainer || _isBeingDragged) return;
-    const eventPosition = getEventPosition(event);
-    aimPoint.setAimPoint(eventPosition, "onDocumentMouseMove");
-    startEasingToAimPoint("onDocumentMouseMove");
-}
-
-/**
- * called when the pointer leaves the window
- * @param {*} event 
- * @returns 
- */
-function onWindowMouseLeave(event) {
-    if (!_followPointerOutsideContainer || _isBeingDragged) return;
-    _pointerIsOutsideWindow = true;
-    const exitPosition = getEventPosition(event);
-    //console.log("Pointer left window at position:", exitPosition);
-    // Keep the last known position
-    aimPoint.setAimPoint(exitPosition, "window.mouseleave");
-}
-
-/**
- * called when the pointer enters the window
- * @param {*} event 
- * @returns 
- */
-function onWindowMouseEnter(event) {
-    if (!_followPointerOutsideContainer || _isBeingDragged) return;
-    _pointerIsOutsideWindow = false;
-    const entryPosition = getEventPosition(event);
-    //console.log("Pointer re-entered window at position:", entryPosition);
-    aimPoint.setAimPoint(entryPosition, "window.mouseenter");
-    startEasingToAimPoint("window.mouseenter");
-}
 
 /**
  * handles the case when the window is resized
@@ -979,19 +1289,19 @@ const RESIZE_DEBOUNCE_DELAY = 150; // ms
 
 // Immediate parallax update (smooth)
 function handleViewPortChangeImmediate(source = "unknown") {
-    console.log(`🔄 Immediate ViewPort change from: ${source}`);
+    // console.log(`🔄 Immediate ViewPort change from: ${source}`);
 
-    if (!isFocalPointInitialized() || !viewPort.isViewPortInitialized()) {
+    if ( !viewPort.isViewPortInitialized() ) {
         return;
     }
 
     const sceneContainer = document.getElementById('scene-container');
     if (!sceneContainer) return;
 
-    // Update focal point position if locked to bulls-eye
-    if (_isLockedToBullsEye) {
-        moveFocalPointTo(bullsEye.getBullsEye(), `viewport-change-${source}`);
-    }
+    // // Update focal point position if locked to bulls-eye
+    // if (_isLockedToBullsEye) {
+    //     moveFocalPointTo(bullsEye.getBullsEye(), `viewport-change-${source}`);
+    // }
 
     // Trigger parallax update with current dimensions
     scrollTopUpdated(sceneContainer.scrollTop);
@@ -999,7 +1309,7 @@ function handleViewPortChangeImmediate(source = "unknown") {
 
 // Debounced resize completion (for heavy operations)
 function handleViewPortChangeComplete(source = "unknown") {
-    console.log(`✅ ViewPort resize completed from: ${source}`);
+    // console.log(`✅ ViewPort resize completed from: ${source}`);
 
     // Trigger bizResumeDiv resizing here
     // You can call your bizResumeDiv resize function here
@@ -1045,12 +1355,6 @@ function cleanup() {
     if (_resizeObserver) {
         _resizeObserver.disconnect();
         _resizeObserver = null;
-    }
-    // Clean up the window event listeners
-    if (_followPointerOutsideContainer) {
-        document.removeEventListener('mousemove', onDocumentMouseMove);
-        window.removeEventListener('mouseleave', onWindowMouseLeave);
-        window.removeEventListener('mouseenter', onWindowMouseEnter);
     }
 }
 
@@ -1102,7 +1406,7 @@ export function scrollTopUpdated(scrollTop) {
     const vpRect = viewPort.getViewPortRect();
 
     // Convert to scene-relative coordinates (vertical only)
-    const sceneRelativeVpRect = {
+    const sceneRect = {
         left: vpRect.left,
         top: vpRect.top + scrollTop,
         right: vpRect.right,
@@ -1110,12 +1414,11 @@ export function scrollTopUpdated(scrollTop) {
     };
 
     // Update the last scene rect to trigger a notification
-    _lastSceneRect = { ...sceneRelativeVpRect };
+    _lastSceneRect = { ...sceneRect };
     
     // Force notification to all listeners with the updated scene-relative rect
     notifyPositionListeners("scrollTopUpdated");
-    
-    console.log(`Scroll updated: top=${sceneRelativeVpRect.top.toFixed(0)}, bottom=${sceneRelativeVpRect.bottom.toFixed(0)}`);
+    // console.log(`Scroll updated: top=${sceneRect.top.toFixed(0)}, bottom=${sceneRect.bottom.toFixed(0)}`);
 }
 
 /**
@@ -1155,3 +1458,41 @@ export function stopFocalPointAnimation() {
         //console.log("Focal point animation stopped");
     }
 }
+
+/**
+ * Ensure scene elements are interactive when focal point is locked
+ */
+function ensureSceneElementsInteractive() {
+    if (!_isLockedToBullsEye) return;
+    
+    const sceneContainer = document.getElementById('scene-container');
+    if (!sceneContainer) return;
+    
+    // Ensure scene container has pointer events
+    if (sceneContainer.style.pointerEvents !== 'auto') {
+        sceneContainer.style.pointerEvents = 'auto';
+    }
+    
+    // Ensure all biz-card-divs have pointer events
+    const bizCardDivs = sceneContainer.querySelectorAll('.biz-card-div');
+    bizCardDivs.forEach(div => {
+        if (div.style.pointerEvents !== 'auto') {
+            div.style.pointerEvents = 'auto';
+        }
+    });
+}
+
+// Call this function periodically in the animation loop
+function animateFocalPoint() {
+    // Existing animation code...
+    
+    // Ensure scene elements are interactive when focal point is locked
+    ensureSceneElementsInteractive();
+    
+    // Rest of animation code...
+}
+
+// Listen for events from dependencies
+eventBus.on('viewPort:initialized', () => {
+    console.log('ViewPort initialized, focalPoint can now use it');
+});
