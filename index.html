@@ -35,7 +35,6 @@
 
   
   <div id="main-container">
-
     <div id="scene-container" class="scrollable-container">
       <div id="scene-plane">
         <div id="scene-plane-top-gradient"></div>
@@ -50,9 +49,19 @@
     <div id="resume-container">
       <div id="resume-container-left">
         <div id="resize-handle" class="resize-handle">
-          <button class="toggle-collapse-button" id="collapse-left">◀</button>
-          <button class="toggle-collapse-button" id="collapse-right">▶</button>
-          <span id="scene-visible-percentage">50%</span>
+          <div class="resize-handle-top">
+            <button class="toggle-collapse-button" id="collapse-left">◀</button>
+            <button class="toggle-collapse-button" id="collapse-right">▶</button>
+            <button class="toggle-state-button d-button" id="toggle-draggable-button">d</button>
+          </div>
+          
+          <div class="resize-handle-middle">
+            <span id="scene-visible-percentage">50%</span>
+          </div>
+          
+          <div class="resize-handle-bottom">
+            <button class="toggle-focal-lock-button unlocked" id="toggle-focal-lock">b</button>
+          </div>
         </div>
       </div>
       <div id="resume-container-right">
@@ -98,6 +107,160 @@
 
     // For biz-card-div elements
     const bizCardDivs = document.getElementsByClassName("biz-card-div");
+  </script>
+
+  <!-- Add a script to ensure the percentage span is visible -->
+  <script>
+    window.addEventListener('load', function() {
+      // Force create the percentage span if it doesn't exist
+      let percentageSpan = document.getElementById('scene-visible-percentage');
+      
+      if (!percentageSpan) {
+        console.log("Creating percentage span");
+        percentageSpan = document.createElement('span');
+        percentageSpan.id = 'scene-visible-percentage';
+        percentageSpan.className = 'scene-visible-percentage';
+        percentageSpan.textContent = '50%';
+        
+        // Find the resize handle
+        const resizeHandle = document.getElementById('resize-handle');
+        if (resizeHandle) {
+          // Try to find the middle div
+          let middleDiv = resizeHandle.querySelector('.resize-handle-middle');
+          
+          // If middle div doesn't exist, create it
+          if (!middleDiv) {
+            middleDiv = document.createElement('div');
+            middleDiv.className = 'resize-handle-middle';
+            
+            // Insert after the top div or as second child
+            const topDiv = resizeHandle.querySelector('.resize-handle-top');
+            if (topDiv) {
+              resizeHandle.insertBefore(middleDiv, topDiv.nextSibling);
+            } else {
+              // If no top div, insert as first child
+              resizeHandle.insertBefore(middleDiv, resizeHandle.firstChild);
+            }
+          }
+          
+          // Add the percentage span to the middle div
+          middleDiv.appendChild(percentageSpan);
+          console.log("Percentage span added to resize handle");
+        } else {
+          // If resize handle doesn't exist, add to body
+          document.body.appendChild(percentageSpan);
+          console.log("Percentage span added to body");
+        }
+      }
+      
+      // Force style the percentage span to be visible
+      percentageSpan.style.display = 'block';
+      percentageSpan.style.visibility = 'visible';
+      percentageSpan.style.opacity = '1';
+      percentageSpan.style.color = 'white';
+      percentageSpan.style.fontSize = '10px';
+      percentageSpan.style.fontFamily = 'monospace';
+      percentageSpan.style.textAlign = 'center';
+      percentageSpan.style.margin = '5px 0';
+      percentageSpan.style.padding = '2px';
+      percentageSpan.style.zIndex = '9999';
+      
+      console.log("Percentage span styled to be visible");
+      
+      // Update the percentage based on current layout
+      const sceneContainer = document.getElementById('scene-container');
+      const windowWidth = window.innerWidth;
+      if (sceneContainer) {
+        const sceneWidth = sceneContainer.offsetWidth;
+        const percentage = Math.round((sceneWidth / windowWidth) * 100);
+        percentageSpan.textContent = `${percentage}%`;
+        console.log(`Updated percentage to ${percentage}%`);
+      }
+    });
+  </script>
+
+  <!-- Script to position percentage span and fix b button -->
+  <script>
+    window.addEventListener('load', function() {
+      // 1. Fix percentage span position
+      const percentageSpan = document.getElementById('scene-visible-percentage');
+      const collapseRight = document.getElementById('collapse-right');
+      const resizeHandle = document.getElementById('resize-handle');
+      
+      if (percentageSpan && collapseRight && resizeHandle) {
+        console.log("Repositioning percentage span");
+        
+        // Remove from current parent
+        if (percentageSpan.parentNode) {
+          percentageSpan.parentNode.removeChild(percentageSpan);
+        }
+        
+        // Insert directly after collapse-right button
+        collapseRight.parentNode.insertBefore(percentageSpan, collapseRight.nextSibling);
+        
+        // Style to position 5px below
+        percentageSpan.style.marginTop = '5px';
+        percentageSpan.style.marginBottom = '5px';
+        percentageSpan.style.display = 'block';
+        percentageSpan.style.visibility = 'visible';
+        percentageSpan.style.opacity = '1';
+        
+        console.log("Percentage span repositioned");
+      }
+      
+      // 2. Fix b button functionality
+      const bButton = document.getElementById('toggle-focal-lock');
+      
+      if (bButton) {
+        console.log("Setting up b button click handler");
+        
+        // Remove any existing click handlers
+        bButton.replaceWith(bButton.cloneNode(true));
+        
+        // Get the fresh reference
+        const newBButton = document.getElementById('toggle-focal-lock');
+        
+        // Add direct click handler
+        newBButton.addEventListener('click', function(event) {
+          console.log("B button clicked");
+          event.preventDefault();
+          event.stopPropagation();
+          
+          // Toggle class for visual feedback
+          newBButton.classList.toggle('locked');
+          newBButton.classList.toggle('unlocked');
+          
+          // Toggle body class for global state
+          document.body.classList.toggle('focal-point-locked');
+          
+          // Try to call the focal point module function
+          try {
+            // Use dynamic import to get the module
+            import('./modules/core/focalPoint.mjs')
+              .then(module => {
+                if (typeof module.toggleLockedToBullsEye === 'function') {
+                  const isLocked = module.toggleLockedToBullsEye();
+                  console.log(`Focal point lock toggled to: ${isLocked}`);
+                } else {
+                  console.error("toggleLockedToBullsEye function not found");
+                }
+              })
+              .catch(error => {
+                console.error("Error importing focalPoint module:", error);
+              });
+          } catch (error) {
+            console.error("Error toggling focal point lock:", error);
+          }
+          
+          return false;
+        });
+        
+        // Make sure it's clickable
+        newBButton.style.pointerEvents = 'auto';
+        
+        console.log("B button click handler set up");
+      }
+    });
   </script>
 
 </body>

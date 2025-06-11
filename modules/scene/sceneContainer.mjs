@@ -25,6 +25,9 @@ export function initializeSceneContainer() {
     // Initialize any scene-related properties
     // ...
     
+    // Set up gradient overlays
+    setupGradientOverlays();
+    
     isInitialized = true;
     console.log("Scene container initialized");
 }
@@ -215,4 +218,81 @@ export function ensurePointerEvents() {
     });
     
     console.log("Scene container and bizCardDivs pointer events fixed");
+}
+
+/**
+ * Ensures the gradient overlays are properly positioned within the scene container
+ */
+export function setupGradientOverlays() {
+    const sceneContainer = document.getElementById('scene-container');
+    const scenePlane = document.getElementById('scene-plane');
+    const topGradient = document.getElementById('scene-plane-top-gradient');
+    const btmGradient = document.getElementById('scene-plane-btm-gradient');
+    const timelineContainer = document.getElementById('timeline-container');
+    
+    if (!sceneContainer || !scenePlane || !topGradient || !btmGradient || !timelineContainer) {
+        console.error("Missing elements for gradient setup");
+        return;
+    }
+    
+    // Check if timeline is initialized
+    if (!timeline.isTimelineInitialized()) {
+        console.warn("Timeline not initialized yet, deferring gradient setup");
+        // Set up a retry mechanism
+        setTimeout(setupGradientOverlays, 500);
+        return;
+    }
+    
+    // Remove gradients from current parent
+    if (topGradient.parentNode) {
+        topGradient.parentNode.removeChild(topGradient);
+    }
+    
+    if (btmGradient.parentNode) {
+        btmGradient.parentNode.removeChild(btmGradient);
+    }
+    
+    // Add gradients to scene plane
+    scenePlane.appendChild(topGradient);
+    scenePlane.appendChild(btmGradient);
+    
+    // Calculate the total height of the timeline
+    const timelineHeight = timeline.getTimelineHeight();
+    
+    // Calculate gradient height as 25% of the timeline height
+    // This means each gradient will cover about 10 years (25% of 40 years)
+    const gradientHeight = Math.round(timelineHeight * 0.25);
+    
+    // Set the scene plane height to match the timeline height
+    scenePlane.style.height = `${timelineHeight}px`;
+    
+    // Set up styles for top gradient
+    topGradient.style.position = 'absolute';
+    topGradient.style.top = '0';
+    topGradient.style.left = '0';
+    topGradient.style.right = '0';
+    topGradient.style.height = `${gradientHeight}px`;
+    topGradient.style.zIndex = '2';
+
+    // Position the bottom gradient at the bottom of the timeline
+    btmGradient.style.position = 'absolute';
+    btmGradient.style.bottom = '0';
+    btmGradient.style.left = '0';
+    btmGradient.style.right = '0';
+    btmGradient.style.height = `${gradientHeight}px`;
+    btmGradient.style.zIndex = '2';
+    
+    console.log(`Gradient overlays set up with timeline height: ${timelineHeight}px, gradient height: ${gradientHeight}px`);
+    
+    // Ensure the scene plane and gradients update when the timeline changes
+    const resizeObserver = new ResizeObserver(() => {
+        const updatedTimelineHeight = timeline.getTimelineHeight();
+        scenePlane.style.height = `${updatedTimelineHeight}px`;
+        const updatedGradientHeight = Math.round(updatedTimelineHeight * 0.25);
+        topGradient.style.height = `${updatedGradientHeight}px`;
+        btmGradient.style.height = `${updatedGradientHeight}px`;
+        console.log(`Updated scene plane height: ${updatedTimelineHeight}px, gradient height: ${updatedGradientHeight}px`);
+    });
+    
+    resizeObserver.observe(timelineContainer);
 }

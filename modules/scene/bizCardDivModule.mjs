@@ -188,6 +188,9 @@ export function scrollBizCardDivIntoView(bizCardDiv) {
                     sceneContainer.scrollTop = boundedScrollPosition;
                     
                     console.log(`After direct assignment, scene container scrollTop: ${sceneContainer.scrollTop}`);
+
+                    console.log(`bizCardDivModule: scrolled ${bizCardDiv.id} into view`);
+
                 }
             }, 100);
         }
@@ -394,6 +397,7 @@ export function selectBizCardDiv(bizCardDiv) {
     }
 
     // mark the bizCardDiv as selected
+    console.log(`bizCardDivModule: bizCardDiv ${bizCardDiv.id} marked as selected`);
     bizCardDiv.classList.remove("hovered");
     bizCardDiv.classList.add("selected");
 
@@ -405,9 +409,10 @@ export function selectBizCardDiv(bizCardDiv) {
 
 export function selectBizResumeDivAndScrollIntoView(bizResumeDiv) {
     if (!bizResumeDiv) return;
-    console.log(`bizCardDivModule: Selecting bizResumeDiv ${bizResumeDiv.id}`);
+    console.log(`bizCardDivModule: Selecting bizResumeDiv ${bizResumeDiv.id} and scrolling it into view`);
          
     // mark it as selected
+    console.log(`bizCardDivModule: bizResumeDiv ${bizResumeDiv.id} marked as selected`);
     bizResumeDiv.classList.remove("hovered");
     bizResumeDiv.classList.add("selected");
 
@@ -435,39 +440,40 @@ export function selectBizResumeDivAndScrollIntoView(bizResumeDiv) {
         // Fallback to direct scrollIntoView
         bizResumeDiv.scrollIntoView({ behavior: 'smooth', block: 'center' });
     }
+    console.log(`bizCardDivModule: bizResumeDiv ${bizResumeDiv.id} scrolled into view`);
 }
 
-/**
- * Delegates scrolling a bizResumeDiv into view to the appropriate module
- * @param {HTMLElement} bizResumeDiv - The bizResumeDiv to scroll into view
- */
-function scrollBizResumeDivIntoViewUsingAppropriateModule(bizResumeDiv) {
-    if (!bizResumeDiv) return;
+// /**
+//  * Delegates scrolling a bizResumeDiv into view to the appropriate module
+//  * @param {HTMLElement} bizResumeDiv - The bizResumeDiv to scroll into view
+//  */
+// function scrollBizResumeDivIntoViewUsingAppropriateModule(bizResumeDiv) {
+//     if (!bizResumeDiv) return;
     
-    // Try resumeManager first (most efficient if available)
-    const resumeManager = getResumeManager();
-    if (resumeManager && typeof resumeManager.scrollBizResumeDivIntoView === 'function') {
-        console.log(`bizCardDivModule: Using resumeManager to scroll ${bizResumeDiv.id} into view`);
-        resumeManager.scrollBizResumeDivIntoView(bizResumeDiv);
-        return;
-    }
+//     // Try resumeManager first (most efficient if available)
+//     const resumeManager = getResumeManager();
+//     if (resumeManager && typeof resumeManager.scrollBizResumeDivIntoView === 'function') {
+//         console.log(`bizCardDivModule: Using resumeManager to scroll ${bizResumeDiv.id} into view`);
+//         resumeManager.scrollBizResumeDivIntoView(bizResumeDiv);
+//         return;
+//     }
     
-    // If resumeManager not available, try bizResumeDivModule
-    import('./bizResumeDivModule.mjs').then(module => {
-        if (typeof module.scrollBizResumeDivIntoView === 'function') {
-            console.log(`bizCardDivModule: Using bizResumeDivModule to scroll ${bizResumeDiv.id} into view`);
-            module.scrollBizResumeDivIntoView(bizResumeDiv);
-        } else {
-            console.error(`bizCardDivModule: bizResumeDivModule.scrollBizResumeDivIntoView is not a function`);
-            // Last resort fallback
-            bizResumeDiv.scrollIntoView({ behavior: 'smooth', block: 'center' });
-        }
-    }).catch(error => {
-        console.error(`bizCardDivModule: Error importing bizResumeDivModule:`, error);
-        // Last resort fallback
-        bizResumeDiv.scrollIntoView({ behavior: 'smooth', block: 'center' });
-    });
-}
+//     // If resumeManager not available, try bizResumeDivModule
+//     import('./bizResumeDivModule.mjs').then(module => {
+//         if (typeof module.scrollBizResumeDivIntoView === 'function') {
+//             console.log(`bizCardDivModule: Using bizResumeDivModule to scroll ${bizResumeDiv.id} into view`);
+//             module.scrollBizResumeDivIntoView(bizResumeDiv);
+//         } else {
+//             console.error(`bizCardDivModule: bizResumeDivModule.scrollBizResumeDivIntoView is not a function`);
+//             // Last resort fallback
+//             bizResumeDiv.scrollIntoView({ behavior: 'smooth', block: 'center' });
+//         }
+//     }).catch(error => {
+//         console.error(`bizCardDivModule: Error importing bizResumeDivModule:`, error);
+//         // Last resort fallback
+//         bizResumeDiv.scrollIntoView({ behavior: 'smooth', block: 'center' });
+//     });
+// }
 
 /**
  * Clear all selections called by both 
@@ -809,13 +815,43 @@ window.bizCardDivUtils = {
  * This is especially important when the focal point is locked
  */
 export function ensurePointerEventsEnabled() {
-    const bizCardDivs = document.querySelectorAll('.biz-card-div');
-    bizCardDivs.forEach(div => {
-        if (div.style.pointerEvents === 'none') {
-            console.log(`Fixing pointer-events for ${div.id}`);
-            div.style.pointerEvents = 'auto';
+    // Add a debounce to prevent excessive calls
+    if (window._pointerEventsDebounce) {
+        clearTimeout(window._pointerEventsDebounce);
+    }
+    
+    window._pointerEventsDebounce = setTimeout(() => {
+        // Check if we've run this too recently
+        const now = Date.now();
+        const lastRun = window._lastPointerEventsFixTime || 0;
+        
+        // Only run if it's been at least 1000ms since the last run
+        if (now - lastRun < 1000) {
+            return;
         }
-    });
+        
+        // Track when we last ran this function
+        window._lastPointerEventsFixTime = now;
+        
+        // Count how many elements we actually fixed
+        let fixedCount = 0;
+        
+        const bizCardDivs = document.querySelectorAll('.biz-card-div');
+        bizCardDivs.forEach(div => {
+            if (div.style.pointerEvents === 'none') {
+                console.log(`Fixing pointer-events for ${div.id}`);
+                div.style.pointerEvents = 'auto';
+                fixedCount++;
+                
+                // Also set a data attribute to track that we fixed this
+                div.setAttribute('data-pointer-events-fixed', 'true');
+            }
+        });
+        
+        if (fixedCount > 0) {
+            console.log(`Fixed pointer-events for ${fixedCount} bizCardDivs`);
+        }
+    }, 200); // 200ms debounce
 }
 
 /**
@@ -836,7 +872,12 @@ export function setupPointerEventsObserver() {
             if (mutation.type === 'attributes' && 
                 mutation.attributeName === 'style' &&
                 mutation.target.classList.contains('biz-card-div')) {
-                needsCheck = true;
+                
+                // Only consider this a trigger if pointer-events was set to 'none'
+                const style = window.getComputedStyle(mutation.target);
+                if (style.pointerEvents === 'none') {
+                    needsCheck = true;
+                }
             }
         });
         
@@ -1155,3 +1196,45 @@ export function createAllBizCardDivs(jobs) {
     console.log(`Created ${bizResumeDivs.length} bizResumeDivs`);
     return bizResumeDivs;
 }
+
+/**
+ * Debug function to identify what's setting pointer-events to none
+ */
+export function debugPointerEventsIssue() {
+    console.log("Setting up pointer-events debug");
+    
+    // Override the style.setProperty method to log when pointer-events is set to none
+    const originalSetProperty = CSSStyleDeclaration.prototype.setProperty;
+    CSSStyleDeclaration.prototype.setProperty = function(propertyName, value, priority) {
+        if (propertyName === 'pointer-events' && value === 'none') {
+            // Get the element this style belongs to
+            let element = null;
+            try {
+                // This is a bit hacky but should work in most browsers
+                for (let el of document.querySelectorAll('*')) {
+                    if (el.style === this) {
+                        element = el;
+                        break;
+                    }
+                }
+            } catch (e) {
+                console.error("Error finding element:", e);
+            }
+            
+            console.warn("pointer-events being set to none", {
+                element: element ? element.id || element.className : 'unknown',
+                stack: new Error().stack
+            });
+        }
+        
+        return originalSetProperty.call(this, propertyName, value, priority);
+    };
+    
+    console.log("Pointer-events debug set up");
+    
+    // Make this function available globally
+    window.debugPointerEventsIssue = debugPointerEventsIssue;
+}
+
+// Call this function on module load
+debugPointerEventsIssue();

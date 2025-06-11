@@ -25,8 +25,16 @@ export function setScenePercent(scenePercent) {
 
 /**
  * Updates the percentage display to reflect the visible percentage of scene-plane
- * @param {number} left - The current left position of the resize handle
+ * @param {number} percentage - The current percentage
  */
+function updatePercentageDisplay(percentage) {
+    const percentageElement = document.getElementById('scene-visible-percentage');
+    if (percentageElement) {
+        percentageElement.textContent = `${Math.round(percentage)}%`;
+    } else {
+        console.error("Percentage element not found");
+    }
+}
 
 // Utility: Clamp a value to a range
 function clampToRange(val, min, max) {
@@ -323,7 +331,14 @@ class ResizeManager {
         this.collapseRightButton.style.opacity = percentage >= 100 ? '0.5' : '1';
         this.collapseLeftButton.disabled = percentage <= 0;
         this.collapseLeftButton.style.opacity = percentage <= 0 ? '0.5' : '1';
-        this.sceneVizPercent.textContent = `${Math.round(percentage)}%`;
+        
+        // Update the percentage display
+        updatePercentageDisplay(percentage);
+        
+        // Also update the sceneVizPercent element if it exists
+        if (this.sceneVizPercent) {
+            this.sceneVizPercent.textContent = `${Math.round(percentage)}%`;
+        }
     }
 
     /**

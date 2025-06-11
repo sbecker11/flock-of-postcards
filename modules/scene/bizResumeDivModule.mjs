@@ -85,7 +85,7 @@ export function selectBizResumeDiv(bizResumeDiv) {
         return;
     }
 
-    // mark te bizResumeDiv as selected
+    // mark the bizResumeDiv as selected
     bizResumeDiv.classList.remove("hovered");
     bizResumeDiv.classList.add('selected');
  
@@ -104,6 +104,7 @@ export function selectBizResumeDiv(bizResumeDiv) {
 export function selectBizCardDivAndScrollIntoView(bizCardDiv) {
     if (!bizCardDiv) return;
     
+    console.log("bizResumeDivModule: selectBizCardDivAndScrollIntoView", bizCardDiv.id);
     bizCardDiv.classList.remove("hovered");
     bizCardDiv.classList.add('selected');
     

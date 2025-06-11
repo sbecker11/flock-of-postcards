@@ -100,16 +100,50 @@ document.addEventListener('mouseup', function() {
 
 // Add global key handler for focalPoint controls
 function setupGlobalKeyHandlers() {
+    // Import the keyDown module and initialize its handler
+    import('./modules/core/keyDown.mjs').then(module => {
+        // Initialize the key down handler
+        module.initializeKeyDownHandler();
+        console.log("Global key handlers set up - press 'b' to toggle focal point lock to bulls-eye");
+        
+        // Add a test to verify key handlers are working
+        window.testKeyHandlers = () => {
+            console.log("Testing key handlers...");
+            module.checkKeyEventCapture();
+        };
+        console.log("Added window.testKeyHandlers() function for debugging");
+    }).catch(error => {
+        console.error('Failed to initialize key handlers:', error);
+    });
+}
+
+// Add a direct key handler to the document for debugging
+function setupDirectKeyHandler() {
     document.addEventListener('keydown', function(event) {
-        // Import the keyDown module and use its handler
-        import('./modules/core/keyDown.mjs').then(module => {
-            module.handleKeyDown(event);
-        }).catch(error => {
-            console.error('Failed to handle key event:', error);
-        });
+        console.log(`Direct key handler in main.mjs: Key pressed: ${event.key}`);
+        
+        // Check if the key is 'b'
+        if (event.key.toLowerCase() === 'b') {
+            console.log("Direct key handler in main.mjs: 'b' key pressed");
+            
+            // Import the focalPoint module and toggle the lock
+            import('./modules/core/focalPoint.mjs').then(module => {
+                if (typeof module.toggleLockedToBullsEye === 'function') {
+                    const isLocked = module.toggleLockedToBullsEye();
+                    console.log(`Direct key handler in main.mjs: Focal point lock toggled to: ${isLocked}`);
+                    if (typeof module.logFocalPointState === 'function') {
+                        module.logFocalPointState();
+                    }
+                } else {
+                    console.error("Direct key handler in main.mjs: toggleLockedToBullsEye function not found");
+                }
+            }).catch(error => {
+                console.error('Direct key handler in main.mjs: Failed to import focalPoint module:', error);
+            });
+        }
     });
     
-    console.log("Global key handlers set up - press 'b' to toggle focal point lock to bulls-eye");
+    console.log("Direct key handler set up for debugging in main.mjs");
 }
 
 // Initialize the application
@@ -204,6 +238,9 @@ async function initialize() {
 
         // STEP 13: Set up global key handlers
         setupGlobalKeyHandlers();
+        
+        // STEP 14: Set up direct key handler for debugging
+        setupDirectKeyHandler();
         
         console.log("Application initialization complete");
     } catch (error) {

@@ -25,10 +25,34 @@
   display: flex !important;
   flex-direction: column;
   align-items: center;
-  justify-content: flex-start; /* Top to bottom alignment */
-  z-index: 9910; /* High z-index for visibility */
-  gap: 2px;
-  pointer-events: none;
+  z-index: 9910;
+  padding-top: 20px;
+  padding-bottom: 20px;
+}
+
+/* Top section of the resize handle */
+.resize-handle-top {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 5px;
+}
+
+/* Middle section for the percentage */
+.resize-handle-middle {
+  margin-top: 10px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+/* Bottom section for the b button */
+.resize-handle-bottom {
+  margin-top: auto; /* Push to bottom */
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin-bottom: 20px;
 }
 
 #resume-container-left {
@@ -549,20 +573,57 @@
   color: white;
 }
 
-#scene-visible-percentage {
-  pointer-events: none; /* No interactions */
-  z-index: 63; /* Above right button */
-  margin-top: 10px; /* Spacing from right button */
+/* Position the focal lock button at the bottom of the resize handle */
+.toggle-focal-lock-button {
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  border: 1px solid gray;
+  background: rgba(50, 50, 50, 0.9);
   color: white;
-  font-size: 10px;
-  font-family: monospace;
-  text-align: center;
   cursor: pointer;
-  background: none;
-  border: none;
-  padding: 2px;
-  width: 100%;
-  z-index: 9902;
+  display: flex !important;
+  align-items: center;
+  justify-content: center;
+  font-size: 12px;
+  font-weight: bold;
+  line-height: 1;
+  z-index: 9993; /* Same as other buttons in the resize handle */
+  transition: all 0.2s ease;
+  margin: 2px 0;
+  padding: 0;
+  font-family: monospace;
+  pointer-events: auto;
+  
+  /* Position at the bottom with the same distance as the top button */
+  position: absolute !important;
+  bottom: 20px !important; /* Same as the top margin for the top button */
+  left: 0 !important;
+  right: 0 !important;
+  margin-left: auto !important;
+  margin-right: auto !important;
+}
+
+/* States for the B button */
+.toggle-focal-lock-button.locked {
+  background-color: white;
+  color: black;
+}
+
+.toggle-focal-lock-button.unlocked {
+  background-color: gray;
+  color: rgba(200, 200, 200, 0.7);
+}
+
+.toggle-focal-lock-button:hover {
+  background-color: rgba(80, 80, 80, 1);
+  border-color: white;
+}
+
+/* Make sure the percentage span is visible without changing other styling */
+#scene-visible-percentage {
+  display: block !important;
+  position: relative !important;
   pointer-events: none;
 }
 
