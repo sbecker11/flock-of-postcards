@@ -416,6 +416,73 @@ class ResumeManager {
         console.error(`ResumeManager: Error in removeClassItem:`, error);
     }
   }
+
+  /**
+   * Scroll a bizResumeDiv into view using the infiniteScroller
+   * @param {HTMLElement} bizResumeDiv - The bizResumeDiv to scroll into view
+   * @returns {boolean} - Whether the scroll was successful
+   */
+  scrollBizResumeDivIntoView(bizResumeDiv) {
+    if (!bizResumeDiv) {
+      console.error("ResumeManager: scrollBizResumeDivIntoView called with null bizResumeDiv");
+      return false;
+    }
+    
+    console.log(`ResumeManager: Scrolling bizResumeDiv ${bizResumeDiv.id} into view`);
+    
+    // If we have an infinite scroller, use it (most efficient)
+    if (this.infiniteScroller) {
+      console.log(`ResumeManager: Using infiniteScroller to scroll bizResumeDiv ${bizResumeDiv.id}`);
+      return this.infiniteScroller.scrollToBizResumeDiv(bizResumeDiv, true);
+    }
+    
+    // If we don't have an infinite scroller, use direct scrollIntoView
+    console.log(`ResumeManager: No infiniteScroller available, using direct scrollIntoView for ${bizResumeDiv.id}`);
+    try {
+      bizResumeDiv.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      return true;
+    } catch (error) {
+      console.error(`ResumeManager: Error scrolling bizResumeDiv ${bizResumeDiv.id} into view:`, error);
+      return false;
+    }
+  }
+
+  /**
+   * Scroll to a specific job index
+   * @param {number} jobIndex - The job index to scroll to
+   * @returns {boolean} - Whether the scroll was successful
+   */
+  scrollToJobIndex(jobIndex) {
+    console.log(`ResumeManager: Scrolling to job index ${jobIndex}`);
+    
+    // Find the bizResumeDiv with this job index
+    const bizResumeDiv = this.findBizResumeDivByJobIndex(jobIndex);
+    if (bizResumeDiv) {
+      return this.scrollBizResumeDivIntoView(bizResumeDiv);
+    }
+    
+    // If we couldn't find the bizResumeDiv but have an infinite scroller,
+    // try to find the sorted index and scroll to it
+    if (this.infiniteScroller) {
+      const sortedIndex = this.findSortedIndexForJobIndex(jobIndex);
+      if (sortedIndex !== -1) {
+        console.log(`ResumeManager: Using infiniteScroller to scroll to sorted index ${sortedIndex}`);
+        return this.infiniteScroller.scrollToItem(sortedIndex, true);
+      }
+    }
+    
+    console.error(`ResumeManager: Could not find bizResumeDiv or sorted index for job index ${jobIndex}`);
+    return false;
+  }
+
+  /**
+   * Find a bizResumeDiv by job index
+   * @param {number} jobIndex - The job index to find
+   * @returns {HTMLElement|null} - The bizResumeDiv element, or null if not found
+   */
+  findBizResumeDivByJobIndex(jobIndex) {
+    return document.querySelector(`.biz-resume-div[data-job-index="${jobIndex}"]`);
+  }
 }
 
 export function isResumeManagerInitialized() {

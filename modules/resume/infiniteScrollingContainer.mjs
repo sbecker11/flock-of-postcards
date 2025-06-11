@@ -680,10 +680,15 @@ class InfiniteScrollingContainer {
     });
   }
 
-  // Scroll to a specific item by index
-  scrollToItem(index) {
+  /**
+   * Scroll to a specific item by index with improved positioning
+   * @param {number} index - The index of the item to scroll to
+   * @param {boolean} animate - Whether to animate the scroll
+   * @returns {boolean} - Whether the scroll was successful
+   */
+  scrollToItem(index, animate = true) {
     if (index < 0 || index >= this.originalItems.length) {
-      console.error(`Invalid index: ${index}`);
+      console.error(`InfiniteScrollingContainer: Invalid index: ${index}`);
       return false;
     }
     
@@ -695,36 +700,96 @@ class InfiniteScrollingContainer {
     );
     
     if (!item || !item.element) {
-      console.error(`Item not found for index: ${index}`);
+      console.error(`InfiniteScrollingContainer: Item not found for index: ${index}`);
       return false;
     }
     
-    console.log(`Found item: ${item.element.id}`);
+    console.log(`InfiniteScrollingContainer: Found item: ${item.element.id}`);
     
     // Calculate the scroll position
-    const containerRect = this.container.getBoundingClientRect();
-    const itemRect = item.element.getBoundingClientRect();
+    const scrollTop = item.top;
     
-    // Calculate the scroll position to center the item in the viewport
-    const scrollTop = this.container.scrollTop + (itemRect.top - containerRect.top) - (containerRect.height / 2) + (itemRect.height / 2);
-    
-    console.log(`Scrolling to position: ${scrollTop}`);
+    console.log(`InfiniteScrollingContainer: Scrolling to position: ${scrollTop}`);
     
     // Scroll to the item
-    this.container.scrollTo({
-      top: scrollTop,
-      behavior: 'smooth'
-    });
+    if (animate) {
+      this.smoothScrollTo(scrollTop);
+    } else {
+      this.container.scrollTop = scrollTop;
+    }
     
-    // Update the active item
-    this.activeItemIndex = index;
+    // Update the current index
+    this.currentIndex = index;
+    this.checkForSeamlessTransition();
     
     // Call the onItemChange callback
     if (this.options.onItemChange) {
-      this.options.onItemChange(index, item.element);
+      this.options.onItemChange(index, this.originalItems[index]);
     }
     
     return true;
+  }
+
+  /**
+   * Scroll to a specific bizResumeDiv element
+   * @param {HTMLElement} bizResumeDiv - The bizResumeDiv element to scroll to
+   * @param {boolean} animate - Whether to animate the scroll
+   * @returns {boolean} - Whether the scroll was successful
+   */
+  scrollToBizResumeDiv(bizResumeDiv, animate = true) {
+    if (!bizResumeDiv) {
+      console.error("InfiniteScrollingContainer: Cannot scroll to null bizResumeDiv");
+      return false;
+    }
+    
+    console.log(`InfiniteScrollingContainer: Scrolling to bizResumeDiv ${bizResumeDiv.id}`);
+    
+    // Get the job index from the bizResumeDiv
+    const jobIndex = parseInt(bizResumeDiv.getAttribute('data-job-index'), 10);
+    if (isNaN(jobIndex)) {
+      console.error(`InfiniteScrollingContainer: Could not get job index from bizResumeDiv ${bizResumeDiv.id}`);
+      return false;
+    }
+    
+    // Find the item in allItems
+    const item = this.allItems.find(item => 
+      item.type === 'original' && 
+      item.element && 
+      parseInt(item.element.getAttribute('data-job-index'), 10) === jobIndex
+    );
+    
+    if (!item) {
+      console.error(`InfiniteScrollingContainer: Item not found for job index: ${jobIndex}`);
+      return false;
+    }
+    
+    // Get the original index
+    const index = item.originalIndex;
+    
+    // Scroll to the item
+    return this.scrollToItem(index, animate);
+  }
+
+  /**
+   * Find the index of a bizResumeDiv element
+   * @param {HTMLElement} bizResumeDiv - The bizResumeDiv element to find
+   * @returns {number} - The index of the bizResumeDiv, or -1 if not found
+   */
+  findBizResumeDivIndex(bizResumeDiv) {
+    if (!bizResumeDiv) return -1;
+    
+    // Get the job index from the bizResumeDiv
+    const jobIndex = parseInt(bizResumeDiv.getAttribute('data-job-index'), 10);
+    if (isNaN(jobIndex)) return -1;
+    
+    // Find the item in allItems
+    const item = this.allItems.find(item => 
+      item.type === 'original' && 
+      item.element && 
+      parseInt(item.element.getAttribute('data-job-index'), 10) === jobIndex
+    );
+    
+    return item ? item.originalIndex : -1;
   }
 }
 

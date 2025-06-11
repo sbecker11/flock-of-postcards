@@ -31,9 +31,18 @@ function getResumeManager() {
     }
     
     // Check if it's initialized
-    if (!resumeManager.isInitialized()) {
+    if (typeof resumeManager.isInitialized === 'function' && !resumeManager.isInitialized()) {
         console.warn("getResumeManager: resumeManager exists but is not initialized");
         return null;
+    }
+    
+    // Check if required methods exist
+    const requiredMethods = ['syncWithSceneSelection', 'scrollBizResumeDivIntoView'];
+    const missingMethods = requiredMethods.filter(method => typeof resumeManager[method] !== 'function');
+    
+    if (missingMethods.length > 0) {
+        console.warn(`getResumeManager: resumeManager is missing required methods: ${missingMethods.join(', ')}`);
+        // Return it anyway, the calling code will handle missing methods
     }
     
     return resumeManager;
@@ -403,11 +412,61 @@ export function selectBizResumeDivAndScrollIntoView(bizResumeDiv) {
     bizResumeDiv.classList.add("selected");
 
     const jobIndex = parseInt(bizResumeDiv.getAttribute('data-job-index'), 10);
-    const resumeManager = getResumeManager();
-    if (resumeManager) {
-        resumeManager.syncWithSceneSelection(jobIndex);
-        resumeManager.scrollBizResumeDivIntoView(bizResumeDiv);
+    
+    // Get the resumeManager
+    const resumeManager = window.resumeManager;
+    if (!resumeManager) {
+        console.warn("bizCardDivModule: resumeManager not available");
+        // Fallback to direct scrollIntoView
+        bizResumeDiv.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        return;
     }
+    
+    // First sync with scene selection
+    if (typeof resumeManager.syncWithSceneSelection === 'function') {
+        resumeManager.syncWithSceneSelection(jobIndex);
+    }
+    
+    // Then scroll the bizResumeDiv into view
+    if (typeof resumeManager.scrollBizResumeDivIntoView === 'function') {
+        resumeManager.scrollBizResumeDivIntoView(bizResumeDiv);
+    } else {
+        console.warn("bizCardDivModule: resumeManager.scrollBizResumeDivIntoView is not a function");
+        // Fallback to direct scrollIntoView
+        bizResumeDiv.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }
+}
+
+/**
+ * Delegates scrolling a bizResumeDiv into view to the appropriate module
+ * @param {HTMLElement} bizResumeDiv - The bizResumeDiv to scroll into view
+ */
+function scrollBizResumeDivIntoViewUsingAppropriateModule(bizResumeDiv) {
+    if (!bizResumeDiv) return;
+    
+    // Try resumeManager first (most efficient if available)
+    const resumeManager = getResumeManager();
+    if (resumeManager && typeof resumeManager.scrollBizResumeDivIntoView === 'function') {
+        console.log(`bizCardDivModule: Using resumeManager to scroll ${bizResumeDiv.id} into view`);
+        resumeManager.scrollBizResumeDivIntoView(bizResumeDiv);
+        return;
+    }
+    
+    // If resumeManager not available, try bizResumeDivModule
+    import('./bizResumeDivModule.mjs').then(module => {
+        if (typeof module.scrollBizResumeDivIntoView === 'function') {
+            console.log(`bizCardDivModule: Using bizResumeDivModule to scroll ${bizResumeDiv.id} into view`);
+            module.scrollBizResumeDivIntoView(bizResumeDiv);
+        } else {
+            console.error(`bizCardDivModule: bizResumeDivModule.scrollBizResumeDivIntoView is not a function`);
+            // Last resort fallback
+            bizResumeDiv.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }
+    }).catch(error => {
+        console.error(`bizCardDivModule: Error importing bizResumeDivModule:`, error);
+        // Last resort fallback
+        bizResumeDiv.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    });
 }
 
 /**
@@ -451,101 +510,6 @@ function handleScenePlaneClick(event) {
     console.log('bizCardDivModule: Clearing all selected');
     clearAllSelected();
 }
-
-// // Fallback function to scroll a bizResumeDiv into view
-// function scrollBizResumeDivIntoView(bizResumeDiv) {
-//     if (!bizResumeDiv) {
-//         console.error("scrollBizResumeDivIntoView: bizResumeDiv is null");
-//         return;
-//     }
-    
-//     console.log(`bizCardDivModule: Attempting to scroll ${bizResumeDiv.id} into view (fallback method)`);
-    
-//     // Try multiple approaches to ensure the bizResumeDiv is scrolled into view
-    
-//     // Approach 1: Direct scrollIntoView on the bizResumeDiv
-//     try {
-//         bizResumeDiv.scrollIntoView({ behavior: 'smooth', block: 'center' });
-//         console.log(`bizCardDivModule: Called scrollIntoView directly on ${bizResumeDiv.id}`);
-//     } catch (error) {
-//         console.error(`bizCardDivModule: Error with direct scrollIntoView:`, error);
-//     }
-    
-//     // Approach 2: Find the resume content div and scroll it
-//     const resumeContentDiv = document.getElementById('resume-content-div');
-//     if (resumeContentDiv) {
-//         console.log(`bizCardDivModule: Found resume-content-div, calculating scroll position`);
-        
-//         try {
-//             // Calculate the scroll position needed to center the bizResumeDiv
-//             const offsetTop = bizResumeDiv.offsetTop;
-//             const resumeHeight = resumeContentDiv.clientHeight;
-//             const divHeight = bizResumeDiv.clientHeight;
-            
-//             // Center the div in the viewport
-//             const scrollTop = offsetTop - (resumeHeight / 2) + (divHeight / 2);
-            
-//             console.log(`bizCardDivModule: Calculated scroll position: ${scrollTop}`);
-//             console.log(`bizCardDivModule: Current scroll position: ${resumeContentDiv.scrollTop}`);
-            
-//             // Scroll to the calculated position
-//             resumeContentDiv.scrollTo({
-//                 top: scrollTop,
-//                 behavior: 'smooth'
-//             });
-            
-//             console.log(`bizCardDivModule: Scrolled resume-content-div to ${scrollTop}`);
-            
-//             // Check if scrolling worked after a delay
-//             setTimeout(() => {
-//                 console.log(`bizCardDivModule: After scrolling, resume-content-div scrollTop: ${resumeContentDiv.scrollTop}`);
-                
-//                 // If we're not close to the target position, try with auto behavior
-//                 if (Math.abs(resumeContentDiv.scrollTop - scrollTop) > 50) {
-//                     console.log("bizCardDivModule: Smooth scrolling didn't work, trying with auto behavior");
-                    
-//                     resumeContentDiv.scrollTo({
-//                         top: scrollTop,
-//                         behavior: 'auto'
-//                     });
-                    
-//                     // Check again after a short delay
-//                     setTimeout(() => {
-//                         console.log(`bizCardDivModule: After auto scrolling, resume-content-div scrollTop: ${resumeContentDiv.scrollTop}`);
-                        
-//                         // If we're still not close, try direct assignment
-//                         if (Math.abs(resumeContentDiv.scrollTop - scrollTop) > 50) {
-//                             console.log("bizCardDivModule: Auto scrolling didn't work, trying direct assignment");
-//                             resumeContentDiv.scrollTop = scrollTop;
-                            
-//                             console.log(`bizCardDivModule: After direct assignment, resume-content-div scrollTop: ${resumeContentDiv.scrollTop}`);
-//                         }
-//                     }, 100);
-//                 }
-//             }, 500);
-//         } catch (error) {
-//             console.error(`bizCardDivModule: Error scrolling resume-content-div:`, error);
-//         }
-//     }
-    
-//     // Approach 3: If the infinite scroller is available, try to use it
-//     if (window.infiniteScroller) {
-//         const jobIndex = parseInt(bizResumeDiv.getAttribute('data-job-index'), 10);
-//         if (!isNaN(jobIndex)) {
-//             console.log(`bizCardDivModule: Attempting to use infiniteScroller to scroll to job index ${jobIndex}`);
-//             try {
-//                 window.infiniteScroller.scrollToItem(jobIndex);
-//                 console.log(`bizCardDivModule: Scrolled to job index ${jobIndex} using infiniteScroller`);
-//             } catch (error) {
-//                 console.error(`bizCardDivModule: Error scrolling to job index ${jobIndex} using infiniteScroller:`, error);
-//             }
-//         } else {
-//             console.error(`bizCardDivModule: Could not get job index from bizResumeDiv ${bizResumeDiv.id}`);
-//         }
-//     }
-    
-//     console.log(`bizCardDivModule: Completed all attempts to scroll bizResumeDiv ${bizResumeDiv.id} into view`);
-// }
 
 export function handleMouseEnterEvent(element) {
     if (!element) return;

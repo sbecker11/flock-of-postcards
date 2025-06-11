@@ -96,15 +96,31 @@ export function selectBizResumeDiv(bizResumeDiv) {
 }
 
 /**
- * select the given bizCardDiv
+ * Select the given bizCardDiv
  * and scroll it into view
  * @param {*} bizCardDiv 
  * @returns 
  */
 export function selectBizCardDivAndScrollIntoView(bizCardDiv) {
-    bizCardDiv.classList.remove("hovered")
+    if (!bizCardDiv) return;
+    
+    bizCardDiv.classList.remove("hovered");
     bizCardDiv.classList.add('selected');
-    bizCardDivModule.scrollBizCardDivIntoView(bizCardDiv);
+    
+    // Import bizCardDivModule to use its scrolling function
+    import('./bizCardDivModule.mjs').then(module => {
+        if (typeof module.scrollBizCardDivIntoView === 'function') {
+            module.scrollBizCardDivIntoView(bizCardDiv);
+        } else {
+            console.error("bizResumeDivModule: bizCardDivModule.scrollBizCardDivIntoView is not a function");
+            // Fallback to direct scrollIntoView
+            bizCardDiv.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }
+    }).catch(error => {
+        console.error("bizResumeDivModule: Error importing bizCardDivModule:", error);
+        // Fallback to direct scrollIntoView
+        bizCardDiv.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    });
 }
 
 /**
@@ -441,4 +457,36 @@ export function handleMouseLeaveEvent(element) {
     } else {
         console.log(`bizResumeDivModule: Element ${element.id} not unhovered (selected)`);
     }
+}
+
+/**
+ * Scroll a bizResumeDiv into view
+ * @param {HTMLElement} bizResumeDiv - The bizResumeDiv to scroll into view
+ */
+export function scrollBizResumeDivIntoView(bizResumeDiv) {
+    if (!bizResumeDiv) {
+        console.error("bizResumeDivModule: scrollBizResumeDivIntoView called with null bizResumeDiv");
+        return;
+    }
+    
+    console.log(`bizResumeDivModule: Scrolling bizResumeDiv ${bizResumeDiv.id} into view`);
+    
+    // Get the resumeManager
+    const resumeManager = window.resumeManager;
+    if (resumeManager && typeof resumeManager.scrollBizResumeDivIntoView === 'function') {
+        // Use the resumeManager to scroll the bizResumeDiv into view
+        resumeManager.scrollBizResumeDivIntoView(bizResumeDiv);
+        return;
+    }
+    
+    // If resumeManager is not available, try to use the infiniteScroller directly
+    if (window.infiniteScroller) {
+        console.log(`bizResumeDivModule: Using infiniteScroller directly to scroll ${bizResumeDiv.id}`);
+        window.infiniteScroller.scrollToBizResumeDiv(bizResumeDiv, true);
+        return;
+    }
+    
+    // Last resort: use direct scrollIntoView
+    console.log(`bizResumeDivModule: Using direct scrollIntoView for ${bizResumeDiv.id}`);
+    bizResumeDiv.scrollIntoView({ behavior: 'smooth', block: 'center' });
 }
