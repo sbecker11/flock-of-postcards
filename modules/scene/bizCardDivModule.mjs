@@ -10,40 +10,56 @@ import * as sceneContainer from './sceneContainer.mjs';
 import * as zUtils from '../utils/zUtils.mjs';
 import * as timeline from '../timeline/timeline.mjs';
 import * as dateUtils from '../utils/dateUtils.mjs';
-// Add import for resumeManager
 import * as resumeManagerModule from '../resume/resumeManager.mjs';
+import * as bizResumeDivModule from './bizResumeDivModule.mjs';
 
 import { Logger, LogLevel } from '../logger.mjs';
 const logger = new Logger("bizCardDivModule", LogLevel.INFO);
 
-// Create a reference to the resumeManager instance
-let resumeManager;
-
-// Function to get or create the resumeManager instance
+// Add a function to get the resumeManager when needed
+/**
+ * Gets the resumeManager instance and verifies it's initialized
+ * @returns {Object|null} The resumeManager instance or null if not available/initialized
+ */
 function getResumeManager() {
-    try {
-        if (resumeManager) {
-            return resumeManager;
-        }
-        
-        // Try to get the resume manager from the window object
-        if (window.resumeManager) {
-            resumeManager = window.resumeManager;
-            return resumeManager;
-        }
-        
-        // If not available, try to import the module and create a new instance
-        console.warn("resumeManager not available, attempting to create a new instance");
-        
-        // Return null for now, we'll create it asynchronously
-        return null;
-        
-        // Note: We're not creating a new instance here because it requires
-        // jobsData and bizResumeDivs which we don't have access to
-    } catch (error) {
-        console.error("Error getting resumeManager:", error);
+    const resumeManager = window.resumeManager;
+    
+    // Check if resumeManager exists
+    if (!resumeManager) {
+        console.warn("getResumeManager: resumeManager not found on window object");
         return null;
     }
+    
+    // Check if it's initialized
+    if (!resumeManager.isInitialized()) {
+        console.warn("getResumeManager: resumeManager exists but is not initialized");
+        return null;
+    }
+    
+    return resumeManager;
+}
+
+// Add a function to get the viewPort when needed
+/**
+ * Gets the viewPort instance and verifies it's initialized
+ * @returns {Object|null} The viewPort instance or null if not available/initialized
+ */
+function getViewPort() {
+    const viewPort = window.viewPort;
+    
+    // Check if viewPort exists
+    if (!viewPort) {
+        console.warn("getViewPort: viewPort not found on window object");
+        return null;
+    }
+    
+    // Check if it's initialized (if the method exists)
+    if (typeof viewPort.isViewPortInitialized === 'function' && !viewPort.isViewPortInitialized()) {
+        console.warn("getViewPort: viewPort exists but is not initialized");
+        return null;
+    }
+    
+    return viewPort;
 }
 
 // Business card constants
@@ -55,11 +71,6 @@ export const BIZCARD_MIN_Z_DIFF = 2; // Minimum difference in Z between adjacent
 
 // Track the currently selected element
 let currentSelected = null;
-
-// Constants for element states
-const ELEMENT_STATE = {
-    SELECTED: 'selected'
-};
 
 export function isBizCardDiv(obj) {
     return obj && domUtils.isDivElement(obj) && obj.classList.contains('biz-card-div');
@@ -183,11 +194,11 @@ export function scrollBizCardDivIntoView(bizCardDiv) {
  * @returns {HTMLElement} The created business card div
  */
 export function createBizCardDiv(job, jobIndex) {
-    // Check if module is initialized
-    if (!_isBizCardDivModuleInitialized) {
-        console.warn("bizCardDivModule not initialized, initializing now");
-        initializeBizCardDivModule();
-    }
+    // Remove the initialization check completely
+    // if (!_isBizCardDivModuleInitialized) {
+    //     console.warn("bizCardDivModule not initialized, initializing now");
+    //     initializeBizCardDivModule();
+    // }
     
     // Create the bizCardDiv element first
     const bizCardDiv = document.createElement("div");
@@ -207,11 +218,6 @@ export function createBizCardDiv(job, jobIndex) {
     
     // Apply the color set to bizCardDiv
     colorPalettes.applyCurrentColorPaletteToElement(bizCardDiv);
-    
-    // Append to scene plane
-    const scenePlane = document.getElementById("scene-plane");
-    scenePlane.appendChild(bizCardDiv);
-    bizCardDiv.style.opacity = "0.5";
     
     return bizCardDiv;
 }
@@ -359,135 +365,64 @@ function setBizCardDivSceneGeometry(bizCardDiv, job) {
 export function handleClickEvent(element) {
     if (!element) return;
     
-    // If the element is already selected, unselect it
-    if (element.classList.contains(ELEMENT_STATE.SELECTED)) {
-        console.log(`bizCardDivModule: Unselecting element ${element.id}`);
-        clearSelected();
-        return;
-    }
-
-    // Otherwise, select the element
     console.log(`bizCardDivModule: Selecting element ${element.id}`);
     selectBizCardDiv(element);
 }
 
-// Select a biz card div and its paired resume div
+/**
+ * Select a biz card div and its paired bizResumeDiv 
+ * but don't scroll bizCardDiv into view
+ * @param {*} bizCardDiv 
+ * @returns 
+ */
 export function selectBizCardDiv(bizCardDiv) {
     if (!bizCardDiv) return;
-    
     console.log(`bizCardDivModule: Selecting bizCardDiv ${bizCardDiv.id}`);
-    
-    // Clear any existing selection
-    clearSelected();
-    
-    // Set as selected
-    bizCardDiv.classList.add(ELEMENT_STATE.SELECTED);
-    currentSelected = bizCardDiv;
-    
-    // Find the corresponding resume div
+    const isSelected = bizCardDiv.classList.contains("selected");
+    clearAllSelected();
+    if (isSelected) {
+        return;
+    }
+
+    // mark the bizCardDiv as selected
+    bizCardDiv.classList.remove("hovered");
+    bizCardDiv.classList.add("selected");
+
+    // select the paired bizResumeDiv and scroll it into view
     const pairedId = bizCardDiv.getAttribute('data-paired-id');
-    if (pairedId) {
-        const bizResumeDiv = document.getElementById(pairedId);
-        if (bizResumeDiv) {
-            console.log(`bizCardDivModule: Found paired bizResumeDiv ${bizResumeDiv.id}`);
-            
-            // Add selected class to the resume div
-            bizResumeDiv.classList.add(ELEMENT_STATE.SELECTED);
-            
-            // Get the job index
-            const jobIndex = parseInt(bizCardDiv.getAttribute('data-job-index'), 10);
-            if (!isNaN(jobIndex)) {
-                console.log(`bizCardDivModule: Got job index ${jobIndex} from bizCardDiv`);
-                
-                // Get the resume manager and scroll to the correct resume div
-                const resumeManager = getResumeManager();
-                if (resumeManager) {
-                    console.log(`bizCardDivModule: Using resumeManager to sync with scene selection`);
-                    try {
-                        resumeManager.syncWithSceneSelection(jobIndex);
-                        console.log(`bizCardDivModule: Scrolled resume div ${bizResumeDiv.id} into view using resumeManager`);
-                    } catch (error) {
-                        console.error(`bizCardDivModule: Error using resumeManager:`, error);
-                        // Fallback to direct scrolling
-                        scrollBizResumeDivIntoView(bizResumeDiv);
-                    }
-                } else {
-                    console.warn("bizCardDivModule: resumeManager not available, using fallback method");
-                    
-                    // Fallback if resumeManager is not available
-                    scrollBizResumeDivIntoView(bizResumeDiv);
-                }
-            } else {
-                console.error(`bizCardDivModule: Could not get job index from bizCardDiv ${bizCardDiv.id}`);
-                
-                // Fallback: just scroll the bizResumeDiv into view
-                scrollBizResumeDivIntoView(bizResumeDiv);
-            }
-        } else {
-            console.error(`bizCardDivModule: Could not find bizResumeDiv with ID ${pairedId}`);
-        }
-    } else {
-        console.error(`bizCardDivModule: bizCardDiv ${bizCardDiv.id} has no data-paired-id attribute`);
+    const bizResumeDiv = document.getElementById(pairedId);
+    selectBizResumeDivAndScrollIntoView(bizResumeDiv);
+}
+
+export function selectBizResumeDivAndScrollIntoView(bizResumeDiv) {
+    if (!bizResumeDiv) return;
+    console.log(`bizCardDivModule: Selecting bizResumeDiv ${bizResumeDiv.id}`);
+         
+    // mark it as selected
+    bizResumeDiv.classList.remove("hovered");
+    bizResumeDiv.classList.add("selected");
+
+    const jobIndex = parseInt(bizResumeDiv.getAttribute('data-job-index'), 10);
+    const resumeManager = getResumeManager();
+    if (resumeManager) {
+        resumeManager.syncWithSceneSelection(jobIndex);
+        resumeManager.scrollBizResumeDivIntoView(bizResumeDiv);
     }
 }
 
-// Clear all selections
-export function clearSelected() {
-    try {
-        console.log(`bizCardDivModule: Clearing selection, currentSelected: ${currentSelected ? currentSelected.id : 'none'}`);
-        
-        // Find and clear all selected elements (as a safety measure)
-        const selectedElements = document.querySelectorAll(`.${ELEMENT_STATE.SELECTED}`);
-        console.log(`bizCardDivModule: Found ${selectedElements.length} selected elements`);
-        
-        selectedElements.forEach(element => {
-            try {
-                console.log(`bizCardDivModule: Removing selected class from ${element.id}`);
-                element.classList.remove(ELEMENT_STATE.SELECTED);
-                
-                // If this is a bizCardDiv, also check for its paired bizResumeDiv
-                if (element.classList.contains('biz-card-div')) {
-                    const pairedId = element.getAttribute('data-paired-id');
-                    if (pairedId) {
-                        const pairedElement = document.getElementById(pairedId);
-                        if (pairedElement) {
-                            console.log(`bizCardDivModule: Removing selected class from paired element ${pairedElement.id}`);
-                            pairedElement.classList.remove(ELEMENT_STATE.SELECTED);
-                        }
-                    }
-                }
-                
-                // If this is a bizResumeDiv, also check for its paired bizCardDiv
-                if (element.classList.contains('biz-resume-div')) {
-                    const pairedId = element.getAttribute('data-paired-id');
-                    if (pairedId) {
-                        const pairedElement = document.getElementById(pairedId);
-                        if (pairedElement) {
-                            console.log(`bizCardDivModule: Removing selected class from paired element ${pairedElement.id}`);
-                            pairedElement.classList.remove(ELEMENT_STATE.SELECTED);
-                        }
-                    }
-                }
-            } catch (innerError) {
-                console.error(`bizCardDivModule: Error clearing selection for element ${element.id}:`, innerError);
-            }
-        });
-        
-        // Reset the current selection
-        currentSelected = null;
-        console.log('bizCardDivModule: Selection cleared');
-    } catch (error) {
-        console.error("bizCardDivModule: Error in clearSelected:", error);
-        
-        // Fallback: try to clear all selected elements directly
-        try {
-            document.querySelectorAll('.selected').forEach(el => el.classList.remove('selected'));
-            currentSelected = null;
-            console.log('bizCardDivModule: Selection cleared (fallback method)');
-        } catch (fallbackError) {
-            console.error("bizCardDivModule: Error in clearSelected fallback:", fallbackError);
-        }
-    }
+/**
+ * Clear all selections called by both 
+ * bizCardDivModule and bizResumeDivModule
+ * before any new selection is made
+ * or when the scene plane is clicked
+ * or when the current element is selected
+ */
+export function clearAllSelected() {
+    const selectedElements = document.querySelectorAll('.selected');
+    console.log(`bizCardDivModule: Found ${selectedElements.length} selected elements to clear`);
+    selectedElements.forEach(element => {
+        element.classList.remove("selected");    
+    });
 }
 
 // Set up the scene plane click handler for unselection
@@ -512,109 +447,105 @@ function handleScenePlaneClick(event) {
     if (event.target.id !== 'scene-plane') {
         return;
     }
-    
-    console.log('scene-plane click detected');
-    
-    // If there's a current selection, clear it
-    if (currentSelected) {
-        clearSelected();
-    }
+    console.log('scene-plane click detected')
+    console.log('bizCardDivModule: Clearing all selected');
+    clearAllSelected();
 }
 
-// Fallback function to scroll a bizResumeDiv into view
-function scrollBizResumeDivIntoView(bizResumeDiv) {
-    if (!bizResumeDiv) {
-        console.error("scrollBizResumeDivIntoView: bizResumeDiv is null");
-        return;
-    }
+// // Fallback function to scroll a bizResumeDiv into view
+// function scrollBizResumeDivIntoView(bizResumeDiv) {
+//     if (!bizResumeDiv) {
+//         console.error("scrollBizResumeDivIntoView: bizResumeDiv is null");
+//         return;
+//     }
     
-    console.log(`bizCardDivModule: Attempting to scroll ${bizResumeDiv.id} into view (fallback method)`);
+//     console.log(`bizCardDivModule: Attempting to scroll ${bizResumeDiv.id} into view (fallback method)`);
     
-    // Try multiple approaches to ensure the bizResumeDiv is scrolled into view
+//     // Try multiple approaches to ensure the bizResumeDiv is scrolled into view
     
-    // Approach 1: Direct scrollIntoView on the bizResumeDiv
-    try {
-        bizResumeDiv.scrollIntoView({ behavior: 'smooth', block: 'center' });
-        console.log(`bizCardDivModule: Called scrollIntoView directly on ${bizResumeDiv.id}`);
-    } catch (error) {
-        console.error(`bizCardDivModule: Error with direct scrollIntoView:`, error);
-    }
+//     // Approach 1: Direct scrollIntoView on the bizResumeDiv
+//     try {
+//         bizResumeDiv.scrollIntoView({ behavior: 'smooth', block: 'center' });
+//         console.log(`bizCardDivModule: Called scrollIntoView directly on ${bizResumeDiv.id}`);
+//     } catch (error) {
+//         console.error(`bizCardDivModule: Error with direct scrollIntoView:`, error);
+//     }
     
-    // Approach 2: Find the resume content div and scroll it
-    const resumeContentDiv = document.getElementById('resume-content-div');
-    if (resumeContentDiv) {
-        console.log(`bizCardDivModule: Found resume-content-div, calculating scroll position`);
+//     // Approach 2: Find the resume content div and scroll it
+//     const resumeContentDiv = document.getElementById('resume-content-div');
+//     if (resumeContentDiv) {
+//         console.log(`bizCardDivModule: Found resume-content-div, calculating scroll position`);
         
-        try {
-            // Calculate the scroll position needed to center the bizResumeDiv
-            const offsetTop = bizResumeDiv.offsetTop;
-            const resumeHeight = resumeContentDiv.clientHeight;
-            const divHeight = bizResumeDiv.clientHeight;
+//         try {
+//             // Calculate the scroll position needed to center the bizResumeDiv
+//             const offsetTop = bizResumeDiv.offsetTop;
+//             const resumeHeight = resumeContentDiv.clientHeight;
+//             const divHeight = bizResumeDiv.clientHeight;
             
-            // Center the div in the viewport
-            const scrollTop = offsetTop - (resumeHeight / 2) + (divHeight / 2);
+//             // Center the div in the viewport
+//             const scrollTop = offsetTop - (resumeHeight / 2) + (divHeight / 2);
             
-            console.log(`bizCardDivModule: Calculated scroll position: ${scrollTop}`);
-            console.log(`bizCardDivModule: Current scroll position: ${resumeContentDiv.scrollTop}`);
+//             console.log(`bizCardDivModule: Calculated scroll position: ${scrollTop}`);
+//             console.log(`bizCardDivModule: Current scroll position: ${resumeContentDiv.scrollTop}`);
             
-            // Scroll to the calculated position
-            resumeContentDiv.scrollTo({
-                top: scrollTop,
-                behavior: 'smooth'
-            });
+//             // Scroll to the calculated position
+//             resumeContentDiv.scrollTo({
+//                 top: scrollTop,
+//                 behavior: 'smooth'
+//             });
             
-            console.log(`bizCardDivModule: Scrolled resume-content-div to ${scrollTop}`);
+//             console.log(`bizCardDivModule: Scrolled resume-content-div to ${scrollTop}`);
             
-            // Check if scrolling worked after a delay
-            setTimeout(() => {
-                console.log(`bizCardDivModule: After scrolling, resume-content-div scrollTop: ${resumeContentDiv.scrollTop}`);
+//             // Check if scrolling worked after a delay
+//             setTimeout(() => {
+//                 console.log(`bizCardDivModule: After scrolling, resume-content-div scrollTop: ${resumeContentDiv.scrollTop}`);
                 
-                // If we're not close to the target position, try with auto behavior
-                if (Math.abs(resumeContentDiv.scrollTop - scrollTop) > 50) {
-                    console.log("bizCardDivModule: Smooth scrolling didn't work, trying with auto behavior");
+//                 // If we're not close to the target position, try with auto behavior
+//                 if (Math.abs(resumeContentDiv.scrollTop - scrollTop) > 50) {
+//                     console.log("bizCardDivModule: Smooth scrolling didn't work, trying with auto behavior");
                     
-                    resumeContentDiv.scrollTo({
-                        top: scrollTop,
-                        behavior: 'auto'
-                    });
+//                     resumeContentDiv.scrollTo({
+//                         top: scrollTop,
+//                         behavior: 'auto'
+//                     });
                     
-                    // Check again after a short delay
-                    setTimeout(() => {
-                        console.log(`bizCardDivModule: After auto scrolling, resume-content-div scrollTop: ${resumeContentDiv.scrollTop}`);
+//                     // Check again after a short delay
+//                     setTimeout(() => {
+//                         console.log(`bizCardDivModule: After auto scrolling, resume-content-div scrollTop: ${resumeContentDiv.scrollTop}`);
                         
-                        // If we're still not close, try direct assignment
-                        if (Math.abs(resumeContentDiv.scrollTop - scrollTop) > 50) {
-                            console.log("bizCardDivModule: Auto scrolling didn't work, trying direct assignment");
-                            resumeContentDiv.scrollTop = scrollTop;
+//                         // If we're still not close, try direct assignment
+//                         if (Math.abs(resumeContentDiv.scrollTop - scrollTop) > 50) {
+//                             console.log("bizCardDivModule: Auto scrolling didn't work, trying direct assignment");
+//                             resumeContentDiv.scrollTop = scrollTop;
                             
-                            console.log(`bizCardDivModule: After direct assignment, resume-content-div scrollTop: ${resumeContentDiv.scrollTop}`);
-                        }
-                    }, 100);
-                }
-            }, 500);
-        } catch (error) {
-            console.error(`bizCardDivModule: Error scrolling resume-content-div:`, error);
-        }
-    }
+//                             console.log(`bizCardDivModule: After direct assignment, resume-content-div scrollTop: ${resumeContentDiv.scrollTop}`);
+//                         }
+//                     }, 100);
+//                 }
+//             }, 500);
+//         } catch (error) {
+//             console.error(`bizCardDivModule: Error scrolling resume-content-div:`, error);
+//         }
+//     }
     
-    // Approach 3: If the infinite scroller is available, try to use it
-    if (window.infiniteScroller) {
-        const jobIndex = parseInt(bizResumeDiv.getAttribute('data-job-index'), 10);
-        if (!isNaN(jobIndex)) {
-            console.log(`bizCardDivModule: Attempting to use infiniteScroller to scroll to job index ${jobIndex}`);
-            try {
-                window.infiniteScroller.scrollToItem(jobIndex);
-                console.log(`bizCardDivModule: Scrolled to job index ${jobIndex} using infiniteScroller`);
-            } catch (error) {
-                console.error(`bizCardDivModule: Error scrolling to job index ${jobIndex} using infiniteScroller:`, error);
-            }
-        } else {
-            console.error(`bizCardDivModule: Could not get job index from bizResumeDiv ${bizResumeDiv.id}`);
-        }
-    }
+//     // Approach 3: If the infinite scroller is available, try to use it
+//     if (window.infiniteScroller) {
+//         const jobIndex = parseInt(bizResumeDiv.getAttribute('data-job-index'), 10);
+//         if (!isNaN(jobIndex)) {
+//             console.log(`bizCardDivModule: Attempting to use infiniteScroller to scroll to job index ${jobIndex}`);
+//             try {
+//                 window.infiniteScroller.scrollToItem(jobIndex);
+//                 console.log(`bizCardDivModule: Scrolled to job index ${jobIndex} using infiniteScroller`);
+//             } catch (error) {
+//                 console.error(`bizCardDivModule: Error scrolling to job index ${jobIndex} using infiniteScroller:`, error);
+//             }
+//         } else {
+//             console.error(`bizCardDivModule: Could not get job index from bizResumeDiv ${bizResumeDiv.id}`);
+//         }
+//     }
     
-    console.log(`bizCardDivModule: Completed all attempts to scroll bizResumeDiv ${bizResumeDiv.id} into view`);
-}
+//     console.log(`bizCardDivModule: Completed all attempts to scroll bizResumeDiv ${bizResumeDiv.id} into view`);
+// }
 
 export function handleMouseEnterEvent(element) {
     if (!element) return;
@@ -1172,7 +1103,7 @@ let _isBizCardDivModuleInitialized = false;
 
 /**
  * Initialize the bizCardDivModule
- * This should be called after viewPort is initialized
+ * This should be called after viewPort and resumeManager are initialized
  */
 export function initializeBizCardDivModule() {
     if (_isBizCardDivModuleInitialized) {
@@ -1180,13 +1111,20 @@ export function initializeBizCardDivModule() {
         return;
     }
     
-    // Check dependency on viewPort
-    if (!viewPort.isViewPortInitialized()) {
-        throw new Error("Cannot initialize bizCardDivModule: viewPort not initialized");
+    // Check if resumeManager exists and is initialized
+    const resumeManager = getResumeManager();
+    if (!resumeManager) {
+        console.warn("Cannot initialize bizCardDivModule: resumeManager not found or not initialized");
+        // Continue anyway - we'll use fallback behavior
     }
-    
-    console.log("Initializing bizCardDivModule...");
-    
+
+    // Check if viewPort exists and is initialized
+    const viewPort = getViewPort();
+    if (!viewPort) {
+        console.warn("Cannot initialize bizCardDivModule: viewPort not found or not initialized");
+        // Continue anyway - we'll use fallback behavior
+    }
+
     // Set up event listeners
     setupEventListeners();
     
@@ -1203,4 +1141,53 @@ export function initializeBizCardDivModule() {
  */
 export function isBizCardDivModuleInitialized() {
     return _isBizCardDivModuleInitialized;
+}
+
+/**
+ * Creates all bizCardDivs and bizResumeDivs for the given jobs
+ * @param {Array} jobs - Array of job objects
+ * @returns {Array} Array of created bizResumeDivs
+ */
+export function createAllBizCardDivs(jobs) {
+    if (!jobs || !Array.isArray(jobs)) {
+        throw new Error('createAllBizCardDivs: jobs must be an array');
+    }
+    
+    console.log(`Creating ${jobs.length} bizCardDivs and bizResumeDivs`);
+    
+    const bizResumeDivs = [];
+    const sceneContainer = document.getElementById('scene-container');
+    
+    if (!sceneContainer) {
+        throw new Error('createAllBizCardDivs: scene-container not found');
+    }
+    
+    jobs.forEach((job, index) => {
+        if (!job) throw new Error('createAllBizCardDivs: given null job');
+        if (!Number.isInteger(index)) throw new Error('createAllBizCardDivs: given non-integer index');
+        
+        // Create bizCardDiv
+        const bizCardDiv = createBizCardDiv(job, index);
+        
+        // Append to scene container
+        sceneContainer.appendChild(bizCardDiv);
+        
+        // Verify it was added to DOM
+        const bizCardDivId = bizCardDiv.id;
+        const checkBizCardDiv = document.getElementById(bizCardDivId);
+        if (!checkBizCardDiv) {
+            throw new Error(`bizCardDiv is not found for bizCardDivId: ${bizCardDivId}`);
+        }
+        
+        // Create bizResumeDiv
+        const bizResumeDiv = bizResumeDivModule.createBizResumeDiv(bizCardDiv);
+        if (!bizResumeDiv) {
+            throw new Error('createBizResumeDiv: given null bizResumeDiv');
+        }
+        
+        bizResumeDivs.push(bizResumeDiv);
+    });
+    
+    console.log(`Created ${bizResumeDivs.length} bizResumeDivs`);
+    return bizResumeDivs;
 }

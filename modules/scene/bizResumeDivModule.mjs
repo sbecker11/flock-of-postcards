@@ -58,85 +58,53 @@ export function handleClickEvent(element) {
         console.error("bizResumeDivModule: handleClickEvent called with null element");
         return;
     }
-    
-    console.log("bizResumeDivModule: handleClickEvent called for", element.id);
-    
-    try {
-        // If the element is already selected, unselect it
-        if (element.classList.contains('selected')) {
-            console.log(`bizResumeDivModule: Unselecting element ${element.id}`);
-            element.classList.remove('selected');
-            
-            // Extract job index from the ID
-            const jobIndex = extractJobIndexFromId(element.id);
-            if (jobIndex !== null) {
-                const bizCardDivId = `biz-card-div-${jobIndex}`;
-                const bizCardDiv = document.getElementById(bizCardDivId);
-                
-                if (bizCardDiv) {
-                    console.log(`Found paired bizCardDiv: ${bizCardDiv.id}`);
-                    bizCardDiv.classList.remove('selected');
-                    
-                    // Restore original filter if available
-                    const originalFilter = bizCardDiv.getAttribute('data-original-filter');
-                    if (originalFilter) {
-                        bizCardDiv.style.filter = originalFilter;
-                    } else {
-                        bizCardDiv.style.filter = '';
-                    }
-                }
-            }
-            
-            return;
-        }
-
-        // Otherwise, select the element
-        console.log(`bizResumeDivModule: Selecting element ${element.id}`);
-        
-        // First, unselect any currently selected elements
-        document.querySelectorAll('.biz-resume-div.selected, .biz-card-div.selected').forEach(el => {
-            el.classList.remove('selected');
-        });
-        
-        // Select this element
-        element.classList.add('selected');
-        
-        // Extract job index from the ID
-        const jobIndex = extractJobIndexFromId(element.id);
-        if (jobIndex !== null) {
-            console.log(`Extracted job index: ${jobIndex}`);
-            const bizCardDivId = `biz-card-div-${jobIndex}`;
-            console.log(`Looking for bizCardDiv with ID: ${bizCardDivId}`);
-            
-            const bizCardDiv = document.getElementById(bizCardDivId);
-            
-            if (bizCardDiv) {
-                console.log(`bizResumeDivModule: Found paired bizCardDiv ${bizCardDiv.id}`);
-                
-                // Store the current filter as original filter
-                const currentFilter = bizCardDiv.style.filter || '';
-                bizCardDiv.setAttribute('data-original-filter', currentFilter);
-                console.log(`Stored original filter for ${bizCardDiv.id}: ${currentFilter}`);
-                
-                // Apply the brightness filter for selected state
-                bizCardDiv.style.filter = "brightness(1.5)";
-                
-                // Add selected class
-                bizCardDiv.classList.add('selected');
-                
-                // Use the bizCardDivModule's scrollBizCardDivIntoView function
-                bizCardDivModule.scrollBizCardDivIntoView(bizCardDiv);
-                
-                console.log(`bizResumeDivModule: Scrolled bizCardDiv ${bizCardDiv.id} into view`);
-            } else {
-                console.error(`bizResumeDivModule: Could not find bizCardDiv with ID ${bizCardDivId}`);
-            }
-        } else {
-            console.error(`bizResumeDivModule: Could not extract job index from ID ${element.id}`);
-        }
-    } catch (error) {
-        console.error("bizResumeDivModule: Error in handleClickEvent:", error);
+    if ( element.classList.contains("biz-resume-div") ) {
+        const bizResumeDiv = element;
+        selectBizResumeDiv(bizResumeDiv);
     }
+}
+
+/**
+ * selet the given bizResumeDiv and its paired bizCardDiv
+ * but don't scroll bizResumeDiv into view
+ * @param {*} bizResumeDiv 
+ * @returns 
+ */
+export function selectBizResumeDiv(bizResumeDiv) {
+    if (!bizResumeDiv) {
+        console.error("bizResumeDivModule: selectBizResumeDiv called with null bizResumeDiv");
+        return;
+    }
+    console.log("bizResumeDivModule: selectBizResumeDiv", bizResumeDiv.id);
+
+    const isSelected = bizResumeDiv.classList.contains('selected');
+    
+    // clear all selected 
+    bizCardDivModule.clearAllSelected();
+    if ( isSelected ) {
+        return;
+    }
+
+    // mark te bizResumeDiv as selected
+    bizResumeDiv.classList.remove("hovered");
+    bizResumeDiv.classList.add('selected');
+ 
+    // select the paired bizCardDiv and scroll it into view
+    const pairedId = bizResumeDiv.getAttribute('data-paired-id');
+    const bizCardDiv = document.getElementById(pairedId);
+    selectBizCardDivAndScrollIntoView(bizCardDiv);
+}
+
+/**
+ * select the given bizCardDiv
+ * and scroll it into view
+ * @param {*} bizCardDiv 
+ * @returns 
+ */
+export function selectBizCardDivAndScrollIntoView(bizCardDiv) {
+    bizCardDiv.classList.remove("hovered")
+    bizCardDiv.classList.add('selected');
+    bizCardDivModule.scrollBizCardDivIntoView(bizCardDiv);
 }
 
 /**

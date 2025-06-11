@@ -16,6 +16,7 @@ class ResumeManager {
     this.originalJobsData = null;
     this.currentSortRule = null;
     this.sortedIndices = []; // Maps sorted position to original index
+    this._isInitialized = false; // Add initialization flag
   }
 
   initialize(originalJobsData, bizResumeDivs) {
@@ -28,6 +29,14 @@ class ResumeManager {
     // Set default sort (maintain original order)
     this.currentSortRule = { field: 'original', direction: 'asc' };
     this.updateSortedIndices();
+    
+    this._isInitialized = true; // Set initialization flag to true
+    log.info("ResumeManager initialized successfully");
+  }
+  
+  // Method to check if ResumeManager is initialized (renamed for consistency)
+  isInitialized() {
+    return this._isInitialized;
   }
 
   setupInfiniteScrolling() {
@@ -407,6 +416,10 @@ class ResumeManager {
         console.error(`ResumeManager: Error in removeClassItem:`, error);
     }
   }
+}
+
+export function isResumeManagerInitialized() {
+  return _isResumeManagerInitialized;
 }
 
 // Usage example:

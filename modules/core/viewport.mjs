@@ -33,7 +33,7 @@ const _resumeContainer = document.getElementById("resume-container");
 
 export function initializeViewPort() {
     if (_isViewPortInitialized) {
-        console.warn("viewPort.initializeViewPort: already initialized");
+        console.warn("viewPort.initializeViewPort: already initialized, ignoring duplicate initialization request");
         return;
     }
     

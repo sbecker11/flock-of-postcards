@@ -370,8 +370,8 @@ export function isFocalPointInitialized() {
  * as well as _sceneContainer and _focalPointElement.
  */
 export function initializeFocalPoint(focalPointElement) {
-    if ( _isFocalPointInitialized ) {
-        console.info("focalPoint ignoring duplicate initialization request");
+    if (_isFocalPointInitialized) {
+        console.info("focalPoint: already initialized, ignoring duplicate initialization request");
         return;
     }
     _isFocalPointInitialized = true;
@@ -381,7 +381,7 @@ export function initializeFocalPoint(focalPointElement) {
     clearFocalPointAndSceneRectListeners();
 
     _focalPointElement = document.getElementById("focal-point");
-    if ( !_focalPointElement ) throw new Error("initializeFocalPoint focal-point element not found");
+    if (!_focalPointElement) throw new Error("initializeFocalPoint focal-point element not found");
     _focalPointRadius = _focalPointElement.getBoundingClientRect().width / 2.0;
     
     _focalPointNowSubpixelPrecision = getFocalPoint();
@@ -1036,7 +1036,13 @@ export function toggleLockedToBullsEye() {
         
         // Import and call sceneContainer.ensurePointerEvents
         import('../scene/sceneContainer.mjs').then(module => {
-            module.ensurePointerEvents();
+            if (typeof module.ensurePointerEvents === 'function') {
+                module.ensurePointerEvents();
+            } else {
+                console.error("sceneContainer.ensurePointerEvents function not found");
+            }
+        }).catch(err => {
+            console.error("Failed to import sceneContainer module:", err);
         });
         
         setStatus(FOCAL_POINT_STATE.LOCKED_TO_BULLS_EYE, "toggleLockedToBullsEye");
@@ -1068,31 +1074,26 @@ export function toggleLockedToBullsEye() {
  * This is a more aggressive approach to ensure they receive mouse events
  */
 function forceEnablePointerEvents() {
-    // console.log("Forcing pointer events on all bizCardDivs");
+    console.log("Forcing pointer events on all bizCardDivs");
     
     // Get all bizCardDivs
     const bizCardDivs = document.querySelectorAll('.biz-card-div');
     
-    // Force enable pointer events on each one
+    // Enable pointer events on each one
     bizCardDivs.forEach(div => {
-        // Remove any inline style that might be disabling pointer events
-        div.style.removeProperty('pointer-events');
+        div.style.pointerEvents = 'auto';
         
-        // Force enable pointer events
-        div.style.setProperty('pointer-events', 'auto', 'important');
-        
-        // Log the current state
-        // console.log(`${div.id} pointer-events: ${getComputedStyle(div).pointerEvents}`);
-        
-        // Add direct mouse event listeners
-        addDirectMouseListeners(div);
+        // Also ensure all child elements have pointer events
+        const children = div.querySelectorAll('*');
+        children.forEach(child => {
+            child.style.pointerEvents = 'auto';
+        });
     });
     
-    // Also ensure the scene container has pointer events enabled
+    // Also ensure the scene container has pointer events
     const sceneContainer = document.getElementById('scene-container');
     if (sceneContainer) {
-        sceneContainer.style.removeProperty('pointer-events');
-        sceneContainer.style.setProperty('pointer-events', 'auto', 'important');
+        sceneContainer.style.pointerEvents = 'auto';
     }
 }
 
@@ -1496,3 +1497,26 @@ function animateFocalPoint() {
 eventBus.on('viewPort:initialized', () => {
     console.log('ViewPort initialized, focalPoint can now use it');
 });
+
+/**
+ * Debug function to log the current state of the focal point
+ */
+export function logFocalPointState() {
+    console.log("Focal Point State:", {
+        isLockedToBullsEye: _isLockedToBullsEye,
+        isDraggable: _isDraggable,
+        isBeingDragged: _isBeingDragged,
+        status: _status,
+        lastStatus: _lastStatus,
+        isEasingToAimPoint: _isEasingToAimPoint,
+        isEasingToBullsEye: _isEasingToBullsEye,
+        isAwake: _isAwake
+    });
+}
+
+/**
+ * @returns true if the focal point is locked to the bulls eye
+ */
+export function isLockedToBullsEye() {
+    return _isLockedToBullsEye;
+}

@@ -98,6 +98,20 @@ document.addEventListener('mouseup', function() {
     document.getElementById("scene-container").classList.remove('no-select');
 });
 
+// Add global key handler for focalPoint controls
+function setupGlobalKeyHandlers() {
+    document.addEventListener('keydown', function(event) {
+        // Import the keyDown module and use its handler
+        import('./modules/core/keyDown.mjs').then(module => {
+            module.handleKeyDown(event);
+        }).catch(error => {
+            console.error('Failed to handle key event:', error);
+        });
+    });
+    
+    console.log("Global key handlers set up - press 'b' to toggle focal point lock to bulls-eye");
+}
+
 // Initialize the application
 async function initialize() {
     tests.runSanityTests();
@@ -105,74 +119,79 @@ async function initialize() {
     try {
         // STEP 1: Initialize viewPort first as it's a fundamental dependency
         viewPort.initializeViewPort();
-        console.log("ViewPort initialized");
-        
+        // Make viewPort available globally
+        window.viewPort = viewPort;
+        console.log("ViewPort initialized and made available globally");
+
         // STEP 2: Initialize bullsEye which depends on viewPort
         bullsEye.initializeBullsEye();
         console.log("BullsEye initialized");
-        
-        // STEP 3: Initialize other core components
-        resizeHandle.initializeResizeHandle();
-        resumeContainer.initializeResumeContainer();
+
+        // STEP 3: Initialize focalPoint which depends on viewPort and bullsEye
+        const focalPointElement = document.getElementById('focal-point');
+        if (!focalPointElement) {
+            throw new Error("Focal point element not found in the DOM");
+        }
+        focalPoint.initializeFocalPoint(focalPointElement);
+        console.log("FocalPoint initialized");
+
+        // STEP 4: Initialize core components in the correct order
+        // First sceneContainer (no dependencies)
         sceneContainer.initializeSceneContainer();
-        
-        // STEP 4: Initialize bizCardDivModule
-        bizCardDivModule.initializeBizCardDivModule();
-        console.log("BizCardDivModule initialized");
-        
+        console.log("SceneContainer initialized");
+
+        // Then resizeHandle (depends on sceneContainer)
+        resizeHandle.initializeResizeHandle();
+        console.log("ResizeHandle initialized");
+
+        // Finally resumeContainer (depends on both sceneContainer and resizeHandle)
+        resumeContainer.initializeResumeContainer();
+        console.log("ResumeContainer initialized");
+
+        // STEP 5: Create and initialize resumeManager
+        window.resumeManager = new ResumeManager();
+        console.log("ResumeManager instance created");
+
         // Load color palettes
         paletteSelector = await colorPalettes.initializePaletteSelectorInstance();
-        
+
         // Wait for jobs to be loaded
         const loadedJobs = await waitForJobs();
         console.log("Jobs loaded successfully:", loadedJobs.length);
-        
+
         // Initialize timeline
         const [minTimelineYear, maxTimelineYear] = getMinMaxTimelineYears(loadedJobs);
         const defaultTimelineYear = maxTimelineYear;
         timeline.initializeTimeline(minTimelineYear, maxTimelineYear, defaultTimelineYear);
-        
+
         // Sort jobs by date
         const sortedJobs = [...loadedJobs].sort((a, b) => {
             return new Date(b.start) - new Date(a.start);
         });
-        
-        // STEP 5: Initialize focal point (depends on viewPort and bullsEye)
-        focalPoint.initializeFocalPoint();
-        console.log("Focal point initialized");
-        
-        // STEP 6: Create all bizCards (depends on viewPort for positioning)
-        const bizResumeDivs = [];
-        sortedJobs.forEach((job, index) => {
-            if (!job) throw new Error('createBizCardDiv: given null job');
-            if (!Number.isInteger(index)) throw new Error('createBizCardDiv: given non-integer index');
-            
-            const bizCardDiv = bizCardDivModule.createBizCardDiv(job, index);
-            const bizCardDivId = bizCardDiv.id;
-            const checkBizCardDiv = document.getElementById(bizCardDivId);
-            if (!checkBizCardDiv) throw new Error(`bizCardDiv is not found for bizCardDivId: ${bizCardDivId}`);
 
-            const bizResumeDiv = bizResumeDivModule.createBizResumeDiv(bizCardDiv);
-            if (!bizResumeDiv) throw new Error('createBizResumeDiv: given null bizResumeDiv');
-            bizResumeDivs.push(bizResumeDiv);
-        });
-        
-        // STEP 7: Set up event listeners for bizResumeDivs
+        // STEP 6: Create all bizCards and bizResumeDivs
+        const bizCardDivs = bizCardDivModule.createAllBizCardDivs(sortedJobs);
+
+        // STEP 7: Initialize resumeManager with the created bizResumeDivs
+        window.resumeManager.initialize(sortedJobs, bizCardDivs);
+        console.log("ResumeManager initialized with bizResumeDivs");
+
+        // STEP 8: Initialize bizCardDivModule (now that resumeManager is fully initialized)
+        bizCardDivModule.initializeBizCardDivModule();
+        console.log("BizCardDivModule initialized");
+
+        // STEP 9: Set up event listeners for bizResumeDivs
         bizResumeDivModule.setupEventListeners();
         console.log("Set up event listeners for all bizResumeDivs");
 
-        // STEP 8: Initialize sorting after all divs are created
-        bizResumeDivSortingModule.initialize(sortedJobs, bizResumeDivs);
+        // STEP 10: Initialize sorting after all divs are created
+        bizResumeDivSortingModule.initialize(sortedJobs, bizCardDivs);
 
-        // STEP 9: Set geometry for all bizCardDivs
-        bizCardDivModule.setGeometryForAllBizCardDivs(sortedJobs);
-        console.log("Verified geometry for all bizCardDivs");
-
-        // STEP 10: Initialize parallax (depends on viewPort, focalPoint, and bizCardDivs)
+        // STEP 11: Initialize parallax (depends on viewPort, focalPoint, and bizCardDivs)
         parallax.initializeParallax();
         console.log("Parallax initialized");
 
-        // STEP 11: Ensure bizCardDivs always have pointer events enabled
+        // STEP 12: Ensure bizCardDivs always have pointer events enabled
         bizCardDivModule.setupPointerEventsObserver();
 
         // Force an initial parallax update
@@ -182,6 +201,11 @@ async function initialize() {
 
         // Start animation loop
         focalPoint.startFocalPointAnimation();
+
+        // STEP 13: Set up global key handlers
+        setupGlobalKeyHandlers();
+        
+        console.log("Application initialization complete");
     } catch (error) {
         console.error('Failed to initialize application:', error);
     }

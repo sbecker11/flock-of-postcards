@@ -10,7 +10,7 @@ let _isBullsEyeInitialized = false;
 
 export function initializeBullsEye() {
     if (_isBullsEyeInitialized) {
-        console.warn("duplicate bullsEye.initializeBullsEye() ignored");
+        console.warn("bullsEye.initializeBullsEye(): already initialized, ignoring duplicate initialization request");
         return;
     }
     

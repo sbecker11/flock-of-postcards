@@ -364,36 +364,49 @@ class InfiniteScrollingContainer {
     // Use ResizeObserver to detect when container width changes
     if (typeof ResizeObserver !== 'undefined') {
       this.resizeObserver = new ResizeObserver((entries) => {
-        for (let entry of entries) {
+        // Use requestAnimationFrame to batch DOM operations
+        requestAnimationFrame(() => {
           // Debounce the repositioning to avoid excessive calls
           clearTimeout(this.resizeTimeout);
           this.resizeTimeout = setTimeout(() => {
             this.handleContainerResize();
           }, 200);
-        }
+        });
       });
 
       this.resizeObserver.observe(this.container);
     } else {
       // Fallback for browsers without ResizeObserver
       window.addEventListener('resize', () => {
-        clearTimeout(this.resizeTimeout);
-        this.resizeTimeout = setTimeout(() => {
-          this.handleContainerResize();
-        }, 200);
+        requestAnimationFrame(() => {
+          clearTimeout(this.resizeTimeout);
+          this.resizeTimeout = setTimeout(() => {
+            this.handleContainerResize();
+          }, 200);
+        });
       });
     }
   }
 
   handleContainerResize() {
-    // Recalculate positions when container size changes
+    // Batch DOM reads
+    let currentScrollTop = 0;
+    let needsUpdate = false;
+    
     if (this.allItems && this.allItems.length > 0) {
-      const currentScrollTop = this.container.scrollTop;
-      this.positionItems();
-      // Restore scroll position
-      this.container.scrollTop = currentScrollTop;
-      // Reapply colors after resize (they may get lost during repositioning)
-      this.reapplyColorPalettes();
+      currentScrollTop = this.container.scrollTop;
+      needsUpdate = true;
+    }
+    
+    // Batch DOM writes
+    if (needsUpdate) {
+      requestAnimationFrame(() => {
+        this.positionItems();
+        // Restore scroll position
+        this.container.scrollTop = currentScrollTop;
+        // Reapply colors after resize
+        this.reapplyColorPalettes();
+      });
     }
   }
 

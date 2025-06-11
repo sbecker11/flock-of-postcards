@@ -26,7 +26,20 @@ export const validateIsNumericString = (str) => { if (! isNumericString(str) ) t
 export const validateFloat = (num) => validateNumber(num);
 export const validateFloatInRange = (num, min, max) => validateNumberInRange(num, min, max);
 export const validatePosition = (position) => { validateFloat(position.x) && validateFloat(position.y) };
-export const validateRect = (domRect) => { validateFloat(domRect.top) && validateFloat(domRect.left) && validateFloat(domRect.right) && validateFloat(domRect.bottom) };
+export const validateRect = (domRect) => { 
+    if (!domRect) {
+        throw new Error(`Invalid rect: rect is ${domRect === undefined ? 'undefined' : 'null'}`);
+    }
+    if (typeof domRect !== 'object') {
+        throw new Error(`Invalid rect: not an object, got ${typeof domRect}`);
+    }
+    if (domRect.top === undefined || domRect.left === undefined || 
+        domRect.right === undefined || domRect.bottom === undefined) {
+        throw new Error(`Invalid rect: missing properties - ${JSON.stringify(domRect)}`);
+    }
+    validateFloat(domRect.top) && validateFloat(domRect.left) && 
+    validateFloat(domRect.right) && validateFloat(domRect.bottom);
+};
 
 export function abs(val) {
     if ( typeof val !== 'number' ) {

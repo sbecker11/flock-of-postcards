@@ -41,19 +41,33 @@ const MIN_UPDATE_INTERVAL = 16; // ~60fps
  * called from main.mjs
  */
 export function initializeParallax() {
+    // Prevent duplicate initialization
+    if (_isParallaxInitialized) {
+        console.log("Parallax already initialized, ignoring duplicate initialization request");
+        return;
+    }
+    
     // Check dependencies first
     if (!viewPort.isViewPortInitialized()) {
         throw new Error("Cannot initialize parallax: viewPort not initialized");
     }
     
-    if (!focalPoint.isFocalPointInitialized()) {
-        throw new Error("Cannot initialize parallax: focalPoint not initialized");
-    }
-    
-    // Prevent duplicate initialization
-    if (_isParallaxInitialized) {
-        console.log("Parallax already initialized, cleaning up first");
-        cleanupParallax();
+    // Check if focalPoint is initialized
+    try {
+        if (!focalPoint.isFocalPointInitialized()) {
+            console.warn("FocalPoint not initialized, attempting to initialize it now");
+            
+            // Try to initialize focalPoint if not already initialized
+            const focalPointElement = document.getElementById('focal-point');
+            if (focalPointElement) {
+                focalPoint.initializeFocalPoint(focalPointElement);
+                console.log("FocalPoint initialized from parallax module");
+            } else {
+                throw new Error("Cannot initialize parallax: focalPoint not initialized and focal-point element not found");
+            }
+        }
+    } catch (error) {
+        throw new Error("Cannot initialize parallax: focalPoint not initialized - " + error.message);
     }
     
     // initializded set at the end of this function
@@ -192,6 +206,7 @@ export function initializeParallax() {
     }
     
     _isParallaxInitialized = true;
+    console.log("Parallax initialized successfully");
     
     // Emit event when initialization is complete
     eventBus.emit('parallax:initialized', {});
@@ -219,6 +234,34 @@ function inBounds(top, bottom, rect) {
 export function viewAllBizCardDivs(focalPoint, prefix, sceneRect) {
     if (!viewPort.isViewPortInitialized()) {
         throw new Error("viewPortProperties is not initialized"); 
+    }
+
+    // Check if sceneRect is valid
+    if (!sceneRect) {
+        console.warn(`viewAllBizCardDivs called from "${prefix}" with invalid sceneRect`);
+        
+        // Get the scene container for scroll information
+        const sceneContainer = document.getElementById('scene-container');
+        if (!sceneContainer) {
+            console.error("Scene container not found");
+            return;
+        }
+        
+        // Get the current scroll position
+        const scrollTop = sceneContainer.scrollTop;
+        
+        // Get the viewport rect
+        const vpRect = viewPort.getViewPortRect();
+        
+        // Create scene-relative viewport rect
+        sceneRect = {
+            left: vpRect.left,
+            top: vpRect.top + scrollTop,
+            right: vpRect.right,
+            bottom: vpRect.bottom + scrollTop
+        };
+        
+        console.log("Created fallback sceneRect:", sceneRect);
     }
 
     // console.log(`viewAllBizCardDivs called from "${prefix}"`);
@@ -400,38 +443,38 @@ export function updateParallax(source = "external", force = false) {
     if (!force && now - _lastUpdateTime < MIN_UPDATE_INTERVAL) {
         return; // Skip this update if it's too soon after the last one
     }
-    _lastUpdateTime = now;
     
-    // Get the scene container
-    const sceneContainer = document.getElementById('scene-container');
-    if (!sceneContainer) {
-        console.error("Scene container not found");
-        return;
-    }
-    
-    // Get the current scroll position
-    const scrollTop = sceneContainer.scrollTop;
-    
-    // Get the viewport rect
-    const vpRect = viewPort.getViewPortRect();
-    
-    // Create scene-relative viewport rect
-    const sceneRect = {
-        left: vpRect.left,
-        top: vpRect.top + scrollTop,
-        right: vpRect.right,
-        bottom: vpRect.bottom + scrollTop
-    };
-    
-    // Get current focal point
-    const currentFocalPoint = focalPoint.getFocalPoint();
-    if (!currentFocalPoint) {
-        console.warn("Focal point not available for parallax update");
-        return;
-    }
-    
-    // Call viewAllBizCardDivs directly
-    viewAllBizCardDivs(currentFocalPoint, `update-parallax-${source}`, sceneRect);
+    // Schedule the update in the next animation frame
+    requestAnimationFrame(() => {
+        _lastUpdateTime = performance.now();
+        
+        // Get the scene container
+        const sceneContainer = document.getElementById('scene-container');
+        if (!sceneContainer) {
+            console.error("Scene container not found");
+            return;
+        }
+        
+        // Batch DOM reads
+        const scrollTop = sceneContainer.scrollTop;
+        const currentFocalPoint = focalPoint.getFocalPoint();
+        
+        // Get the viewport rect
+        const vpRect = viewPort.getViewPortRect();
+        
+        // Create scene-relative viewport rect
+        const sceneRect = {
+            left: vpRect.left,
+            top: vpRect.top + scrollTop,
+            right: vpRect.right,
+            bottom: vpRect.bottom + scrollTop
+        };
+        
+        // Then perform the update with the read values
+        if (currentFocalPoint) {
+            viewAllBizCardDivs(currentFocalPoint, `update-parallax-${source}`, sceneRect);
+        }
+    });
 }
 
 /**

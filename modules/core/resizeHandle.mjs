@@ -93,7 +93,6 @@ class ResizeManager {
             throw new Error('ResizeManager: One or more required DOM elements not found.');
         }
 
-        // Add keydown event listener to the left container/resizeHandle
         // Track mouse hover state
         let isMouseOverResizeArea = false;
 
@@ -116,18 +115,7 @@ class ResizeManager {
             logger.log('Mouse left resize area');
         });
 
-        // Use document-level keydown listener to avoid focus issues
-        document.addEventListener('keydown', (e) => {
-
-            // Only handle if mouse is over resumeContainerLeft
-            if (isMouseOverResizeArea) {
-                try {
-                    keyDown.handleKeyDown(e);
-                } catch (error) {
-                    logger.error('✗ Error in keyDown.handleKeyDown:', error);
-                }
-            } 
-        });
+        // Removed keydown listener - now handled globally in main.mjs
 
         // Bind drag handlers for document-level events
         this._boundHandleDrag = this.handleDrag.bind(this);
@@ -391,7 +379,12 @@ function debounce(fn, delay) {
 
 // this is called by main.mjs initialize()
 export function initializeResizeHandle(nIncrements = 3, hysteresisPixels = 2) {
-    // logger.log("initializeResizeHandle");
+    if (isResizeManagerInitialized()) {
+        console.log("initializeResizeHandle: ResizeManager already initialized, ignoring duplicate initialization request");
+        return;
+    }
+    
+    logger.log("initializeResizeHandle");
 
     // Use singleton getInstance() method
     _resizeManager = ResizeManager.getInstance();

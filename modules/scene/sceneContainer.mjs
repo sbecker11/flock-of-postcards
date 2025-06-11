@@ -11,6 +11,11 @@ const logger = new Logger("sceneContainer", LogLevel.INFO);
 let isInitialized = false;
 
 export function initializeSceneContainer() {
+    if (isSceneContainerInitialized()) {
+        console.log("initializeSceneContainer: Scene container already initialized, ignoring duplicate initialization request");
+        return;
+    }
+    
     // Set up the scene container
     const sceneContainer = document.getElementById('scene-container');
     if (!sceneContainer) {

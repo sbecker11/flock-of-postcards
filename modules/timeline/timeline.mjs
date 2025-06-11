@@ -32,8 +32,8 @@ export function isTimelineInitialized() {
  * @param {*} defaultYear : any optional
  */
 export function initializeTimeline(minYear, maxYear, defaultYear=null) {
-    if ( isTimelineInitialized() ) {
-        console.log("ignoring duplicate call to initializeTimeline")
+    if (isTimelineInitialized()) {
+        console.log("initializeTimeline: Timeline already initialized, ignoring duplicate initialization request");
         return;
     }
     _initializeTimeline(minYear, maxYear, defaultYear);

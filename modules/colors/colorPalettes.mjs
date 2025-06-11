@@ -641,34 +641,31 @@ class PaletteSelector {
             document.documentElement
         ];
         
-        console.log(`Forcing repaint on background elements...`);
-        
-        // Force repaint on each element
-        elementsToRepaint.forEach(element => {
-            if (element) {
-                // Method 1: Toggle display
-                const originalDisplay = element.style.display;
-                element.style.display = 'none';
-                // Force reflow
-                void element.offsetHeight;
-                element.style.display = originalDisplay;
+        // Optimize repainting of elements
+        function optimizedRepaint(elementsToRepaint) {
+            if (!elementsToRepaint || elementsToRepaint.length === 0) return;
+            
+            // Batch DOM reads
+            const elementStates = elementsToRepaint.map(element => ({
+                element,
+                needsRepaint: !!element
+            }));
+            
+            // Use requestAnimationFrame to batch DOM writes
+            requestAnimationFrame(() => {
+                // Method 3: Use a non-visual property change (least intrusive)
+                elementStates.forEach(state => {
+                    if (state.needsRepaint) {
+                        state.element.dataset.repaintTimestamp = Date.now().toString();
+                    }
+                });
                 
-                // Method 2: Add a temporary class and remove it
-                element.classList.add('force-repaint');
-                setTimeout(() => {
-                    element.classList.remove('force-repaint');
-                }, 0);
-                
-                // Method 3: Update a non-visual property
-                element.dataset.repaintTimestamp = Date.now().toString();
-                console.log(`Repainted element: ${element.id || 'unnamed'}`);
-            }
-        });
-        
-        // Also try to force a repaint on the entire document
-        const style = document.createElement('style');
-        document.head.appendChild(style);
-        document.head.removeChild(style);
+                console.log(`Repainted ${elementStates.filter(s => s.needsRepaint).length} elements`);
+            });
+        }
+
+        // Replace the original repainting code with this optimized version
+        optimizedRepaint(elementsToRepaint);
     }
 
     /**
@@ -871,32 +868,31 @@ class PaletteSelector {
             document.documentElement
         ];
         
-        // Force repaint on each element
-        elementsToRepaint.forEach(element => {
-            if (element) {
-                // Method 1: Toggle display
-                const originalDisplay = element.style.display;
-                element.style.display = 'none';
-                // Force reflow
-                void element.offsetHeight;
-                element.style.display = originalDisplay;
+        // Optimize repainting of elements
+        function optimizedRepaint(elementsToRepaint) {
+            if (!elementsToRepaint || elementsToRepaint.length === 0) return;
+            
+            // Batch DOM reads
+            const elementStates = elementsToRepaint.map(element => ({
+                element,
+                needsRepaint: !!element
+            }));
+            
+            // Use requestAnimationFrame to batch DOM writes
+            requestAnimationFrame(() => {
+                // Method 3: Use a non-visual property change (least intrusive)
+                elementStates.forEach(state => {
+                    if (state.needsRepaint) {
+                        state.element.dataset.repaintTimestamp = Date.now().toString();
+                    }
+                });
                 
-                // Method 2: Add a temporary class and remove it
-                element.classList.add('force-repaint');
-                setTimeout(() => {
-                    element.classList.remove('force-repaint');
-                }, 0);
-                
-                // Method 3: Update a non-visual property
-                element.dataset.repaintTimestamp = Date.now().toString();
-                console.log(`colorPalettes:forceRepaintOnBackgroundElements: ${element.id} element.dataset.repaintTimestamp:`, element.dataset.repaintTimestamp);
-            }
-        });
-        
-        // Also try to force a repaint on the entire document
-        const style = document.createElement('style');
-        document.head.appendChild(style);
-        document.head.removeChild(style);
+                console.log(`Repainted ${elementStates.filter(s => s.needsRepaint).length} elements`);
+            });
+        }
+
+        // Replace the original repainting code with this optimized version
+        optimizedRepaint(elementsToRepaint);
     }
 
     // async refreshPalettes() {
