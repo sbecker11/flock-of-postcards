@@ -1,9 +1,10 @@
-// 
+// /modules/core/resizeHandle.mjs
+
 import * as sceneContainer from '../scene/sceneContainer.mjs';
 import * as resumeContainer from '../resume/resumeContainer.mjs';
-import * as keyDown from './keyDown.mjs';
 import * as viewPort from './viewPort.mjs';
 import { targetEnabled, selectForDisabled, disableSelectedForDisabled, restoreSelectedForDisabled } from '../utils/domUtils.mjs';
+import * as focalPoint from '../core/focalPoint.mjs';
 
 import { Logger, LogLevel } from '../logger.mjs';
 const logger = new Logger("resizeHandle", LogLevel.INFO);
@@ -85,6 +86,7 @@ class ResizeManager {
         this.resumeContainerLeft = document.getElementById('resume-container-left');
         this.collapseLeftButton = document.getElementById('collapse-left');
         this.collapseRightButton = document.getElementById('collapse-right');
+        this.focalLockButton = document.getElementById('focal-lock');
         this.resizeHandle = document.getElementById('resize-handle');
         this.sceneVizPercent = document.getElementById('scene-visible-percentage');
         this.nIncrements = nIncrements;
@@ -97,7 +99,7 @@ class ResizeManager {
         this.debug = false; // Set to true for debug logs
 
         // Guard all DOM lookups
-        if (!this.sceneContainer || !this.resumeContainer || !this.resumeContainerLeft || !this.collapseLeftButton || !this.collapseRightButton || !this.sceneVizPercent) {
+        if (!this.sceneContainer || !this.resumeContainer || !this.resumeContainerLeft || !this.collapseLeftButton || !this.collapseRightButton || !this.focalLockButton || !this.sceneVizPercent) {
             throw new Error('ResizeManager: One or more required DOM elements not found.');
         }
 
@@ -123,7 +125,7 @@ class ResizeManager {
             logger.log('Mouse left resize area');
         });
 
-        // Removed keydown listener - now handled globally in main.mjs
+        this.initializeFocalLockButton();
 
         // Bind drag handlers for document-level events
         this._boundHandleDrag = this.handleDrag.bind(this);
@@ -163,15 +165,17 @@ class ResizeManager {
      */
     setupEventListeners() {
         this.resumeContainerLeft.addEventListener('mousedown', (e) => this.startDrag(e));
+
         this.collapseLeftButton.addEventListener('mousedown', (e) => e.stopPropagation());
         this.collapseRightButton.addEventListener('mousedown', (e) => e.stopPropagation());
+        this.focalLockButton.addEventListener('mousedown', (e) => e.stopPropagation());
+
         this.collapseLeftButton.addEventListener('click', () => this.collapseLeft());
         this.collapseRightButton.addEventListener('click', () => this.collapseRight());
+        this.focalLockButton.addEventListener('click', () => this.toggleFocalLock());
+        
         this.resumeContainerLeft.addEventListener('mousemove', (e) => this.handleCursorChange(e));
         window.addEventListener('resize', this._debouncedWindowResize);
-        // Use CSS for cursor where possible
-        this.collapseLeftButton.classList.add('w-resize-cursor');
-        this.collapseRightButton.classList.add('e-resize-cursor');
     }
 
     /**
@@ -304,6 +308,7 @@ class ResizeManager {
     collapseLeft() {
         let currentIndex = this.getCurrentSnapIndex();
         let nextIndex = Math.max(0, currentIndex - 1);
+        logger.info('HO HO collapseLeft');
         this.setToSnapIndex(nextIndex);
         
         // Trigger parallax update after collapse
@@ -316,10 +321,36 @@ class ResizeManager {
     collapseRight() {
         let currentIndex = this.getCurrentSnapIndex();
         let nextIndex = Math.min(this.nIncrements, currentIndex + 1);
+        logger.info('HO HO collapseRight');
         this.setToSnapIndex(nextIndex);
         
         // Trigger parallax update after collapse
         this.triggerParallaxUpdate();
+    }
+
+    initializeFocalLockButton() {
+        this.updateFocalLockButton();
+    }
+
+    updateFocalLockButton() {
+        if ( focalPoint.isLockedToBullsEye() ) {
+            this.focalLockButton.classList.add('locked');
+            this.focalLockButton.classList.remove('unlocked');
+        } else {
+            this.focalLockButton.classList.add('unlocked');
+            this.focalLockButton.classList.remove('locked');
+        }
+    }
+
+    /**
+     * Locks/unlocks the focal point to the current position
+     */
+    toggleFocalLock() {
+        console.log('button clicked');
+        logger.info('HO HO toggleFocalLock before toggle isLocked:', focalPoint.isLockedToBullsEye());
+        focalPoint.toggleLockedToBullsEye();
+        logger.info('HO HO toggleFocalLock after toggleisLocked:', focalPoint.isLockedToBullsEye());
+        this.updateFocalLockButton();
     }
 
     /**

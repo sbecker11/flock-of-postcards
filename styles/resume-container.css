@@ -26,33 +26,27 @@
   flex-direction: column;
   align-items: center;
   z-index: 9910;
-  padding-top: 20px;
-  padding-bottom: 20px;
-}
-
-/* Top section of the resize handle */
-.resize-handle-top {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
+  padding-top: 5px;
   gap: 5px;
 }
 
-/* Middle section for the percentage */
-.resize-handle-middle {
-  margin-top: 10px;
+/* Top section of the resize handle */
+#resize-handle-top {
   display: flex;
   flex-direction: column;
-  align-items: center;
+  gap: 5px; /* space between children */
+  flex: 0 0 auto; /* don't grow don't shrink size to content*/
+  width: 100%; /* tak up full 20px width of parennt */
+  align-items: center; /* align children horizontally */
 }
 
-/* Bottom section for the b button */
-.resize-handle-bottom {
-  margin-top: auto; /* Push to bottom */
+#resize-handle-bottom {
+  flex: 1 1 auto; /* grow to fill available space */
+  width: 100%; /* take full width of parent */
   display: flex;
   flex-direction: column;
-  align-items: center;
-  margin-bottom: 20px;
+  justify-content: flex-start;
+  gap: 5px;
 }
 
 #resume-container-left {
@@ -82,56 +76,6 @@
 
 
 /* Style for the toggle buttons */
-
-/* Specific styles for the draggable button states */
-#toggle-draggable-button.draggable-on {
-  background-color: white;
-  color: gray;
-}
-
-#toggle-draggable-button.draggable-off {
-  background-color: gray;
-  color: white;
-}
-
-/* New styles for the state toggle button (like the 'd' button) */
-.toggle-state-button {
-    width: 20px;
-    height: 20px;
-    border-radius: 50%;
-    border: 1px solid gray;
-    background: rgba(50, 50, 50, 0.9);
-    color: white;
-    cursor: pointer;
-    display: flex !important; /* Force display flex */
-    align-items: center;
-    justify-content: center;
-    font-size: 12px;
-    font-weight: bold;
-    line-height: 1;
-    z-index: 1002; /* Ensure it's above other elements */
-    transition: all 0.2s ease;
-    margin: 2px 0;
-    padding: 0;
-    font-family: monospace;
-    position: relative; /* Ensure proper stacking context */
-}
-
-.toggle-state-button:hover {
-    background-color: rgba(80, 80, 80, 1);
-    border-color: white;
-}
-
-/* Styles for the draggable button states */
-.toggle-state-button.d-button.draggable-on {
-    background-color: white; /* ON state */
-    color: gray;
-}
-
-.toggle-state-button.d-button.draggable-off {
-    background-color: gray; /* OFF state */
-    color: white;
-}
 
 #resume-container-header-div {
   background-color: #444444;
@@ -263,8 +207,6 @@
 
 #color-palette-selector {
   flex: 1 1 auto;
-  min-width: 60px;
-  max-width: calc(240px + 23px);
   padding: 8px 12px;
   margin: 0;
   background-color: #4CAF50;
@@ -273,6 +215,7 @@
   border-radius: 4px;
   cursor: pointer;
   font-weight: bold;
+  font-size: 12px;
   outline: none;
   transition: background-color 0.2s ease, box-shadow 0.2s ease;
   width: 100%;
@@ -280,55 +223,6 @@
   position: relative;
   padding-right: 30px;
   pointer-events: auto;
-}
-
-#color-palette-selector::after {
-  content: '▶';
-  position: absolute;
-  right: 12px;
-  top: 50%;
-  transform: translateY(-50%);
-  font-size: 12px;
-  line-height: 1;
-  font-family: monospace;
-  pointer-events: none;
-  color: #4CAF50;
-  z-index: 1;
-}
-
-#color-palette-selector:focus::after {
-  content: '◀';
-  transform: translateY(-50%) rotate(90deg);
-}
-
-/* When container width is less than 90%, adjust max-width */
-@media (max-width: 90%) {
-  #color-palette-selector {
-      max-width: calc(180px + 10px); /* 3 buttons + 2 gaps */
-  }
-}
-
-/* When container width is less than 70%, adjust max-width */
-@media (max-width: 70%) {
-  #color-palette-selector {
-      max-width: calc(120px + 5px); /* 2 buttons + 1 gap */
-  }
-}
-
-/* When container width is less than 50%, adjust max-width */
-@media (max-width: 50%) {
-  #color-palette-selector {
-      max-width: 60px; /* 1 button */
-  }
-}
-
-/* Allow window to shrink below 500px by removing min-width constraints */
-@media (max-width: 500px) {
-  #color-palette-selector {
-      min-width: 30px !important; /* Reduce minimum width */
-      font-size: 10px; /* Smaller font for very narrow widths */
-      padding: 4px 6px; /* Reduce padding */
-  }
 }
 
 #color-palette-selector option {
@@ -370,8 +264,6 @@
 
 #biz-resume-div-sorting-selector {
   flex: 1 1 auto;
-  min-width: 60px;
-  max-width: calc(240px + 23px);
   padding: 8px 12px;
   margin: 0;
   background-color: #4CAF50;
@@ -379,6 +271,7 @@
   border: none;
   border-radius: 4px;
   cursor: pointer;
+  font-size: 12px;
   font-weight: bold;
   outline: none;
   transition: background-color 0.2s ease, box-shadow 0.2s ease;
@@ -387,46 +280,6 @@
   position: relative;
   padding-right: 30px;
   pointer-events: auto;
-}
-
-#biz-resume-div-sorting-selector::after {
-  content: '▶';
-  position: absolute;
-  right: 12px;
-  top: 50%;
-  transform: translateY(-50%);
-  font-size: 12px;
-  line-height: 1;
-  font-family: monospace;
-  pointer-events: none;
-  color: #4CAF50;
-  z-index: 1;
-}
-
-#biz-resume-div-sorting-selector:focus::after {
-  content: '◀';
-  transform: translateY(-50%) rotate(90deg);
-}
-
-/* When container width is less than 90%, adjust max-width */
-@media (max-width: 90%) {
-  #biz-resume-div-sorting-selector {
-      max-width: calc(180px + 10px); /* 3 buttons + 2 gaps */
-  }
-}
-
-/* When container width is less than 70%, adjust max-width */
-@media (max-width: 70%) {
-  #biz-resume-div-sorting-selector {
-      max-width: calc(120px + 5px); /* 2 buttons + 1 gap */
-  }
-}
-
-/* When container width is less than 50%, adjust max-width */
-@media (max-width: 50%) {
-  #biz-resume-div-sorting-selector {
-      max-width: 60px; /* 1 button */
-  }
 }
 
 #biz-resume-div-sorting-selector option {
@@ -486,148 +339,90 @@
 
 
 /* Styles for children of resize-handle */
-.toggle-collapse-button#collapse-left {
-  cursor: w-resize; /* West cursor */
-  z-index: 61; /* Above container */
-  pointer-events: auto;
-  margin-top: 20px; /* Spacing from top */
+/* Common styles for all toggle-circle buttons */
+.toggle-circle {
   width: 20px;
   height: 20px;
   border-radius: 50%;
   border: 1px solid gray;
   background: rgba(50, 50, 50, 0.9);
   color: white;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 12px;
-  font-weight: bold;
-  line-height: 1;
-  margin: 2px 0;
-  padding: 0;
-  z-index:9993;
-}
-
-.toggle-collapse-button#collapse-right {
-  cursor: e-resize; /* East cursor */
-  z-index: 62; /* Above left button */
   pointer-events: auto;
-  margin-top: 10px; /* Spacing from left button */
-  width: 20px;
-  height: 20px;
-  border-radius: 50%;
-  border: 1px solid gray;
-  background: rgba(50, 50, 50, 0.9);
-  color: white;
   display: flex;
   align-items: center;
   justify-content: center;
   font-size: 12px;
   font-weight: bold;
   line-height: 1;
-  margin: 2px 0;
+  /* margin: 2px 0; */
   padding: 0;
   z-index: 9993;
 }
 
-.toggle-collapse-button:hover {
+/* Specific styles for left collapse button */
+#collapse-left {
+  cursor: w-resize; /* West cursor */
+  z-index: 61; /* Above container */
+  /* margin-top: 20px; Spacing from top */
+}
+
+/* Specific styles for right collapse button */
+#collapse-right {
+  cursor: e-resize; /* East cursor */
+  z-index: 62; /* Above left button */
+  /* margin-top: 10px;  Spacing from left button */
+}
+
+#focal-lock {
+  cursor: pointer; /* East cursor */
+  z-index: 63; /* Above left button */
+  /* margin-top: 10px;  Spacing from left button */
+}
+
+.toggle-circle:hover {
   background-color: rgba(80, 80, 80, 1);
   border-color: white;
-}
-
-.toggle-state-button#toggle-draggable-button {
-  width: 20px;
-  height: 20px;
-  border-radius: 50%;
-  border: 1px solid gray;
-  background: rgba(50, 50, 50, 0.9);
-  color: white;
-  cursor: pointer;
-  display: flex !important;
-  align-items: center;
-  justify-content: center;
-  font-size: 12px;
-  font-weight: bold;
-  line-height: 1;
-  z-index: 63; /* Above collapse buttons */
-  transition: all 0.2s ease;
-  margin: 2px 0;
-  padding: 0;
-  font-family: monospace;
-  position: relative; /* Ensure proper stacking context */
-  margin-top: calc(50vh - 60px); /* Position at vertical midpoint, accounting for other elements */
-}
-
-.toggle-state-button#toggle-draggable-button:hover {
-  background-color: rgba(80, 80, 80, 1);
-  border-color: white;
-}
-
-.toggle-state-button#toggle-draggable-button.draggable-on {
-  background-color: white; /* ON state */
-  color: gray;
-}
-
-.toggle-state-button#toggle-draggable-button.draggable-off {
-  background-color: gray; /* OFF state */
-  color: white;
-}
-
-/* Position the focal lock button at the bottom of the resize handle */
-.toggle-focal-lock-button {
-  width: 20px;
-  height: 20px;
-  border-radius: 50%;
-  border: 1px solid gray;
-  background: rgba(50, 50, 50, 0.9);
-  color: white;
-  cursor: pointer;
-  display: flex !important;
-  align-items: center;
-  justify-content: center;
-  font-size: 12px;
-  font-weight: bold;
-  line-height: 1;
-  z-index: 9993; /* Same as other buttons in the resize handle */
-  transition: all 0.2s ease;
-  margin: 2px 0;
-  padding: 0;
-  font-family: monospace;
-  pointer-events: auto;
-  
-  /* Position at the bottom with the same distance as the top button */
-  position: absolute !important;
-  bottom: 20px !important; /* Same as the top margin for the top button */
-  left: 0 !important;
-  right: 0 !important;
-  margin-left: auto !important;
-  margin-right: auto !important;
 }
 
 /* States for the B button */
-.toggle-focal-lock-button.locked {
+.toggle-circle.locked {
   background-color: white;
   color: black;
 }
-
-.toggle-focal-lock-button.unlocked {
+.toggle-circle.unlocked {
   background-color: gray;
-  color: rgba(200, 200, 200, 0.7);
+  color: black;
+}
+.toggle-circle.locked:hover {
+  background-color: black;
+  border-color:white;
+}
+.toggle-circle.unlocked:hover {
+  background-color: black;
+  border-color: grey;
 }
 
-.toggle-focal-lock-button:hover {
-  background-color: rgba(80, 80, 80, 1);
-  border-color: white;
+/* Handle all interactive states to prevent secondary circle */
+.toggle-circle:focus,
+.toggle-circle:active,
+.toggle-circle:hover,
+.toggle-circle:focus-visible,
+.toggle-circle:focus-within {
+  outline: none !important;
+  box-shadow: none !important;
+  border: 1px solid white !important; /* Just change border color on interaction */
+  /* No secondary circle */
 }
+
 
 /* Make sure the percentage span is visible without changing other styling */
 #scene-visible-percentage {
   display: block !important;
-  position: relative !important;
+  /* position: relative !important; */
   pointer-events: none;
 }
 
-.scene-visible-percentage:hover {
+#scene-visible-percentage:hover {
   color: #00ff00;
 }
 

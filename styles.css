@@ -80,19 +80,3 @@ overflow and ensures consistent sizing.
   margin: 1px; /* Adjust as needed for spacing */
 }
 
-#collapse-left:focus,
-#collapse-right:focus {
-  outline: 2px solid #1976d2;
-  outline-offset: 2px;
-}
-
-/* Cursor for left collapse button and left edge */
-.w-resize-cursor {
-  cursor: w-resize !important;
-}
-
-/* Cursor for right collapse button */
-.e-resize-cursor {
-  cursor: e-resize !important;
-}
-

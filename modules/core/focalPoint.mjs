@@ -1004,25 +1004,15 @@ export function toggleLockedToBullsEye() {
     // Toggle the state
     isLocked = !isLocked;
     
-    // Update the UI
+    // Update the UI and the internal state
     if (isLocked) {
         document.body.classList.add('focal-point-locked');
+        _isLockedToBullsEye = true;
     } else {
         document.body.classList.remove('focal-point-locked');
+        _isLockedToBullsEye = false;
     }
-    
-    // Update the button
-    const bButton = document.getElementById('toggle-focal-lock');
-    if (bButton) {
-        if (isLocked) {
-            bButton.classList.remove('unlocked');
-            bButton.classList.add('locked');
-        } else {
-            bButton.classList.remove('locked');
-            bButton.classList.add('unlocked');
-        }
-    }
-    
+        
     // Get the focal point and bulls eye elements
     const focalPoint = document.getElementById('focal-point');
     const bullsEye = document.getElementById('bulls-eye');
@@ -1451,7 +1441,7 @@ export function stopFocalPointAnimation() {
  */
 function enforceLockState() {
     if (_isLockedToBullsEye) {
-        console.log("Enforcing lock state - focal point should be at bulls-eye");
+        // console.log("Enforcing lock state - focal point should be at bulls-eye");
         const bullsEyePos = bullsEye.getBullsEye();
         moveFocalPointTo(bullsEyePos, "locked-to-bullsEye");
         
@@ -1568,7 +1558,7 @@ export function isLockedToBullsEye() {
 export function setupGlobalTestFunctions() {
     window.toggleFocalPointLock = function() {
         console.log("window.toggleFocalPointLock: Function called");
-        const isLocked = toggleLockedToBullsEye();
+        var isLocked = toggleLockedToBullsEye();
         console.log(`window.toggleFocalPointLock: Focal point lock toggled to: ${isLocked}`);
         logFocalPointState();
         return isLocked;

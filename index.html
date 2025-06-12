@@ -49,18 +49,14 @@
     <div id="resume-container">
       <div id="resume-container-left">
         <div id="resize-handle" class="resize-handle">
-          <div class="resize-handle-top">
-            <button class="toggle-collapse-button" id="collapse-left">◀</button>
-            <button class="toggle-collapse-button" id="collapse-right">▶</button>
-            <button class="toggle-state-button d-button" id="toggle-draggable-button">d</button>
-          </div>
-          
-          <div class="resize-handle-middle">
+          <div id="resize-handle-top">
+            <button id="collapse-left" class="toggle-circle" >◀</button>
+            <button id="collapse-right" class="toggle-circle" >▶</button>
+            <button id="focal-lock" class="toggle-circle" >B</button>
             <span id="scene-visible-percentage">50%</span>
           </div>
           
-          <div class="resize-handle-bottom">
-            <button class="toggle-focal-lock-button unlocked" id="toggle-focal-lock">b</button>
+          <div id="resize-handle-bottom">
           </div>
         </div>
       </div>
@@ -87,10 +83,7 @@
         
         <div id="resume-container-footer-div">
           <div>
-              <p class="footnote">
-                  create a flock-of-postcards for your own resume at
-                  <a target="_blank" href="https://github.com/sbecker11/flock-of-postcards/">flock-of-postcards</a><br>
-              </p>
+              <span>Resume Viewer</span>
           </div>
           <!--
           <div id="debugScrollingElement"></div>
@@ -185,9 +178,10 @@
       // 1. Fix percentage span position
       const percentageSpan = document.getElementById('scene-visible-percentage');
       const collapseRight = document.getElementById('collapse-right');
+      const focalLock = document.getElementById('focal-lock');
       const resizeHandle = document.getElementById('resize-handle');
       
-      if (percentageSpan && collapseRight && resizeHandle) {
+      if (percentageSpan && collapseRight && focalLock && resizeHandle) {
         console.log("Repositioning percentage span");
         
         // Remove from current parent
@@ -195,8 +189,8 @@
           percentageSpan.parentNode.removeChild(percentageSpan);
         }
         
-        // Insert directly after collapse-right button
-        collapseRight.parentNode.insertBefore(percentageSpan, collapseRight.nextSibling);
+        // Insert directly after focalLock button
+        focalLock.parentNode.insertBefore(percentageSpan, focalLock.nextSibling);
         
         // Style to position 5px below
         percentageSpan.style.marginTop = '5px';
@@ -207,60 +201,8 @@
         
         console.log("Percentage span repositioned");
       }
-      
-      // 2. Fix b button functionality
-      const bButton = document.getElementById('toggle-focal-lock');
-      
-      if (bButton) {
-        console.log("Setting up b button click handler");
-        
-        // Remove any existing click handlers
-        bButton.replaceWith(bButton.cloneNode(true));
-        
-        // Get the fresh reference
-        const newBButton = document.getElementById('toggle-focal-lock');
-        
-        // Add direct click handler
-        newBButton.addEventListener('click', function(event) {
-          console.log("B button clicked");
-          event.preventDefault();
-          event.stopPropagation();
-          
-          // Toggle class for visual feedback
-          newBButton.classList.toggle('locked');
-          newBButton.classList.toggle('unlocked');
-          
-          // Toggle body class for global state
-          document.body.classList.toggle('focal-point-locked');
-          
-          // Try to call the focal point module function
-          try {
-            // Use dynamic import to get the module
-            import('./modules/core/focalPoint.mjs')
-              .then(module => {
-                if (typeof module.toggleLockedToBullsEye === 'function') {
-                  const isLocked = module.toggleLockedToBullsEye();
-                  console.log(`Focal point lock toggled to: ${isLocked}`);
-                } else {
-                  console.error("toggleLockedToBullsEye function not found");
-                }
-              })
-              .catch(error => {
-                console.error("Error importing focalPoint module:", error);
-              });
-          } catch (error) {
-            console.error("Error toggling focal point lock:", error);
-          }
-          
-          return false;
-        });
-        
-        // Make sure it's clickable
-        newBButton.style.pointerEvents = 'auto';
-        
-        console.log("B button click handler set up");
-      }
     });
+      
   </script>
 
 </body>
