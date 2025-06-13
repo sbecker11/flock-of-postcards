@@ -52,129 +52,190 @@ export function createBizResumeDivId(bizCardDivId) {
     return bizResumeDivId;
 }
 
-// Handle click events on biz resume divs
+/**
+ * Handle click events on biz resume divs
+ * @param {HTMLElement} element - The element that was clicked
+ */
 export function handleClickEvent(element) {
     if (!element) {
-        console.error("bizResumeDivModule: handleClickEvent called with null element");
-        return;
+        throw new Error("bizResumeDivModule: handleClickEvent called with null element");
     }
-    if ( element.classList.contains("biz-resume-div") ) {
+    
+    console.info(`bizResumeDivModule: handleClickEvent called for ${element.id}`);
+    
+    if (element.classList.contains("biz-resume-div")) {
         const bizResumeDiv = element;
-        selectBizResumeDiv(bizResumeDiv);
+        handleBizResumeDivClickEvent(bizResumeDiv);
     }
 }
 
 /**
- * selet the given bizResumeDiv and its paired bizCardDiv
- * but don't scroll bizResumeDiv into view
- * @param {*} bizResumeDiv 
- * @returns 
+ * Handle click events on bizResumeDivs
+ * Similar to bizCardDivModule.handleBizCardDivClickEvent but for bizResumeDivs
+ * @param {HTMLElement} bizResumeDiv - The biz resume div that was clicked
  */
-export function selectBizResumeDiv(bizResumeDiv) {
-    if (!bizResumeDiv) {
-        console.error("bizResumeDivModule: selectBizResumeDiv called with null bizResumeDiv");
-        return;
-    }
-    console.log("bizResumeDivModule: selectBizResumeDiv", bizResumeDiv.id);
+export function handleBizResumeDivClickEvent(bizResumeDiv) {
+    if (!bizResumeDiv) throw new Error("bizResumeDiv is required");
 
-    const isSelected = bizResumeDiv.classList.contains('selected');
+    console.info(`bizResumeDivModule: handleBizResumeDivClickEvent called for ${bizResumeDiv.id}`);
     
-    // clear all selected 
+    // Check if the element is already selected
+    const isSelected = bizResumeDiv.classList.contains("selected");
+    console.info(`bizResumeDivModule: ${bizResumeDiv.id} isSelected before: ${isSelected}`);
+    
+    // Clear all selected elements
     bizCardDivModule.clearAllSelected();
-    if ( isSelected ) {
+    
+    // If it was already selected, we're done (it's now unselected)
+    if (isSelected) {
+        console.info(`bizResumeDivModule: ${bizResumeDiv.id} was already selected, now unselected`);
         return;
     }
-
-    // mark the bizResumeDiv as selected
+    
+    // Add selected class to this element
+    bizResumeDiv.classList.add("selected");
     bizResumeDiv.classList.remove("hovered");
-    bizResumeDiv.classList.add('selected');
- 
-    // select the paired bizCardDiv and scroll it into view
+    console.info(`bizResumeDivModule: Added selected class to ${bizResumeDiv.id}`);
+    
+    // Verify selection was applied
+    console.info(`bizResumeDivModule: ${bizResumeDiv.id} isSelected after: ${bizResumeDiv.classList.contains("selected")}`);
+    
+    // Get the paired bizCardDiv
     const pairedId = bizResumeDiv.getAttribute('data-paired-id');
     const bizCardDiv = document.getElementById(pairedId);
-    selectBizCardDivAndScrollIntoView(bizCardDiv);
+    
+    if (bizCardDiv) {
+        // Select the paired bizCardDiv
+        bizCardDiv.classList.add("selected");
+        bizCardDiv.classList.remove("hovered");
+        console.info(`bizResumeDivModule: Added selected class to paired bizCardDiv ${bizCardDiv.id}`);
+        
+        // Scroll it into view
+        styleBizCardDivAsSelectdAndScrollIntoView(bizCardDiv);
+    } else {
+        console.info(`bizResumeDivModule: Could not find paired bizCardDiv with ID ${pairedId}`);
+    }
 }
 
 /**
- * Select the given bizCardDiv
- * and scroll it into view
- * @param {*} bizCardDiv 
- * @returns 
+ * Select the given bizCardDiv and scroll it into view
+ * @param {HTMLElement} bizCardDiv - The bizCardDiv to select and scroll into view
  */
-export function selectBizCardDivAndScrollIntoView(bizCardDiv) {
-    if (!bizCardDiv) return;
+export function styleBizCardDivAsSelectdAndScrollIntoView(bizCardDiv) {
+    if (!bizCardDiv) throw new Error("bizCardDiv is required");
     
-    console.log("bizResumeDivModule: selectBizCardDivAndScrollIntoView", bizCardDiv.id);
+    console.info(`bizResumeDivModule: styleBizCardDivAsSelectdAndScrollIntoView ${bizCardDiv.id}`);
+    
+    // Ensure the element is selected
     bizCardDiv.classList.remove("hovered");
     bizCardDiv.classList.add('selected');
     
+    // Verify selection was applied
+    console.info(`bizResumeDivModule: ${bizCardDiv.id} isSelected: ${bizCardDiv.classList.contains("selected")}`);
+    
     // Import bizCardDivModule to use its scrolling function
-    import('./bizCardDivModule.mjs').then(module => {
-        if (typeof module.scrollBizCardDivIntoView === 'function') {
-            module.scrollBizCardDivIntoView(bizCardDiv);
-        } else {
-            console.error("bizResumeDivModule: bizCardDivModule.scrollBizCardDivIntoView is not a function");
-            // Fallback to direct scrollIntoView
-            bizCardDiv.scrollIntoView({ behavior: 'smooth', block: 'center' });
-        }
-    }).catch(error => {
-        console.error("bizResumeDivModule: Error importing bizCardDivModule:", error);
-        // Fallback to direct scrollIntoView
-        bizCardDiv.scrollIntoView({ behavior: 'smooth', block: 'center' });
-    });
+    bizCardDivModule.scrollBizCardDivIntoView(bizCardDiv);
 }
 
 /**
  * Sets up click handlers for all biz resume divs
+ * Uses the shared mouse event handlers from bizCardDivModule
  */
 export function setupEventListeners() {
     const bizResumeDivs = document.querySelectorAll('.biz-resume-div');
     
-    console.log(`bizResumeDivModule: Setting up event listeners for ${bizResumeDivs.length} biz resume divs`);
+    console.info(`bizResumeDivModule: Setting up event listeners for ${bizResumeDivs.length} biz resume divs`);
     
     bizResumeDivs.forEach(div => {
         // Remove any existing handlers to avoid duplicates
-        div.removeEventListener('click', bizResumeClickHandler);
-        div.removeEventListener('mouseenter', bizResumeMouseEnterHandler);
-        div.removeEventListener('mouseleave', bizResumeMouseLeaveHandler);
+        const oldClickHandler = div._clickHandler;
+        const oldEnterHandler = div._enterHandler;
+        const oldLeaveHandler = div._leaveHandler;
         
-        // Add click handler
-        div.addEventListener('click', bizResumeClickHandler);
+        if (oldClickHandler) {
+            div.removeEventListener('click', oldClickHandler);
+        }
         
-        // Add hover handlers
-        div.addEventListener('mouseenter', bizResumeMouseEnterHandler);
-        div.addEventListener('mouseleave', bizResumeMouseLeaveHandler);
+        if (oldEnterHandler) div.removeEventListener('mouseenter', oldEnterHandler);
+        if (oldLeaveHandler) div.removeEventListener('mouseleave', oldLeaveHandler);
+        
+        // Create new handlers with direct function calls
+        const clickHandler = (e) => {
+            // Log before doing anything else
+            console.info(`bizResumeDivModule: Click detected on ${div.id}`);
+            
+            // Stop event propagation
+            e.stopPropagation();
+            e.preventDefault();
+            
+            // Call the handler directly
+            console.info(`bizResumeDivModule: Calling handleBizResumeDivClickEvent directly for ${div.id}`);
+            handleBizResumeDivClickEvent(div);
+            
+            return false;
+        };
+        
+        const enterHandler = (e) => {
+            if (div.classList.contains("selected")) return;
+            bizCardDivModule.handleMouseEnterEvent(div);
+        };
+        
+        const leaveHandler = (e) => {
+            if (div.classList.contains("selected")) return;
+            bizCardDivModule.handleMouseLeaveEvent(div);
+        };
+        
+        // Store handlers on the element for later reference
+        div._clickHandler = clickHandler;
+        div._enterHandler = enterHandler;
+        div._leaveHandler = leaveHandler;
+        
+        // Add the event listeners with capture phase to ensure they fire first
+        div.addEventListener('click', clickHandler, true);
+        div.addEventListener('mouseenter', enterHandler);
+        div.addEventListener('mouseleave', leaveHandler);
+        
+        // Also set onclick directly as a fallback
+        div.onclick = clickHandler;
         
         // Add data attributes to confirm handlers were attached
         div.setAttribute('data-has-click-handler', 'true');
-        div.setAttribute('data-has-hover-handlers', 'true');
         
-        console.log(`bizResumeDivModule: Added event handlers to ${div.id}`);
+        console.info(`bizResumeDivModule: Added event handlers to ${div.id}`);
     });
     
-    console.log(`bizResumeDivModule: Set up event handlers for ${bizResumeDivs.length} biz resume divs`);
+    // Add a global click handler to catch all clicks on bizResumeDivs
+    document.addEventListener('click', function(event) {
+        const bizResumeDiv = event.target.closest('.biz-resume-div');
+        if (bizResumeDiv) {
+            console.info(`bizResumeDivModule: Global handler caught click on ${bizResumeDiv.id}`);
+            event.stopPropagation();
+            console.info(`bizResumeDivModule: Calling handleBizResumeDivClickEvent from global handler for ${bizResumeDiv.id}`);
+            handleBizResumeDivClickEvent(bizResumeDiv);
+        }
+    }, true);
     
-    // Also set up event listeners for all biz card divs
-    import('./bizCardDivModule.mjs').then(module => {
-        module.setupEventListeners();
-    }).catch(error => {
-        console.error("Error importing bizCardDivModule:", error);
-    });
+    console.info(`bizResumeDivModule: Set up event handlers for ${bizResumeDivs.length} biz resume divs`);
 }
 
 // Event handler functions
 function bizResumeClickHandler(event) {
-    console.log(`bizResumeDivModule: Click detected on ${event.currentTarget.id}`);
+    console.info(`bizResumeDivModule: Click detected on ${event.currentTarget?.id || 'unknown'}`);
+    
+    // Test the error condition (remove this after testing)
+    // handleClickEvent(null);
+    
+    // Normal behavior
     handleClickEvent(event.currentTarget);
 }
 
 function bizResumeMouseEnterHandler(event) {
-    console.log(`bizResumeDivModule: Mouse enter detected on ${event.currentTarget.id}`);
+    console.info(`bizResumeDivModule: Mouse enter detected on ${event.currentTarget.id}`);
     handleMouseEnterEvent(event.currentTarget);
 }
 
 function bizResumeMouseLeaveHandler(event) {
-    console.log(`bizResumeDivModule: Mouse leave detected on ${event.currentTarget.id}`);
+    console.info(`bizResumeDivModule: Mouse leave detected on ${event.currentTarget.id}`);
     handleMouseLeaveEvent(event.currentTarget);
 }
 
@@ -185,31 +246,31 @@ export function setupDebugClickHandler() {
         const bizResumeDiv = target.closest('.biz-resume-div');
         
         if (bizResumeDiv) {
-            console.log('Debug: Click detected on element:', target);
-            console.log('Debug: Closest bizResumeDiv:', bizResumeDiv.id);
-            console.log('Debug: Target pointer-events:', getComputedStyle(target).pointerEvents);
-            console.log('Debug: BizResumeDiv pointer-events:', getComputedStyle(bizResumeDiv).pointerEvents);
+            console.info('Debug: Click detected on element:', target);
+            console.info('Debug: Closest bizResumeDiv:', bizResumeDiv.id);
+            console.info('Debug: Target pointer-events:', getComputedStyle(target).pointerEvents);
+            console.info('Debug: BizResumeDiv pointer-events:', getComputedStyle(bizResumeDiv).pointerEvents);
             
             // Check if the click handler is attached
             const hasClickHandler = bizResumeDiv.getAttribute('data-has-click-handler');
-            console.log('Debug: Has click handler attribute:', hasClickHandler);
+            console.info('Debug: Has click handler attribute:', hasClickHandler);
             
             // Force handle the click event
-            console.log('Debug: Forcing handleClickEvent...');
+            console.info('Debug: Forcing handleClickEvent...');
             handleClickEvent(bizResumeDiv);
         }
     });
     
-    console.log('Set up debug click handler for diagnosing bizResumeDiv clicks');
+    console.info('Set up debug click handler for diagnosing bizResumeDiv clicks');
 }
 
-// Add a simple diagnostic function
+// Add a function to check if click handlers are properly attached
 export function checkClickability() {
-    console.log("Checking clickability of bizResumeDivs...");
+    console.info("Checking clickability of bizResumeDivs...");
     
     // Get all bizResumeDivs
     const bizResumeDivs = document.querySelectorAll('.biz-resume-div');
-    console.log(`Found ${bizResumeDivs.length} bizResumeDivs`);
+    console.info(`Found ${bizResumeDivs.length} bizResumeDivs`);
     
     if (bizResumeDivs.length === 0) {
         console.warn("No bizResumeDivs found!");
@@ -218,29 +279,29 @@ export function checkClickability() {
     
     // Check the first bizResumeDiv
     const firstDiv = bizResumeDivs[0];
-    console.log(`Checking first bizResumeDiv: ${firstDiv.id}`);
+    console.info(`Checking first bizResumeDiv: ${firstDiv.id}`);
     
     // Check computed styles
     const style = getComputedStyle(firstDiv);
-    console.log(`- pointer-events: ${style.pointerEvents}`);
-    console.log(`- position: ${style.position}`);
-    console.log(`- z-index: ${style.zIndex}`);
-    console.log(`- display: ${style.display}`);
-    console.log(`- visibility: ${style.visibility}`);
-    console.log(`- opacity: ${style.opacity}`);
+    console.info(`- pointer-events: ${style.pointerEvents}`);
+    console.info(`- position: ${style.position}`);
+    console.info(`- z-index: ${style.zIndex}`);
+    console.info(`- display: ${style.display}`);
+    console.info(`- visibility: ${style.visibility}`);
+    console.info(`- opacity: ${style.opacity}`);
     
     // Check if it has the click handler
     const hasClickHandler = firstDiv.onclick || firstDiv._clickHandler;
-    console.log(`- Has click handler: ${!!hasClickHandler}`);
+    console.info(`- Has click handler: ${!!hasClickHandler}`);
     
     // Check its children
     const detailsDiv = firstDiv.querySelector('.biz-resume-details-div');
     if (detailsDiv) {
         const detailsStyle = getComputedStyle(detailsDiv);
-        console.log(`Details div found: ${detailsDiv.className}`);
-        console.log(`- pointer-events: ${detailsStyle.pointerEvents}`);
-        console.log(`- position: ${detailsStyle.position}`);
-        console.log(`- z-index: ${detailsStyle.zIndex}`);
+        console.info(`Details div found: ${detailsDiv.className}`);
+        console.info(`- pointer-events: ${detailsStyle.pointerEvents}`);
+        console.info(`- position: ${detailsStyle.position}`);
+        console.info(`- z-index: ${detailsStyle.zIndex}`);
     } else {
         console.warn("No details div found!");
     }
@@ -252,42 +313,42 @@ export function checkClickability() {
     }
     
     const tempHandler = (e) => {
-        console.log(`TEST CLICK on ${firstDiv.id}`);
-        console.log(`- Target: ${e.target.tagName} ${e.target.className}`);
-        console.log(`- Current target: ${e.currentTarget.tagName} ${e.currentTarget.className}`);
+        console.info(`TEST CLICK on ${firstDiv.id}`);
+        console.info(`- Target: ${e.target.tagName} ${e.target.className}`);
+        console.info(`- Current target: ${e.currentTarget.tagName} ${e.currentTarget.className}`);
         e.stopPropagation();
     };
     
     firstDiv._tempHandler = tempHandler;
     firstDiv.addEventListener('click', tempHandler);
-    console.log("Added temporary test click handler to first bizResumeDiv");
+    console.info("Added temporary test click handler to first bizResumeDiv");
     
-    console.log("Click check complete. Try clicking the first bizResumeDiv now.");
+    console.info("Click check complete. Try clicking the first bizResumeDiv now.");
 }
 
 // Check if the scene container exists and is scrollable
 export function checkSceneContainer() {
-    console.log("Checking scene container...");
+    console.info("Checking scene container...");
     
     const sceneContainer = document.getElementById('scene-container');
     if (sceneContainer) {
-        console.log("Scene container found");
-        console.log("- offsetHeight:", sceneContainer.offsetHeight);
-        console.log("- scrollHeight:", sceneContainer.scrollHeight);
-        console.log("- clientHeight:", sceneContainer.clientHeight);
-        console.log("- scrollTop:", sceneContainer.scrollTop);
-        console.log("- style.overflow:", getComputedStyle(sceneContainer).overflow);
-        console.log("- style.position:", getComputedStyle(sceneContainer).position);
+        console.info("Scene container found");
+        console.info("- offsetHeight:", sceneContainer.offsetHeight);
+        console.info("- scrollHeight:", sceneContainer.scrollHeight);
+        console.info("- clientHeight:", sceneContainer.clientHeight);
+        console.info("- scrollTop:", sceneContainer.scrollTop);
+        console.info("- style.overflow:", getComputedStyle(sceneContainer).overflow);
+        console.info("- style.position:", getComputedStyle(sceneContainer).position);
         
         // Check if it's scrollable
         const isScrollable = sceneContainer.scrollHeight > sceneContainer.clientHeight;
-        console.log("- Is scrollable:", isScrollable);
+        console.info("- Is scrollable:", isScrollable);
         
         // Try scrolling to a specific position
         const originalScrollTop = sceneContainer.scrollTop;
         const testScrollTop = Math.min(sceneContainer.scrollHeight - sceneContainer.clientHeight, 100);
         
-        console.log(`- Testing scroll to ${testScrollTop}px...`);
+        console.info(`- Testing scroll to ${testScrollTop}px...`);
         sceneContainer.scrollTo({
             top: testScrollTop,
             behavior: 'auto'
@@ -295,8 +356,8 @@ export function checkSceneContainer() {
         
         // Check if the scroll position changed
         setTimeout(() => {
-            console.log(`- New scrollTop: ${sceneContainer.scrollTop}`);
-            console.log(`- Scroll test ${sceneContainer.scrollTop === testScrollTop ? 'succeeded' : 'failed'}`);
+            console.info(`- New scrollTop: ${sceneContainer.scrollTop}`);
+            console.info(`- Scroll test ${sceneContainer.scrollTop === testScrollTop ? 'succeeded' : 'failed'}`);
             
             // Restore original scroll position
             sceneContainer.scrollTo({
@@ -307,17 +368,66 @@ export function checkSceneContainer() {
         
         // List all bizCardDivs in the scene container
         const bizCardDivs = sceneContainer.querySelectorAll('.biz-card-div');
-        console.log(`- Contains ${bizCardDivs.length} bizCardDivs`);
+        console.info(`- Contains ${bizCardDivs.length} bizCardDivs`);
         
         if (bizCardDivs.length > 0) {
             const firstBizCardDiv = bizCardDivs[0];
-            console.log(`- First bizCardDiv: ${firstBizCardDiv.id}`);
-            console.log(`- First bizCardDiv offsetTop: ${firstBizCardDiv.offsetTop}`);
-            console.log(`- First bizCardDiv style.position: ${getComputedStyle(firstBizCardDiv).position}`);
+            console.info(`- First bizCardDiv: ${firstBizCardDiv.id}`);
+            console.info(`- First bizCardDiv offsetTop: ${firstBizCardDiv.offsetTop}`);
+            console.info(`- First bizCardDiv style.position: ${getComputedStyle(firstBizCardDiv).position}`);
         }
     } else {
         console.error("Scene container not found");
     }
+}
+
+// Add this function to the end of the file
+export function checkPairing() {
+    console.info("Checking pairing between bizCardDivs and bizResumeDivs...");
+    
+    // Get all bizCardDivs
+    const bizCardDivs = document.querySelectorAll('.biz-card-div');
+    console.info(`Found ${bizCardDivs.length} bizCardDivs`);
+    
+    // Get all bizResumeDivs
+    const bizResumeDivs = document.querySelectorAll('.biz-resume-div');
+    console.info(`Found ${bizResumeDivs.length} bizResumeDivs`);
+    
+    // Check pairing
+    let pairedCount = 0;
+    bizCardDivs.forEach(cardDiv => {
+        const pairedId = cardDiv.getAttribute('data-paired-id');
+        const resumeDiv = document.getElementById(pairedId);
+        
+        if (resumeDiv) {
+            pairedCount++;
+            console.info(`${cardDiv.id} is paired with ${resumeDiv.id}`);
+            
+            // Check if the resumeDiv has click handlers
+            const hasClickHandler = resumeDiv.getAttribute('data-has-click-handler') === 'true';
+            console.info(`${resumeDiv.id} has click handler: ${hasClickHandler}`);
+            
+            // Try to trigger a click on the resumeDiv
+            console.info(`Attempting to trigger click on ${resumeDiv.id}...`);
+            
+            // Create and dispatch a click event
+            const clickEvent = new MouseEvent('click', {
+                bubbles: true,
+                cancelable: true,
+                view: window
+            });
+            
+            resumeDiv.dispatchEvent(clickEvent);
+        } else {
+            console.info(`${cardDiv.id} has no paired resumeDiv`);
+        }
+    });
+    
+    console.info(`${pairedCount} out of ${bizCardDivs.length} bizCardDivs are paired with bizResumeDivs`);
+    
+    // Make this function available globally
+    window.checkPairing = checkPairing;
+    console.info("This function is now available globally as window.checkPairing()");
 }
 
 // Make diagnostic functions available globally
@@ -327,10 +437,10 @@ export function exposeGlobalDiagnostics() {
         checkPairing: checkPairing,
         checkSceneContainer: checkSceneContainer
     };
-    console.log("Global diagnostic functions exposed as window.bizResumeDivCheck");
-    console.log("Usage: window.bizResumeDivCheck.checkClickability()");
-    console.log("Usage: window.bizResumeDivCheck.checkPairing()");
-    console.log("Usage: window.bizResumeDivCheck.checkSceneContainer()");
+    console.info("Global diagnostic functions exposed as window.bizResumeDivCheck");
+    console.info("Usage: window.bizResumeDivCheck.checkClickability()");
+    console.info("Usage: window.bizResumeDivCheck.checkPairing()");
+    console.info("Usage: window.bizResumeDivCheck.checkSceneContainer()");
 }
 
 // Initialize function to set up everything
@@ -347,14 +457,14 @@ function scrollBizCardDivIntoView(bizCardDiv) {
         return;
     }
     
-    console.log(`Attempting to scroll bizCardDiv ${bizCardDiv.id} into view`);
+    console.info(`Attempting to scroll bizCardDiv ${bizCardDiv.id} into view`);
     
     // Try multiple scrolling approaches
     
     // Approach 1: Use the scene container directly
     const sceneContainer = document.getElementById('scene-container');
     if (sceneContainer) {
-        console.log("Using scene container for scrolling");
+        console.info("Using scene container for scrolling");
         
         // Get the position of the bizCardDiv relative to the scene
         const bizCardRect = bizCardDiv.getBoundingClientRect();
@@ -364,8 +474,8 @@ function scrollBizCardDivIntoView(bizCardDiv) {
         const relativeTop = bizCardDiv.offsetTop;
         const scrollTop = relativeTop - (sceneContainer.clientHeight / 2) + (bizCardDiv.clientHeight / 2);
         
-        console.log(`bizCardDiv offsetTop: ${relativeTop}`);
-        console.log(`Calculated scrollTop: ${scrollTop}`);
+        console.info(`bizCardDiv offsetTop: ${relativeTop}`);
+        console.info(`Calculated scrollTop: ${scrollTop}`);
         
         // Scroll the scene container
         sceneContainer.scrollTo({
@@ -373,26 +483,26 @@ function scrollBizCardDivIntoView(bizCardDiv) {
             behavior: 'smooth'
         });
         
-        console.log(`Scrolled scene container to ${scrollTop}px`);
+        console.info(`Scrolled scene container to ${scrollTop}px`);
         
         // Set a timeout to check if scrolling worked
         setTimeout(() => {
-            console.log(`Current scene container scrollTop: ${sceneContainer.scrollTop}`);
+            console.info(`Current scene container scrollTop: ${sceneContainer.scrollTop}`);
             const newBizCardRect = bizCardDiv.getBoundingClientRect();
-            console.log(`bizCardDiv position after scroll: top=${newBizCardRect.top}, bottom=${newBizCardRect.bottom}`);
+            console.info(`bizCardDiv position after scroll: top=${newBizCardRect.top}, bottom=${newBizCardRect.bottom}`);
             
             // If the bizCardDiv is not visible, try approach 2
             const isVisible = (newBizCardRect.top >= sceneRect.top && newBizCardRect.bottom <= sceneRect.bottom);
-            console.log(`bizCardDiv is ${isVisible ? 'visible' : 'not visible'} in viewport`);
+            console.info(`bizCardDiv is ${isVisible ? 'visible' : 'not visible'} in viewport`);
             
             if (!isVisible) {
-                console.log("Trying fallback scrolling approach");
+                console.info("Trying fallback scrolling approach");
                 // Approach 2: Use scrollIntoView
                 bizCardDiv.scrollIntoView({ behavior: 'smooth', block: 'center' });
             }
         }, 500);
     } else {
-        console.log("Scene container not found, using standard scrollIntoView");
+        console.info("Scene container not found, using standard scrollIntoView");
         // Fallback to standard scrollIntoView
         bizCardDiv.scrollIntoView({ behavior: 'smooth', block: 'center' });
     }
@@ -412,7 +522,7 @@ function extractJobIndexFromId(id) {
 export function handleMouseEnterEvent(element) {
     if (!element) return;
     
-    console.log(`bizResumeDivModule: Mouse enter on ${element.id}`);
+    console.info(`bizResumeDivModule: Mouse enter on ${element.id}`);
     
     // Always apply hover state regardless of focal point state
     if (!element.classList.contains("selected")) {
@@ -424,13 +534,13 @@ export function handleMouseEnterEvent(element) {
             const bizCardDiv = document.getElementById(pairedId);
             if (bizCardDiv && !bizCardDiv.classList.contains("selected")) {
                 bizCardDiv.classList.add("hovered");
-                console.log(`bizResumeDivModule: Added hover to paired bizCardDiv ${pairedId}`);
+                console.info(`bizResumeDivModule: Added hover to paired bizCardDiv ${pairedId}`);
             }
         }
         
-        console.log(`bizResumeDivModule: Element ${element.id} hovered`);
+        console.info(`bizResumeDivModule: Element ${element.id} hovered`);
     } else {
-        console.log(`bizResumeDivModule: Element ${element.id} not hovered (already selected)`);
+        console.info(`bizResumeDivModule: Element ${element.id} not hovered (already selected)`);
     }
 }
 
@@ -438,7 +548,7 @@ export function handleMouseEnterEvent(element) {
 export function handleMouseLeaveEvent(element) {
     if (!element) return;
     
-    console.log(`bizResumeDivModule: Mouse leave on ${element.id}`);
+    console.info(`bizResumeDivModule: Mouse leave on ${element.id}`);
     
     // Always remove hover state regardless of focal point state
     if (!element.classList.contains("selected")) {
@@ -450,13 +560,13 @@ export function handleMouseLeaveEvent(element) {
             const bizCardDiv = document.getElementById(pairedId);
             if (bizCardDiv && !bizCardDiv.classList.contains("selected")) {
                 bizCardDiv.classList.remove("hovered");
-                console.log(`bizResumeDivModule: Removed hover from paired bizCardDiv ${pairedId}`);
+                console.info(`bizResumeDivModule: Removed hover from paired bizCardDiv ${pairedId}`);
             }
         }
         
-        console.log(`bizResumeDivModule: Element ${element.id} unhovered`);
+        console.info(`bizResumeDivModule: Element ${element.id} unhovered`);
     } else {
-        console.log(`bizResumeDivModule: Element ${element.id} not unhovered (selected)`);
+        console.info(`bizResumeDivModule: Element ${element.id} not unhovered (selected)`);
     }
 }
 
@@ -470,7 +580,7 @@ export function scrollBizResumeDivIntoView(bizResumeDiv) {
         return;
     }
     
-    console.log(`bizResumeDivModule: Scrolling bizResumeDiv ${bizResumeDiv.id} into view`);
+    console.info(`bizResumeDivModule: Scrolling bizResumeDiv ${bizResumeDiv.id} into view`);
     
     // Get the resumeManager
     const resumeManager = window.resumeManager;
@@ -482,12 +592,56 @@ export function scrollBizResumeDivIntoView(bizResumeDiv) {
     
     // If resumeManager is not available, try to use the infiniteScroller directly
     if (window.infiniteScroller) {
-        console.log(`bizResumeDivModule: Using infiniteScroller directly to scroll ${bizResumeDiv.id}`);
+        console.info(`bizResumeDivModule: Using infiniteScroller directly to scroll ${bizResumeDiv.id}`);
         window.infiniteScroller.scrollToBizResumeDiv(bizResumeDiv, true);
         return;
     }
     
     // Last resort: use direct scrollIntoView
-    console.log(`bizResumeDivModule: Using direct scrollIntoView for ${bizResumeDiv.id}`);
+    console.info(`bizResumeDivModule: Using direct scrollIntoView for ${bizResumeDiv.id}`);
     bizResumeDiv.scrollIntoView({ behavior: 'smooth', block: 'center' });
+}
+
+/**
+ * Debug function to check if elements are properly selected
+ * Call this from the console to see which elements are selected
+ */
+export function checkSelectedElements() {
+    console.info("Checking selected elements...");
+    
+    // Check bizResumeDivs
+    const bizResumeDivs = document.querySelectorAll('.biz-resume-div');
+    console.info(`Found ${bizResumeDivs.length} bizResumeDivs`);
+    
+    let selectedCount = 0;
+    bizResumeDivs.forEach(div => {
+        const isSelected = div.classList.contains("selected");
+        if (isSelected) {
+            selectedCount++;
+            console.info(`${div.id} is selected`);
+        }
+    });
+    
+    console.info(`${selectedCount} bizResumeDivs are selected`);
+    
+    // Check bizCardDivs
+    const bizCardDivs = document.querySelectorAll('.biz-card-div');
+    console.info(`Found ${bizCardDivs.length} bizCardDivs`);
+    
+    selectedCount = 0;
+    bizCardDivs.forEach(div => {
+        const isSelected = div.classList.contains("selected");
+        if (isSelected) {
+            selectedCount++;
+            console.info(`${div.id} is selected`);
+        }
+    });
+    
+    console.info(`${selectedCount} bizCardDivs are selected`);
+    
+    // Make this function available globally
+    window.checkSelectedElements = checkSelectedElements;
+    console.info("This function is now available globally as window.checkSelectedElements()");
+    
+    return selectedCount > 0;
 }

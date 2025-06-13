@@ -8,97 +8,113 @@
 }
 
 /* Color 0 */
-body [data-color-index].palette-mitzibushi-red-color-0 {
-    background-color: #5a0924 !important;
+body [data-color-index].palette-so-cherry-color-0 {
+    background-color: #ab0e4a !important;
     color: #FFFFFF !important;
 }
 
-body [data-color-index].palette-mitzibushi-red-color-0.selected {
-    background-color: #870E36 !important;
+body [data-color-index].palette-so-cherry-color-0.selected {
+    background-color: #FF156F !important;
     color: #FFFFFF !important;
 }
 
-body [data-color-index].palette-mitzibushi-red-color-0:hover:not(.selected) {
-    background-color: #870E36 !important;
+body [data-color-index].palette-so-cherry-color-0:hover:not(.selected) {
+    background-color: #FF156F !important;
     color: #FFFFFF !important;
 }
 
 /* Color 1 */
-body [data-color-index].palette-mitzibushi-red-color-1 {
-    background-color: #9d2a59 !important;
+body [data-color-index].palette-so-cherry-color-1 {
+    background-color: #540018 !important;
     color: #FFFFFF !important;
 }
 
-body [data-color-index].palette-mitzibushi-red-color-1.selected {
-    background-color: #EC3F86 !important;
-    color: #000000 !important;
+body [data-color-index].palette-so-cherry-color-1.selected {
+    background-color: #7E0024 !important;
+    color: #FFFFFF !important;
 }
 
-body [data-color-index].palette-mitzibushi-red-color-1:hover:not(.selected) {
-    background-color: #EC3F86 !important;
-    color: #000000 !important;
+body [data-color-index].palette-so-cherry-color-1:hover:not(.selected) {
+    background-color: #7E0024 !important;
+    color: #FFFFFF !important;
 }
 
 /* Color 2 */
-body [data-color-index].palette-mitzibushi-red-color-2 {
-    background-color: #2a0411 !important;
+body [data-color-index].palette-so-cherry-color-2 {
+    background-color: #37020c !important;
     color: #FFFFFF !important;
 }
 
-body [data-color-index].palette-mitzibushi-red-color-2.selected {
-    background-color: #3F061A !important;
+body [data-color-index].palette-so-cherry-color-2.selected {
+    background-color: #530312 !important;
     color: #FFFFFF !important;
 }
 
-body [data-color-index].palette-mitzibushi-red-color-2:hover:not(.selected) {
-    background-color: #3F061A !important;
+body [data-color-index].palette-so-cherry-color-2:hover:not(.selected) {
+    background-color: #530312 !important;
     color: #FFFFFF !important;
 }
 
 /* Color 3 */
-body [data-color-index].palette-mitzibushi-red-color-3 {
-    background-color: #2d0714 !important;
+body [data-color-index].palette-so-cherry-color-3 {
+    background-color: #4e0016 !important;
     color: #FFFFFF !important;
 }
 
-body [data-color-index].palette-mitzibushi-red-color-3.selected {
-    background-color: #440B1E !important;
+body [data-color-index].palette-so-cherry-color-3.selected {
+    background-color: #750021 !important;
     color: #FFFFFF !important;
 }
 
-body [data-color-index].palette-mitzibushi-red-color-3:hover:not(.selected) {
-    background-color: #440B1E !important;
+body [data-color-index].palette-so-cherry-color-3:hover:not(.selected) {
+    background-color: #750021 !important;
     color: #FFFFFF !important;
 }
 
 /* Color 4 */
-body [data-color-index].palette-mitzibushi-red-color-4 {
-    background-color: #5f011c !important;
+body [data-color-index].palette-so-cherry-color-4 {
+    background-color: #480016 !important;
     color: #FFFFFF !important;
 }
 
-body [data-color-index].palette-mitzibushi-red-color-4.selected {
-    background-color: #8F022A !important;
+body [data-color-index].palette-so-cherry-color-4.selected {
+    background-color: #6C0021 !important;
     color: #FFFFFF !important;
 }
 
-body [data-color-index].palette-mitzibushi-red-color-4:hover:not(.selected) {
-    background-color: #8F022A !important;
+body [data-color-index].palette-so-cherry-color-4:hover:not(.selected) {
+    background-color: #6C0021 !important;
     color: #FFFFFF !important;
 }
 
 /* Color 5 */
-body [data-color-index].palette-mitzibushi-red-color-5 {
-    background-color: #740120 !important;
+body [data-color-index].palette-so-cherry-color-5 {
+    background-color: #a60450 !important;
     color: #FFFFFF !important;
 }
 
-body [data-color-index].palette-mitzibushi-red-color-5.selected {
-    background-color: #AE0230 !important;
+body [data-color-index].palette-so-cherry-color-5.selected {
+    background-color: #F90678 !important;
     color: #FFFFFF !important;
 }
 
-body [data-color-index].palette-mitzibushi-red-color-5:hover:not(.selected) {
-    background-color: #AE0230 !important;
+body [data-color-index].palette-so-cherry-color-5:hover:not(.selected) {
+    background-color: #F90678 !important;
+    color: #FFFFFF !important;
+}
+
+/* Color 6 */
+body [data-color-index].palette-so-cherry-color-6 {
+    background-color: #a60040 !important;
+    color: #FFFFFF !important;
+}
+
+body [data-color-index].palette-so-cherry-color-6.selected {
+    background-color: #F90060 !important;
+    color: #FFFFFF !important;
+}
+
+body [data-color-index].palette-so-cherry-color-6:hover:not(.selected) {
+    background-color: #F90060 !important;
     color: #FFFFFF !important;
 }

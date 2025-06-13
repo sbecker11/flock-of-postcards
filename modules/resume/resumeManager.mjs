@@ -448,6 +448,41 @@ class ResumeManager {
   }
 
   /**
+   * Scroll the bizResumeDiv into view without selecting it
+   * This is used when a bizCardDiv is clicked and we want to show the corresponding bizResumeDiv
+   * without triggering the selection logic in the bizResumeDiv
+   * @param {HTMLElement} bizResumeDiv - The bizResumeDiv to scroll into view
+   */
+  scrollBizResumeDivIntoViewWithoutSelection(bizResumeDiv) {
+    if (!bizResumeDiv) {
+      console.error("ResumeManager: scrollBizResumeDivIntoViewWithoutSelection called with null bizResumeDiv");
+      return false;
+    }
+    
+    console.log(`ResumeManager: Scrolling bizResumeDiv ${bizResumeDiv.id} into view without selection`);
+    
+    // If we have an infinite scroller, use it to scroll to the item
+    if (this.infiniteScroller) {
+      const jobIndex = parseInt(bizResumeDiv.getAttribute('data-job-index'), 10);
+      const sortedIndex = this.sortedIndices.indexOf(jobIndex);
+      
+      if (sortedIndex !== -1) {
+        console.log(`ResumeManager: Using infiniteScroller to scroll to sorted index ${sortedIndex}`);
+        this.infiniteScroller.scrollToItem(sortedIndex);
+        return true;
+      } else {
+        console.error(`ResumeManager: Job index ${jobIndex} not found in sortedIndices`);
+      }
+    }
+    
+    // Fallback to direct scrollIntoView if infiniteScroller is not available
+    // or if we couldn't find the sorted index
+    console.log(`ResumeManager: Using direct scrollIntoView for ${bizResumeDiv.id}`);
+    bizResumeDiv.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    return true;
+  }
+
+  /**
    * Scroll to a specific job index
    * @param {number} jobIndex - The job index to scroll to
    * @returns {boolean} - Whether the scroll was successful
@@ -482,6 +517,46 @@ class ResumeManager {
    */
   findBizResumeDivByJobIndex(jobIndex) {
     return document.querySelector(`.biz-resume-div[data-job-index="${jobIndex}"]`);
+  }
+
+  /**
+   * Sync with a selection in the scene view without triggering a click
+   * This is used when a bizCardDiv is clicked and we want to sync the resume view
+   * without triggering the selection logic in the bizResumeDiv
+   * @param {number} jobIndex - The job index to sync with
+   * @returns {boolean} - Whether the sync was successful
+   */
+  syncWithSceneSelectionWithoutClick(jobIndex) {
+    console.log(`ResumeManager: Syncing with scene selection for job index ${jobIndex} (without click)`);
+    
+    // Find the sorted index for this job index
+    const sortedIndex = this.sortedIndices.indexOf(jobIndex);
+    if (sortedIndex === -1) {
+      console.error(`ResumeManager: Job index ${jobIndex} not found in sortedIndices`);
+      return false;
+    }
+    
+    console.log(`ResumeManager: Found sorted index ${sortedIndex} for job index ${jobIndex}`);
+    
+    // If we have an infinite scroller, use it to scroll to the item
+    if (this.infiniteScroller) {
+      console.log(`ResumeManager: Using infiniteScroller to scroll to sorted index ${sortedIndex}`);
+      this.infiniteScroller.scrollToItem(sortedIndex);
+      return true;
+    }
+    
+    // If we don't have an infinite scroller, try to find the bizResumeDiv directly
+    const bizResumeDivId = `biz-resume-div-${jobIndex}`;
+    const bizResumeDiv = document.getElementById(bizResumeDivId);
+    
+    if (bizResumeDiv) {
+      console.log(`ResumeManager: Found bizResumeDiv ${bizResumeDivId}, scrolling into view`);
+      bizResumeDiv.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      return true;
+    } else {
+      console.error(`ResumeManager: Could not find bizResumeDiv with ID ${bizResumeDivId}`);
+      return false;
+    }
   }
 }
 
