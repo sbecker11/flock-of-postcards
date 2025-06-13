@@ -71,8 +71,8 @@ var _focalPointElement = null;
 var _focalPointNowSubpixelPrecision;
 var _isEasingToAimPoint = false;
 var _isEasingToBullsEye = false;
-var _isAwake = true;
-var _isDraggable = true;
+var _isAwake = false;
+var _isDraggable = false;
 var _isBeingDragged = false;
 let _focalPointRadius = 0;
 const _mouseDrag = new MouseDrag();
@@ -81,7 +81,7 @@ let _resizeObserver = null;
 let _status = "asleep";
 let _lastStatus = "asleep";
 
-let _isLockedToBullsEye = false;// New state to track if pointer is outside window
+let _isLockedToBullsEye = true;
 
 let _lastFocalPoint = null;
 let _lastSceneRect = null;
@@ -135,8 +135,8 @@ const STORAGE_KEY = 'focalPoint_state';
  */
 function getDefaultState() {
     return {
-        isDraggable: true,
-        isLockedToBullsEye: false,
+        isDraggable: false,
+        isLockedToBullsEye: true,
         _lastFocalPoint: null,
         _lastSceneRect: null,
         scenePercentage: 50, // Default 50% split
@@ -221,13 +221,13 @@ export function getCurrentState() {
     return loadState();
 }
 
-/**
- * on windwo load
- */
-export function handleOnWindowLoad() {
-    //console.log("focalPoint handlingOnWindowLoad");
-    startEasingToBullsEye("handleOnWindowLoad");
-}
+// /**
+//  * on windwo load
+//  */
+// export function handleOnWindowLoad() {
+//     //console.log("focalPoint handlingOnWindowLoad");
+//     startEasingToBullsEye("handleOnWindowLoad");
+// }
 
 /**
  * external function to set _isBeingDragged to true
@@ -380,6 +380,13 @@ export function initializeFocalPoint(focalPointElement) {
     }
     _isFocalPointInitialized = true;
 
+    initializeState();
+
+    // override last saved state
+    document.body.classList.add('focal-point-locked');
+    _isLockedToBullsEye = document.body.classList.contains('focal-point-locked');
+
+
     // Clear any existing listeners to prevent duplicates
     clearFocalPointOnlyListeners();
     clearFocalPointAndSceneRectListeners();
@@ -409,9 +416,6 @@ export function initializeFocalPoint(focalPointElement) {
 
     aimPoint.setAimPoint(bullsEye.getBullsEye(), "createFocalPoint");
     moveFocalPointTo(aimPoint.getAimPoint(), "createFocalPoint");
-
-    // Start lock state checks
-    startLockStateChecks();
 
     // Emit event when initialization is complete
     eventBus.emit('focalPoint:initialized', {});
@@ -955,40 +959,12 @@ function computeAStepCloserToAimSubpixelPrecision(nowPoint, aimPointElement, eas
     };
 }
 
+
 /**
- * external function used to toggle draggable state
+ * @returns true if the focalPoint is currently locked to the bullsEye
  */
-export function toggleDraggable() {
-    //console.info("********** toggleDraggable called isDraggable:", _isDraggable);
-    _isDraggable = !_isDraggable;
-    
-    if (_isDraggable) {
-        // If we're enabling draggable, ensure we're not being dragged
-        _isBeingDragged = false;
-        
-        _focalPointElement.classList.add('focal-point-is-draggable');
-        
-        // Only enable pointer events on hover (CSS will handle this)
-        // But make sure it's not 'none' which would prevent hover detection
-        _focalPointElement.style.pointerEvents = 'auto';
-        
-        // If we were locked to bulls eye, unlock
-        if (_isLockedToBullsEye) {
-            _isLockedToBullsEye = false;
-            setStatus(FOCAL_POINT_STATE.FOLLOWING, "toggleDraggable");
-        }
-    } else {
-        _focalPointElement.classList.remove('focal-point-is-draggable');
-        _focalPointElement.style.pointerEvents = 'none';
-        
-        // If we were being dragged, stop dragging
-        if (_isBeingDragged) {
-            set_isBeingDragged_false(getFocalPoint());
-        }
-    }
-    
-    saveState();
-    //console.info(`toggleDraggable: ${_isDraggable}`);
+export function isLockedToBullsEye() {
+    return _isLockedToBullsEye;
 }
 
 /**
@@ -1031,38 +1007,41 @@ export function toggleLockedToBullsEye() {
             bullsEye.classList.remove('focal-point-locked');
         }
     }
+
+    logFocalPointState();
+    enforceLockState();
     
     console.log(`Focal point locked: ${isLocked}`);
     return isLocked;
 }
 
-/**
- * Force enable pointer events on all bizCardDivs
- * This is a more aggressive approach to ensure they receive mouse events
- */
-function forceEnablePointerEvents() {
-    console.log("Forcing pointer events on all bizCardDivs");
+// /**
+//  * Force enable pointer events on all bizCardDivs
+//  * This is a more aggressive approach to ensure they receive mouse events
+//  */
+// function forceEnablePointerEvents() {
+//     console.log("Forcing pointer events on all bizCardDivs");
     
-    // Get all bizCardDivs
-    const bizCardDivs = document.querySelectorAll('.biz-card-div');
+//     // Get all bizCardDivs
+//     const bizCardDivs = document.querySelectorAll('.biz-card-div');
     
-    // Enable pointer events on each one
-    bizCardDivs.forEach(div => {
-        div.style.pointerEvents = 'auto';
+//     // Enable pointer events on each one
+//     bizCardDivs.forEach(div => {
+//         div.style.pointerEvents = 'auto';
         
-        // Also ensure all child elements have pointer events
-        const children = div.querySelectorAll('*');
-        children.forEach(child => {
-            child.style.pointerEvents = 'auto';
-        });
-    });
+//         // Also ensure all child elements have pointer events
+//         const children = div.querySelectorAll('*');
+//         children.forEach(child => {
+//             child.style.pointerEvents = 'auto';
+//         });
+//     });
     
-    // Also ensure the scene container has pointer events
-    const sceneContainer = document.getElementById('scene-container');
-    if (sceneContainer) {
-        sceneContainer.style.pointerEvents = 'auto';
-    }
-}
+//     // Also ensure the scene container has pointer events
+//     const sceneContainer = document.getElementById('scene-container');
+//     if (sceneContainer) {
+//         sceneContainer.style.pointerEvents = 'auto';
+//     }
+// }
 
 /**
  * Add direct mouse event listeners to a bizCardDiv
@@ -1463,25 +1442,6 @@ function enforceLockState() {
     }
 }
 
-// Set up a periodic check to enforce the lock state
-let _lockStateInterval = null;
-
-/**
- * Start periodic checks to enforce the lock state
- */
-function startLockStateChecks() {
-    if (_lockStateInterval) {
-        clearInterval(_lockStateInterval);
-    }
-    
-    _lockStateInterval = setInterval(() => {
-        if (_isLockedToBullsEye) {
-            enforceLockState();
-        }
-    }, 1000); // Check every second
-    
-    console.log("Lock state checks started");
-}
 
 /**
  * Ensure scene elements are interactive when focal point is locked
@@ -1547,41 +1507,4 @@ export function logFocalPointState() {
     console.log("========================");
 }
 
-/**
- * @returns true if the focal point is locked to the bulls eye
- */
-export function isLockedToBullsEye() {
-    return _isLockedToBullsEye;
-}
 
-// Add a global function to test toggleLockedToBullsEye
-export function setupGlobalTestFunctions() {
-    window.toggleFocalPointLock = function() {
-        console.log("window.toggleFocalPointLock: Function called");
-        var isLocked = toggleLockedToBullsEye();
-        console.log(`window.toggleFocalPointLock: Focal point lock toggled to: ${isLocked}`);
-        logFocalPointState();
-        return isLocked;
-    };
-    
-    window.getFocalPointState = function() {
-        console.log("window.getFocalPointState: Function called");
-        logFocalPointState();
-        return {
-            isLockedToBullsEye: _isLockedToBullsEye,
-            isDraggable: _isDraggable,
-            isBeingDragged: _isBeingDragged,
-            isEasingToAimPoint: _isEasingToAimPoint,
-            isEasingToBullsEye: _isEasingToBullsEye,
-            isAwake: _isAwake,
-            status: getStatus()
-        };
-    };
-    
-    console.log("focalPoint.setupGlobalTestFunctions: Global test functions set up");
-    console.log("focalPoint.setupGlobalTestFunctions: Use window.toggleFocalPointLock() to toggle the focal point lock");
-    console.log("focalPoint.setupGlobalTestFunctions: Use window.getFocalPointState() to get the current focal point state");
-}
-
-// Call setupGlobalTestFunctions when the module is loaded
-setupGlobalTestFunctions();

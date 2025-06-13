@@ -394,12 +394,12 @@
   color: black;
 }
 .toggle-circle.locked:hover {
-  background-color: black;
-  border-color:white;
+  background-color: grey;
+  border-color:black;
 }
 .toggle-circle.unlocked:hover {
-  background-color: black;
-  border-color: grey;
+  background-color: white;
+  border-color: black;
 }
 
 /* Handle all interactive states to prevent secondary circle */
