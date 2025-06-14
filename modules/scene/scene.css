@@ -116,13 +116,21 @@ body.focal-point-locked .biz-resume-div[data-hovered="true"] {
     z-index: 10 !important; /* Ensure hovered elements are above others */
 }
 
+.biz-card-div.hovered, 
+.biz-resume-div.hovered {
+    filter: brightness(1.5) !important;
+    border: 3px solid blue !important;
+    transition: none !important;
+    z-index: 10 !important; /* Ensure hovered elements are above others */
+}
+
 .biz-card-div.selected, 
 .biz-resume-div.selected,
 #scene-container .biz-card-div.selected,
 #scene-container .biz-resume-div.selected,
 body.focal-point-locked .biz-card-div.selected,
 body.focal-point-locked .biz-resume-div.selected {
-    filter: brightness(1.5) !important;
+    filter: brightness(1.75) !important;
     border: 10px solid purple !important;
     transition: none !important;
 }

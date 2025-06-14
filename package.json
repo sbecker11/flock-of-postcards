@@ -7,8 +7,8 @@
   "scripts": {
     "start": "npm run kill-listeners &&concurrently \"npm run node-server\" \"npm run open-chrome\"",
     "node-server": "nodemon server.mjs",
-    "open-chrome": "open-cli http://localhost:3001 --incognito",
-    "kill-listeners": "lsof -i :3000 | awk 'NR>1 {print $2}' | xargs -r kill -9 || true"
+    "open-chrome": "open-cli http://localhost:3009 --incognito",
+    "kill-listeners": "lsof -i :3009 | awk 'NR>1 {print $2}' | xargs -r kill -9 || true"
   },
   "repository": {
     "type": "git",

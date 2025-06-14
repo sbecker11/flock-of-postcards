@@ -198,6 +198,15 @@ async function initialize() {
         const defaultTimelineYear = maxTimelineYear;
         timeline.initializeTimeline(minTimelineYear, maxTimelineYear, defaultTimelineYear);
 
+        // Scroll to current year and month at startup
+        const sceneContainerEl = document.getElementById('scene-container');
+        const now = new Date();
+        const currentYear = now.getFullYear();
+        const currentMonth = now.getMonth() + 1; // getMonth() is 0-based
+        if (sceneContainerEl && typeof timeline.sceneContainerScrollToYearMonth === 'function') {
+            timeline.sceneContainerScrollToYearMonth(sceneContainerEl, currentYear, currentMonth);
+        }
+
         // Sort jobs by date
         const sortedJobs = [...loadedJobs].sort((a, b) => {
             return new Date(b.start) - new Date(a.start);
@@ -241,6 +250,20 @@ async function initialize() {
         
         // STEP 14: Set up direct key handler for debugging
         setupDirectKeyHandler();
+        
+        // Focal lock button toggle logic
+        const focalLockBtn = document.getElementById('focal-lock');
+        if (focalLockBtn) {
+            focalLockBtn.addEventListener('click', () => {
+                if (focalLockBtn.classList.contains('locked')) {
+                    focalLockBtn.classList.remove('locked');
+                    focalLockBtn.classList.add('unlocked');
+                } else {
+                    focalLockBtn.classList.remove('unlocked');
+                    focalLockBtn.classList.add('locked');
+                }
+            });
+        }
         
         console.log("Application initialization complete");
     } catch (error) {

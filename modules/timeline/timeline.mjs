@@ -2,6 +2,7 @@
 
 import * as utils from '../utils/utils.mjs';
 import * as mathUtils from '../utils/mathUtils.mjs';
+import * as sceneContainer from '../scene/sceneContainer.mjs';
   
 import { Logger, LogLevel } from '../logger.mjs';
 const logger = new Logger("timeline", LogLevel.INFO);
@@ -38,6 +39,8 @@ export function initializeTimeline(minYear, maxYear, defaultYear=null) {
     }
     _initializeTimeline(minYear, maxYear, defaultYear);
     _timelineIsInitialized = true;
+    // Scroll to current year/month at the top
+    sceneContainer.scrollSceneToCurrentYearMonthTop();
 }
 
 // the global set of all yearDivBottoms created 
@@ -214,5 +217,39 @@ export function sceneContainerScrollToYear(_sceneContainer, year) {
     newScrollTop = utils.clampInt(newScrollTop, 0, _sceneContainer.scrollHeight);
 
     _sceneContainer.scrollTop = newScrollTop;
+}
+
+/**
+ * Scrolls the scene container so that the given year and month is at the top
+ * @param {HTMLElement} sceneContainer - The scene container element
+ * @param {number} year - The year to scroll to
+ * @param {number} month - The month to scroll to (1-12)
+ */
+export function sceneContainerScrollToYearMonth(sceneContainer, year, month) {
+    if (!sceneContainer || typeof sceneContainer.scrollHeight !== 'number' || sceneContainer.scrollHeight <= 0) {
+        console.error("Invalid sceneContainer or scrollHeight:", sceneContainer, sceneContainer && sceneContainer.scrollHeight);
+        return;
+    }
+    if (!Number.isFinite(year) || !Number.isFinite(month)) {
+        console.error("Invalid year or month:", year, month);
+        return;
+    }
+    // Clamp month to 1-12
+    month = Math.max(1, Math.min(12, month));
+    const yearStr = String(year);
+    const monthStr = month.toString().padStart(2, '0');
+    const yearMonthBottom = getTimelineYearMonthBottom(yearStr, monthStr);
+    // Align the TOP of the requested year/month to the top of the container
+    const yearMonthTop = yearMonthBottom - (YEAR_BOTTOM_TO_BOTTOM / 12);
+    sceneContainer.scrollTop = Math.max(0, yearMonthTop);
+}
+
+// Add public getters for timeline year min and max
+export function getTimelineYearMin() {
+    return _timelineYearMin;
+}
+
+export function getTimelineYearMax() {
+    return _timelineYearMax;
 }
 

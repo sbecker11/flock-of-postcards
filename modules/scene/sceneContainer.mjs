@@ -296,3 +296,21 @@ export function setupGradientOverlays() {
     
     resizeObserver.observe(timelineContainer);
 }
+
+/**
+ * Scrolls the scene so that the current year and month are at the top,
+ * and all previous data is visible above.
+ */
+export function scrollSceneToCurrentYearMonthTop() {
+    const sceneContainer = document.getElementById('scene-container');
+    if (!sceneContainer) {
+        console.error('scrollSceneToCurrentYearMonthTop: scene-container not found');
+        return;
+    }
+    // Get current year and month
+    const now = new Date();
+    const year = now.getFullYear();
+    const month = now.getMonth() + 1; // JS months are 0-based
+    // Use timeline util to scroll
+    timeline.sceneContainerScrollToYearMonth(sceneContainer, year, month);
+}

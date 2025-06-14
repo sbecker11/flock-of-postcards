@@ -102,14 +102,14 @@ export function scrollBizCardDivIntoView(bizCardDiv) {
     console.info(`bizCardDivModule: Attempting to scroll ${bizCardDiv.id} into view`);
     
     // Get the scene container
-    const sceneContainer = document.getElementById('scene-container');
-    if (!sceneContainer) {
+    const sceneContainerEl = document.getElementById('scene-container');
+    if (!sceneContainerEl) {
         console.error("scrollBizCardDivIntoView: scene-container not found");
         return;
     }
     
     // Force the scene container to be scrollable
-    sceneContainer.style.overflow = 'auto';
+    sceneContainerEl.style.overflow = 'auto';
     
     // Get the scene position data from the bizCardDiv's data attributes
     const sceneTop = parseFloat(bizCardDiv.getAttribute('data-sceneTop'));
@@ -128,7 +128,7 @@ export function scrollBizCardDivIntoView(bizCardDiv) {
     console.info(`bizCardDiv ${bizCardDiv.id} scene position: top=${sceneTop}, bottom=${sceneBottom}, height=${sceneHeight}`);
     
     // Check if the bizCardDiv is taller than the viewport
-    const isTallerThanViewport = sceneHeight > sceneContainer.clientHeight;
+    const isTallerThanViewport = sceneHeight > sceneContainerEl.clientHeight;
     console.info(`bizCardDiv is ${isTallerThanViewport ? 'taller' : 'shorter'} than viewport`);
     
     let scrollPosition;
@@ -141,15 +141,15 @@ export function scrollBizCardDivIntoView(bizCardDiv) {
     } else {
         // For normal-sized bizCardDivs, center them in the viewport
         const sceneCenterY = (sceneTop + sceneBottom) / 2;
-        scrollPosition = sceneCenterY - (sceneContainer.clientHeight / 2);
+        scrollPosition = sceneCenterY - (sceneContainerEl.clientHeight / 2);
         console.info(`Using center-aligned scrolling for normal-sized bizCardDiv`);
     }
     
     console.info(`Calculated scroll position: ${scrollPosition}`);
-    console.info(`Current scroll position: ${sceneContainer.scrollTop}`);
+    console.info(`Current scroll position: ${sceneContainerEl.scrollTop}`);
     
     // Ensure the scroll position is within bounds
-    const maxScroll = sceneContainer.scrollHeight - sceneContainer.clientHeight;
+    const maxScroll = sceneContainerEl.scrollHeight - sceneContainerEl.clientHeight;
     const boundedScrollPosition = Math.max(0, Math.min(scrollPosition, maxScroll));
     
     if (boundedScrollPosition !== scrollPosition) {
@@ -160,34 +160,34 @@ export function scrollBizCardDivIntoView(bizCardDiv) {
     console.info(`Scrolling scene container to ${boundedScrollPosition}`);
     
     // First try with smooth behavior
-    sceneContainer.scrollTo({
+    sceneContainerEl.scrollTo({
         top: boundedScrollPosition,
         behavior: 'smooth'
     });
     
     // Check if scrolling worked after a delay
     setTimeout(() => {
-        console.info(`After scrolling, scene container scrollTop: ${sceneContainer.scrollTop}`);
+        console.info(`After scrolling, scene container scrollTop: ${sceneContainerEl.scrollTop}`);
         
         // If we're not close to the target position, try with auto behavior
-        if (Math.abs(sceneContainer.scrollTop - boundedScrollPosition) > 50) {
+        if (Math.abs(sceneContainerEl.scrollTop - boundedScrollPosition) > 50) {
             console.info("Smooth scrolling didn't work, trying with auto behavior");
             
-            sceneContainer.scrollTo({
+            sceneContainerEl.scrollTo({
                 top: boundedScrollPosition,
                 behavior: 'auto'
             });
             
             // Check again after a short delay
             setTimeout(() => {
-                console.info(`After auto scrolling, scene container scrollTop: ${sceneContainer.scrollTop}`);
+                console.info(`After auto scrolling, scene container scrollTop: ${sceneContainerEl.scrollTop}`);
                 
                 // If we're still not close, try direct assignment
-                if (Math.abs(sceneContainer.scrollTop - boundedScrollPosition) > 50) {
+                if (Math.abs(sceneContainerEl.scrollTop - boundedScrollPosition) > 50) {
                     console.info("Auto scrolling didn't work, trying direct assignment");
-                    sceneContainer.scrollTop = boundedScrollPosition;
+                    sceneContainerEl.scrollTop = boundedScrollPosition;
                     
-                    console.info(`After direct assignment, scene container scrollTop: ${sceneContainer.scrollTop}`);
+                    console.info(`After direct assignment, scene container scrollTop: ${sceneContainerEl.scrollTop}`);
 
                     console.info(`bizCardDivModule: scrolled ${bizCardDiv.id} into view`);
 
@@ -754,22 +754,22 @@ export function setGeometryForAllBizCardDivs(jobsArray) {
 
 // Function to check if the scene container is properly set up for scrolling
 export function checkSceneContainerScrolling() {
-    const sceneContainer = document.getElementById('scene-container');
-    if (!sceneContainer) {
+    const sceneContainerEl = document.getElementById('scene-container');
+    if (!sceneContainerEl) {
         console.error("Scene container not found");
         return false;
     }
     
     console.info("Scene container properties:");
-    console.info("- offsetHeight:", sceneContainer.offsetHeight);
-    console.info("- scrollHeight:", sceneContainer.scrollHeight);
-    console.info("- clientHeight:", sceneContainer.clientHeight);
-    console.info("- scrollTop:", sceneContainer.scrollTop);
-    console.info("- style.overflow:", getComputedStyle(sceneContainer).overflow);
-    console.info("- style.position:", getComputedStyle(sceneContainer).position);
+    console.info("- offsetHeight:", sceneContainerEl.offsetHeight);
+    console.info("- scrollHeight:", sceneContainerEl.scrollHeight);
+    console.info("- clientHeight:", sceneContainerEl.clientHeight);
+    console.info("- scrollTop:", sceneContainerEl.scrollTop);
+    console.info("- style.overflow:", getComputedStyle(sceneContainerEl).overflow);
+    console.info("- style.position:", getComputedStyle(sceneContainerEl).position);
     
     // Check if it's scrollable
-    const isScrollable = sceneContainer.scrollHeight > sceneContainer.clientHeight;
+    const isScrollable = sceneContainerEl.scrollHeight > sceneContainerEl.clientHeight;
     console.info("- Is scrollable:", isScrollable);
     
     if (!isScrollable) {
@@ -777,11 +777,11 @@ export function checkSceneContainerScrolling() {
     }
     
     // Check if overflow is set correctly
-    const overflow = getComputedStyle(sceneContainer).overflow;
+    const overflow = getComputedStyle(sceneContainerEl).overflow;
     if (overflow !== 'auto' && overflow !== 'scroll') {
         console.warn(`Scene container overflow is set to '${overflow}'. Should be 'auto' or 'scroll'.`);
         console.info("Setting overflow to 'auto'");
-        sceneContainer.style.overflow = 'auto';
+        sceneContainerEl.style.overflow = 'auto';
     }
     
     return isScrollable;
@@ -824,8 +824,8 @@ export function isBizCardDivProperlyVisible(bizCardDiv) {
         return false;
     }
     
-    const sceneContainer = document.getElementById('scene-container');
-    if (!sceneContainer) {
+    const sceneContainerEl = document.getElementById('scene-container');
+    if (!sceneContainerEl) {
         console.error("isBizCardDivProperlyVisible: scene-container not found");
         return false;
     }
@@ -843,11 +843,11 @@ export function isBizCardDivProperlyVisible(bizCardDiv) {
     const sceneHeight = sceneBottom - sceneTop;
     
     // Check if the bizCardDiv is taller than the viewport
-    const isTallerThanViewport = sceneHeight > sceneContainer.clientHeight;
+    const isTallerThanViewport = sceneHeight > sceneContainerEl.clientHeight;
     
     // Get the current scroll position
-    const scrollTop = sceneContainer.scrollTop;
-    const viewportBottom = scrollTop + sceneContainer.clientHeight;
+    const scrollTop = sceneContainerEl.scrollTop;
+    const viewportBottom = scrollTop + sceneContainerEl.clientHeight;
     
     let isProperlyVisible;
     

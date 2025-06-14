@@ -374,9 +374,19 @@
 }
 
 #focal-lock {
-  cursor: pointer; /* East cursor */
-  z-index: 63; /* Above left button */
-  /* margin-top: 10px;  Spacing from left button */
+  background-color: transparent !important;
+  background-repeat: no-repeat;
+  background-position: center 2px; /* Move icon 2px higher */
+  background-size: 12px 12px;
+}
+
+#focal-lock img {
+  width: 12px;
+  height: 12px;
+  display: block;
+  margin-bottom: 2px; /* Move icon 2px higher */
+  opacity: 0;
+  position: absolute;
 }
 
 .toggle-circle:hover {
@@ -387,11 +397,9 @@
 /* States for the B button */
 .toggle-circle.locked {
   background-color: white;
-  color: black;
 }
 .toggle-circle.unlocked {
   background-color: gray;
-  color: black;
 }
 .toggle-circle.locked:hover {
   background-color: grey;
@@ -487,4 +495,21 @@
 
 .biz-resume-div.slide-in-from-top {
     animation: slide-in-from-top 0.5s ease-out forwards;
+}
+
+#focal-lock.locked:not(:hover) {
+  background-image: url('../static_content/icons/focal-lock/Lock-Closed-white.png');
+}
+#focal-lock.locked:hover {
+  background-image: url('../static_content/icons/focal-lock/Lock-Closed-black.png');
+}
+#focal-lock.unlocked:not(:hover) {
+  background-image: url('../static_content/icons/focal-lock/Lock-Open-white.png');
+}
+#focal-lock.unlocked:hover {
+  background-image: url('../static_content/icons/focal-lock/Lock-Open-black.png');
+}
+
+#focal-lock:hover {
+  background-color: white !important;
 } 
