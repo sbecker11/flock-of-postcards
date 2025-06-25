@@ -74,6 +74,13 @@ html[native-dark-active] #scene-container,
     pointer-events: auto;
 }
 
+.biz-details-z-value {
+    font-size: 8px;
+    margin: -8px 0 5px 10px;
+    padding: 0;
+    text-align: left;
+}
+
 /* High specificity rules for biz-resume-div to ensure they override any other styles */
 /* Note: position is now controlled by InfiniteScrollingContainer (absolute positioning) */
 #resume-content-div .biz-resume-div,

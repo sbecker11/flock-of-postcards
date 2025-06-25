@@ -374,106 +374,75 @@ function setBizCardDivSceneGeometry(bizCardDiv, job) {
 }
 
 /**
- * Handle click events on bizCardDivs
- * 1. saved selected status
- * 2. clearAllSelected bizCardDivs and bizResumeDivs
- * 3. if was selected then return
- * 4. if not selected then 
- * 5. save the original mouseenter and mouseleave handlers
- * 6. switch selected and hovered classes
- * 7. after a short delay restore original handlers
- * 8. referene its paired bizResumeDiv
- * 9. switch its selected and hovered classes
- * 10. tell the resumeManager to scroll
- * the bizResumeDiv into view
- * @param {HTMLElement} bizCardDiv - The biz card div that was clicked
+ * Handles the click event for a business card div.
+ * @param {HTMLElement} bizCardDiv - The business card div that was clicked.
+ * @param {object} options - An optional object with options.
+ * @param {boolean} options.syncResume - If false, will not sync the resume panel.
  */
-export function handleBizCardDivClickEvent(bizCardDiv) {
-    if (!bizCardDiv) throw new Error("bizCardDiv is required");
+export function handleBizCardDivClickEvent(bizCardDiv, options = {}) {
+  // Use a default for syncResume if not provided
+  const { syncResume = true } = options;
 
-    console.info(`%cbizCardDivModule: handleBizCardDivClickEvent called for ${bizCardDiv.id}`, 'color: green; font-weight: bold');
-    
-    const isSelected = bizCardDiv.classList.contains("selected");
-    console.info(`bizCardDivModule: ${bizCardDiv.id} isSelected before clearAllSelected: ${isSelected}`);
-    
-    clearAllSelected();
-    console.info(`bizCardDivModule: clearAllSelected completed`);
-    
-    if (isSelected) {
-        console.info(`bizCardDivModule: ${bizCardDiv.id} was already selected, returning after unselecting`);
-        return;
+  if (!bizCardDiv) throw new Error("bizCardDiv is required");
+
+  // Get the job index from the data attribute
+  const jobIndex = parseInt(bizCardDiv.getAttribute('data-job-index'), 10);
+  if (isNaN(jobIndex)) {
+    console.error("handleBizCardDivClickEvent: Invalid or missing job index on bizCardDiv", bizCardDiv);
+    return;
+  }
+
+  const isSelected = bizCardDiv.classList.contains("selected");
+
+  // Clear any existing selections first
+  clearAllSelected();
+
+  if (isSelected) {
+    // If it was already selected, clicking again unselects it.
+    currentSelected = null;
+    return;
+  }
+
+  // Mark the new card as selected
+  bizCardDiv.classList.add('selected');
+  bizCardDiv.classList.remove('hovered');
+
+  // Scroll the selected bizCardDiv into view in the scene
+  scrollBizCardDivIntoView(bizCardDiv);
+
+  // Always style the paired resume div
+  const pairedId = bizCardDiv.getAttribute('data-paired-id');
+  const bizResumeDiv = document.getElementById(pairedId);
+  styleBizResumeDivAsSelected(bizResumeDiv);
+
+  // Sync with resume view (scrolling), if enabled
+  if (syncResume) {
+    const resumeManager = getResumeManager();
+    if (resumeManager) {
+      console.info("bizCardDivModule: Syncing with resume view...");
+      resumeManager.syncWithSceneSelection(jobIndex);
+    } else {
+      console.warn("bizCardDivModule: resumeManager not found, cannot sync with resume view");
     }
+  }
 
-    // Store original handlers
-    const originalEnterHandler = bizCardDiv._enterHandler;
-    const originalLeaveHandler = bizCardDiv._leaveHandler;
-    console.info(`bizCardDivModule: Removing mouse handlers from ${bizCardDiv.id}`);
-    bizCardDiv.removeEventListener('mouseenter', originalEnterHandler);
-    bizCardDiv.removeEventListener('mouseleave', originalLeaveHandler);
-
-    console.info(`**************** bizCardDivModule: Adding selected class to ${bizCardDiv.id}`);
-    bizCardDiv.classList.add("selected");
-    bizCardDiv.classList.remove("hovered");
-
-    setTimeout(() => {
-        const checkSelected = bizCardDiv.classList.contains("selected");
-        console.info(`-------- bizCardDivModule: Restoring mouse handlers to ${bizCardDiv.id} with check selected:${checkSelected}`);
-        bizCardDiv.addEventListener('mouseenter', originalEnterHandler);
-        bizCardDiv.addEventListener('mouseleave', originalLeaveHandler);
-        
-        // Verify selection is still applied
-        console.info(`bizCardDivModule: After timeout, ${bizCardDiv.id} isSelected: ${bizCardDiv.classList.contains("selected")}`);
-    }, 100);
-
-    // select the paired bizResumeDiv and scroll it into view
-    const pairedId = bizCardDiv.getAttribute('data-paired-id');
-    console.info(`bizCardDivModule: Getting paired bizResumeDiv with ID ${pairedId}`);
-    const bizResumeDiv = document.getElementById(pairedId);
-
-    console.info(`bizCardDivModule: Calling styleBizResumeDivAsSelectdAndScrollIntoView for ${bizResumeDiv?.id || 'null'}`);
-    styleBizResumeDivAsSelectedAndScrollIntoView(bizResumeDiv);
+  // Update the currently selected element
+  currentSelected = bizCardDiv;
 }
 
 /**
- * Style the bizResumeDiv and scroll it into view WITHOUT selecting it
- * DO NOT CALL THE BIZRESUMEDIV CLICK HANDLER
- * @param {*} bizResumeDiv 
+ * Styles the paired bizResumeDiv as selected
+ * @param {HTMLElement} bizResumeDiv - The biz resume div to style
  */
-export function styleBizResumeDivAsSelectedAndScrollIntoView(bizResumeDiv) {
-    if (!bizResumeDiv) throw new Error("bizResumeDiv is required");
-    console.info(`bizCardDivModule: Scrolling bizResumeDiv ${bizResumeDiv.id} into view without selecting it`);
-         
-    // Remove hovered class but DO NOT add selected class
-    bizResumeDiv.classList.remove("hovered");
-    bizResumeDiv.classList.add("selected"); 
-
-    // Get the resumeManager
-    const resumeManager = window.resumeManager;
-    if (!resumeManager) throw new Error("bizCardDivModule: resumeManager not available");
-    const jobIndex = parseInt(bizResumeDiv.getAttribute('data-job-index'), 10);
-
-    // First sync with scene selection WITHOUT triggering a click
-    if (typeof resumeManager.syncWithSceneSelectionWithoutClick === 'function') {
-        resumeManager.syncWithSceneSelectionWithoutClick(jobIndex);
-    } else if (typeof resumeManager.syncWithSceneSelection === 'function') {
-        console.warn("bizCardDivModule: Using legacy syncWithSceneSelection method");
-        resumeManager.syncWithSceneSelection(jobIndex);
-    }
-    
-    // Then scroll the bizResumeDiv into view WITHOUT selecting it
-    if (typeof resumeManager.scrollBizResumeDivIntoViewWithoutSelection === 'function') {
-        // Use the new method that doesn't select the bizResumeDiv
-        resumeManager.scrollBizResumeDivIntoViewWithoutSelection(bizResumeDiv);
-    } else if (typeof resumeManager.scrollBizResumeDivIntoView === 'function') {
-        // Fallback to the old method if the new one isn't available
-        console.warn("bizCardDivModule: Using legacy scrollBizResumeDivIntoView method");
-        resumeManager.scrollBizResumeDivIntoView(bizResumeDiv);
-    } else {
-        console.warn("bizCardDivModule: resumeManager.scrollBizResumeDivIntoView is not a function");
-        // Fallback to direct scrollIntoView
-        bizResumeDiv.scrollIntoView({ behavior: 'smooth', block: 'center' });
-    }
-    console.info(`bizCardDivModule: bizResumeDiv ${bizResumeDiv.id} scrolled into view (not selected)`);
+function styleBizResumeDivAsSelected(bizResumeDiv) {
+  if (!bizResumeDiv) {
+      console.warn("styleBizResumeDivAsSelected: bizResumeDiv is null");
+      return;
+  }
+  
+  // Style the resume div as selected
+  bizResumeDiv.classList.remove('hovered');
+  bizResumeDiv.classList.add('selected');
 }
 
 /**

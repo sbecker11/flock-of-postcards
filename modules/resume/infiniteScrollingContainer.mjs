@@ -553,19 +553,67 @@ class InfiniteScrollingContainer {
   goToNext() {
     const nextIndex = (this.currentIndex + 1) % this.originalItems.length;
     this.scrollToIndex(nextIndex);
+    return this.originalItems[nextIndex];
   }
 
   goToPrevious() {
     const prevIndex = (this.currentIndex - 1 + this.originalItems.length) % this.originalItems.length;
     this.scrollToIndex(prevIndex);
+    return this.originalItems[prevIndex];
   }
 
   goToFirst() {
     this.scrollToIndex(0);
+    return this.originalItems[0];
   }
 
   goToLast() {
     this.scrollToIndex(this.originalItems.length - 1);
+    return this.originalItems[this.originalItems.length - 1];
+  }
+
+  goTo(index, smooth = true) {
+    if (this.originalItems.length === 0) return;
+    
+    if (index < 0 || index >= this.originalItems.length) {
+      console.error(`InfiniteScrollingContainer: Invalid index: ${index}`);
+      return;
+    }
+    
+    console.log(`InfiniteScrollingContainer: Scrolling to item at index ${index}`);
+    
+    // Find the item in allItems
+    const item = this.allItems.find(item => 
+      item.type === 'original' && item.originalIndex === index
+    );
+    
+    if (!item || !item.element) {
+      console.error(`InfiniteScrollingContainer: Item not found for index: ${index}`);
+      return;
+    }
+    
+    console.log(`InfiniteScrollingContainer: Found item: ${item.element.id}`);
+    
+    // Calculate the scroll position
+    const scrollTop = item.top;
+    
+    console.log(`InfiniteScrollingContainer: Scrolling to position: ${scrollTop}`);
+    
+    // Scroll to the item
+    if (smooth) {
+      this.smoothScrollTo(scrollTop);
+    } else {
+      this.container.scrollTop = scrollTop;
+    }
+    
+    // Update the current index
+    this.currentIndex = index;
+    this.checkForSeamlessTransition();
+    
+    // Call the onItemChange callback
+    if (this.options.onItemChange) {
+      this.options.onItemChange(index, this.originalItems[index]);
+    }
   }
 
   getCurrentIndex() {
@@ -573,7 +621,8 @@ class InfiniteScrollingContainer {
   }
 
   getCurrentItem() {
-    return this.originalItems[this.currentIndex];
+    if (this.originalItems.length === 0) return null;
+    return this.allItems.find(item => item.type === 'original' && item.originalIndex === this.currentIndex);
   }
 
   destroy() {

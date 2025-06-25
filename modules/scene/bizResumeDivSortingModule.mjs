@@ -1,6 +1,7 @@
 // scene/bizResumeDivSortingModule.mjs
 
 import * as resumeManager from '../resume/resumeManager.mjs';
+import * as bizCardDivModule from './bizCardDivModule.mjs';
 
 import { Logger, LogLevel } from '../logger.mjs';
 const logger = new Logger("bizResumeDivSortingModule", LogLevel.DEBUG);
@@ -42,28 +43,36 @@ export function initialize(jobsData, bizResumeDivs) {
     const nextButton = document.getElementById('select-next-resume-div');
     const lastButton = document.getElementById('select-last-resume-div');
 
-    if (firstButton) firstButton.addEventListener('click', {
-        handleEvent: () => {
-            console.log('firstButton clicked');
-            _resumeManager.goToFirstResumeItem();
+    if (firstButton) firstButton.addEventListener('click', () => {
+        const bizResumeDiv = _resumeManager.goToFirstResumeItem();
+        if (bizResumeDiv) {
+            const bizCardDivId = bizResumeDiv.dataset.pairedId;
+            const bizCardDiv = document.getElementById(bizCardDivId);
+            bizCardDivModule.handleBizCardDivClickEvent(bizCardDiv, { syncResume: false });
         }
     });
-    if (prevButton) prevButton.addEventListener('click', {
-        handleEvent: () => {
-            console.log('prevButton clicked');
-            _resumeManager.goToPreviousResumeItem();
+    if (prevButton) prevButton.addEventListener('click', () => {
+        const bizResumeDiv = _resumeManager.goToPreviousResumeItem();
+        if (bizResumeDiv) {
+            const bizCardDivId = bizResumeDiv.dataset.pairedId;
+            const bizCardDiv = document.getElementById(bizCardDivId);
+            bizCardDivModule.handleBizCardDivClickEvent(bizCardDiv, { syncResume: false });
         }
     });
-    if (nextButton) nextButton.addEventListener('click', {
-        handleEvent: () => {
-            console.log('nextButton clicked');
-            _resumeManager.goToNextResumeItem();
+    if (nextButton) nextButton.addEventListener('click', () => {
+        const bizResumeDiv = _resumeManager.goToNextResumeItem();
+        if (bizResumeDiv) {
+            const bizCardDivId = bizResumeDiv.dataset.pairedId;
+            const bizCardDiv = document.getElementById(bizCardDivId);
+            bizCardDivModule.handleBizCardDivClickEvent(bizCardDiv, { syncResume: false });
         }
     });
-    if (lastButton) lastButton.addEventListener('click', {
-        handleEvent: () => {
-            console.log('lastButton clicked');
-            _resumeManager.goToLastResumeItem();
+    if (lastButton) lastButton.addEventListener('click', () => {
+        const bizResumeDiv = _resumeManager.goToLastResumeItem();
+        if (bizResumeDiv) {
+            const bizCardDivId = bizResumeDiv.dataset.pairedId;
+            const bizCardDiv = document.getElementById(bizCardDivId);
+            bizCardDivModule.handleBizCardDivClickEvent(bizCardDiv, { syncResume: false });
         }
     });
 }

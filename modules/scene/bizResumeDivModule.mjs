@@ -73,47 +73,34 @@ export function handleClickEvent(element) {
  * Handle click events on bizResumeDivs
  * Similar to bizCardDivModule.handleBizCardDivClickEvent but for bizResumeDivs
  * @param {HTMLElement} bizResumeDiv - The biz resume div that was clicked
+ * @param {object} options - An optional object with options.
+ * @param {boolean} options.syncScene - If false, will not sync the scene panel.
  */
-export function handleBizResumeDivClickEvent(bizResumeDiv) {
+export function handleBizResumeDivClickEvent(bizResumeDiv, options = {}) {
+    const { syncScene = true } = options;
+
     if (!bizResumeDiv) throw new Error("bizResumeDiv is required");
 
-    console.info(`bizResumeDivModule: handleBizResumeDivClickEvent called for ${bizResumeDiv.id}`);
-    
-    // Check if the element is already selected
     const isSelected = bizResumeDiv.classList.contains("selected");
-    console.info(`bizResumeDivModule: ${bizResumeDiv.id} isSelected before: ${isSelected}`);
-    
-    // Clear all selected elements
+
     bizCardDivModule.clearAllSelected();
-    
-    // If it was already selected, we're done (it's now unselected)
+
     if (isSelected) {
-        console.info(`bizResumeDivModule: ${bizResumeDiv.id} was already selected, now unselected`);
         return;
     }
-    
-    // Add selected class to this element
+
     bizResumeDiv.classList.add("selected");
     bizResumeDiv.classList.remove("hovered");
-    console.info(`bizResumeDivModule: Added selected class to ${bizResumeDiv.id}`);
-    
-    // Verify selection was applied
-    console.info(`bizResumeDivModule: ${bizResumeDiv.id} isSelected after: ${bizResumeDiv.classList.contains("selected")}`);
-    
-    // Get the paired bizCardDiv
-    const pairedId = bizResumeDiv.getAttribute('data-paired-id');
-    const bizCardDiv = document.getElementById(pairedId);
-    
-    if (bizCardDiv) {
-        // Select the paired bizCardDiv
-        bizCardDiv.classList.add("selected");
-        bizCardDiv.classList.remove("hovered");
-        console.info(`bizResumeDivModule: Added selected class to paired bizCardDiv ${bizCardDiv.id}`);
-        
-        // Scroll it into view
-        styleBizCardDivAsSelectdAndScrollIntoView(bizCardDiv);
-    } else {
-        console.info(`bizResumeDivModule: Could not find paired bizCardDiv with ID ${pairedId}`);
+
+    if (syncScene) {
+        const pairedId = bizResumeDiv.getAttribute('data-paired-id');
+        const bizCardDiv = document.getElementById(pairedId);
+
+        if (bizCardDiv) {
+            styleBizCardDivAsSelectdAndScrollIntoView(bizCardDiv);
+        } else {
+            console.info(`bizResumeDivModule: Could not find paired bizCardDiv with ID ${pairedId}`);
+        }
     }
 }
 

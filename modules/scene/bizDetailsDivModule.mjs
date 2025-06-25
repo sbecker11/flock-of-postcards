@@ -44,6 +44,13 @@ export function createBizResumeDetailsDiv(bizResumeDiv, bizCardDiv) {
     const bizCardDetailsDiv = bizCardDiv.querySelector('.biz-card-details-div');
     if (!bizCardDetailsDiv) throw new Error('createBizResumeDetailsDiv: given null bizCardDetailsDiv');
     bizResumeDetailsDiv.innerHTML = bizCardDetailsDiv.innerHTML;
+
+    // Remove the Z-value element from the resume div clone
+    const zValueElement = bizResumeDetailsDiv.querySelector('.biz-details-z-value');
+    if (zValueElement) {
+        zValueElement.remove();
+    }
+    
     return bizResumeDetailsDiv;
 }
 
@@ -77,6 +84,7 @@ export function createBizCardDetailsDiv(bizCardDiv, job) {
     const start = job.start || '1970-01-01';
     const end = job.end || '1970-02-01';
     const dates = sceneContainer.formatDateRange(start, end);
+    const sceneZ = bizCardDiv.getAttribute('data-sceneZ') || 'N/A';
     const description = job.Description  || 'No description provided';
     const descriptions = description ? description.split(BULLET) : [];  
     const jobSkills = job['job-skills'] || {};   
@@ -89,6 +97,7 @@ export function createBizCardDetailsDiv(bizCardDiv, job) {
     <h2 class="biz-details-employer header-text">${employer}</h2>
     <h3 class="biz-details-role header-text">${role}</h3>
     <p class="biz-details-dates header-text">${dates}</p>
+    <p class="biz-details-z-value header-text">(z: ${sceneZ}, id: ${jobIndex})</p>
 
     <ul class="bulleted-job-description-items-ul">
         ${descriptions.map(item => `<li class="bulleted-job-description-items-li">${item}</li>`).join('')}

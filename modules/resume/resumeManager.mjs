@@ -78,25 +78,37 @@ class ResumeManager {
   goToNextResumeItem() {
     if (this.infiniteScroller) {
       this.infiniteScroller.goToNext();
+      const currentIndex = this.infiniteScroller.getCurrentIndex();
+      return this.infiniteScroller.originalItems[currentIndex];
     }
+    return null;
   }
 
   goToPreviousResumeItem() {
     if (this.infiniteScroller) {
       this.infiniteScroller.goToPrevious();
+      const currentIndex = this.infiniteScroller.getCurrentIndex();
+      return this.infiniteScroller.originalItems[currentIndex];
     }
+    return null;
   }
 
   goToFirstResumeItem() {
     if (this.infiniteScroller) {
       this.infiniteScroller.goToFirst();
+      const currentIndex = this.infiniteScroller.getCurrentIndex();
+      return this.infiniteScroller.originalItems[currentIndex];
     }
+    return null;
   }
 
   goToLastResumeItem() {
     if (this.infiniteScroller) {
       this.infiniteScroller.goToLast();
+      const currentIndex = this.infiniteScroller.getCurrentIndex();
+      return this.infiniteScroller.originalItems[currentIndex];
     }
+    return null;
   }
 
   getCurrentResumeIndex() {
