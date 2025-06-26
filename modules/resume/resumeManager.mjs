@@ -77,36 +77,28 @@ class ResumeManager {
 
   goToNextResumeItem() {
     if (this.infiniteScroller) {
-      this.infiniteScroller.goToNext();
-      const currentIndex = this.infiniteScroller.getCurrentIndex();
-      return this.infiniteScroller.originalItems[currentIndex];
+      return this.infiniteScroller.goToNext();
     }
     return null;
   }
 
   goToPreviousResumeItem() {
     if (this.infiniteScroller) {
-      this.infiniteScroller.goToPrevious();
-      const currentIndex = this.infiniteScroller.getCurrentIndex();
-      return this.infiniteScroller.originalItems[currentIndex];
+      return this.infiniteScroller.goToPrevious();
     }
     return null;
   }
 
   goToFirstResumeItem() {
     if (this.infiniteScroller) {
-      this.infiniteScroller.goToFirst();
-      const currentIndex = this.infiniteScroller.getCurrentIndex();
-      return this.infiniteScroller.originalItems[currentIndex];
+      return this.infiniteScroller.goToFirst();
     }
     return null;
   }
 
   goToLastResumeItem() {
     if (this.infiniteScroller) {
-      this.infiniteScroller.goToLast();
-      const currentIndex = this.infiniteScroller.getCurrentIndex();
-      return this.infiniteScroller.originalItems[currentIndex];
+      return this.infiniteScroller.goToLast();
     }
     return null;
   }
@@ -137,42 +129,12 @@ class ResumeManager {
     
     console.log(`ResumeManager: Found sorted index ${sortedIndex} for job index ${jobIndex}`);
     
-    // If we have an infinite scroller, use it to scroll to the item
+    // use the infiniteScroller to scroll to the item
     if (this.infiniteScroller) {
       console.log(`ResumeManager: Using infiniteScroller to scroll to sorted index ${sortedIndex}`);
       this.infiniteScroller.scrollToItem(sortedIndex);
-      
-      // Also trigger a click on the bizResumeDiv
-      setTimeout(() => {
-        console.log(`ResumeManager: Triggering click on bizResumeDiv for sorted index ${sortedIndex}`);
-        this.infiniteScroller.triggerBizResumeDivClick(sortedIndex);
-      }, 100);
-      
-      return true;
     } else {
       console.error("ResumeManager: infiniteScroller not available");
-      
-      // Fallback: try to find the bizResumeDiv directly
-      const bizResumeDivId = `biz-resume-div-${jobIndex}`;
-      const bizResumeDiv = document.getElementById(bizResumeDivId);
-      
-      if (bizResumeDiv) {
-        console.log(`ResumeManager: Found bizResumeDiv ${bizResumeDivId}, scrolling into view`);
-        bizResumeDiv.scrollIntoView({ behavior: 'smooth', block: 'center' });
-        
-        // Also select it
-        import('../scene/bizResumeDivModule.mjs').then(module => {
-          console.log(`ResumeManager: Calling bizResumeDivModule.handleClickEvent for ${bizResumeDivId}`);
-          module.handleClickEvent(bizResumeDiv);
-        }).catch(error => {
-          console.error("Error importing bizResumeDivModule:", error);
-        });
-        
-        return true;
-      } else {
-        console.error(`ResumeManager: Could not find bizResumeDiv with ID ${bizResumeDivId}`);
-        return false;
-      }
     }
   }
 

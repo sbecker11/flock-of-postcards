@@ -454,11 +454,19 @@ function styleBizResumeDivAsSelected(bizResumeDiv) {
  * return.
  */
 export function clearAllSelected() {
+    console.log("");
+    console.log("**********clearAllSelected********** START");
+    console.log("");
+
     const selectedElements = document.querySelectorAll('.selected');
     console.info(`bizCardDivModule: Found ${selectedElements.length} selected elements to clear`);
     selectedElements.forEach(element => {
         element.classList.remove("selected");    
-    });
+    });    
+    console.log("");
+    console.log("num cleared:", selectedElements.length);
+    console.log("**********clearAllSelected********** END");
+    console.log("");
 }
 
 // Set up the scene plane click handler for unselection
@@ -1031,17 +1039,18 @@ export function setupEventListeners() {
         
         // Create new handlers
         const clickHandler = (e) => {
-            console.info(`bizCardDivModule: Click detected on ${div.id}`);
+            e.stopPropagation(); // prevent the event from bubbling up to the scene plane
+            // console.info(`bizCardDivModule: Click detected on ${div.id}`);
             handleBizCardDivClickEvent(div);
         };
         
         const enterHandler = (e) => {
-            console.info(`bizCardDivModule: Mouse enter detected on ${div.id}`);
+            // console.info(`bizCardDivModule: Mouse enter detected on ${div.id}`);
             handleMouseEnterEvent(div);
         };
         
         const leaveHandler = (e) => {
-            console.info(`bizCardDivModule: Mouse leave detected on ${div.id}`);
+            // console.info(`bizCardDivModule: Mouse leave detected on ${div.id}`);
             handleMouseLeaveEvent(div);
         };
         

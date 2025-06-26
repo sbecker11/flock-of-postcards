@@ -48,6 +48,9 @@ class InfiniteScrollingContainer {
   }
 
   setItems(items) {
+    // Clear the container of any previous items and clones
+    this.container.innerHTML = '';
+    
     this.originalItems = [...items];
     this.createClonedStructure();
     this.positionItems();
