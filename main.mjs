@@ -2,20 +2,21 @@
 'use strict';
 
 import { jobs } from './static_content/jobs/jobs.mjs';
-import { ResumeManager } from './modules/resume/resumeManager.mjs';
-import * as bizCardDivModule from './modules/scene/bizCardDivModule.mjs';
-import * as bizResumeDivModule from './modules/scene/bizResumeDivModule.mjs';
+import { resumeManager } from './modules/resume/resumeManager.mjs';
+import { bizCardDivManager } from './modules/scene/bizCardDivManager.mjs';
+import { bizResumeDivManager } from './modules/scene/bizResumeDivManager.mjs';
 import * as bizResumeDivSortingModule from './modules/scene/bizResumeDivSortingModule.mjs';
 import * as bullsEye from './modules/core/bullsEye.mjs';
 import * as colorPalettes from './modules/colors/colorPalettes.mjs';
 import * as focalPoint from './modules/core/focalPoint.mjs';
 import * as parallax from './modules/core/parallax.mjs';
-import * as resizeHandle from './modules/core/resizeHandle.mjs';
+import { initializeResizeHandle } from './modules/core/resizeHandle.mjs';
 import * as resumeContainer from './modules/resume/resumeContainer.mjs';
 import * as sceneContainer from './modules/scene/sceneContainer.mjs';
 import * as timeline from './modules/timeline/timeline.mjs';
 import * as viewPort from './modules/core/viewPort.mjs';
 import * as tests from './modules/tests/tests.mjs';
+import * as scenePlane from './modules/scene/scenePlane.mjs';
 
 import { Logger, LogLevel } from "./modules/logger.mjs";
 const logger = new Logger("main", LogLevel.DEBUG);
@@ -174,8 +175,11 @@ async function initialize() {
         sceneContainer.initializeSceneContainer();
         console.log("SceneContainer initialized");
 
+        scenePlane.initializeScenePlane();
+        console.log("ScenePlane initialized");
+
         // Then resizeHandle (depends on sceneContainer)
-        resizeHandle.initializeResizeHandle();
+        initializeResizeHandle();
         console.log("ResizeHandle initialized");
 
         // Finally resumeContainer (depends on both sceneContainer and resizeHandle)
@@ -183,7 +187,7 @@ async function initialize() {
         console.log("ResumeContainer initialized");
 
         // STEP 5: Create and initialize resumeManager
-        window.resumeManager = new ResumeManager();
+        window.resumeManager = resumeManager;
         console.log("ResumeManager instance created");
 
         // Load color palettes
@@ -197,6 +201,9 @@ async function initialize() {
         const [minTimelineYear, maxTimelineYear] = getMinMaxTimelineYears(loadedJobs);
         const defaultTimelineYear = maxTimelineYear;
         timeline.initializeTimeline(minTimelineYear, maxTimelineYear, defaultTimelineYear);
+
+        // Now that the timeline is initialized, set up the gradient overlays
+        sceneContainer.setupGradientOverlays();
 
         // Scroll to current year and month at startup
         const sceneContainerEl = document.getElementById('scene-container');
@@ -213,19 +220,27 @@ async function initialize() {
         });
 
         // STEP 6: Create all bizCards and bizResumeDivs
-        const bizCardDivs = bizCardDivModule.createAllBizCardDivs(sortedJobs);
+        const bizCardDivs = bizCardDivManager.createAllBizCardDivs(sortedJobs);
+        const bizResumeDivs = bizResumeDivManager.createAllBizResumeDivs(bizCardDivs);
 
         // STEP 7: Initialize resumeManager with the created bizResumeDivs
-        window.resumeManager.initialize(sortedJobs, bizCardDivs);
+        resumeManager.initialize(sortedJobs, bizResumeDivs);
         console.log("ResumeManager initialized with bizResumeDivs");
 
         // STEP 8: Initialize bizCardDivModule (now that resumeManager is fully initialized)
-        bizCardDivModule.initializeBizCardDivModule();
+        bizCardDivManager.initialize();
         console.log("BizCardDivModule initialized");
 
-        // STEP 9: Set up event listeners for bizResumeDivs
-        bizResumeDivModule.setupEventListeners();
-        console.log("Set up event listeners for all bizResumeDivs");
+        // STEP 9: Set up a delegated event listener for bizResumeDivs
+        const resumeContentDiv = document.getElementById('resume-content-div');
+        if (resumeContentDiv) {
+            resumeContentDiv.addEventListener('click', (event) => {
+                const bizResumeDiv = event.target.closest('.biz-resume-div');
+                if (bizResumeDiv) {
+                    bizResumeDivManager.handleClickEvent(bizResumeDiv);
+                }
+            });
+        }
 
         // STEP 10: Initialize sorting after all divs are created
         bizResumeDivSortingModule.initialize(sortedJobs, bizCardDivs);
@@ -235,7 +250,7 @@ async function initialize() {
         console.log("Parallax initialized");
 
         // STEP 12: Ensure bizCardDivs always have pointer events enabled
-        bizCardDivModule.setupPointerEventsObserver();
+        bizCardDivManager.setupPointerEventsObserver();
 
         // Force an initial parallax update
         setTimeout(() => {

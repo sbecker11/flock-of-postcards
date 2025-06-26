@@ -25,9 +25,6 @@ export function initializeSceneContainer() {
     // Initialize any scene-related properties
     // ...
     
-    // Set up gradient overlays
-    setupGradientOverlays();
-    
     isInitialized = true;
     console.log("Scene container initialized");
 }

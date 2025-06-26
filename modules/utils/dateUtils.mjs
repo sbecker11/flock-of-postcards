@@ -46,23 +46,30 @@ export const getIsoDateString = (date) => date.toISOString().slice(0, 10);
  * @returns {Date} - Date object
  */
 export function parseFlexibleDateString(dateStr) {
-    utils.validateString(dateStr);
+    if (typeof dateStr !== 'string' || !dateStr.trim()) {
+        throw new Error(`Invalid date string provided: ${dateStr}`);
+    }
+
+    const trimmedDateStr = dateStr.trim();
     
     // Try YYYY-MM-DD first
-    let match = dateStr.match(/^(\d{4})-(\d{2})-(\d{2})$/);
+    let match = trimmedDateStr.match(/^(\d{4})-(\d{2})-(\d{2})$/);
     if (match) {
         const [, year, month, day] = match;
-        return new Date(parseInt(year,10), parseInt(month, 10) - 1, parseInt(day, 10));
+        // Constructing as UTC to avoid timezone issues
+        return new Date(Date.UTC(parseInt(year, 10), parseInt(month, 10) - 1, parseInt(day, 10)));
     }
     
     // Try YYYY-MM
-    match = dateStr.match(/^(\d{4})-(\d{2})$/);
+    match = trimmedDateStr.match(/^(\d{4})-(\d{2})$/);
     if (match) {
         const [, year, month] = match;
-        return new Date(parseInt(year), parseInt(month) - 1); // First day of month
+        // Constructing as UTC to avoid timezone issues
+        return new Date(Date.UTC(parseInt(year, 10), parseInt(month, 10) - 1, 1));
     }
     
-    throw new Error(`Invalid date format: ${dateStr}. Expected YYYY-MM or YYYY-MM-DD`);
+    // Throw an error for unhandled formats
+    throw new Error(`Invalid date format: "${dateStr}". Expected YYYY-MM-DD or YYYY-MM.`);
 }
 
 /*

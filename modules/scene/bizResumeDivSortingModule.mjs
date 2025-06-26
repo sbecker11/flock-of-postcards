@@ -1,15 +1,18 @@
 // scene/bizResumeDivSortingModule.mjs
 
-import * as resumeManager from '../resume/resumeManager.mjs';
-import * as bizCardDivModule from './bizCardDivModule.mjs';
+import { resumeManager } from '../resume/resumeManager.mjs';
+import { bizCardDivManager } from './bizCardDivManager.mjs';
 
 import { Logger, LogLevel } from '../logger.mjs';
 const logger = new Logger("bizResumeDivSortingModule", LogLevel.DEBUG);
 
 export function initialize(jobsData, bizResumeDivs) {
 
-    const _resumeManager = new resumeManager.ResumeManager();
-    _resumeManager.initialize(jobsData, bizResumeDivs);
+    const _resumeManager = resumeManager;
+    if (!_resumeManager) {
+        console.error('bizResumeDivSortingModule: ResumeManager not found on window object.');
+        return;
+    }
 
     // initialize the sorting selector
     const sortingSelector = document.getElementById('biz-resume-div-sorting-selector');
@@ -44,36 +47,16 @@ export function initialize(jobsData, bizResumeDivs) {
     const lastButton = document.getElementById('select-last-resume-div');
 
     if (firstButton) firstButton.addEventListener('click', () => {
-        const bizResumeDiv = _resumeManager.goToFirstResumeItem();
-        if (bizResumeDiv) {
-            const bizCardDivId = bizResumeDiv.dataset.pairedId;
-            const bizCardDiv = document.getElementById(bizCardDivId);
-            bizCardDivModule.handleBizCardDivClickEvent(bizCardDiv, { syncResume: false });
-        }
+        _resumeManager.goToFirstResumeItem();
     });
     if (prevButton) prevButton.addEventListener('click', () => {
-        const bizResumeDiv = _resumeManager.goToPreviousResumeItem();
-        if (bizResumeDiv) {
-            const bizCardDivId = bizResumeDiv.dataset.pairedId;
-            const bizCardDiv = document.getElementById(bizCardDivId);
-            bizCardDivModule.handleBizCardDivClickEvent(bizCardDiv, { syncResume: false });
-        }
+        _resumeManager.goToPreviousResumeItem();
     });
     if (nextButton) nextButton.addEventListener('click', () => {
-        const bizResumeDiv = _resumeManager.goToNextResumeItem();
-        if (bizResumeDiv) {
-            const bizCardDivId = bizResumeDiv.dataset.pairedId;
-            const bizCardDiv = document.getElementById(bizCardDivId);
-            bizCardDivModule.handleBizCardDivClickEvent(bizCardDiv, { syncResume: false });
-        }
+        _resumeManager.goToNextResumeItem();
     });
     if (lastButton) lastButton.addEventListener('click', () => {
-        const bizResumeDiv = _resumeManager.goToLastResumeItem();
-        if (bizResumeDiv) {
-            const bizCardDivId = bizResumeDiv.dataset.pairedId;
-            const bizCardDiv = document.getElementById(bizCardDivId);
-            bizCardDivModule.handleBizCardDivClickEvent(bizCardDiv, { syncResume: false });
-        }
+        _resumeManager.goToLastResumeItem();
     });
 }
 

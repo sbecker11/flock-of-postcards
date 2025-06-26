@@ -236,172 +236,51 @@ export function viewAllBizCardDivs(focalPoint, prefix, sceneRect) {
         throw new Error("viewPortProperties is not initialized"); 
     }
 
-    // Check if sceneRect is valid
-    if (!sceneRect) {
-        console.warn(`viewAllBizCardDivs called from "${prefix}" with invalid sceneRect`);
-        
-        // Get the scene container for scroll information
-        const sceneContainer = document.getElementById('scene-container');
-        if (!sceneContainer) {
-            console.error("Scene container not found");
-            return;
-        }
-        
-        // Get the current scroll position
-        const scrollTop = sceneContainer.scrollTop;
-        
-        // Get the viewport rect
-        const vpRect = viewPort.getViewPortRect();
-        
-        // Create scene-relative viewport rect
-        sceneRect = {
-            left: vpRect.left,
-            top: vpRect.top + scrollTop,
-            right: vpRect.right,
-            bottom: vpRect.bottom + scrollTop
-        };
-        
-        console.log("Created fallback sceneRect:", sceneRect);
-    }
-
-    // console.log(`viewAllBizCardDivs called from "${prefix}"`);
-    // console.log(`  sceneRect: t:${sceneRect.top.toFixed(0)}, b:${sceneRect.bottom.toFixed(0)}`);
-    // console.log(`  focalPoint: x:${focalPoint.x.toFixed(0)} y:${focalPoint}.y.toFixed(0)}`);
-    
-    if (PARANOID) utils.validatePosition(focalPoint);
-    if (PARANOID) utils.validatePosition(viewPort.getViewPortOrigin());
-    if (PARANOID) utils.validateRect(sceneRect);
-
     const { x:fpX, y:fpY } = focalPoint; 
     const { x:vpX, y:vpY } = viewPort.getViewPortOrigin();
-    if (PARANOID) utils.validateNumber(fpX);
-    if (PARANOID) utils.validateNumber(fpY);
-    if (PARANOID) utils.validateNumber(vpX);
-    if (PARANOID) utils.validateNumber(vpY);
-        
-    // Get the scene container for scroll information
-    const sceneContainer = document.getElementById('scene-container');
-    if (!sceneContainer) {
-        console.error("Scene container not found");
-        return;
-    }
     
     const dh = (vpX - fpX) * PARALLAX_X_EXAGGERATION_FACTOR;
     const dv = (vpY - fpY) * PARALLAX_Y_EXAGGERATION_FACTOR;
-    if (PARANOID) utils.validateNumber(dh);
-    if (PARANOID) utils.validateNumber(dv);
-    
-    // Log parallax values
-    // console.log(`Parallax offsets: dh=${dh.toFixed(2)}, dv=${dv.toFixed(2)}`);
-    
+
     const bizCardDivs = document.getElementsByClassName("biz-card-div");
-    let numDivs = 0;
-    let inSceneRectCount = 0;
-    let outOfSceneRectCount = 0;
-    let missingAttributesCount = 0;
+    for (const bizCardDiv of bizCardDivs) {
+        applyParallaxToBizCardDiv(bizCardDiv, dh, dv);
+    }
+}
 
-    for (let i = 0; i < bizCardDivs.length; i++) {
-        const bizCardDiv = bizCardDivs[i];
-        if (!bizCardDiv || !bizCardDiv.parentNode) {
-            throw new Error(`viewAllBizCardDivs: bizCardDiv is null or has no parent`);
-        }
-
-        // Check if bizCardDiv has all required attributes
-        if (!hasRequiredAttributes(bizCardDiv)) {
-            missingAttributesCount++;
-            continue;
-        }
-
-        // hidden by default
-        bizCardDiv.style.display = "none";
-    
-        // scene-relative position of bizCardDiv center
-        const divX = parseFloat(bizCardDiv.getAttribute("data-sceneCenterX"));
-        const divY = parseFloat(bizCardDiv.getAttribute("data-sceneCenterY"));
-        const divTop = parseFloat(bizCardDiv.getAttribute("data-sceneTop"));
-        const divBtm = parseFloat(bizCardDiv.getAttribute("data-sceneBottom"));
-        const divLeft = parseFloat(bizCardDiv.getAttribute("data-sceneLeft"));
-        const divRight = parseFloat(bizCardDiv.getAttribute("data-sceneRight"));
-        const divWidth = parseFloat(bizCardDiv.getAttribute("data-sceneWidth"));
-        const divHeight = parseFloat(bizCardDiv.getAttribute("data-sceneHeight"));
-        const divZ = parseFloat(bizCardDiv.getAttribute("data-sceneZ"));
-
-        if (PARANOID) utils.validateNumber(divX);
-        if (PARANOID) utils.validateNumber(divY);
-        if (PARANOID) utils.validateNumber(divTop);
-        if (PARANOID) utils.validateNumber(divBtm);
-        if (PARANOID) utils.validateNumber(divLeft);
-        if (PARANOID) utils.validateNumber(divRight);
-        if (PARANOID) utils.validateNumber(divWidth);
-        if (PARANOID) utils.validateNumber(divHeight);
-        if (PARANOID) utils.validateNumber(divZ);
-
-        // check to see if bizCardDiv is visible in 
-        // the sceneRect (the scene-relative viewPoint bounds)
-        let inTheSceneRect = inBounds(divTop, divBtm, sceneRect);
-
-        if (inTheSceneRect) {
-
-            // bizCardDiv is visible when inside the sceneRect
-            bizCardDiv.style.display = "block";
-
-            let viewLeft = divLeft + vpX;
-            let viewRight = divRight + vpX;
-            let viewTop = divTop;
-            let viewBtm = divBtm;
-            let viewWidth = divWidth;
-            let viewHeight = divHeight;
-            const zIndexStr = zUtils.get_zIndexStr_from_z(divZ);
-            const zFilterStr = filters.get_filterStr_from_z(divZ);
-
-            if (viewHeight < 200) {
-                viewHeight = 200;
-                viewBtm = viewTop + viewHeight;
-            }
-
-            bizCardDiv.style.setProperty('top', `${viewTop}px`);
-            bizCardDiv.style.setProperty('bottom', `${viewBtm}px`);
-            bizCardDiv.style.setProperty('left', `${viewLeft}px`);
-            bizCardDiv.style.setProperty('right', `${viewRight}px`);
-            bizCardDiv.style.setProperty('width', `${viewWidth}px`);
-            bizCardDiv.style.setProperty('height', `${viewHeight}px`);
-            bizCardDiv.style.setProperty('z-index', zIndexStr, 'important');
-            bizCardDiv.style.setProperty('filter', zFilterStr, 'important');
-
-            // const computedStyle = window.getComputedStyle(bizCardDiv);
-            // console.log(`viewTop:${computedStyle.getPropertyValue('top')}`);
-            // console.log(`viewBtm:${computedStyle.getPropertyValue('bottom')}`);
-            // console.log(`viewLeft:${computedStyle.getPropertyValue('left')}`);
-            // console.log(`viewRight:${computedStyle.getPropertyValue('right')}`);
-            // console.log(`viewWidth:${computedStyle.getPropertyValue('width')}`);
-            // console.log(`viewHeight:${computedStyle.getPropertyValue('height')}`);
-            // console.log(`zIndex:${computedStyle.getPropertyValue('z-index')}`);
-            // console.log(`filter:${computedStyle.getPropertyValue('filter')}`);
-
-            // Position the card using absolute positioning
-            bizCardDiv.style.setProperty('position', 'absolute', 'important');
-
-            // inverse of scene-relative z of bizCardDiv
-            const inv_divZ = 1.0 / divZ;
-            if (PARANOID) utils.validateNumber(inv_divZ);
-
-            let dx = dh * inv_divZ;
-            let dy = dv * inv_divZ;
-            if (PARANOID) utils.validateNumber(dx); 
-            if (PARANOID) utils.validateNumber(dy);
-
-            // Apply parallax transform
-            bizCardDiv.style.transform = `translate(${dx}px, ${dy}px)`;
-
-            inSceneRectCount++;
-        } 
-        else {
-            outOfSceneRectCount++;
-        }
-        numDivs++;
+function applyParallaxToBizCardDiv(bizCardDiv, dh, dv) {
+    if (!hasRequiredAttributes(bizCardDiv)) {
+        return;
     }
 
-    // console.log(`in:${inSceneRectCount} out:${outOfSceneRectCount}`);
+    bizCardDiv.style.display = "block";
+
+    const { x:vpX, y:vpY } = viewPort.getViewPortOrigin();
+    const divTop = parseFloat(bizCardDiv.getAttribute("data-sceneTop"));
+    const divLeft = parseFloat(bizCardDiv.getAttribute("data-sceneLeft"));
+    const divZ = parseFloat(bizCardDiv.getAttribute("data-sceneZ"));
+    const viewHeight = parseFloat(bizCardDiv.getAttribute("data-sceneHeight"));
+    const viewWidth = parseFloat(bizCardDiv.getAttribute("data-sceneWidth"));
+    const zIndexStr = zUtils.get_zIndexStr_from_z(divZ);
+
+    const viewTop = divTop;
+    const viewLeft = divLeft + vpX;
+
+    bizCardDiv.style.setProperty('top', `${viewTop}px`);
+    bizCardDiv.style.setProperty('left', `${viewLeft}px`);
+    bizCardDiv.style.setProperty('height', `${viewHeight}px`);
+    bizCardDiv.style.setProperty('width', `${viewWidth}px`);
+    bizCardDiv.style.setProperty('z-index', zIndexStr, 'important');
+    bizCardDiv.style.setProperty('position', 'absolute', 'important');
+
+    const inv_divZ = 1.0 / divZ;
+    let dx = dh * inv_divZ;
+    let dy = dv * inv_divZ;
+
+    bizCardDiv.style.transform = `translate(${dx}px, ${dy}px) translateZ(${divZ}px)`;
+
+    // Log the ID and computed top position
+    // console.log(`Card ID: ${bizCardDiv.id}, Top: ${viewTop}px`);
 }
 
 /**
@@ -512,213 +391,4 @@ function handleFocalPointChange(focalPointPos, prefix) {
     // Call viewAllBizCardDivs with the focal point position and our calculated scene rect
     viewAllBizCardDivs(focalPointPos, `focal-point-change-${prefix}`, sceneRect);
 }
-
-// /**
-//  * Clean up parallax event listeners and observers
-//  */
-// export function cleanupParallax() {
-//     console.log("Cleaning up parallax...");
-    
-//     // Remove focalPoint position listeners
-//     focalPoint.removeFocalPointAndSceneRectListener(viewAllBizCardDivs); // Remove from new combined system
-//     focalPoint.removeFocalPointOnlyListener(handleFocalPointChange); // Remove from new focal-point-only system
-    
-//     // Clean up scroll listener
-//     const sceneContainer = document.getElementById('scene-container');
-//     if (sceneContainer && _sceneContainerScrollListener) {
-//         sceneContainer.removeEventListener('scroll', _sceneContainerScrollListener);
-//         _sceneContainerScrollListener = null;
-//     }
-    
-//     // Clean up ResizeObserver
-//     if (_windowResizeObserver) {
-//         _windowResizeObserver.disconnect();
-//         _windowResizeObserver = null;
-//     }
-    
-//     // Clean up window resize listener
-//     if (_windowResizeListener) {
-//         window.removeEventListener('resize', _windowResizeListener);
-//         _windowResizeListener = null;
-//     }
-// }
-
-// /**
-//  * Check if parallax is initialized
-//  * @returns {boolean} True if parallax is initialized
-//  */
-// export function isParallaxInitialized() {
-//     return _isParallaxInitialized;
-// }
-
-// // Listen for focalPoint initialization
-// eventBus.on('focalPoint:initialized', () => {
-//     console.log('FocalPoint initialized, parallax can now register listeners');
-//     // Register listeners with focalPoint
-//     focalPoint.addFocalPointOnlyListener(handleFocalPointChange);
-// });
-
- 
-// /**
-//  * Check if a bizCardDiv has all required attributes for parallax
-//  * @param {HTMLElement} bizCardDiv - The business card div to check
-//  * @returns {boolean} - True if all required attributes are present
-//  */
-// function hasRequiredAttributes(bizCardDiv) {
-//     const requiredAttributes = [
-//         "data-sceneCenterX", 
-//         "data-sceneCenterY", 
-//         "data-sceneTop", 
-//         "data-sceneBottom",
-//         "data-sceneZ"
-//     ];
-    
-//     for (const attr of requiredAttributes) {
-//         if (!bizCardDiv.hasAttribute(attr)) {
-//             // Only log once per div per attribute
-//             if (!bizCardDiv.hasAttribute(`data-logged-missing-${attr}`)) {
-//                 console.warn(`${bizCardDiv.id} missing required attribute: ${attr}`);
-//                 bizCardDiv.setAttribute(`data-logged-missing-${attr}`, "true");
-//             }
-//             return false;
-//         }
-//     }
-    
-//     return true;
-// }
-
-
-// /**
-//  * External function that can be called directly to trigger parallax update
-//  * @param {string} source - Source of the update request for logging
-//  * @param {boolean} force - Force update even if within throttle interval
-//  */
-// export function updateParallax(source = "external", force = false) {
-//     // Throttle updates to prevent performance issues
-//     const now = performance.now();
-//     if (!force && now - _lastUpdateTime < MIN_UPDATE_INTERVAL) {
-//         return; // Skip this update if it's too soon after the last one
-//     }
-//     _lastUpdateTime = now;
-    
-//     // Get the scene container
-//     const sceneContainer = document.getElementById('scene-container');
-//     if (!sceneContainer) {
-//         console.error("Scene container not found");
-//         return;
-//     }
-    
-//     // Get the current scroll position
-//     const scrollTop = sceneContainer.scrollTop;
-    
-//     // Get the viewport rect
-//     const vpRect = viewPort.getViewPortRect();
-    
-//     // Create scene-relative viewport rect
-//     const sceneRect = {
-//         left: vpRect.left,
-//         top: vpRect.top + scrollTop,
-//         right: vpRect.right,
-//         bottom: vpRect.bottom + scrollTop
-//     };
-    
-//     // Get current focal point
-//     const currentFocalPoint = focalPoint.getFocalPoint();
-//     if (!currentFocalPoint) {
-//         console.warn("Focal point not available for parallax update");
-//         return;
-//     }
-    
-//     // Call viewAllBizCardDivs directly
-//     viewAllBizCardDivs(currentFocalPoint, `update-parallax-${source}`, sceneRect);
-// }
-
-// /**
-//  * Handler for focal point changes
-//  * This is called by focalPoint when only the focal point position changes
-//  * @param {Object} focalPointPos - The current focal point position
-//  * @param {string} prefix - Source of the update for logging
-//  */
-// function handleFocalPointChange(focalPointPos, prefix) {
-//     console.log("parallax.handleFocalPointChange called with:", {
-//         focalPointPos,
-//         prefix
-//     });
-    
-//     // Get the scene container
-//     const sceneContainer = document.getElementById('scene-container');
-//     if (!sceneContainer) {
-//         console.error("Scene container not found");
-//         return;
-//     }
-    
-//     // Get the current scroll position
-//     const scrollTop = sceneContainer.scrollTop;
-    
-//     // Get the viewport rect
-//     const vpRect = viewPort.getViewPortRect();
-    
-//     // Create scene-relative viewport rect
-//     const sceneRect = {
-//         left: vpRect.left,
-//         top: vpRect.top + scrollTop,
-//         right: vpRect.right,
-//         bottom: vpRect.bottom + scrollTop
-//     };
-    
-//     // Call viewAllBizCardDivs with the focal point position and our calculated scene rect
-//     viewAllBizCardDivs(focalPointPos, `focal-point-change-${prefix}`, sceneRect);
-// }
-
-// /**
-//  * Clean up parallax event listeners and observers
-//  */
-// export function cleanupParallax() {
-//     console.log("Cleaning up parallax...");
-    
-//     // Remove focalPoint position listeners
-//     focalPoint.removeFocalPointAndSceneRectListener(viewAllBizCardDivs); // Remove from new combined system
-//     focalPoint.removeFocalPointOnlyListener(handleFocalPointChange); // Remove from new focal-point-only system
-    
-//     // Clean up scroll listener
-//     const sceneContainer = document.getElementById('scene-container');
-//     if (sceneContainer && _sceneContainerScrollListener) {
-//         sceneContainer.removeEventListener('scroll', _sceneContainerScrollListener);
-//         _sceneContainerScrollListener = null;
-//     }
-    
-//     // Clean up ResizeObserver
-//     if (_windowResizeObserver) {
-//         _windowResizeObserver.disconnect();
-//         _windowResizeObserver = null;
-//     }
-    
-//     // Clean up window resize listener
-//     if (_windowResizeListener) {
-//         window.removeEventListener('resize', _windowResizeListener);
-//         _windowResizeListener = null;
-//     }
-// }
-
-// /**
-//  * Check if parallax is initialized
-//  * @returns {boolean} True if parallax is initialized
-//  */
-// export function isParallaxInitialized() {
-//     return _isParallaxInitialized;
-// }
-
-// // Listen for focalPoint initialization
-// eventBus.on('focalPoint:initialized', () => {
-//     console.log('FocalPoint initialized, parallax can now register listeners');
-//     // Register listeners with focalPoint
-//     focalPoint.addFocalPointOnlyListener(handleFocalPointChange);
-// });
-
-// export function initializeParallax() {
-//     // Existing initialization code...
-    
-//     // Emit event when initialization is complete
-//     eventBus.emit('parallax:initialized', {});
-// }
 

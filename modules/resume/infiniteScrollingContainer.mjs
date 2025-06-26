@@ -628,6 +628,13 @@ class InfiniteScrollingContainer {
     return this.allItems.find(item => item.type === 'original' && item.originalIndex === this.currentIndex);
   }
 
+  getItemAtIndex(index) {
+    if (index < 0 || index >= this.originalItems.length) {
+      return null;
+    }
+    return this.originalItems[index];
+  }
+
   destroy() {
     // Remove event listeners
     this.container.removeEventListener('mousedown', this.handleStart.bind(this));
@@ -680,11 +687,11 @@ class InfiniteScrollingContainer {
           e.stopPropagation(); // Prevent event from bubbling
           
           // Import bizResumeDivModule and call handleClickEvent
-          import('../scene/bizResumeDivModule.mjs').then(module => {
-            console.log(`Calling bizResumeDivModule.handleClickEvent for ${item.element.id}`);
-            module.handleClickEvent(item.element);
+          import('../scene/bizResumeDivManager.mjs').then(module => {
+            console.log(`Calling bizResumeDivManager.handleClickEvent for ${item.element.id}`);
+            module.bizResumeDivManager.handleClickEvent(item.element);
           }).catch(error => {
-            console.error("Error importing bizResumeDivModule:", error);
+            console.error("Error importing bizResumeDivManager:", error);
           });
         };
         
@@ -722,12 +729,12 @@ class InfiniteScrollingContainer {
     console.log(`Manually triggering click on ${item.element.id}`);
     
     // Import bizResumeDivModule and call handleClickEvent
-    import('../scene/bizResumeDivModule.mjs').then(module => {
-        console.log(`Calling bizResumeDivModule.handleClickEvent for ${item.element.id}`);
-        module.handleClickEvent(item.element);
+    import('../scene/bizResumeDivManager.mjs').then(module => {
+        console.log(`Calling bizResumeDivManager.handleClickEvent for ${item.element.id}`);
+        module.bizResumeDivManager.handleClickEvent(item.element);
         return true;
     }).catch(error => {
-        console.error("Error importing bizResumeDivModule:", error);
+        console.error("Error importing bizResumeDivManager:", error);
         return false;
     });
   }

@@ -895,44 +895,6 @@ class PaletteSelector {
         optimizedRepaint(elementsToRepaint);
     }
 
-    // async refreshPalettes() {
-    //     try {
-    //         const updated = await loadOrRefreshPalettes(true); // Call shared logic
-    //         if (updated) { 
-    //             // If updates occurred, rebuild the dropdown and reapply selection
-    //             this.rebuildDropdown(); 
-    //             await this.selectPalette(this.paletteSelector.value || this.getFirstPalette()); // Reselect current or first
-                
-    //             // Force CSS regeneration
-    //             this.updatePaletteStyles();
-                
-    //             // Force reload of CSS file with error handling
-    //             const linkEl = document.querySelector('link[href*="palette-styles.css"]');
-    //             if (linkEl) {
-    //                 const originalHref = linkEl.href.split('?')[0];
-    //                 const newHref = originalHref + '?v=' + Date.now();
-    //                 linkEl.href = newHref;
-    //                 // Add an error handler to catch loading issues
-    //                 linkEl.onerror = (error) => {
-    //                     console.error('Failed to load CSS file:', error);
-    //                     console.error('CSS URL:', newHref);
-    //                     // Retry loading once more after a delay
-    //                     setTimeout(() => {
-    //                         console.log('Retrying CSS file load...');
-    //                         linkEl.href = originalHref + '?v=' + (Date.now() + 1);
-    //                     }, 1000);
-    //                 };
-    //             } else {
-    //                 console.warn('CSS link element for palette-styles.css not found.');
-    //             }
-                
-    //             console.log("Palette dropdown and styles refreshed.");
-    //         }
-    //     } catch (error) {
-    //          console.error("Error during palette refresh process:", error);
-    //     }
-    // }
-
     // --- Helper to rebuild dropdown --- 
     rebuildDropdown() {
         const currentSelectedValue = this.paletteSelector.value; // Remember current selection
@@ -1018,29 +980,38 @@ export async function initializePaletteSelectorInstance() {
  * @param {number} jobIndex - The index in the sequence (e.g. job index)
  * Then apply the color index to the HTML element and its children recursively
  */
-export function assignColorIndex(element, jobIndex) {
-    if (!element || !(element instanceof HTMLElement)) {
-        console.warn("skipping element that is null or is not an instance of HTMLElement");
-        return;
+export function assignColorIndex(element, jobIndex, totalJobs) {
+    if (!_orderedPaletteNames.length) {
+        logger.error("No palettes loaded, cannot assign color index.");
+        return { colorIndex: 0, groupIndex: 0 };
     }
-    element.setAttribute('data-color-index', jobIndex.toString());
-    // console.log("colorPalettes:assignColorIndex: assigned data-color-index:", jobIndex, "to element:", element.id);
+
+    const currentPaletteName = getCurrentPaletteName();
+    const currentPalette = _color_palettes[currentPaletteName];
+    if (!currentPalette || !currentPalette.length) {
+        logger.error(`Current palette '${currentPaletteName}' is invalid or empty.`);
+        return { colorIndex: 0, groupIndex: 0 };
+    }
+
+    const colorIndex = jobIndex % currentPalette.length;
+    const groupIndex = Math.floor(jobIndex / currentPalette.length);
+
+    element.setAttribute('data-color-index', colorIndex);
+    element.setAttribute('data-color-group-index', groupIndex);
     
-    // Use the singleton instance to apply colors
+    // Return both for other modules to use
+    return { colorIndex, groupIndex };
+}
+
+// Function to safely get the current palette name
+export function getCurrentPaletteName() {
+    // Try to get from the selector first
     const selector = _selectorInstance;
     if (selector) {
-        selector.applyCurrentColorPaletteToElement(element);
-    } else {
-        console.warn("No palette selector instance available yet");
+        return selector.current_value;
     }
-    
-    // Apply to children recursively
-    for (const child of Array.from(element.children)) {
-        if (child instanceof HTMLElement) {
-            // Set the color index but don't apply colors yet (will be done by parent)
-            child.setAttribute('data-color-index', jobIndex.toString());
-        }
-    }
+    // If selector is not available, use the first palette
+    return _orderedPaletteNames.length > 0 ? _orderedPaletteNames[0] : null;
 }
 
 /**
