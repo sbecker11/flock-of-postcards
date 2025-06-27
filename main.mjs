@@ -2,12 +2,16 @@
 'use strict';
 
 import { jobs } from './static_content/jobs/jobs.mjs';
-import { resumeManager } from './modules/resume/resumeManager.mjs';
-import { bizCardDivManager } from './modules/scene/bizCardDivManager.mjs';
-import { bizResumeDivManager } from './modules/scene/bizResumeDivManager.mjs';
+import * as utils from './modules/utils/utils.mjs';
+import * as colorPalettes from './modules/colors/colorPalettes.mjs';
+import { resumeListController } from './modules/resume/ResumeListController.mjs';
+import { cardsController } from './modules/scene/CardsController.mjs';
+import { resumeItemsController } from './modules/scene/ResumeItemsController.mjs';
+import * as scenePlane from './modules/scene/scenePlane.mjs';
+import * as aimPoint from './modules/core/aimPoint.mjs';
+import * as keyDown from './modules/core/keyDown.mjs';
 import * as bizResumeDivSortingModule from './modules/scene/bizResumeDivSortingModule.mjs';
 import * as bullsEye from './modules/core/bullsEye.mjs';
-import * as colorPalettes from './modules/colors/colorPalettes.mjs';
 import * as focalPoint from './modules/core/focalPoint.mjs';
 import * as parallax from './modules/core/parallax.mjs';
 import { initializeResizeHandle } from './modules/core/resizeHandle.mjs';
@@ -16,7 +20,6 @@ import * as sceneContainer from './modules/scene/sceneContainer.mjs';
 import * as timeline from './modules/timeline/timeline.mjs';
 import * as viewPort from './modules/core/viewPort.mjs';
 import * as tests from './modules/tests/tests.mjs';
-import * as scenePlane from './modules/scene/scenePlane.mjs';
 
 // --------------------------------------
 // Constants
@@ -183,9 +186,9 @@ async function initialize() {
         resumeContainer.initializeResumeContainer();
         console.log("ResumeContainer initialized");
 
-        // STEP 5: Create and initialize resumeManager
-        window.resumeManager = resumeManager;
-        console.log("ResumeManager instance created");
+        // STEP 5: Create and initialize resumeListController
+        window.resumeListController = resumeListController;
+        console.log("ResumeListController instance created");
 
         // Load color palettes
         paletteSelector = await colorPalettes.initializePaletteSelectorInstance();
@@ -217,16 +220,16 @@ async function initialize() {
         });
 
         // STEP 6: Create all bizCards and bizResumeDivs
-        const bizCardDivs = bizCardDivManager.createAllBizCardDivs(sortedJobs);
-        const bizResumeDivs = bizResumeDivManager.createAllBizResumeDivs(bizCardDivs);
+        const bizCardDivs = cardsController.createAllBizCardDivs(sortedJobs);
+        const bizResumeDivs = resumeItemsController.createAllBizResumeDivs(bizCardDivs);
 
-        // STEP 7: Initialize resumeManager with the created bizResumeDivs
-        resumeManager.initialize(sortedJobs, bizResumeDivs);
-        console.log("ResumeManager initialized with bizResumeDivs");
+        // STEP 7: Initialize resumeListController with the created bizResumeDivs
+        resumeListController.initialize(sortedJobs, bizResumeDivs);
+        console.log("ResumeListController initialized with bizResumeDivs");
 
-        // STEP 8: Initialize bizCardDivModule (now that resumeManager is fully initialized)
-        bizCardDivManager.initialize();
-        console.log("BizCardDivModule initialized");
+        // STEP 8: Initialize bizCardDivModule (now that resumeListController is fully initialized)
+        cardsController.initialize();
+        console.log("CardsController initialized");
 
         // STEP 9: Set up a delegated event listener for bizResumeDivs
         const resumeContentDiv = document.getElementById('resume-content-div');
@@ -234,7 +237,7 @@ async function initialize() {
             resumeContentDiv.addEventListener('click', (event) => {
                 const bizResumeDiv = event.target.closest('.biz-resume-div');
                 if (bizResumeDiv) {
-                    bizResumeDivManager.handleClickEvent(bizResumeDiv);
+                    resumeItemsController.handleClickEvent(bizResumeDiv);
                 }
             });
         }
@@ -247,7 +250,7 @@ async function initialize() {
         console.log("Parallax initialized");
 
         // STEP 12: Ensure bizCardDivs always have pointer events enabled
-        bizCardDivManager.setupPointerEventsObserver();
+        cardsController.setupPointerEventsObserver();
 
         // Force an initial parallax update
         setTimeout(() => {

@@ -1,17 +1,17 @@
-// modules/resume/resumeManager.mjs
+// modules/resume/ResumeListController.mjs
 
 import { InfiniteScrollingContainer } from './infiniteScrollingContainer.mjs';
 import * as domUtils from '../utils/domUtils.mjs';
 // No longer directly interacting with these for selection
 // import { bizCardDivManager } from '../scene/bizCardDivManager.mjs';
 // import * as scenePlane from '../scene/scenePlane.mjs';
-import { bizResumeDivManager } from '../scene/bizResumeDivManager.mjs';
+import { resumeItemsController } from '../scene/ResumeItemsController.mjs';
 import { selectionManager } from '../core/selectionManager.mjs';
 
-class ResumeManager {
+class ResumeListController {
   constructor() {
     this.resumeContentDiv = document.getElementById('resume-content-div');
-    if ( !this.resumeContentDiv ) throw new Error('ResumeManager: initialize: resume-content-div not found in DOM');
+    if ( !this.resumeContentDiv ) throw new Error('ResumeListController: initialize: resume-content-div not found in DOM');
     this.infiniteScroller = null;
     this.bizResumeDivs = null;
     this.originalJobsData = null;
@@ -19,7 +19,7 @@ class ResumeManager {
     this.sortedIndices = []; // Maps sorted position to original index
     this._isInitialized = false;
     
-    // Listen ONLY for selection changes to trigger scrolling. Styling is handled by bizResumeDivManager.
+    // Listen ONLY for selection changes to trigger scrolling. Styling is handled by ResumeItemsController.
     selectionManager.addEventListener('selectionChanged', this.handleSelectionChanged.bind(this));
   }
 
@@ -33,11 +33,11 @@ class ResumeManager {
     this.updateSortedIndices();
     
     if (this.sortedIndices.length > 0) {
-      selectionManager.selectJobIndex(this.sortedIndices[0], 'resumeManager.initialize');
+      selectionManager.selectJobIndex(this.sortedIndices[0], 'ResumeListController.initialize');
     }
 
     this._isInitialized = true;
-    console.info("ResumeManager initialized successfully");
+    console.info("ResumeListController initialized successfully");
   }
   
   isInitialized() {
@@ -47,8 +47,7 @@ class ResumeManager {
   // region Event Handlers from SelectionManager
   handleSelectionChanged(event) {
     const { selectedJobIndex, caller } = event.detail;
-    console.log(`ResumeManager: [Listener] Handling selectionChanged from ${caller} for index ${selectedJobIndex}`);
-    this.scrollToJobIndex(selectedJobIndex, `resumeManager.handleSelectionChanged from ${caller}`);
+    this.scrollToJobIndex(selectedJobIndex, `ResumeListController.handleSelectionChanged from ${caller}`);
   }
   // endregion
 
@@ -81,7 +80,7 @@ class ResumeManager {
     const nextSortedPosition = (currentSortedPosition + 1) % this.sortedIndices.length;
     const nextJobIndex = this.sortedIndices[nextSortedPosition];
 
-    selectionManager.selectJobIndex(nextJobIndex, 'resumeManager.goToNextResumeItem');
+    selectionManager.selectJobIndex(nextJobIndex, 'ResumeListController.goToNextResumeItem');
   }
 
   goToPreviousResumeItem() {
@@ -102,25 +101,23 @@ class ResumeManager {
     }
 
     const prevJobIndex = this.sortedIndices[prevSortedPosition];
-    selectionManager.selectJobIndex(prevJobIndex, 'resumeManager.goToPreviousResumeItem');
+    selectionManager.selectJobIndex(prevJobIndex, 'ResumeListController.goToPreviousResumeItem');
   }
 
   goToFirstResumeItem() {
     if (!this.sortedIndices || this.sortedIndices.length === 0) return;
     const firstJobIndex = this.sortedIndices[0];
-    selectionManager.selectJobIndex(firstJobIndex, 'resumeManager.goToFirstResumeItem');
+    selectionManager.selectJobIndex(firstJobIndex, 'ResumeListController.goToFirstResumeItem');
   }
 
   goToLastResumeItem() {
     if (!this.sortedIndices || this.sortedIndices.length === 0) return;
     const lastJobIndex = this.sortedIndices[this.sortedIndices.length - 1];
-    selectionManager.selectJobIndex(lastJobIndex, 'resumeManager.goToLastResumeItem');
+    selectionManager.selectJobIndex(lastJobIndex, 'ResumeListController.goToLastResumeItem');
   }
 
   applySortRule(sortRule) {
-    console.log('ResumeManager: Sorting started.');
     const previouslySelectedJobIndex = selectionManager.getSelectedJobIndex();
-    console.log(`ResumeManager: Previously selected index was ${previouslySelectedJobIndex}`);
 
     this.currentSortRule = { ...sortRule };
     this.updateSortedIndices();
@@ -129,16 +126,14 @@ class ResumeManager {
     if (previouslySelectedJobIndex !== null) {
       this.scrollToJobIndex(previouslySelectedJobIndex, 'applySortRule');
     }
-    console.log('ResumeManager: Sorting finished.');
   }
 
   scrollToJobIndex(jobIndex, caller = '') {
     const newSortedIndex = this.sortedIndices.indexOf(jobIndex);
     if (newSortedIndex !== -1) {
-      console.log(`ResumeManager: ${caller}: scrolling to sorted index ${newSortedIndex} for job index ${jobIndex}`);
       this.infiniteScroller.scrollToItem(newSortedIndex);
     } else {
-      console.error(`ResumeManager: ${caller}: newSortedIndex not found for job index ${jobIndex}`);
+      console.error(`ResumeListController: ${caller}: newSortedIndex not found for job index ${jobIndex}`);
     }
   }
 
@@ -325,7 +320,7 @@ class ResumeManager {
         
         return sortedIndex;
     } catch (error) {
-        console.error(`ResumeManager: Error in getSortedIndexFromOriginal:`, error);
+        console.error(`ResumeListController: Error in getSortedIndexFromOriginal:`, error);
         return -1;
     }
   }
@@ -341,24 +336,24 @@ class ResumeManager {
     try {
         const sortedIndex = this.getSortedIndexFromOriginal(jobIndex);
         if (sortedIndex === -1) {
-            console.warn(`ResumeManager: Original index ${jobIndex} not found in sortedIndices`);
+            console.warn(`ResumeListController: Original index ${jobIndex} not found in sortedIndices`);
             return;
         }
         
         if (!this.infiniteScroller) {
-            console.warn(`ResumeManager: infiniteScroller is not initialized`);
+            console.warn(`ResumeListController: infiniteScroller is not initialized`);
             return;
         }
         
         const resumeDiv = this.infiniteScroller.getItemAtIndex(sortedIndex);
         if (resumeDiv) {
             resumeDiv.classList.add(className);
-            console.log(`ResumeManager: Added class ${className} to item at index ${sortedIndex}`);
+            console.log(`ResumeListController: Added class ${className} to item at index ${sortedIndex}`);
         } else {
-            console.warn(`ResumeManager: Could not find item at sorted index ${sortedIndex}`);
+            console.warn(`ResumeListController: Could not find item at sorted index ${sortedIndex}`);
         }
     } catch (error) {
-        console.error(`ResumeManager: Error in addClassItem:`, error);
+        console.error(`ResumeListController: Error in addClassItem:`, error);
     }
   }
 
@@ -366,24 +361,24 @@ class ResumeManager {
     try {
         const sortedIndex = this.getSortedIndexFromOriginal(jobIndex);
         if (sortedIndex === -1) {
-            console.warn(`ResumeManager: Original index ${jobIndex} not found in sortedIndices`);
+            console.warn(`ResumeListController: Original index ${jobIndex} not found in sortedIndices`);
             return;
         }
         
         if (!this.infiniteScroller) {
-            console.warn(`ResumeManager: infiniteScroller is not initialized`);
+            console.warn(`ResumeListController: infiniteScroller is not initialized`);
             return;
         }
         
         const resumeDiv = this.infiniteScroller.getItemAtIndex(sortedIndex);
         if (resumeDiv) {
             resumeDiv.classList.remove(className);
-            console.log(`ResumeManager: Removed class ${className} from item at index ${sortedIndex}`);
+            console.log(`ResumeListController: Removed class ${className} from item at index ${sortedIndex}`);
         } else {
-            console.warn(`ResumeManager: Could not find item at sorted index ${sortedIndex}`);
+            console.warn(`ResumeListController: Could not find item at sorted index ${sortedIndex}`);
         }
     } catch (error) {
-        console.error(`ResumeManager: Error in removeClassItem:`, error);
+        console.error(`ResumeListController: Error in removeClassItem:`, error);
     }
   }
 
@@ -394,29 +389,29 @@ class ResumeManager {
    */
   scrollBizResumeDivIntoView(bizResumeDiv) {
     if (!bizResumeDiv) {
-      console.error("ResumeManager: scrollBizResumeDivIntoView called with null bizResumeDiv");
+      console.error("ResumeListController: scrollBizResumeDivIntoView called with null bizResumeDiv");
       return false;
     }
     
-    console.log(`ResumeManager: Scrolling bizResumeDiv ${bizResumeDiv.id} into view`);
+    console.log(`ResumeListController: Scrolling bizResumeDiv ${bizResumeDiv.id} into view`);
     
     // If we have an infinite scroller, use it (most efficient)
     if (this.infiniteScroller) {
-      console.log(`ResumeManager: Using infiniteScroller to scroll bizResumeDiv ${bizResumeDiv.id}`);
+      console.log(`ResumeListController: Using infiniteScroller to scroll bizResumeDiv ${bizResumeDiv.id}`);
       return this.infiniteScroller.scrollToBizResumeDiv(bizResumeDiv, true);
     }
     
     // If we don't have an infinite scroller, use direct scrollIntoView
-    console.log(`ResumeManager: No infiniteScroller available, using direct scrollIntoView for ${bizResumeDiv.id}`);
+    console.log(`ResumeListController: No infiniteScroller available, using direct scrollIntoView for ${bizResumeDiv.id}`);
     try {
       bizResumeDiv.scrollIntoView({ behavior: 'smooth', block: 'center' });
       return true;
     } catch (error) {
-      console.error(`ResumeManager: Error scrolling bizResumeDiv ${bizResumeDiv.id} into view:`, error);
+      console.error(`ResumeListController: Error scrolling bizResumeDiv ${bizResumeDiv.id} into view:`, error);
       return false;
     }
   }
 }
 
-const resumeManager = new ResumeManager();
-export { resumeManager };
+const resumeListController = new ResumeListController();
+export { resumeListController };

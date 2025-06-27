@@ -1,5 +1,5 @@
-import { bizCardDivManager } from './bizCardDivManager.mjs';
-import { resumeManager } from '../resume/resumeManager.mjs';
+import { cardsController } from './CardsController.mjs';
+import { resumeListController } from '../resume/ResumeListController.mjs';
 import { selectionManager } from '../core/selectionManager.mjs';
 
 let isInitialized = false;

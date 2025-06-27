@@ -1,4 +1,4 @@
-// scene/bizResumeDivManager.mjs
+// scene/ResumeItemsController.mjs
 
 import * as utils from '../utils/utils.mjs';
 import * as BizDetailsDivModule from './bizDetailsDivModule.mjs';
@@ -9,7 +9,7 @@ import { selectionManager } from '../core/selectionManager.mjs';
 // import * as scenePlane from './scenePlane.mjs';
 // import { resumeManager } from '../resume/resumeManager.mjs';
 
-class BizResumeDivManager {
+class ResumeItemsController {
     constructor() {
         this.bizResumeDivs = [];
         this._setupSelectionListeners();
@@ -80,9 +80,9 @@ class BizResumeDivManager {
         const isSelected = selectionManager.getSelectedJobIndex() === jobIndex;
 
         if (isSelected) {
-            selectionManager.clearSelection('bizResumeDivManager.handleBizResumeDivClickEvent');
+            selectionManager.clearSelection('ResumeItemsController.handleBizResumeDivClickEvent');
         } else {
-            selectionManager.selectJobIndex(jobIndex, 'bizResumeDivManager.handleBizResumeDivClickEvent');
+            selectionManager.selectJobIndex(jobIndex, 'ResumeItemsController.handleBizResumeDivClickEvent');
         }
     }
 
@@ -90,12 +90,12 @@ class BizResumeDivManager {
         if (!bizResumeDiv) return;
         const jobIndex = parseInt(bizResumeDiv.getAttribute('data-job-index'), 10);
         if (selectionManager.getSelectedJobIndex() === jobIndex) return; // Ignore hover on selected item
-        selectionManager.hoverJobIndex(jobIndex, 'bizResumeDivManager.handleMouseEnterEvent');
+        selectionManager.hoverJobIndex(jobIndex, 'ResumeItemsController.handleMouseEnterEvent');
     }
 
     handleMouseLeaveEvent(bizResumeDiv) {
         if (!bizResumeDiv) return;
-        selectionManager.clearHover('bizResumeDivManager.handleMouseLeaveEvent');
+        selectionManager.clearHover('ResumeItemsController.handleMouseLeaveEvent');
     }
 
     handleSelectionChanged(event) {
@@ -134,8 +134,8 @@ class BizResumeDivManager {
         this.bizResumeDivs.forEach(div => div.classList.remove('hovered'));
     }
 
-} // end class BizResumeDivManager
+} // end class ResumeItemsController
 
-const bizResumeDivManager = new BizResumeDivManager();
-export { bizResumeDivManager };
+const resumeItemsController = new ResumeItemsController();
+export { resumeItemsController };
 

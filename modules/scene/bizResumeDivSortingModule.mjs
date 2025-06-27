@@ -1,13 +1,12 @@
 // scene/bizResumeDivSortingModule.mjs
 
-import { resumeManager } from '../resume/resumeManager.mjs';
-import { bizCardDivManager } from './bizCardDivManager.mjs';
+import * as utils from '../utils/utils.mjs';
+import { resumeListController } from '../resume/ResumeListController.mjs';
 
 export function initialize(jobsData, bizResumeDivs) {
 
-    const _resumeManager = resumeManager;
-    if (!_resumeManager) {
-        console.error('bizResumeDivSortingModule: ResumeManager not found on window object.');
+    if (!resumeListController) {
+        console.error('bizResumeDivSortingModule: ResumeListController not found.');
         return;
     }
 
@@ -34,7 +33,7 @@ export function initialize(jobsData, bizResumeDivs) {
 
     sortingSelector.addEventListener('change', (e) => {
         const [field, direction] = e.target.value.split('_');
-        _resumeManager.applySortRule({ field, direction });
+        sort(field, direction);
     });
 
     // Initialize navigation buttons
@@ -44,16 +43,24 @@ export function initialize(jobsData, bizResumeDivs) {
     const lastButton = document.getElementById('select-last-resume-div');
 
     if (firstButton) firstButton.addEventListener('click', () => {
-        _resumeManager.goToFirstResumeItem();
+        resumeListController.goToFirstResumeItem();
     });
     if (prevButton) prevButton.addEventListener('click', () => {
-        _resumeManager.goToPreviousResumeItem();
+        resumeListController.goToPreviousResumeItem();
     });
     if (nextButton) nextButton.addEventListener('click', () => {
-        _resumeManager.goToNextResumeItem();
+        resumeListController.goToNextResumeItem();
     });
     if (lastButton) lastButton.addEventListener('click', () => {
-        _resumeManager.goToLastResumeItem();
+        resumeListController.goToLastResumeItem();
     });
+}
+
+function sort(field, direction) {
+    if (!resumeListController) {
+        console.error('bizResumeDivSortingModule: ResumeListController not found.');
+        return;
+    }
+    resumeListController.applySortRule({ field, direction });
 }
 

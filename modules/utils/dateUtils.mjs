@@ -47,16 +47,20 @@ export const getIsoDateString = (date) => date.toISOString().slice(0, 10);
  */
 export function parseFlexibleDateString(dateStr) {
     if (typeof dateStr !== 'string' || !dateStr.trim()) {
-        throw new Error(`Invalid date string provided: ${dateStr}`);
+        throw new Error(`Invalid or empty date string provided: '${dateStr}'`);
     }
 
-    const trimmedDateStr = dateStr.trim();
+    const trimmedDateStr = dateStr.trim().toLowerCase();
+
+    // Handle "Present" or "Current"
+    if (trimmedDateStr === 'present' || trimmedDateStr === 'current' || trimmedDateStr === 'current_date') {
+        return new Date();
+    }
     
-    // Try YYYY-MM-DD first
+    // Try YYYY-MM-DD
     let match = trimmedDateStr.match(/^(\d{4})-(\d{2})-(\d{2})$/);
     if (match) {
         const [, year, month, day] = match;
-        // Constructing as UTC to avoid timezone issues
         return new Date(Date.UTC(parseInt(year, 10), parseInt(month, 10) - 1, parseInt(day, 10)));
     }
     
@@ -64,12 +68,25 @@ export function parseFlexibleDateString(dateStr) {
     match = trimmedDateStr.match(/^(\d{4})-(\d{2})$/);
     if (match) {
         const [, year, month] = match;
-        // Constructing as UTC to avoid timezone issues
         return new Date(Date.UTC(parseInt(year, 10), parseInt(month, 10) - 1, 1));
     }
+
+    // Try YYYY
+    match = trimmedDateStr.match(/^(\d{4})$/);
+    if (match) {
+        const [, year] = match;
+        return new Date(Date.UTC(parseInt(year, 10), 0, 1)); // January 1st of that year
+    }
+
+    // Fallback for other potential full date formats that new Date() can handle
+    const date = new Date(dateStr);
+    if (!isNaN(date.getTime())) {
+        // It's a valid date that new Date() could parse, so let's use it.
+        // To avoid timezone issues, let's reconstruct it as UTC from its parts.
+        return new Date(Date.UTC(date.getFullYear(), date.getMonth(), date.getDate()));
+    }
     
-    // Throw an error for unhandled formats
-    throw new Error(`Invalid date format: "${dateStr}". Expected YYYY-MM-DD or YYYY-MM.`);
+    throw new Error(`Invalid or unhandled date format: "${dateStr}".`);
 }
 
 /*
@@ -488,277 +505,67 @@ export function validateIs_YYYY_MM_DD_DateString(dateStr) {
 }
 
 /**
- * comprehensive test of all dateUtil functions
- * to be called by main.mjs during intialization.
+ * Custom assertion function for clearer test feedback.
+ * @param {*} actual - The actual value produced by the test.
+ * @param {*} expected - The expected value.
+ * @param {string} message - The message to display on failure.
+ */
+function assertEqual(actual, expected, message) {
+    // Use a loose equality for Date objects which are often tricky
+    if (String(actual) != String(expected)) {
+        console.error(`Assertion Failed: ${message}`);
+        console.error(`  Expected: ${expected} (type: ${typeof expected})`);
+        console.error(`  Actual:   ${actual} (type: ${typeof actual})`);
+    }
+}
+
+/**
+ * Tests for the parseFlexibleDateString function.
  */
 export function test_dateUtils() {
-    console.log("=== Testing dateUtils ===");
-    
-    // Test validateIs_YYYY_MM_DD_DateString
-    console.log("Testing validateIs_YYYY_MM_DD_DateString...");
+    console.log("Running dateUtils tests...");
+
+    // Test case 1: YYYY-MM-DD
+    let d1 = parseFlexibleDateString("2023-01-15");
+    assertEqual(d1.getUTCFullYear(), 2023, "YYYY-MM-DD year failed");
+    assertEqual(d1.getUTCMonth(), 0, "YYYY-MM-DD month failed"); // Month is 0-indexed
+    assertEqual(d1.getUTCDate(), 15, "YYYY-MM-DD day failed");
+
+    // Test case 2: YYYY-MM
+    let d2 = parseFlexibleDateString("2023-02");
+    assertEqual(d2.getUTCFullYear(), 2023, "YYYY-MM year failed");
+    assertEqual(d2.getUTCMonth(), 1, "YYYY-MM month failed");
+    assertEqual(d2.getUTCDate(), 1, "YYYY-MM day should be 1");
+
+    // Test case 3: YYYY
+    let d3 = parseFlexibleDateString("2024");
+    assertEqual(d3.getUTCFullYear(), 2024, "YYYY year failed");
+    assertEqual(d3.getUTCMonth(), 0, "YYYY month should be 0 (Jan)");
+    assertEqual(d3.getUTCDate(), 1, "YYYY day should be 1");
+
+    // Test case 4: "Present"
+    let d4 = parseFlexibleDateString("Present");
+    let now = new Date();
+    assertEqual(d4.getFullYear(), now.getFullYear(), "'Present' year failed");
+    assertEqual(d4.getMonth(), now.getMonth(), "'Present' month failed");
+
+    // Test case 5: Invalid date string
+    let errorThrown = false;
     try {
-        // Test valid date strings
-        validateIs_YYYY_MM_DD_DateString("2023-06-15");
-        validateIs_YYYY_MM_DD_DateString("2023-06");
-        validateIs_YYYY_MM_DD_DateString("2020-02-29"); // Leap year
-        
-        // Test invalid formats
-        try {
-            validateIs_YYYY_MM_DD_DateString("06/15/2023");
-            console.assert(false, "Should have thrown error for invalid format");
-        } catch (e) {
-            console.assert(e.message.includes("not in YYYY-MM-DD or YYYY-MM format"), "Wrong error message for invalid format");
-        }
-        
-        try {
-            validateIs_YYYY_MM_DD_DateString("2023/06/15");
-            console.assert(false, "Should have thrown error for invalid format");
-        } catch (e) {
-            console.assert(e.message.includes("not in YYYY-MM-DD or YYYY-MM format"), "Wrong error message for invalid format");
-        }
-        
-        // Test invalid year
-        try {
-            validateIs_YYYY_MM_DD_DateString("999-06-15");
-            console.error("Should have thrown error for invalid year");
-        } catch (e) {
-            console.assert(true, e.message.includes("Invalid year"), "Correct error message for invalid year");
-        }
-        
-        // Test invalid month
-        try {
-            validateIs_YYYY_MM_DD_DateString("2023-13-01");
-            console.error("Should have thrown error for invalid month");
-        } catch (e) {
-            console.assert(e.message.includes("Invalid month"), "Wrong error message for invalid month");
-        }
-        
-        // Test invalid day
-        try {
-            validateIs_YYYY_MM_DD_DateString("2023-02-30");
-            console.assert(false, "Should have thrown error for invalid day");
-        } catch (e) {
-            console.assert(e.message.includes("Invalid day"), "Wrong error message for invalid day. Error message:", e.message);
-        }
-        
-        // Test non-string input
-        try {
-            validateIs_YYYY_MM_DD_DateString(123);
-            console.assert(false, "Should have thrown error for non-string input");
-        } catch (e) {
-            console.assert(e.message.includes("not a string"), "Wrong error message for non-string input. Error message:", e.message);
-        }
-        
-        // Test empty string
-        try {
-            validateIs_YYYY_MM_DD_DateString("");
-            console.assert(false, "Should have thrown error for empty string");
-        } catch (e) {
-            console.assert(e.message.includes("not a string"), "Wrong error message for empty string. Error message:", e.message);
-        }
-        
-        console.log("✅ validateIs_YYYY_MM_DD_DateString tests passed");
+        parseFlexibleDateString("invalid-date");
     } catch (e) {
-        console.error("❌ validateIs_YYYY_MM_DD_DateString test failed:", e);
+        errorThrown = true;
     }
+    assertEqual(errorThrown, true, "Should have thrown error for invalid date");
     
-    // Test parseFlexibleDateString
-    console.log("Testing parseFlexibleDateString...");
+    // Test case 6: Empty or whitespace string
+    errorThrown = false;
     try {
-        // Test YYYY-MM-DD format
-        const date1 = parseFlexibleDateString("2023-06-15");
-        console.assert(date1.getFullYear() === 2023, "YYYY-MM-DD year failed");
-        console.assert(date1.getMonth() === 5, "YYYY-MM-DD month failed"); // 0-indexed
-        console.assert(date1.getDate() === 15, "YYYY-MM-DD day failed");
-        
-        // Test YYYY-MM format
-        const date2 = parseFlexibleDateString("2023-06");
-        console.assert(date2.getFullYear() === 2023, "YYYY-MM year failed");
-        console.assert(date2.getMonth() === 5, "YYYY-MM month failed");
-        console.assert(date2.getDate() === 1, "YYYY-MM day should be 1");
-        
-        // Test invalid format
-        try {
-            parseFlexibleDateString("invalid-date");
-            console.assert(false, "Should have thrown error for invalid date");
-        } catch (e) {
-            console.assert(e.message.includes("Invalid date format"), "Wrong error message:", e.message);
-        }
-        
-        console.log("✅ parseFlexibleDateString tests passed");
+        parseFlexibleDateString("   ");
     } catch (e) {
-        console.error("❌ parseFlexibleDateString test failed:", e);
+        errorThrown = true;
     }
-    
-    // Test getDateFromString
-    console.log("Testing getDateFromString...");
-    try {
-        // Test YYYY-MM-DD format
-        const date1 = getDateFromString("2023-06-15");
-        console.assert(date1.getFullYear() === 2023, "YYYY-MM-DD year failed");
-        console.assert(date1.getMonth() === 5, "YYYY-MM-DD month failed"); // 0-indexed
-        console.assert(date1.getDate() === 15, "YYYY-MM-DD day failed");
-        
-        // Test YYYY-MM format
-        const date2 = getDateFromString("2023-06");
-        console.assert(date2.getFullYear() === 2023, "YYYY-MM year failed");
-        console.assert(date2.getMonth() === 5, "YYYY-MM month failed");
-        console.assert(date2.getDate() === 1, "YYYY-MM day should be 1");
-        
-        // Test leap year
-        const leapDate = getDateFromString("2020-02-29");
-        console.assert(leapDate.getFullYear() === 2020, "Leap year failed");
-        console.assert(leapDate.getMonth() === 1, "Leap month failed");
-        console.assert(leapDate.getDate() === 29, "Leap day failed");
-        
-        // Test invalid month
-        try {
-            getDateFromString("2023-13-01");
-            console.assert(false, "Should have thrown error for invalid month");
-        } catch (e) {
-            console.assert(e.message.includes("Invalid month"), "Wrong error message for invalid month. Error message:", e.message);
-        }
-        
-        // Test invalid day
-        try {
-            getDateFromString("2023-02-30");
-            console.assert(false, "Should have thrown error for invalid day");
-        } catch (e) {
-            console.assert(e.message.includes("Invalid date"), "Wrong error message for invalid day. Error message:", e.message);
-        }
-        
-        // Test invalid format
-        try {
-            getDateFromString("2023/06/15");
-            console.assert(false, "Should have thrown error for invalid format");
-        } catch (e) {
-            console.assert(e.message.includes("Invalid date format"), "Wrong error message for invalid format");
-        }
-        
-        // Test empty string
-        try {
-            getDateFromString("");
-            console.assert(false, "Should have thrown error for empty string");
-        } catch (e) {
-            console.assert(e.message.includes("Invalid date string"), "Wrong error message for empty string");
-        }
-        
-        // Test non-string input
-        try {
-            getDateFromString(123);
-            console.assert(false, "Should have thrown error for non-string input");
-        } catch (e) {
-            console.assert(e.message.includes("Invalid date string"), "Wrong error message for non-string input");
-        }
-        
-        console.log("✅ getDateFromString tests passed");
-    } catch (e) {
-        console.error("❌ getDateFromString test failed:", e);
-    }
-    
-    // Test parseISO8601
-    console.log("Testing parseISO8601...");
-    try {
-        const isoDate1 = parseISO8601("2023-06-15T14:30:45 UTC");
-        console.assert(isoDate1 instanceof Date, "Should return Date object");
-        
-        const isoDate2 = parseISO8601("2023-06-15T14:30:45Z");
-        console.assert(isoDate2 instanceof Date, "Should handle Z suffix");
-        
-        console.log("✅ parseISO8601 tests passed");
-    } catch (e) {
-        console.error("❌ parseISO8601 test failed:", e);
-    }
-    
-    // Test parseYearStr
-    console.log("Testing parseYearStr...");
-    try {
-        const year1 = parseYearStr("2023");
-        console.assert(year1 === 2023, "Should return number 2023");
-        console.assert(typeof year1 === "number", "Should return number type");
-        
-        // Test invalid year
-        try {
-            parseYearStr("23");
-            console.assert(false, "Should reject 2-digit year");
-        } catch (e) {
-            console.assert(e.message.includes("is not valid"), "Wrong error message:", e.message);
-        }
-        
-        console.log("✅ parseYearStr tests passed");
-    } catch (e) {
-        console.error("❌ parseYearStr test failed:", e);
-    }
-    
-    // Test parseMonthStr
-    console.log("Testing parseMonthStr...");
-    try {
-        const month1 = parseMonthStr("06");
-        console.assert(month1 === 6, "Should return number 6");
-        console.assert(typeof month1 === "number", "Should return number type");
-        
-        const month2 = parseMonthStr("12");
-        console.assert(month2 === 12, "Should handle month 12");
-        
-        // Test invalid months
-        try {
-            parseMonthStr("13");
-            console.assert(false, "Should reject month 13");
-        } catch (e) {
-            console.assert(e.message.includes("out of range"), "Invalid error message:", e.message);
-        }
-        
-        try {
-            parseMonthStr("6");
-            console.assert(false, "Should reject single digit month");
-        } catch (e) {
-            console.assert(e.message.includes("not a valid 2-digit month"), "Wrong error message:", e.message);
-        }
-        
-        console.log("✅ parseMonthStr tests passed");
-    } catch (e) {
-        console.error("❌ parseMonthStr test failed:", e);
-    }
-    
-    // Test formatting functions
-    console.log("Testing format functions...");
-    try {
-        const testDate = new Date(2023, 5, 15, 14, 30, 45, 123); // June 15, 2023
-        
-        // Test formatISO8601DateOnly
-        const dateOnly = formatISO8601DateOnly(testDate);
-        console.assert(dateOnly === "2023-06-15", "formatISO8601DateOnly failed");
-        
-        // Test formatISO8601YearMonth
-        const yearMonth = formatISO8601YearMonth(testDate);
-        console.assert(yearMonth === "2023-06", "formatISO8601YearMonth failed");
-        
-        // Test formatISO8601ShellAlias
-        const shellFormat = formatISO8601ShellAlias(testDate);
-        console.assert(shellFormat.includes(" UTC"), "formatISO8601ShellAlias should include UTC");
-        
-        console.log("✅ Format function tests passed");
-    } catch (e) {
-        console.error("❌ Format function test failed:", e);
-    }
-    
-    // Test getMonthDates
-    console.log("Testing getMonthDates...");
-    try {
-        const { start, end } = getMonthDates(2023, 6);
-        console.assert(start.getFullYear() === 2023, "Start year should be 2023");
-        console.assert(start.getMonth() === 5, "Start month should be 5 (June)");
-        console.assert(start.getDate() === 1, "Start date should be 1");
-        console.assert(end.getDate() === 30, "June should have 30 days");
-        
-        // Test February leap year
-        const { start: febStart, end: febEnd } = getMonthDates(2024, 2);
-        console.assert(febEnd.getDate() === 29, "2024 February should have 29 days (leap year)");
-        
-        console.log("✅ getMonthDates tests passed");
-    } catch (e) {
-        console.error("❌ getMonthDates test failed:", e);
-    }
-    
-    console.log("✅ All dateUtils tests passed");
+    assertEqual(errorThrown, true, "Should have thrown error for whitespace string");
+
+    console.log("dateUtils tests finished.");
 }

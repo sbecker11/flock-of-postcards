@@ -1,4 +1,4 @@
-// scene/bizCardDivManager.mjs
+// scene/CardsController.mjs
 
 import * as colorPalettes from '../colors/colorPalettes.mjs';
 import { selectionManager } from '../core/selectionManager.mjs';
@@ -11,6 +11,7 @@ import * as dateUtils from '../utils/dateUtils.mjs';
 import * as mathUtils from '../utils/mathUtils.mjs';
 import * as zUtils from '../utils/zUtils.mjs';
 import * as filters from '../core/filters.mjs';
+import { resumeListController } from '../resume/ResumeListController.mjs';
 
 const BIZCARD_MAX_X_OFFSET = 100;
 const BIZCARD_MEAN_WIDTH = 200;
@@ -18,7 +19,7 @@ const BIZCARD_MAX_WIDTH_OFFSET = 40;
 const BIZCARD_MIN_Z_DIFF = 2;
 const MIN_HEIGHT = 200;
 
-class BizCardDivManager {
+class CardsController {
     constructor() {
         this.bizCardDivs = [];
         this.isInitialized = false;
@@ -28,21 +29,21 @@ class BizCardDivManager {
 
     initialize() {
         if (this.isInitialized) {
-            console.warn("BizCardDivManager already initialized");
+            console.warn("CardsController already initialized");
             return;
         }
 
-        if (!resumeManager || !resumeManager.isInitialized()) {
-            console.warn("Cannot initialize BizCardDivManager: resumeManager not found or not initialized");
+        if (!resumeListController || !resumeListController.isInitialized()) {
+            console.warn("Cannot initialize CardsController: resumeListController not found or not initialized");
             return;
         }
         if (!viewPort || !viewPort.isViewPortInitialized()) {
-            console.warn("Cannot initialize BizCardDivManager: viewPort not found or not initialized");
+            console.warn("Cannot initialize CardsController: viewPort not found or not initialized");
             return;
         }
 
         this.isInitialized = true;
-        console.info("BizCardDivManager initialized successfully");
+        console.info("CardsController initialized successfully");
     }
 
     createAllBizCardDivs(jobs) {
@@ -193,6 +194,12 @@ class BizCardDivManager {
         clone.classList.add('selected' );
         clone.setAttribute("data-sceneZ", "0"); // marker for parallax to use SELECTED_CARD_Z_INDEX
 
+        // The clone needs its own click listener to handle deselection
+        clone.addEventListener('click', (e) => {
+            e.stopPropagation();
+            this.handleBizCardDivClickEvent(clone);
+        });
+
         // The parallax engine will style this, we just need to add it to the DOM
         bizCardDiv.parentElement.appendChild(clone);
         // hide the original
@@ -219,9 +226,9 @@ class BizCardDivManager {
         const isAlreadySelected = selectionManager.getSelectedJobIndex() === jobIndex;
 
         if (isAlreadySelected) {
-            selectionManager.clearSelection('bizCardDivManager.handleBizCardDivClickEvent');
+            selectionManager.clearSelection('CardsController.handleBizCardDivClickEvent');
         } else {
-            selectionManager.selectJobIndex(jobIndex, 'bizCardDivManager.handleBizCardDivClickEvent');
+            selectionManager.selectJobIndex(jobIndex, 'CardsController.handleBizCardDivClickEvent');
         }
     }
 
@@ -229,13 +236,12 @@ class BizCardDivManager {
         if (!element) return;
         const jobIndex = parseInt(element.getAttribute('data-job-index'), 10);
         if (selectionManager.getSelectedJobIndex() === jobIndex) return; // Ignore hover on selected item
-        selectionManager.hoverJobIndex(jobIndex, 'bizCardDivManager.handleMouseEnterEvent');
+        selectionManager.hoverJobIndex(jobIndex, 'CardsController.handleMouseEnterEvent');
     }
 
     handleMouseLeaveEvent(element) {
         if (!element) return;
-        const jobIndex = parseInt(element.getAttribute('data-job-index'), 10);
-        selectionManager.clearHover('bizCardDivManager.handleMouseLeaveEvent');
+        selectionManager.clearHover('CardsController.handleMouseLeaveEvent');
     }
 
     handleSelectionChanged(event) {
@@ -248,8 +254,8 @@ class BizCardDivManager {
 
         const bizCardDiv = this.getBizCardDivByJobIndex(selectedJobIndex);
         if (bizCardDiv) {
-            this._selectBizCardDiv(bizCardDiv, `bizCardDivManager.handleSelectionChanged from ${caller}`);
-            this.scrollBizCardDivIntoView(bizCardDiv, `bizCardDivManager.handleSelectionChanged from ${caller}`);
+            this._selectBizCardDiv(bizCardDiv, `CardsController.handleSelectionChanged from ${caller}`);
+            this.scrollBizCardDivIntoView(bizCardDiv, `CardsController.handleSelectionChanged from ${caller}`);
         }
     }
 
@@ -282,13 +288,14 @@ class BizCardDivManager {
     }
     
     scrollBizCardDivIntoView(bizCardDiv, caller='') {
-        if (!bizCardDiv) return;
-        console.log(`bizCardDivManager.scrollBizCardDivIntoView: ${caller} scrolling ${bizCardDiv.id} into view`);
+        console.log(`CardsController.scrollBizCardDivIntoView: ${caller} scrolling ${bizCardDiv.id} into view`);
         const sceneContainer = document.getElementById('scene-container');
-        if (!sceneContainer) throw new Error(`bizCardDivManager.scrollBizCardDivIntoView: ${caller} sceneContainer not found`);
+        if (!sceneContainer) throw new Error(`CardsController.scrollBizCardDivIntoView: ${caller} sceneContainer not found`);
     
-        const cardTop = parseInt(bizCardDiv.style.getPropertyValue('top'), 10);
-        console.log(`bizCardDivManager.scrollBizCardDivIntoView: ${caller} cardTop: ${cardTop}`);
+        const cardTop = parseFloat(bizCardDiv.getAttribute('data-sceneTop'));
+        console.log(`CardsController.scrollBizCardDivIntoView: ${caller} cardTop: ${cardTop}`);
+        
+        // Use a manual scroll calculation
         sceneContainer.scrollTo({
             top: cardTop,
             behavior: 'smooth'
@@ -316,4 +323,5 @@ class BizCardDivManager {
     }
 }
 
-export const bizCardDivManager = new BizCardDivManager();
+const cardsController = new CardsController();
+export { cardsController };

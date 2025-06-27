@@ -18,25 +18,13 @@ function onResizeDrag(e) {
     this.lastRecalcTime = Date.now();
     
     // Recalculate heights during drag
-    if (window.resumeManager && window.resumeManager.infiniteScroller) {
-      window.resumeManager.infiniteScroller.recalculateHeightsOnResize(true);
+    if (window.resumeListController && window.resumeListController.infiniteScroller) {
+      window.resumeListController.infiniteScroller.recalculateHeightsOnResize(true);
     } else {
-      // Fallback if resumeManager is not exposed globally
+      // Fallback if resumeListController is not exposed globally
       const resumeContentDiv = document.getElementById('resume-content-div');
-      if (resumeContentDiv) {
-        document.querySelectorAll('.biz-resume-div').forEach(div => {
-          // Reset for measurement
-          div.style.height = '';
-          div.style.minHeight = '';
-          
-          // Measure
-          const rect = div.getBoundingClientRect();
-          const contentHeight = Math.ceil(rect.height) + 5;
-          
-          // Set new height
-          div.style.height = `${contentHeight}px`;
-          div.style.minHeight = `${contentHeight}px`;
-        });
+      if (resumeContentDiv && resumeContentDiv.infiniteScroller) {
+        resumeContentDiv.infiniteScroller.recalculateHeightsOnResize(true);
       }
     }
   }
@@ -50,7 +38,41 @@ function onResizeDragEnd(e) {
   document.removeEventListener('mouseup', onResizeDragEnd);
   
   // Do a final recalculation
-  if (window.resumeManager && window.resumeManager.infiniteScroller) {
-    window.resumeManager.infiniteScroller.recalculateHeightsOnResize(true);
+  if (window.resumeListController && window.resumeListController.infiniteScroller) {
+    window.resumeListController.infiniteScroller.recalculateHeightsOnResize(true);
   }
-} 
+}
+
+let resizeTimeout;
+window.addEventListener('resize', () => {
+  clearTimeout(resizeTimeout);
+  resizeTimeout = setTimeout(() => {
+    const viewportWidth = window.innerWidth;
+    const viewportHeight = window.innerHeight;
+
+    // Optionally, you can pass the new dimensions to a manager if needed
+    // For example: sceneManager.updateDimensions(viewportWidth, viewportHeight);
+
+    // If the infinite scroller is exposed on the window object, tell it to recalculate
+    if (window.resumeListController && window.resumeListController.infiniteScroller) {
+      window.resumeListController.infiniteScroller.recalculateHeightsOnResize(true);
+    } else {
+      // Fallback if resumeListController is not exposed globally
+      const resumeContentDiv = document.getElementById('resume-content-div');
+      if (resumeContentDiv && resumeContentDiv.infiniteScroller) {
+        resumeContentDiv.infiniteScroller.recalculateHeightsOnResize(true);
+      }
+    }
+  }, 100); // 100ms debounce
+});
+
+let resizeEndTimeout;
+window.addEventListener('resize', () => {
+  clearTimeout(resizeEndTimeout);
+  resizeEndTimeout = setTimeout(() => {
+    console.log('Resize ended');
+    if (window.resumeListController && window.resumeListController.infiniteScroller) {
+      window.resumeListController.infiniteScroller.recalculateHeightsOnResize(true);
+    }
+  }, 250); // Assumes resize is over after 250ms of no new events
+}); 

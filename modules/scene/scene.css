@@ -75,7 +75,7 @@ html[native-dark-active] #scene-container,
 }
 
 .biz-details-z-value {
-    font-size: 8px;
+    font-size: 12px;
     margin: -8px 0 5px 10px;
     padding: 0;
     text-align: left;
@@ -427,5 +427,27 @@ body.focal-point-locked .biz-resume-div *,
 .biz-resume-div {
     width: 100%;
     height: 100%;
+}
+
+.biz-card-div.selected .biz-card-details-div {
+    overflow-y: auto;
+    padding-bottom: 15px; /* Add space at the bottom */
+    height: 100%; /* Ensure the details div is constrained to the card's height */
+}
+
+/* For Webkit browsers like Chrome, Safari */
+.biz-card-div.selected .biz-card-details-div::-webkit-scrollbar {
+    width: 8px;
+}
+.biz-card-div.selected .biz-card-details-div::-webkit-scrollbar-track {
+    background: rgba(0,0,0,0.1);
+    border-radius: 10px;
+}
+.biz-card-div.selected .biz-card-details-div::-webkit-scrollbar-thumb {
+    background: rgba(255,255,255,0.3);
+    border-radius: 10px;
+}
+.biz-card-div.selected .biz-card-details-div::-webkit-scrollbar-thumb:hover {
+    background: rgba(255,255,255,0.5);
 }
 

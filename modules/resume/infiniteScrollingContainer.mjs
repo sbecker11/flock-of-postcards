@@ -440,6 +440,41 @@ class InfiniteScrollingContainer {
 
     // Resize observer to handle container width changes
     this.setupResizeObserver();
+
+    // Add event listener for click
+    this.container.addEventListener('click', (e) => {
+      const itemElement = e.target.closest('.biz-resume-div');
+      if (itemElement) {
+        const item = this.allItems.find(i => i.element === itemElement);
+        if (item) {
+          // Dynamically import the new controller and call the click handler
+          import('../scene/ResumeItemsController.mjs').then(module => {
+            console.log(`Calling ResumeItemsController.handleBizResumeDivClickEvent for ${item.element.id}`);
+            module.resumeItemsController.handleBizResumeDivClickEvent(item.element);
+          }).catch(error => {
+            console.error("Error importing ResumeItemsController:", error);
+          });
+        }
+      }
+    });
+
+    // Add event listener for hover
+    this.container.addEventListener('mouseenter', (e) => {
+      const itemElement = e.target.closest('.biz-resume-div');
+      if (itemElement) {
+        const item = this.allItems.find(i => i.element === itemElement);
+        if (item) {
+          console.log(`Hovering over ${item.element.id}`);
+          // Dynamically import the new controller and call the hover handler
+          import('../scene/ResumeItemsController.mjs').then(module => {
+            console.log(`Calling ResumeItemsController.handleMouseEnterEvent for ${item.element.id}`);
+            module.resumeItemsController.handleMouseEnterEvent(item.element);
+          }).catch(error => {
+            console.error("Error importing ResumeItemsController:", error);
+          });
+        }
+      }
+    });
   }
 
   handleStart(e) {
