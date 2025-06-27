@@ -2,13 +2,11 @@
 
 import { InfiniteScrollingContainer } from './infiniteScrollingContainer.mjs';
 import * as domUtils from '../utils/domUtils.mjs';
-import { bizCardDivManager } from '../scene/bizCardDivManager.mjs';
-import * as scenePlane from '../scene/scenePlane.mjs';
+// No longer directly interacting with these for selection
+// import { bizCardDivManager } from '../scene/bizCardDivManager.mjs';
+// import * as scenePlane from '../scene/scenePlane.mjs';
 import { bizResumeDivManager } from '../scene/bizResumeDivManager.mjs';
-
-import { Logger, LogLevel } from '../logger.mjs';
-const log = new Logger("resumeManager", LogLevel.DEBUG);
-
+import { selectionManager } from '../core/selectionManager.mjs';
 
 class ResumeManager {
   constructor() {
@@ -19,141 +17,77 @@ class ResumeManager {
     this.originalJobsData = null;
     this.currentSortRule = null;
     this.sortedIndices = []; // Maps sorted position to original index
-    this._isInitialized = false; // Add initialization flag
-    this.selectedJobIndex = null;
+    this._isInitialized = false;
+    
+    // Listen ONLY for selection changes to trigger scrolling. Styling is handled by bizResumeDivManager.
+    selectionManager.addEventListener('selectionChanged', this.handleSelectionChanged.bind(this));
   }
 
   initialize(originalJobsData, bizResumeDivs) {
     this.originalJobsData = originalJobsData;
     this.bizResumeDivs = bizResumeDivs;
     
-    // Initialize infinite scrolling container
     this.setupInfiniteScrolling();
     
-    // Set default sort (maintain original order)
     this.currentSortRule = { field: 'original', direction: 'asc' };
     this.updateSortedIndices();
     
-    // On page load the selectedJobIndex is set to the jobIndex
-    // of the first bizResumeDiv in the sorted list of bizResumeDiv.
     if (this.sortedIndices.length > 0) {
-      this.setSelectedJobIndex(this.sortedIndices[0]);
+      selectionManager.selectJobIndex(this.sortedIndices[0], 'resumeManager.initialize');
     }
 
-    this._isInitialized = true; // Set initialization flag to true
-    log.info("ResumeManager initialized successfully");
+    this._isInitialized = true;
+    console.info("ResumeManager initialized successfully");
   }
   
-  // Method to check if ResumeManager is initialized (renamed for consistency)
   isInitialized() {
     return this._isInitialized;
   }
 
+  // region Event Handlers from SelectionManager
+  handleSelectionChanged(event) {
+    const { selectedJobIndex, caller } = event.detail;
+    console.log(`ResumeManager: [Listener] Handling selectionChanged from ${caller} for index ${selectedJobIndex}`);
+    this.scrollToJobIndex(selectedJobIndex, `resumeManager.handleSelectionChanged from ${caller}`);
+  }
+  // endregion
+
   setupInfiniteScrolling() {
-    // Initialize the infinite scrolling container
     this.infiniteScroller = new InfiniteScrollingContainer(this.resumeContentDiv, {
-      cloneCount: 3, // Number of clones above/below
+      cloneCount: 3,
       transitionDuration: 300,
       onItemChange: (index, item) => {
         this.handleResumeItemChange(index, item);
       }
     });
-
-    // Set the biz-resume-divs as items
     this.infiniteScroller.setItems(this.bizResumeDivs);
   }
 
-  // selectedJobIndex : the jobIndex is used to calculate the 
-  // first, previous, next and last jobIndex for the given sorted.
-  // it is the jobIndex used when creating each bizResumeDiv element.
-  //
-  // On page load the selectedJobIndex is set to the jobIndex
-  // of the first bizResumeDiv in the sorted list of bizResumeDiv.
-  //
-  // The selectedJobIndex is NOT changed when new sorting criteria
-  // are applied.
-  //
-  
-  getSelectedJobIndex() {
-    log.log(`getSelectedJobIndex: selectedJobIndex: ${this.selectedJobIndex}`);
-    return this.selectedJobIndex;
-  }
-
-  setSelectedJobIndex(jobIndex) {
-    const jobIndexInt = parseInt(jobIndex, 10);
-    if (isNaN(jobIndexInt)) {
-        log.warn(`setSelectedJobIndex: Invalid jobIndex: ${jobIndex}`);
-        return;
-    }
-    console.log(`[DEBUG] setSelectedJobIndex: New index is ${jobIndexInt}`);
-    this.selectedJobIndex = jobIndexInt;
-  }
-
-  clearSelectedJobIndex() { 
-    this.selectedJobIndex = null;
-    log.log(`clearSelectedJobIndex: selectedJobIndex: ${this.selectedJobIndex}`);
-  }
-
   handleResumeItemChange(index, resumeDiv) {
-    // Convert sorted index back to original index for external systems
     const originalIndex = this.sortedIndices[index];
-    
-    // This is called when the active resume item changes
-    // You can use this to sync with the scene view or update other UI elements
-    // logger.info(`Active resume item changed to sorted index: ${index}, original index: ${originalIndex}`);
-    
-    // Example: Trigger selection in scene view using original index
-    // this.selectBizCardInScene(originalIndex);
-    
-    // Example: Update navigation indicators
-    // this.updateNavigationIndicators(index, originalIndex);
-  }
-
-  // Public methods for external control (e.g., from navigation buttons)
-  goToResumeItem(index) {
-    if (this.infiniteScroller && index >= 0 && index < this.bizResumeDivs.length) {
-      this.infiniteScroller.scrollToIndex(index);
-    }
+    // This function can be used for future functionality if needed
   }
 
   goToNextResumeItem() {
-    const selectedJobIndex = this.getSelectedJobIndex();
+    const selectedJobIndex = selectionManager.getSelectedJobIndex();
 
-    if (!this.sortedIndices || this.sortedIndices.length === 0) {
-      return; // No items to select
-    }
+    if (!this.sortedIndices || this.sortedIndices.length === 0) return;
 
     let currentSortedPosition = -1;
     if (selectedJobIndex !== null) {
       currentSortedPosition = this.sortedIndices.indexOf(selectedJobIndex);
     }
 
-    // If nothing is selected or the selection is not in the current sorted list, start from the top.
     const nextSortedPosition = (currentSortedPosition + 1) % this.sortedIndices.length;
     const nextJobIndex = this.sortedIndices[nextSortedPosition];
 
-    // Update the state
-    this.setSelectedJobIndex(nextJobIndex);
-
-    // Update the UI
-    scenePlane.clearAllSelected();
-
-    // Update the bizCardDiv in the 3D scene
-    const bizCardDiv = bizCardDivManager.getBizCardDivByJobIndex(nextJobIndex);
-    if (bizCardDiv) {
-      bizResumeDivManager.styleBizCardDivAsSelectedAndScrollIntoView(bizCardDiv);
-    }
-
-    // Update the bizResumeDiv in the list
-    this.styleBizResumeDivAsSelectedAndScrollIntoView(nextJobIndex);
+    selectionManager.selectJobIndex(nextJobIndex, 'resumeManager.goToNextResumeItem');
   }
 
   goToPreviousResumeItem() {
-    const selectedJobIndex = this.getSelectedJobIndex();
+    const selectedJobIndex = selectionManager.getSelectedJobIndex();
 
-    if (!this.sortedIndices || this.sortedIndices.length === 0) {
-      return; // No items to select
-    }
+    if (!this.sortedIndices || this.sortedIndices.length === 0) return;
 
     let currentSortedPosition = -1;
     if (selectedJobIndex !== null) {
@@ -161,134 +95,50 @@ class ResumeManager {
     }
 
     let prevSortedPosition;
-    if (currentSortedPosition === -1) {
-      // If nothing is selected, start from the end
+    if (currentSortedPosition <= 0) {
       prevSortedPosition = this.sortedIndices.length - 1;
     } else {
-      prevSortedPosition = (currentSortedPosition - 1 + this.sortedIndices.length) % this.sortedIndices.length;
+      prevSortedPosition = currentSortedPosition - 1;
     }
 
     const prevJobIndex = this.sortedIndices[prevSortedPosition];
-
-    // Update the state
-    this.setSelectedJobIndex(prevJobIndex);
-
-    // Update the UI
-    scenePlane.clearAllSelected();
-
-    // Update the bizCardDiv in the 3D scene
-    const bizCardDiv = bizCardDivManager.getBizCardDivByJobIndex(prevJobIndex);
-    if (bizCardDiv) {
-      bizResumeDivManager.styleBizCardDivAsSelectedAndScrollIntoView(bizCardDiv);
-    }
-
-    // Update the bizResumeDiv in the list
-    this.styleBizResumeDivAsSelectedAndScrollIntoView(prevJobIndex);
+    selectionManager.selectJobIndex(prevJobIndex, 'resumeManager.goToPreviousResumeItem');
   }
 
   goToFirstResumeItem() {
-    if (!this.sortedIndices || this.sortedIndices.length === 0) {
-      return;
-    }
+    if (!this.sortedIndices || this.sortedIndices.length === 0) return;
     const firstJobIndex = this.sortedIndices[0];
-    this.setSelectedJobIndex(firstJobIndex);
-    scenePlane.clearAllSelected();
-    const bizCardDiv = bizCardDivManager.getBizCardDivByJobIndex(firstJobIndex);
-    if (bizCardDiv) {
-      bizResumeDivManager.styleBizCardDivAsSelectedAndScrollIntoView(bizCardDiv);
-    }
-    this.styleBizResumeDivAsSelectedAndScrollIntoView(firstJobIndex);
+    selectionManager.selectJobIndex(firstJobIndex, 'resumeManager.goToFirstResumeItem');
   }
 
   goToLastResumeItem() {
-    if (!this.sortedIndices || this.sortedIndices.length === 0) {
-      return;
-    }
+    if (!this.sortedIndices || this.sortedIndices.length === 0) return;
     const lastJobIndex = this.sortedIndices[this.sortedIndices.length - 1];
-    this.setSelectedJobIndex(lastJobIndex);
-    scenePlane.clearAllSelected();
-    const bizCardDiv = bizCardDivManager.getBizCardDivByJobIndex(lastJobIndex);
-    if (bizCardDiv) {
-      bizResumeDivManager.styleBizCardDivAsSelectedAndScrollIntoView(bizCardDiv);
-    }
-    this.styleBizResumeDivAsSelectedAndScrollIntoView(lastJobIndex);
+    selectionManager.selectJobIndex(lastJobIndex, 'resumeManager.goToLastResumeItem');
   }
 
-  getCurrentResumeIndex() {
-    return this.infiniteScroller ? this.infiniteScroller.getCurrentIndex() : 0;
-  }
-
-  // Sync with a selection in the scene view
-  syncWithSceneSelection(jobIndex) {
-    console.log(`ResumeManager: Syncing with scene selection for job index ${jobIndex}`);
-    
-    // Find the sorted index for this job index
-    const sortedIndex = this.sortedIndices.indexOf(jobIndex);
-    if (sortedIndex === -1) {
-      console.error(`ResumeManager: Job index ${jobIndex} not found in sortedIndices`);
-      return false;
-    }
-    
-    console.log(`ResumeManager: Found sorted index ${sortedIndex} for job index ${jobIndex}`);
-    
-    // use the infiniteScroller to scroll to the item
-    if (this.infiniteScroller) {
-      console.log(`ResumeManager: Using infiniteScroller to scroll to sorted index ${sortedIndex}`);
-      this.infiniteScroller.scrollToItem(sortedIndex);
-    } else {
-      console.error("ResumeManager: infiniteScroller not available");
-    }
-  }
-
-  // Sorting functionality
   applySortRule(sortRule) {
-    console.log('[DEBUG] applySortRule: Sorting started.');
-    // 1. Remember the currently selected job index
-    const previouslySelectedJobIndex = this.getSelectedJobIndex();
-    console.log(`[DEBUG] applySortRule: Previously selected index was ${previouslySelectedJobIndex}`);
+    console.log('ResumeManager: Sorting started.');
+    const previouslySelectedJobIndex = selectionManager.getSelectedJobIndex();
+    console.log(`ResumeManager: Previously selected index was ${previouslySelectedJobIndex}`);
 
-    // 2. Apply the sort and re-render the scroller
     this.currentSortRule = { ...sortRule };
     this.updateSortedIndices();
     this.applySortedOrder();
 
-    // 3. If an item was selected, restore its state directly
     if (previouslySelectedJobIndex !== null) {
-      console.log(`[DEBUG] applySortRule: Restoring selection for job index ${previouslySelectedJobIndex}`);
-      // a. Clear any stray selections
-      scenePlane.clearAllSelected();
-
-      // b. Re-select the bizCardDiv and scroll it into view
-      const bizCardDiv = bizCardDivManager.getBizCardDivByJobIndex(previouslySelectedJobIndex);
-      console.log(`[DEBUG] applySortRule: Found bizCardDiv to re-select: ${bizCardDiv?.id}`);
-      if (bizCardDiv) {
-        bizResumeDivManager.styleBizCardDivAsSelectedAndScrollIntoView(bizCardDiv);
-      }
-
-      // c. Re-select the bizResumeDiv and scroll it into view
-      console.log(`[DEBUG] applySortRule: Styling and scrolling resume div for job index ${previouslySelectedJobIndex}`);
-      this.styleBizResumeDivAsSelectedAndScrollIntoView(previouslySelectedJobIndex);
-    } else {
-      console.log('[DEBUG] applySortRule: No item was previously selected.');
+      this.scrollToJobIndex(previouslySelectedJobIndex, 'applySortRule');
     }
-    console.log('[DEBUG] applySortRule: Sorting finished.');
+    console.log('ResumeManager: Sorting finished.');
   }
 
-  /**
-   * Finds a bizResumeDiv by its job index, styles it as selected, and scrolls it into view.
-   * @param {number} jobIndex The job index to select and scroll to.
-   */
-  styleBizResumeDivAsSelectedAndScrollIntoView(jobIndex) {
-    console.log(`[DEBUG] styleBizResumeDiv...: Looking for new sorted index for job index ${jobIndex}`);
+  scrollToJobIndex(jobIndex, caller = '') {
     const newSortedIndex = this.sortedIndices.indexOf(jobIndex);
-    console.log(`[DEBUG] styleBizResumeDiv...: New sorted index is ${newSortedIndex}`);
     if (newSortedIndex !== -1) {
-      const bizResumeDiv = this.infiniteScroller.getItemAtIndex(newSortedIndex);
-      console.log(`[DEBUG] styleBizResumeDiv...: Found resume div: ${bizResumeDiv?.id}`);
-      if (bizResumeDiv) {
-        bizResumeDiv.classList.add('selected');
-      }
+      console.log(`ResumeManager: ${caller}: scrolling to sorted index ${newSortedIndex} for job index ${jobIndex}`);
       this.infiniteScroller.scrollToItem(newSortedIndex);
+    } else {
+      console.error(`ResumeManager: ${caller}: newSortedIndex not found for job index ${jobIndex}`);
     }
   }
 
@@ -563,118 +413,6 @@ class ResumeManager {
       return true;
     } catch (error) {
       console.error(`ResumeManager: Error scrolling bizResumeDiv ${bizResumeDiv.id} into view:`, error);
-      return false;
-    }
-  }
-
-  /**
-   * Scroll the bizResumeDiv into view without selecting it
-   * This is used when a bizCardDiv is clicked and we want to show the corresponding bizResumeDiv
-   * without triggering the selection logic in the bizResumeDiv
-   * @param {HTMLElement} bizResumeDiv - The bizResumeDiv to scroll into view
-   */
-  scrollBizResumeDivIntoViewWithoutSelection(bizResumeDiv) {
-    if (!bizResumeDiv) {
-      console.error("ResumeManager: scrollBizResumeDivIntoViewWithoutSelection called with null bizResumeDiv");
-      return false;
-    }
-    
-    console.log(`ResumeManager: Scrolling bizResumeDiv ${bizResumeDiv.id} into view without selection`);
-    
-    // If we have an infinite scroller, use it to scroll to the item
-    if (this.infiniteScroller) {
-      const jobIndex = parseInt(bizResumeDiv.getAttribute('data-job-index'), 10);
-      const sortedIndex = this.sortedIndices.indexOf(jobIndex);
-      
-      if (sortedIndex !== -1) {
-        console.log(`ResumeManager: Using infiniteScroller to scroll to sorted index ${sortedIndex}`);
-        this.infiniteScroller.scrollToItem(sortedIndex);
-        return true;
-      } else {
-        console.error(`ResumeManager: Job index ${jobIndex} not found in sortedIndices`);
-      }
-    }
-    
-    // Fallback to direct scrollIntoView if infiniteScroller is not available
-    // or if we couldn't find the sorted index
-    console.log(`ResumeManager: Using direct scrollIntoView for ${bizResumeDiv.id}`);
-    bizResumeDiv.scrollIntoView({ behavior: 'smooth', block: 'center' });
-    return true;
-  }
-
-  /**
-   * Scroll to a specific job index
-   * @param {number} jobIndex - The job index to scroll to
-   * @returns {boolean} - Whether the scroll was successful
-   */
-  scrollToJobIndex(jobIndex) {
-    console.log(`ResumeManager: Scrolling to job index ${jobIndex}`);
-    
-    // Find the bizResumeDiv with this job index
-    const bizResumeDiv = this.findBizResumeDivByJobIndex(jobIndex);
-    if (bizResumeDiv) {
-      return this.scrollBizResumeDivIntoView(bizResumeDiv);
-    }
-    
-    // If we couldn't find the bizResumeDiv but have an infinite scroller,
-    // try to find the sorted index and scroll to it
-    if (this.infiniteScroller) {
-      const sortedIndex = this.findSortedIndexForJobIndex(jobIndex);
-      if (sortedIndex !== -1) {
-        console.log(`ResumeManager: Using infiniteScroller to scroll to sorted index ${sortedIndex}`);
-        return this.infiniteScroller.scrollToItem(sortedIndex, true);
-      }
-    }
-    
-    console.error(`ResumeManager: Could not find bizResumeDiv or sorted index for job index ${jobIndex}`);
-    return false;
-  }
-
-  /**
-   * Find a bizResumeDiv by job index
-   * @param {number} jobIndex - The job index to find
-   * @returns {HTMLElement|null} - The bizResumeDiv element, or null if not found
-   */
-  findBizResumeDivByJobIndex(jobIndex) {
-    return document.querySelector(`.biz-resume-div[data-job-index="${jobIndex}"]`);
-  }
-
-  /**
-   * Sync with a selection in the scene view without triggering a click
-   * This is used when a bizCardDiv is clicked and we want to sync the resume view
-   * without triggering the selection logic in the bizResumeDiv
-   * @param {number} jobIndex - The job index to sync with
-   * @returns {boolean} - Whether the sync was successful
-   */
-  syncWithSceneSelectionWithoutClick(jobIndex) {
-    console.log(`ResumeManager: Syncing with scene selection for job index ${jobIndex} (without click)`);
-    
-    // Find the sorted index for this job index
-    const sortedIndex = this.sortedIndices.indexOf(jobIndex);
-    if (sortedIndex === -1) {
-      console.error(`ResumeManager: Job index ${jobIndex} not found in sortedIndices`);
-      return false;
-    }
-    
-    console.log(`ResumeManager: Found sorted index ${sortedIndex} for job index ${jobIndex}`);
-    
-    // If we have an infinite scroller, use it to scroll to the item
-    if (this.infiniteScroller) {
-      console.log(`ResumeManager: Using infiniteScroller to scroll to sorted index ${sortedIndex}`);
-      this.infiniteScroller.scrollToItem(sortedIndex);
-      return true;
-    }
-    
-    // If we don't have an infinite scroller, try to find the bizResumeDiv directly
-    const bizResumeDivId = `biz-resume-div-${jobIndex}`;
-    const bizResumeDiv = document.getElementById(bizResumeDivId);
-    
-    if (bizResumeDiv) {
-      console.log(`ResumeManager: Found bizResumeDiv ${bizResumeDivId}, scrolling into view`);
-      bizResumeDiv.scrollIntoView({ behavior: 'smooth', block: 'center' });
-      return true;
-    } else {
-      console.error(`ResumeManager: Could not find bizResumeDiv with ID ${bizResumeDivId}`);
       return false;
     }
   }

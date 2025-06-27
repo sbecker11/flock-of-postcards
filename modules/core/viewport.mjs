@@ -5,10 +5,6 @@ import * as utils from '../utils/utils.mjs';
 import * as domUtils from '../utils/domUtils.mjs';
 import * as bullsEye from './bullsEye.mjs';
 
-import { Logger, LogLevel } from '../logger.mjs';
-const logger = new Logger("viewPort", LogLevel.INFO);
-
-
 // Constants
 const VIEWPORT_PADDING = 100; // Padding around the viewPortProperties
 

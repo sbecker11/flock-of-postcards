@@ -3,9 +3,6 @@
 import * as utils from './utils.mjs';
 import * as colorUtils from '../colors/colorUtils.mjs';
 
-import { Logger, LogLevel } from '../logger.mjs';
-const logger = new Logger("domUtils", LogLevel.INFO);
-
 export function hasClass(element, className) {
     return element && className && element.classList.contains(className);
 }
@@ -105,15 +102,15 @@ export function showElement(element, prefix="", logLevel=LogLevel.LOG) {
     prefix = "showElement" + prefix + ":";
 
     if (element == null) {
-        logger.warn(`${prefix} given null element`);
+        console.warn(`${prefix} given null element`);
         return;
     }
-    if (!this.isElement(element)) {
-        logger.warn(`${prefix} given non-element object:${element}`);
+    if (!isHTMLElement(element)) {
+        console.warn(`${prefix} given non-element object:${element}`);
         return;
     }
     if (element.id == null) {
-        logger.warn(`${prefix} given element with no id:${element}`);
+        console.warn(`${prefix} given element with no id:${element}`);
         return;
     }
     // now construct the elementInfo object
@@ -145,7 +142,7 @@ export function showElement(element, prefix="", logLevel=LogLevel.LOG) {
         filter: element.style.filter,
         classList: element.classList
     }
-    logger.logWithLevel(JSON.stringify(elementInfo, formatNumbersReplacer, 2), logLevel);
+    console.log(JSON.stringify(elementInfo, formatNumbersReplacer, 2));
 }
 
 
@@ -158,7 +155,7 @@ export function showElement(element, prefix="", logLevel=LogLevel.LOG) {
  */
 export function findNextSiblingWithClass(element, className) {
     if (!element || !className) {
-      logger.error("findNextSiblingWithClass: Invalid element or className provided.");
+      console.error("findNextSiblingWithClass: Invalid element or className provided.");
       return null;
     }
   
@@ -192,7 +189,7 @@ export function matchPositions(pos1, pos2) {
  */
 export function updateEventListener(element, eventType, listener, options = {}) {
     if (!element || !eventType || !listener) {
-        logger.error('updateEventListener: Missing required parameters');
+        console.error('updateEventListener: Missing required parameters');
         return;
     }
 

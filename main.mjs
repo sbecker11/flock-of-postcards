@@ -18,9 +18,6 @@ import * as viewPort from './modules/core/viewPort.mjs';
 import * as tests from './modules/tests/tests.mjs';
 import * as scenePlane from './modules/scene/scenePlane.mjs';
 
-import { Logger, LogLevel } from "./modules/logger.mjs";
-const logger = new Logger("main", LogLevel.DEBUG);
-
 // --------------------------------------
 // Constants
 

@@ -419,3 +419,13 @@ body.focal-point-locked .biz-resume-div *,
     pointer-events: auto !important;
 }
 
+.biz-card-div.selected {
+    z-index: 99 !important;
+    filter: none !important;
+}
+
+.biz-resume-div {
+    width: 100%;
+    height: 100%;
+}
+

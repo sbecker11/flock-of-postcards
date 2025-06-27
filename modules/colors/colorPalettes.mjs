@@ -4,9 +4,6 @@ import * as colorUtils from './colorUtils.mjs';
 import * as utils from '../utils/utils.mjs';
 import * as domUtils from '../utils/domUtils.mjs';
 
-import { Logger, LogLevel } from '../logger.mjs';
-const logger = new Logger("colorPalettes", LogLevel.INFO);
-
 // Directory where palette files are stored
 const PALETTE_DIR = './static_content/colorPalettes/';
 const MANIFEST_ENDPOINT = '/api/palette-manifest';

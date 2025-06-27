@@ -4,9 +4,6 @@ import * as mathUtils from '../utils/mathUtils.mjs';
 import * as utils from '../utils/utils.mjs';
 import * as cssColors from './cssColors.mjs';
 
-import { Logger, LogLevel } from "../logger.mjs";
-const logger = new Logger("colorUtils", LogLevel.DEBUG);
-
 // --------------------------------------
 // Utility export functions
 

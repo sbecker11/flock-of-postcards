@@ -2,9 +2,6 @@
 
 import * as colorPalettes from '../colors/colorPalettes.mjs';
 
-import { Logger, LogLevel } from '../logger.mjs';
-const logger = new Logger("infiniteScrollingContainer", LogLevel.INFO);
-
 class InfiniteScrollingContainer {
   constructor(containerElement, options = {}) {
     this.container = containerElement;
@@ -36,7 +33,7 @@ class InfiniteScrollingContainer {
   init() {
     this.setupContainer();
     this.bindEvents();
-    logger.info('InfiniteScrollingContainer initialized');
+    console.info('InfiniteScrollingContainer initialized');
   }
 
   setupContainer() {
@@ -55,7 +52,7 @@ class InfiniteScrollingContainer {
     this.createClonedStructure();
     this.positionItems();
     this.currentIndex = 0;
-    logger.info(`InfiniteScrollingContainer: Set ${items.length} items`);
+    console.info(`InfiniteScrollingContainer: Set ${items.length} items`);
     
     // Ensure click handlers are added
     this.addDirectClickHandlers();
@@ -669,7 +666,7 @@ class InfiniteScrollingContainer {
     // Clear container
     this.container.innerHTML = '';
 
-    logger.info('InfiniteScrollingContainer destroyed');
+    console.info('InfiniteScrollingContainer destroyed');
   }
 
   addDirectClickHandlers() {

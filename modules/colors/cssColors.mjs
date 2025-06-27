@@ -3,9 +3,6 @@
 import { isString } from '../utils/utils.mjs';
 import * as colorUtils from './colorUtils.mjs';
 
-import { Logger, LogLevel } from "../logger.mjs";
-const logger = new Logger("cssColors", LogLevel.DEBUG);
-
 const CSS_COLORS = {
     "AliceBlue": "#F0F8FF",
     "AntiqueWhite": "#FAEBD7",

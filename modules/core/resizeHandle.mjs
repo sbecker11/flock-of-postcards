@@ -2,9 +2,7 @@
 
 import * as viewPort from './viewPort.mjs';
 import * as focalPoint from '../core/focalPoint.mjs';
-import { Logger, LogLevel } from '../logger.mjs';
 
-const logger = new Logger("resizeHandle", LogLevel.INFO);
 const BUTTON_COLUMN_WIDTH = 20;
 const DEFAULT_WIDTH_PERCENT = 50;
 
@@ -16,7 +14,7 @@ export function isResizeManagerInitialized() {
 
 export function initializeResizeHandle() {
     if (_resizeManager) {
-        logger.warn("ResizeManager already initialized.");
+        console.warn("ResizeManager already initialized.");
         return;
     }
     _resizeManager = new ResizeManager();

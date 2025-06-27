@@ -3,8 +3,6 @@ import ExcelJS from 'exceljs';
 import fetch from 'node-fetch';
 import { createRequire } from 'module';
 const require = createRequire(import.meta.url);
-const logger = require('log4js').getLogger();
-logger.level = 'info';
 
 // Default file paths (relative to script location)
 const defaultInputXlsxFile = 'jobs.xlsx';
@@ -102,16 +100,16 @@ async function testUrl(url) {
   try {
     const response = await fetchWithTimeout(url, { method: 'HEAD', redirect: 'follow' }, MAX_TRANSFORMATION_SECONDS * 1000);
     if (response.status === 200) {
-      logger.info(`Success: url:${url} is reachable`);
+      console.log(`Success: url:${url} is reachable`);
       return { valid: url, code: -1 };
     }
   } catch (e) {
     if (e.name === 'AbortError') {
-      logger.info(`Timeout: url:${url} exceeded ${MAX_TRANSFORMATION_SECONDS}s`);
+      console.log(`Timeout: url:${url} exceeded ${MAX_TRANSFORMATION_SECONDS}s`);
       return { valid: null, code: -3 };
     }
   }
-  logger.info(`Failure: url:${url} could not be resolved`);
+  console.log(`Failure: url:${url} could not be resolved`);
   return null;
 }
 
@@ -139,12 +137,12 @@ async function testPermutedUrl(originalUrl) {
   try {
     const response = await fetchWithTimeout(originalUrl, { method: 'HEAD', redirect: 'follow' }, MAX_TRANSFORMATION_SECONDS * 1000);
     if (response.status === 200) {
-      logger.info(`Success: original_url:${originalUrl} is already valid with no transformation`);
+      console.log(`Success: original_url:${originalUrl} is already valid with no transformation`);
       return { original: originalUrl, valid: originalUrl, code: -1 };
     }
   } catch (e) {
     if (e.name === 'AbortError') {
-      logger.info(`Timeout: original_url:${originalUrl} exceeded ${MAX_TRANSFORMATION_SECONDS}s`);
+      console.log(`Timeout: original_url:${originalUrl} exceeded ${MAX_TRANSFORMATION_SECONDS}s`);
       return { original: originalUrl, valid: null, code: -3 };
     }
   }
@@ -155,12 +153,12 @@ async function testPermutedUrl(originalUrl) {
     try {
       const response = await fetchWithTimeout(strippedUrl, { method: 'HEAD', redirect: 'follow' }, MAX_TRANSFORMATION_SECONDS * 1000);
       if (response.status === 200) {
-        logger.info(`Success: original_url:${originalUrl} was made valid by removing trailing slash: '${strippedUrl}'`);
+        console.log(`Success: original_url:${originalUrl} was made valid by removing trailing slash: '${strippedUrl}'`);
         return { original: originalUrl, valid: strippedUrl, code: -2 };
       }
     } catch (e) {
       if (e.name === 'AbortError') {
-        logger.info(`Timeout: stripped_url:${strippedUrl} exceeded ${MAX_TRANSFORMATION_SECONDS}s`);
+        console.log(`Timeout: stripped_url:${strippedUrl} exceeded ${MAX_TRANSFORMATION_SECONDS}s`);
         return { original: originalUrl, valid: null, code: -3 };
       }
     }
@@ -172,18 +170,18 @@ async function testPermutedUrl(originalUrl) {
     try {
       const response = await fetchWithTimeout(url, { method: 'HEAD', redirect: 'follow' }, MAX_TRANSFORMATION_SECONDS * 1000);
       if (response.status === 200) {
-        logger.info(`Success: original_url:${originalUrl} was made valid:'${url}' with transformation code ${i}`);
+        console.log(`Success: original_url:${originalUrl} was made valid:'${url}' with transformation code ${i}`);
         return { original: originalUrl, valid: url, code: i };
       }
     } catch (e) {
       if (e.name === 'AbortError') {
-        logger.info(`Timeout: url:${url} exceeded ${MAX_TRANSFORMATION_SECONDS}s`);
+        console.log(`Timeout: url:${url} exceeded ${MAX_TRANSFORMATION_SECONDS}s`);
         return { original: originalUrl, valid: null, code: -3 };
       }
     }
   }
 
-  logger.info(`Failure: original_url:'${originalUrl}' could not be transformed into a valid url`);
+  console.log(`Failure: original_url:'${originalUrl}' could not be transformed into a valid url`);
   return null;
 }
 
@@ -260,7 +258,7 @@ async function convertXlsxToMjs() {
       if (obj['employer']) {
         const employer = obj['employer'].trim();
         employerNames.push(employer);
-        logger.info(`Found employer in jobs sheet: "${employer}"`);
+        console.log(`Found employer in jobs sheet: "${employer}"`);
       }
     });
 
@@ -278,13 +276,13 @@ async function convertXlsxToMjs() {
       const jobName = skillsHeaders[col]?.toString().trim();
       if (jobName) {
         jobSkillsMap[jobName] = { column: col, skills: {} };
-        logger.info(`Found job-skills header: "${jobName}" in column ${col}`);
+        console.log(`Found job-skills header: "${jobName}" in column ${col}`);
       }
     }
 
     // Log all unique employers from both sheets
-    logger.info('All employers from jobs sheet:', [...new Set(employerNames)]);
-    logger.info('All employers from job-skills sheet:', Object.keys(jobSkillsMap));
+    console.log('All employers from jobs sheet:', [...new Set(employerNames)]);
+    console.log('All employers from job-skills sheet:', Object.keys(jobSkillsMap));
 
     skillsSheet.eachRow((row, rowNumber) => {
       if (rowNumber <= 2) return;
@@ -310,21 +308,21 @@ async function convertXlsxToMjs() {
       const employer = row['employer']?.toString().trim();
       if (employer) {
         // Find exact match in job-skills sheet headers
-        logger.info(`Trying to match employer: "${employer}"`);
-        logger.info(`Available matches: ${Object.keys(jobSkillsMap).join(', ')}`);
+        console.log(`Trying to match employer: "${employer}"`);
+        console.log(`Available matches: ${Object.keys(jobSkillsMap).join(', ')}`);
         const match = Object.keys(jobSkillsMap).find(key => {
           const matches = key === employer;
-          logger.info(`Comparing "${key}" with "${employer}": ${matches}`);
+          console.log(`Comparing "${key}" with "${employer}": ${matches}`);
           return matches;
         });
         if (match) {
           row['job-skills'] = jobSkillsMap[match].skills;
         } else {
-          logger.warn(`No exact match found for employer: "${employer}"`);
+          console.warn(`No exact match found for employer: "${employer}"`);
           row['job-skills'] = {};
         }
       } else {
-        logger.warn(`No employer specified for job, skipping job-skills`);
+        console.warn(`No employer specified for job, skipping job-skills`);
         row['job-skills'] = {};
       }
       return row;

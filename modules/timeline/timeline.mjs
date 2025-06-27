@@ -4,9 +4,6 @@ import * as utils from '../utils/utils.mjs';
 import * as mathUtils from '../utils/mathUtils.mjs';
 import * as sceneContainer from '../scene/sceneContainer.mjs';
   
-import { Logger, LogLevel } from '../logger.mjs';
-const logger = new Logger("timeline", LogLevel.INFO);
-
 //---------------------------------
 // TimeLine globals 
 

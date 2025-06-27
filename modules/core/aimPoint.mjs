@@ -2,9 +2,6 @@
 
 import * as mathUtils from '../utils/mathUtils.mjs';
 
-import { Logger, LogLevel } from "../logger.mjs";
-const logger = new Logger("aimPoint", LogLevel.INFO, LogLevel.TRACE_ON_FAILURE);
-
 const _aimPointElement = document.getElementById("aim-point");
 
 // Add scroll/wheel pass-through handlers to aim-point
@@ -18,7 +15,7 @@ let _aimPointStatus = "";
 
 function setAimPointStatus(new_status) {
     _aimPointStatus = new_status;
-    logger.log(`setAimPointStatus: ${_aimPointStatus}`);
+    console.log(`setAimPointStatus: ${_aimPointStatus}`);
 }
 function getAimPointStatus() {
     return _aimPointStatus;
@@ -120,7 +117,7 @@ function handleScrollPassThrough(event) {
     if (event.type === 'wheel') {
         const delta = event.deltaY;
         sceneContainer.scrollTop += delta;
-        logger.log('AimPoint passed wheel event to scene-container, delta:', delta);
+        console.log('AimPoint passed wheel event to scene-container, delta:', delta);
     }
 
     // For scroll events, create and dispatch a new event
@@ -130,7 +127,7 @@ function handleScrollPassThrough(event) {
             cancelable: true
         });
         sceneContainer.dispatchEvent(newEvent);
-        logger.log('AimPoint passed scroll event to scene-container');
+        console.log('AimPoint passed scroll event to scene-container');
     }
 }
 

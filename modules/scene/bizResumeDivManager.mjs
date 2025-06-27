@@ -3,21 +3,21 @@
 import * as utils from '../utils/utils.mjs';
 import * as BizDetailsDivModule from './bizDetailsDivModule.mjs';
 import * as colorPalettes from '../colors/colorPalettes.mjs';
-import { bizCardDivManager } from './bizCardDivManager.mjs';
-import * as scenePlane from './scenePlane.mjs';
-import { resumeManager } from '../resume/resumeManager.mjs';
-
-import { Logger, LogLevel } from '../logger.mjs';
+import { selectionManager } from '../core/selectionManager.mjs';
+// No longer directly manipulating other managers
+// import { bizCardDivManager } from './bizCardDivManager.mjs';
+// import * as scenePlane from './scenePlane.mjs';
+// import { resumeManager } from '../resume/resumeManager.mjs';
 
 class BizResumeDivManager {
     constructor() {
-        this.logger = new Logger("BizResumeDivManager", LogLevel.INFO);
         this.bizResumeDivs = [];
+        this._setupSelectionListeners();
     }
 
     createAllBizResumeDivs(bizCardDivs) {
         if (!bizCardDivs || !Array.isArray(bizCardDivs)) {
-            this.logger.error("createAllBizResumeDivs requires an array of bizCardDivs");
+            console.error("createAllBizResumeDivs requires an array of bizCardDivs");
             return [];
         }
         this.bizResumeDivs = bizCardDivs.map(cardDiv => this.createBizResumeDiv(cardDiv));
@@ -46,6 +46,8 @@ class BizResumeDivManager {
         bizResumeDiv.appendChild(bizResumeDetailsDiv);
 
         colorPalettes.applyCurrentColorPaletteToElement(bizResumeDiv);
+        
+        this._setupMouseListeners(bizResumeDiv);
 
         return bizResumeDiv;
     }
@@ -54,57 +56,86 @@ class BizResumeDivManager {
         return `resume-${jobIndex}`;
     }
 
-    handleClickEvent(element) {
-        if (!element) {
-            this.logger.error("handleClickEvent called with null element");
-            return;
-        }
-        
-        if (element.classList.contains("biz-resume-div")) {
-            this.handleBizResumeDivClickEvent(element);
-        }
+    getBizResumeDivByJobIndex(jobIndex) {
+        return this.bizResumeDivs.find(div => parseInt(div.getAttribute('data-job-index'), 10) === jobIndex) || null;
     }
 
-    handleBizResumeDivClickEvent(bizResumeDiv, options = {}) {
-        const { syncScene = true } = options;
+    _setupSelectionListeners() {
+        selectionManager.addEventListener('selectionChanged', this.handleSelectionChanged.bind(this));
+        selectionManager.addEventListener('selectionCleared', this.handleSelectionCleared.bind(this));
+        selectionManager.addEventListener('hoverChanged', this.handleHoverChanged.bind(this));
+        selectionManager.addEventListener('hoverCleared', this.handleHoverCleared.bind(this));
+    }
 
-        if (!bizResumeDiv) throw new Error("bizResumeDiv is required");
+    _setupMouseListeners(bizResumeDiv) {
+        if (!bizResumeDiv) return;
+        bizResumeDiv.addEventListener('click', () => this.handleBizResumeDivClickEvent(bizResumeDiv));
+        bizResumeDiv.addEventListener('mouseenter', () => this.handleMouseEnterEvent(bizResumeDiv));
+        bizResumeDiv.addEventListener('mouseleave', () => this.handleMouseLeaveEvent(bizResumeDiv));
+    }
 
-        const isSelected = bizResumeDiv.classList.contains("selected");
-
-        scenePlane.clearAllSelected();
+    handleBizResumeDivClickEvent(bizResumeDiv) {
+        if (!bizResumeDiv) return;
+        const jobIndex = parseInt(bizResumeDiv.getAttribute('data-job-index'), 10);
+        const isSelected = selectionManager.getSelectedJobIndex() === jobIndex;
 
         if (isSelected) {
-            resumeManager.clearSelectedJobIndex();
-            return;
-        }
-
-        bizResumeDiv.classList.add("selected");
-        bizResumeDiv.classList.remove("hovered");
-
-        resumeManager.setSelectedJobIndex(bizResumeDiv.getAttribute("data-job-index"));
-
-        if (syncScene) {
-            const pairedId = bizResumeDiv.getAttribute('data-paired-id');
-            const bizCardDiv = document.getElementById(pairedId);
-
-            if (bizCardDiv) {
-                this.styleBizCardDivAsSelectedAndScrollIntoView(bizCardDiv);
-            } else {
-                this.logger.info(`Could not find paired bizCardDiv with ID ${pairedId}`);
-            }
+            selectionManager.clearSelection('bizResumeDivManager.handleBizResumeDivClickEvent');
+        } else {
+            selectionManager.selectJobIndex(jobIndex, 'bizResumeDivManager.handleBizResumeDivClickEvent');
         }
     }
 
-    styleBizCardDivAsSelectedAndScrollIntoView(bizCardDiv) {
-        if (!bizCardDiv) throw new Error("bizCardDiv is required");
-        
-        bizCardDiv.classList.remove("hovered");
-        bizCardDiv.classList.add('selected');
-        
-        bizCardDivManager.scrollBizCardDivIntoView(bizCardDiv);
+    handleMouseEnterEvent(bizResumeDiv) {
+        if (!bizResumeDiv) return;
+        const jobIndex = parseInt(bizResumeDiv.getAttribute('data-job-index'), 10);
+        if (selectionManager.getSelectedJobIndex() === jobIndex) return; // Ignore hover on selected item
+        selectionManager.hoverJobIndex(jobIndex, 'bizResumeDivManager.handleMouseEnterEvent');
     }
-}
+
+    handleMouseLeaveEvent(bizResumeDiv) {
+        if (!bizResumeDiv) return;
+        selectionManager.clearHover('bizResumeDivManager.handleMouseLeaveEvent');
+    }
+
+    handleSelectionChanged(event) {
+        const { selectedJobIndex, caller } = event.detail;
+        
+        // Clear previous selections first
+        this.handleSelectionCleared({ detail: { caller: 'handleSelectionChanged' } });
+
+        const bizResumeDiv = this.getBizResumeDivByJobIndex(selectedJobIndex);
+        if (bizResumeDiv) {
+            bizResumeDiv.classList.add('selected');
+        }
+    }
+
+    handleSelectionCleared(event) {
+        const { caller } = event.detail;
+        this.bizResumeDivs.forEach(div => div.classList.remove('selected'));
+    }
+
+    handleHoverChanged(event) {
+        const { hoveredJobIndex, caller } = event.detail;
+
+        if (selectionManager.getSelectedJobIndex() === hoveredJobIndex) return;
+
+        // Clear previous hovers first
+        this.handleHoverCleared({ detail: { caller: 'handleHoverChanged' } });
+
+        const bizResumeDiv = this.getBizResumeDivByJobIndex(hoveredJobIndex);
+        if (bizResumeDiv) {
+            bizResumeDiv.classList.add('hovered');
+        }
+    }
+
+    handleHoverCleared(event) {
+        const { caller } = event.detail;
+        this.bizResumeDivs.forEach(div => div.classList.remove('hovered'));
+    }
+
+} // end class BizResumeDivManager
 
 const bizResumeDivManager = new BizResumeDivManager();
 export { bizResumeDivManager };
+

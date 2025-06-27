@@ -15,9 +15,6 @@ import * as zUtils from '../utils/zUtils.mjs';
 import * as filters from './filters.mjs';
 import * as eventBus from '../core/eventBus.mjs';
 
-import { Logger, LogLevel } from '../logger.mjs';
-const logger = new Logger("parallax", LogLevel.LOG);
-
 // Parallax constants
 export const PARALLAX_X_EXAGGERATION_FACTOR = 5.0;
 export const PARALLAX_Y_EXAGGERATION_FACTOR = 4.0;
@@ -258,10 +255,10 @@ function applyParallaxToBizCardDiv(bizCardDiv, dh, dv) {
     const { x:vpX, y:vpY } = viewPort.getViewPortOrigin();
     const divTop = parseFloat(bizCardDiv.getAttribute("data-sceneTop"));
     const divLeft = parseFloat(bizCardDiv.getAttribute("data-sceneLeft"));
-    const divZ = parseFloat(bizCardDiv.getAttribute("data-sceneZ"));
     const viewHeight = parseFloat(bizCardDiv.getAttribute("data-sceneHeight"));
     const viewWidth = parseFloat(bizCardDiv.getAttribute("data-sceneWidth"));
-    const zIndexStr = zUtils.get_zIndexStr_from_z(divZ);
+    const divZ = parseFloat(bizCardDiv.getAttribute("data-sceneZ"));
+    const zIndexStr = (divZ > 0) ? zUtils.get_zIndexStr_from_z(divZ) : zUtils.SELECTED_CARD_Z_INDEX;       // no parallax, higher than bulls-eye
 
     const viewTop = divTop;
     const viewLeft = divLeft + vpX;

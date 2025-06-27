@@ -5,9 +5,6 @@ import * as focalPoint from '../core/focalPoint.mjs';
 import * as dateUtils from '../utils/dateUtils.mjs';
 import * as utils from '../utils/utils.mjs';
 
-import { Logger, LogLevel } from '../logger.mjs';
-const logger = new Logger("sceneContainer", LogLevel.INFO);
-
 let isInitialized = false;
 
 export function initializeSceneContainer() {

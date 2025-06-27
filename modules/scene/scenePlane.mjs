@@ -1,3 +1,7 @@
+import { bizCardDivManager } from './bizCardDivManager.mjs';
+import { resumeManager } from '../resume/resumeManager.mjs';
+import { selectionManager } from '../core/selectionManager.mjs';
+
 let isInitialized = false;
 let scenePlane = null;
 
@@ -31,19 +35,20 @@ export function isScenePlaneInitialized() {
 }
 
 function handleScenePlaneClick(event) {
-    clearAllSelected();
+    // Check if the click was on the scene plane itself and not on a child element (like a card)
+    if (event.target.id === 'scene-plane') {
+        selectionManager.clearSelection("scenePlane.handleScenePlaneClick");
+    }
 }
 
 /**
- * Called when the scene plane is clicked
+ * DEPRECATED: This function is no longer needed.
+ * The selectionManager now handles clearing selections.
+ * Components should call selectionManager.clearSelection() instead.
  * 
- * Also called by both bizCardDivModule and 
- * bizResumeDivModule before any new selection is made
+ * @deprecated
  */
-export function clearAllSelected() {
-    const selectedElements = document.querySelectorAll('.selected');
-    selectedElements.forEach(element => {
-        element.classList.remove("selected");    
-    });    
-    console.log("scenePlane: clearAllSelected: num cleared:", selectedElements.length);
+export function clearAllSelected(caller='') {
+    console.warn(`[DEPRECATED] clearAllSelected was called by ${caller}. This function is deprecated. Use selectionManager.clearSelection() instead.`);
+    selectionManager.clearSelection(`clearAllSelected from ${caller}`);
 }

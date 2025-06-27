@@ -1,79 +1,51 @@
 // modules/core/keyDown.mjs
 
+import { resumeManager } from '../resume/resumeManager.mjs';
+import * as timeline from '../timeline/timeline.mjs';
 import * as focalPoint from './focalPoint.mjs';
-import { Logger, LogLevel } from '../logger.mjs';
-
-const logger = new Logger("keyDown", LogLevel.INFO);
+import * as colorPalettes from '../colors/colorPalettes.mjs';
 
 /**
  * function that handles keyboard events
  * @param {*} event 
  */
 export function handleKeyDown(event) {
-    const key = event.key.toLowerCase(); // Normalize key to lowercase
-    console.log(`keyDown.handleKeyDown: Key pressed: ${key}`);
-    
-    // Don't handle key events if they're in an input field or textarea
-    if (event.target.tagName === 'INPUT' || event.target.tagName === 'TEXTAREA') {
-        console.log(`keyDown.handleKeyDown: Ignoring key event in ${event.target.tagName}`);
-        return;
+    if (event.ctrlKey && event.shiftKey && event.altKey && event.key === 'D') {
+        console.log("Ctrl+Shift+Alt+D detected: Dumping managers to console");
+        window.dumpManagersToConsole();
     }
-    
-    switch (key) {
-        case 'b':
-            console.log("keyDown.handleKeyDown: 'b' key pressed - toggling focal point lock to bulls-eye");
-            
-            // Check if focalPoint module is available
-            if (typeof focalPoint === 'undefined' || focalPoint === null) {
-                console.error("keyDown.handleKeyDown: focalPoint module is not available");
-                return;
-            }
-            
-            // Check if toggleLockedToBullsEye function exists
-            if (typeof focalPoint.toggleLockedToBullsEye !== 'function') {
-                console.error("keyDown.handleKeyDown: toggleLockedToBullsEye function not found");
-                return;
-            }
-            
-            // If focal point is being dragged, first stop dragging
-            if (focalPoint.isBeingDragged && focalPoint.isBeingDragged()) {
-                console.log("keyDown.handleKeyDown: Stopping drag before toggling lock");
-                focalPoint.set_isBeingDragged_false(focalPoint.getFocalPoint());
-            }
-            
-            // Call toggleLockedToBullsEye and log the result
-            try {
-                const isLocked = focalPoint.toggleLockedToBullsEye();
-                console.log(`keyDown.handleKeyDown: Focal point lock toggled to: ${isLocked}`);
-                
-                // Log the state after toggling
-                if (typeof focalPoint.logFocalPointState === 'function') {
-                    focalPoint.logFocalPointState();
-                }
-            } catch (error) {
-                console.error("keyDown.handleKeyDown: Error toggling focal point lock:", error);
-            }
+
+    switch (event.key) {
+        case "ArrowLeft":
+            console.log("ArrowLeft pressed");
+            resumeManager.goToPreviousResumeItem();
             break;
-            
-        case 'd':
-            console.log("keyDown.handleKeyDown: 'd' key pressed - toggling draggable");
-            if (typeof focalPoint.toggleDraggable === 'function') {
-                focalPoint.toggleDraggable();
-            } else {
-                console.error("keyDown.handleKeyDown: toggleDraggable function not found");
-            }
+        case "ArrowRight":
+            console.log("ArrowRight pressed");
+            resumeManager.goToNextResumeItem();
             break;
-            
-        case 'f':
-            console.log("keyDown.handleKeyDown: 'f' key pressed - toggling follow pointer");
-            if (typeof focalPoint.toggleFollowPointerOutsideContainer === 'function') {
-                focalPoint.toggleFollowPointerOutsideContainer();
-            } else {
-                console.error("keyDown.handleKeyDown: toggleFollowPointerOutsideContainer function not found");
-            }
+        case "ArrowUp":
+            console.log("ArrowUp pressed");
+            resumeManager.goToFirstResumeItem();
             break;
-            
+        case "ArrowDown":
+            console.log("ArrowDown pressed");
+            resumeManager.goToLastResumeItem();
+            break;
+        case " ": // Spacebar
+            console.log("Spacebar pressed");
+            // focalPoint.toggleFocalPointLock();
+            break;
+        case "c":
+            console.log("'c' key pressed");
+            colorPalettes.cycleColorPalette();
+            break;
+        case "t":
+            console.log("'t' key pressed");
+            timeline.toggleTimelineVisibility();
+            break;
         default:
+            // log.log("Key pressed: " + event.key);
             break;
     }
 }

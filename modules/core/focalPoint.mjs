@@ -8,9 +8,6 @@ import * as bullsEye from './bullsEye.mjs';
 import * as aimPoint from './aimPoint.mjs';
 import * as eventBus from '../core/eventBus.mjs';
 
-import { Logger, LogLevel } from "../logger.mjs";
-const logger = new Logger("focalPoint", LogLevel.INFO, LogLevel.TRACE_ON_FAILURE);
-
 const FOCAL_POINT_STATE = {
     ASLEEP: "asleep",
     AWAKE: "awake",
@@ -110,7 +107,7 @@ function saveDraggableState(state) {
     try {
         localStorage.setItem('focalPoint_isDraggable', JSON.stringify(state));
     } catch (e) {
-        logger.error('Failed to save draggable state:', e);
+        console.error('Failed to save draggable state:', e);
     }
 }
 
@@ -122,7 +119,7 @@ function loadDraggableState() {
         const saved = localStorage.getItem('focalPoint_isDraggable');
         return saved !== null ? JSON.parse(saved) : true;  // Default to true if not set
     } catch (e) {
-        logger.error('Failed to load draggable state:', e);
+        console.error('Failed to load draggable state:', e);
         return true;  // Default to true on error
     }
 }
@@ -166,7 +163,7 @@ export function saveState() {
         localStorage.setItem(STORAGE_KEY, JSON.stringify(state, null, 2));
         //console.log('Saved focalPoint state:', state);
     } catch (e) {
-        logger.error('Failed to save focalPoint state:', e);
+        console.error('Failed to save focalPoint state:', e);
     }
 }
 
@@ -184,7 +181,7 @@ function loadState() {
         //console.log('Loaded focalPoint state:', state);
         return state;
     } catch (e) {
-        logger.error('Failed to load focalPoint state:', e);
+        console.error('Failed to load focalPoint state:', e);
         return getDefaultState();
     }
 }
@@ -1322,7 +1319,7 @@ function handleScrollPassThrough(event) {
     // Get the scene-container element (the scrollable container)
     const sceneContainer = document.getElementById('scene-container');
     if (!sceneContainer) {
-        logger.error('scene-container not found for scroll pass-through');
+        console.error('scene-container not found for scroll pass-through');
         return;
     }
 

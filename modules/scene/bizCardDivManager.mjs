@@ -1,7 +1,7 @@
 // scene/bizCardDivManager.mjs
 
 import * as colorPalettes from '../colors/colorPalettes.mjs';
-import { resumeManager } from '../resume/resumeManager.mjs';
+import { selectionManager } from '../core/selectionManager.mjs';
 import * as scenePlane from './scenePlane.mjs';
 import * as utils from '../utils/utils.mjs';
 import * as viewPort from '../core/viewPort.mjs';
@@ -10,8 +10,7 @@ import * as timeline from '../timeline/timeline.mjs';
 import * as dateUtils from '../utils/dateUtils.mjs';
 import * as mathUtils from '../utils/mathUtils.mjs';
 import * as zUtils from '../utils/zUtils.mjs';
-
-import { Logger, LogLevel } from '../logger.mjs';
+import * as filters from '../core/filters.mjs';
 
 const BIZCARD_MAX_X_OFFSET = 100;
 const BIZCARD_MEAN_WIDTH = 200;
@@ -21,36 +20,35 @@ const MIN_HEIGHT = 200;
 
 class BizCardDivManager {
     constructor() {
-        this.logger = new Logger("BizCardDivManager", LogLevel.INFO);
         this.bizCardDivs = [];
         this.isInitialized = false;
+        this._setupSelectionListeners();
+        this.setupPointerEventsObserver();
     }
 
     initialize() {
         if (this.isInitialized) {
-            this.logger.warn("BizCardDivManager already initialized");
+            console.warn("BizCardDivManager already initialized");
             return;
         }
 
         if (!resumeManager || !resumeManager.isInitialized()) {
-            this.logger.warn("Cannot initialize BizCardDivManager: resumeManager not found or not initialized");
+            console.warn("Cannot initialize BizCardDivManager: resumeManager not found or not initialized");
             return;
         }
         if (!viewPort || !viewPort.isViewPortInitialized()) {
-            this.logger.warn("Cannot initialize BizCardDivManager: viewPort not found or not initialized");
+            console.warn("Cannot initialize BizCardDivManager: viewPort not found or not initialized");
             return;
         }
 
-        this._setupEventListeners();
-        this.setupPointerEventsObserver();
         this.isInitialized = true;
-        this.logger.info("BizCardDivManager initialized successfully");
+        console.info("BizCardDivManager initialized successfully");
     }
 
     createAllBizCardDivs(jobs) {
         const scenePlaneEl = document.getElementById('scene-plane');
         if (!scenePlaneEl) {
-            this.logger.error("Scene plane element not found!");
+            console.error("Scene plane element not found!");
             return [];
         }
 
@@ -77,6 +75,8 @@ class BizCardDivManager {
 
         colorPalettes.applyCurrentColorPaletteToElement(bizCardDiv, groupIndex);
 
+        this._setupMouseListeners(bizCardDiv);
+
         return bizCardDiv;
     }
     
@@ -95,7 +95,7 @@ class BizCardDivManager {
 
     _setBizCardDivSceneGeometry(bizCardDiv, job) {
         if (!job.start) {
-            this.logger.warn(`Job ${job.role || bizCardDiv.id} is missing a start date. Skipping geometry calculation.`);
+            console.warn(`Job ${job.role || bizCardDiv.id} is missing a start date. Skipping geometry calculation.`);
             return;
         }
 
@@ -105,7 +105,7 @@ class BizCardDivManager {
             : dateUtils.parseFlexibleDateString(job.end || job.start);
 
         if (!startDate || !endDate) {
-            this.logger.warn(`Could not parse dates for job ${job.role || bizCardDiv.id}. Skipping geometry calculation.`);
+            console.warn(`Could not parse dates for job ${job.role || bizCardDiv.id}. Skipping geometry calculation.`);
             return;
         }
 
@@ -152,120 +152,168 @@ class BizCardDivManager {
         }
         utils.validateNumberInRange(sceneZ, zUtils.ALL_CARDS_Z_MIN, zUtils.ALL_CARDS_Z_MAX);
         bizCardDiv.setAttribute("data-sceneZ", sceneZ);
+        
+        // set the z-relative style properties
+        bizCardDiv.style.setProperty("z-index", zUtils.get_zIndexStr_from_z(sceneZ));
+        bizCardDiv.style.filter = filters.get_filterStr_from_z(sceneZ);
+
+        // console.log(`Card ID: ${bizCardDiv.id}, Filter: ${bizCardDiv.style.filter}`);
     }
 
+    _setupSelectionListeners() {
+        selectionManager.addEventListener('selectionChanged', this.handleSelectionChanged.bind(this));
+        selectionManager.addEventListener('selectionCleared', this.handleSelectionCleared.bind(this));
+        selectionManager.addEventListener('hoverChanged', this.handleHoverChanged.bind(this));
+        selectionManager.addEventListener('hoverCleared', this.handleHoverCleared.bind(this));
+    }
 
-    handleBizCardDivClickEvent(bizCardDiv, options = {}) {
-        const { syncResume = true } = options;
+    _setupMouseListeners(bizCardDiv) {
+        if (!bizCardDiv) return;
+        bizCardDiv.addEventListener('click', (e) => {
+            // Stop propagation to prevent scenePlane from immediately clearing the selection
+            e.stopPropagation(); 
+            this.handleBizCardDivClickEvent(bizCardDiv);
+        });
+        bizCardDiv.addEventListener('mouseenter', () => this.handleMouseEnterEvent(bizCardDiv));
+        bizCardDiv.addEventListener('mouseleave', () => this.handleMouseLeaveEvent(bizCardDiv));
+    }
+
+    // called by handleBizCardDivClickEvent
+    // handles creation of clone
+    // does not sync with resumeDiv
+    _selectBizCardDiv(bizCardDiv, caller='') {
         if (!bizCardDiv) return;
 
-        const isSelected = bizCardDiv.classList.contains('selected');
-        
-        scenePlane.clearAllSelected();
+        // Create a deep clone of the card
+        const clone = bizCardDiv.cloneNode(true);
+        clone.id = bizCardDiv.id + '-clone';
+        bizCardDiv.classList.add('hasClone'); // marker for scenePlane.clearAllSelected to know to destroy the clone
+        if ( !clone.classList.contains('biz-card-div') ) throw new Error('Clone is not a biz-card-div');
+        clone.classList.remove('hovered')
+        clone.classList.add('selected' );
+        clone.setAttribute("data-sceneZ", "0"); // marker for parallax to use SELECTED_CARD_Z_INDEX
 
-        if (isSelected) {
-            resumeManager.clearSelectedJobIndex();
-            return;
+        // The parallax engine will style this, we just need to add it to the DOM
+        bizCardDiv.parentElement.appendChild(clone);
+        // hide the original
+        bizCardDiv.style.display = 'none';
+    }
+
+    // This is now the primary method for removing a clone and showing the original card.
+    // It's called by the selectionCleared event handler.
+    _deselectBizCardDiv(bizCardDiv) {
+        if ( !bizCardDiv ||!bizCardDiv.classList.contains('hasClone') ) return;
+        const cloneId = bizCardDiv.id + '-clone';
+        const clone = document.getElementById(cloneId);
+        if (clone) {
+            clone.parentElement.removeChild(clone);
         }
 
-        bizCardDiv.classList.add('selected');
-        bizCardDiv.classList.remove('hovered');
+        bizCardDiv.classList.remove('hasClone');
+        bizCardDiv.style.display = 'block';
+    }
 
+    handleBizCardDivClickEvent(bizCardDiv) {
+        if (!bizCardDiv) return;
         const jobIndex = parseInt(bizCardDiv.getAttribute('data-job-index'), 10);
-        resumeManager.setSelectedJobIndex(jobIndex);
+        const isAlreadySelected = selectionManager.getSelectedJobIndex() === jobIndex;
 
-        if (syncResume) {
-            resumeManager.syncWithSceneSelection(jobIndex);
+        if (isAlreadySelected) {
+            selectionManager.clearSelection('bizCardDivManager.handleBizCardDivClickEvent');
+        } else {
+            selectionManager.selectJobIndex(jobIndex, 'bizCardDivManager.handleBizCardDivClickEvent');
         }
     }
 
     handleMouseEnterEvent(element) {
-        if (!element || element.classList.contains('selected')) return;
-        element.classList.add("hovered");
-        const pairedId = element.getAttribute('data-paired-id');
-        if (pairedId) {
-            const pairedElement = document.getElementById(pairedId);
-            if (pairedElement && !pairedElement.classList.contains('selected')) {
-                pairedElement.classList.add("hovered");
-            }
-        }
+        if (!element) return;
+        const jobIndex = parseInt(element.getAttribute('data-job-index'), 10);
+        if (selectionManager.getSelectedJobIndex() === jobIndex) return; // Ignore hover on selected item
+        selectionManager.hoverJobIndex(jobIndex, 'bizCardDivManager.handleMouseEnterEvent');
     }
 
     handleMouseLeaveEvent(element) {
-        if (!element || element.classList.contains('selected')) return;
-        element.classList.remove("hovered");
-        const pairedId = element.getAttribute('data-paired-id');
-        if (pairedId) {
-            const pairedElement = document.getElementById(pairedId);
-            if (pairedElement && !pairedElement.classList.contains('selected')) {
-                pairedElement.classList.remove("hovered");
-            }
+        if (!element) return;
+        const jobIndex = parseInt(element.getAttribute('data-job-index'), 10);
+        selectionManager.clearHover('bizCardDivManager.handleMouseLeaveEvent');
+    }
+
+    handleSelectionChanged(event) {
+        const { selectedJobIndex, caller } = event.detail;
+        
+        // First, ensure any existing selections are cleared, but prevent re-entry
+        if (caller !== 'handleSelectionChanged') {
+            this.handleSelectionCleared({ detail: { caller: 'handleSelectionChanged' } });
+        }
+
+        const bizCardDiv = this.getBizCardDivByJobIndex(selectedJobIndex);
+        if (bizCardDiv) {
+            this._selectBizCardDiv(bizCardDiv, `bizCardDivManager.handleSelectionChanged from ${caller}`);
+            this.scrollBizCardDivIntoView(bizCardDiv, `bizCardDivManager.handleSelectionChanged from ${caller}`);
         }
     }
+
+    handleSelectionCleared(event) {
+        const { caller } = event.detail;
+        const cardsWithClones = document.querySelectorAll('.biz-card-div.hasClone');
+        cardsWithClones.forEach(card => this._deselectBizCardDiv(card));
+    }
+
+    handleHoverChanged(event) {
+        const { hoveredJobIndex, caller } = event.detail;
+        if (selectionManager.getSelectedJobIndex() === hoveredJobIndex) return;
+
+        // Clear any existing hover first
+        this.handleHoverCleared({ detail: { caller: 'handleHoverChanged' } });
+
+        const bizCardDiv = this.getBizCardDivByJobIndex(hoveredJobIndex);
+        if (bizCardDiv) {
+            bizCardDiv.classList.add('hovered');
+        }
+    }
+
+    handleHoverCleared(event) {
+        const { caller } = event.detail;
+        this.bizCardDivs.forEach(div => div.classList.remove('hovered'));
+    }
+
+    isJobIndexSelected(jobIndex) {
+        return selectionManager.getSelectedJobIndex() === jobIndex;
+    }
     
-    scrollBizCardDivIntoView(bizCardDiv) {
+    scrollBizCardDivIntoView(bizCardDiv, caller='') {
         if (!bizCardDiv) return;
+        console.log(`bizCardDivManager.scrollBizCardDivIntoView: ${caller} scrolling ${bizCardDiv.id} into view`);
         const sceneContainer = document.getElementById('scene-container');
-        if (!sceneContainer) return;
+        if (!sceneContainer) throw new Error(`bizCardDivManager.scrollBizCardDivIntoView: ${caller} sceneContainer not found`);
     
-        const cardTop = bizCardDiv.offsetTop;
-        
+        const cardTop = parseInt(bizCardDiv.style.getPropertyValue('top'), 10);
+        console.log(`bizCardDivManager.scrollBizCardDivIntoView: ${caller} cardTop: ${cardTop}`);
         sceneContainer.scrollTo({
             top: cardTop,
             behavior: 'smooth'
         });
     }
 
-    _setupEventListeners() {
-        const scenePlaneDiv = document.getElementById('scene-plane');
-        if (!scenePlaneDiv) return;
-
-        scenePlaneDiv.addEventListener('click', (event) => {
-            const bizCardDiv = event.target.closest('.biz-card-div');
-            if (bizCardDiv) {
-                this.handleBizCardDivClickEvent(bizCardDiv);
-            }
-        });
-
-        scenePlaneDiv.addEventListener('mouseover', (event) => {
-            const bizCardDiv = event.target.closest('.biz-card-div');
-            if (bizCardDiv) {
-                this.handleMouseEnterEvent(bizCardDiv);
-            }
-        });
-
-        scenePlaneDiv.addEventListener('mouseout', (event) => {
-            const bizCardDiv = event.target.closest('.biz-card-div');
-            if (bizCardDiv) {
-                this.handleMouseLeaveEvent(bizCardDiv);
-            }
-        });
-    }
-
     setupPointerEventsObserver() {
-        const scenePlaneDiv = document.getElementById('scene-plane');
-        if (!scenePlaneDiv) return;
-
         const observer = new MutationObserver(mutations => {
             mutations.forEach(mutation => {
-                if (mutation.type === 'childList') {
-                    mutation.addedNodes.forEach(node => {
-                        if (node.nodeType === 1 && node.classList.contains('biz-card-div')) {
-                            node.style.pointerEvents = 'auto';
-                        }
-                    });
+                if (mutation.attributeName === 'style') {
+                    const el = mutation.target;
+                    const pointerEvents = window.getComputedStyle(el).pointerEvents;
+                    if (pointerEvents === 'none') {
+                        el.classList.add('pointer-events-none');
+                    } else {
+                        el.classList.remove('pointer-events-none');
+                    }
                 }
             });
         });
 
-        observer.observe(scenePlaneDiv, { childList: true, subtree: true });
-
-        // Also ensure existing ones have it
-        document.querySelectorAll('.biz-card-div').forEach(div => {
-            div.style.pointerEvents = 'auto';
+        this.bizCardDivs.forEach(bizCardDiv => {
+            observer.observe(bizCardDiv, { attributes: true, attributeFilter: ['style'] });
         });
     }
 }
 
-const bizCardDivManager = new BizCardDivManager();
-export { bizCardDivManager };
+export const bizCardDivManager = new BizCardDivManager();

@@ -3,9 +3,6 @@
 import { resumeManager } from '../resume/resumeManager.mjs';
 import { bizCardDivManager } from './bizCardDivManager.mjs';
 
-import { Logger, LogLevel } from '../logger.mjs';
-const logger = new Logger("bizResumeDivSortingModule", LogLevel.DEBUG);
-
 export function initialize(jobsData, bizResumeDivs) {
 
     const _resumeManager = resumeManager;
