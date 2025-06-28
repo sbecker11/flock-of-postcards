@@ -37,6 +37,10 @@ export function handleKeyDown(event) {
             console.log("Spacebar pressed");
             // focalPoint.toggleFocalPointLock();
             break;
+        case "b":
+            console.log("'b' key pressed");
+            focalPoint.toggleLockedToBullsEye();
+            break;
         case "c":
             console.log("'c' key pressed");
             colorPalettes.cycleColorPalette();
@@ -51,61 +55,23 @@ export function handleKeyDown(event) {
     }
 }
 
-/**
- * Initialize the key down handler
- */
-export function initializeKeyDownHandler() {
-    console.log("keyDown.initializeKeyDownHandler: Initializing key down handler");
-    
-    // Remove any existing event listeners to avoid duplicates
-    document.removeEventListener('keydown', handleKeyDown);
-    
-    // Add the event listener
-    document.addEventListener('keydown', handleKeyDown);
-    
-    // Log that the handler is initialized
-    console.log("keyDown.initializeKeyDownHandler: Key down handler initialized - press 'b' to toggle focal point lock to bulls-eye");
-    
-    // Make the handler available globally for debugging
-    window.handleKeyDown = handleKeyDown;
-    console.log("keyDown.initializeKeyDownHandler: handleKeyDown function is now available globally as window.handleKeyDown");
-}
+let _isInitialized = false;
 
 /**
- * Check if key events are being captured
+ * Initializes the keydown handler and attaches the event listener.
  */
-export function checkKeyEventCapture() {
-    console.log("keyDown.checkKeyEventCapture: Checking if key events are being captured...");
-    
-    // Add a temporary key handler for testing
-    const tempHandler = (e) => {
-        console.log(`keyDown.checkKeyEventCapture: TEST KEYDOWN: Key pressed: ${e.key}`);
-        
-        if (e.key.toLowerCase() === 'b') {
-            console.log("keyDown.checkKeyEventCapture: TEST KEYDOWN: 'b' key pressed");
-            
-            // Try to toggle the focal point lock directly
-            try {
-                const isLocked = focalPoint.toggleLockedToBullsEye();
-                console.log(`keyDown.checkKeyEventCapture: TEST KEYDOWN: Focal point lock toggled to: ${isLocked}`);
-                
-                if (typeof focalPoint.logFocalPointState === 'function') {
-                    focalPoint.logFocalPointState();
-                }
-            } catch (error) {
-                console.error("keyDown.checkKeyEventCapture: TEST KEYDOWN: Error toggling focal point lock:", error);
-            }
-        }
-    };
-    
-    // Add the temporary handler
-    document.addEventListener('keydown', tempHandler);
-    console.log("keyDown.checkKeyEventCapture: Added temporary test key handler to document");
-    console.log("keyDown.checkKeyEventCapture: Press any key to test if events are being captured");
-    
-    // Remove the temporary handler after 10 seconds
-    setTimeout(() => {
-        document.removeEventListener('keydown', tempHandler);
-        console.log("keyDown.checkKeyEventCapture: Removed temporary test key handler");
-    }, 10000);
+export function initialize() {
+    if (_isInitialized) {
+        console.log("Keydown handler already initialized.");
+        return;
+    }
+
+    document.addEventListener('keydown', handleKeyDown);
+
+    _isInitialized = true;
+    console.log("Keydown handler initialized.");
+}
+
+export function isInitialized() {
+    return _isInitialized;
 }

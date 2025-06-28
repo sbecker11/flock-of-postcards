@@ -2,11 +2,11 @@ import { cardsController } from './CardsController.mjs';
 import { resumeListController } from '../resume/ResumeListController.mjs';
 import { selectionManager } from '../core/selectionManager.mjs';
 
-let isInitialized = false;
+let _isInitialized = false;
 let scenePlane = null;
 
-export function initializeScenePlane() {
-    if (isScenePlaneInitialized()) {
+export function initialize() {
+    if (_isInitialized) {
         console.log("initializeScenePlane: Scene plane already initialized, ignoring duplicate initialization request");
         return;
     }
@@ -26,12 +26,12 @@ export function initializeScenePlane() {
     // Add the click handler
     scenePlane.addEventListener('click', handleScenePlaneClick);
     
-    isInitialized = true;
+    _isInitialized = true;
     console.log("Scene plane initialized");
 }
 
-export function isScenePlaneInitialized() {
-    return isInitialized;
+export function isInitialized() {
+    return _isInitialized;
 }
 
 function handleScenePlaneClick(event) {

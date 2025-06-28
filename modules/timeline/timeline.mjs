@@ -29,7 +29,7 @@ export function isTimelineInitialized() {
  * @param {*} maxYear : int
  * @param {*} defaultYear : any optional
  */
-export function initializeTimeline(minYear, maxYear, defaultYear=null) {
+export function initialize(minYear, maxYear, defaultYear=null) {
     if (isTimelineInitialized()) {
         console.log("initializeTimeline: Timeline already initialized, ignoring duplicate initialization request");
         return;

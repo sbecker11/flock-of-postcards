@@ -4,12 +4,11 @@ import * as sceneContainer  from '../scene/sceneContainer.mjs';
 import * as resizeHandle from '../core/resizeHandle.mjs';
 
 // Add a flag to track initialization
-let _isResumeContainerInitialized = false;
+let _isInitialized = false;
 
 // called from resizeHandle.mjs
-export function initializeResumeContainer() {
-    // Add a flag to track initialization
-    if (typeof _isResumeContainerInitialized !== 'undefined' && _isResumeContainerInitialized) {
+export function initialize() {
+    if (isInitialized()) {
         console.log("initializeResumeContainer: Resume container already initialized, ignoring duplicate initialization request");
         return;
     }
@@ -17,20 +16,20 @@ export function initializeResumeContainer() {
     console.log("initializeResumeContainer");
     
     // Check if sceneContainer is already initialized
-    if (!sceneContainer.isSceneContainerInitialized()) {
-        sceneContainer.initializeSceneContainer();
+    if (!sceneContainer.isInitialized()) {
+        sceneContainer.initialize();
     }
     
     // Check if resizeHandle is already initialized
-    if (!resizeHandle.isResizeManagerInitialized()) {
-        resizeHandle.initializeResizeHandle();
+    if (!resizeHandle.isInitialized()) {
+        resizeHandle.initialize();
         console.log("ResizeManager initialized by resumeContainer");
     } else {
         console.log("ResizeManager already initialized");
     }
     
     // Mark as initialized
-    _isResumeContainerInitialized = true;
+    _isInitialized = true;
 }
 export function updateResumeContainer() {
     // console.log("updateResumeContainer");   
@@ -39,6 +38,6 @@ export function updateResumeContainer() {
 }
 
 // Add a function to check if initialized
-export function isResumeContainerInitialized() {
-    return typeof _isResumeContainerInitialized !== 'undefined' && _isResumeContainerInitialized;
+export function isInitialized() {
+    return _isInitialized;
 }

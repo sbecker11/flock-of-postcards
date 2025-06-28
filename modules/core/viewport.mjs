@@ -22,26 +22,37 @@ const viewPortProperties = {
 };
 
 
-let _isViewPortInitialized = false;
+let _isInitialized = false;
 
-const _sceneContainer = document.getElementById("scene-container");
+let _sceneContainer = null;
 const _resumeContainer = document.getElementById("resume-container");
 
-export function initializeViewPort() {
-    if (_isViewPortInitialized) {
-        console.warn("viewPort.initializeViewPort: already initialized, ignoring duplicate initialization request");
+/**
+ * Initializes the viewport module, sets up properties and event listeners.
+ */
+export function initialize() {
+    if (_isInitialized) {
+        console.warn("viewPort.initialize: already initialized, ignoring duplicate initialization request");
         return;
     }
-    
-    console.log("Initializing viewPort...");
-    
-    _isViewPortInitialized = true;
-    updateViewPort();
-    console.log("viewPort initialized successfully");
+
+    _sceneContainer = document.getElementById('scene-container');
+    if (!_sceneContainer) {
+        throw new Error("Viewport element #scene-container not found");
+    }
+
+    // Initial calculation
+    calculateViewPortProperties();
+
+    // Listen for resize events to recalculate properties
+    window.addEventListener('resize', calculateViewPortProperties);
+
+    _isInitialized = true;
+    console.log("ViewPort initialized successfully");
 }
 
-export function isViewPortInitialized() {
-    return _isViewPortInitialized;
+export function isInitialized() {
+    return _isInitialized;
 }
 
 /**
@@ -52,7 +63,7 @@ export function isViewPortInitialized() {
  */
 export function updateViewPort() {
     // console.log("updateViewPort");
-    if ( !isViewPortInitialized() ) {
+    if ( !isInitialized() ) {
         throw new Error("viewPortProperties is not initialized");
     }
     const sceneContainerRect = _sceneContainer.getBoundingClientRect();
@@ -82,7 +93,7 @@ export function updateViewPort() {
 
 export function getViewPortOrigin() {
     // console.log("viewPort.getViewPortOrigin()");
-    if ( !isViewPortInitialized() ) {
+    if ( !isInitialized() ) {
         throw new Error("viewPortProperties is not initialized");
     }
     //console.log("^^^^^^^^^ getViewPortOrigin: viewPortProperties.centerX:", viewPortProperties.centerX);
@@ -93,7 +104,7 @@ export function getViewPortOrigin() {
 }
 
 export function getViewPortRect() {
-    if ( !isViewPortInitialized() ) {
+    if ( !isInitialized() ) {
         throw new Error("viewPortProperties is not initialized");
     }
     return {
@@ -110,7 +121,7 @@ export function getViewPortRect() {
  * @returns {boolean} True if the card div is within the viewPortProperties
  */
 export function isBizCardDivWithinViewPort(bizCardDiv) {
-    if ( !isViewPortInitialized() ) {
+    if ( !isInitialized() ) {
         throw new Error("viewPortProperties is not initialized");
     }
     const rect = bizCardDiv.getBoundingClientRect();
@@ -124,7 +135,7 @@ export function isBizCardDivWithinViewPort(bizCardDiv) {
 
 export function setViewPortWidth(width) {
     // console.log("viewPort.setViewPortWidth:", width );
-    if ( !isViewPortInitialized() ) {
+    if ( !isInitialized() ) {
         throw new Error("viewPort not yet initialized");
     }
     if ( !utils.isNumber(width) ) {
@@ -141,7 +152,7 @@ export function setViewPortWidth(width) {
 //  * @param {HTMLElement} bizCardDiv - The card div
 //  */
 // export function applyViewRelativeStyling(bizCardDiv) {
-//     if ( !isViewPortInitialized() ) {
+//     if ( !isInitialized() ) {
 //         throw new Error("viewPortProperties is not initialized");
 //     }
 //     if ( !isHTMLElement(bizCardDiv) ) {
@@ -186,3 +197,7 @@ export function setViewPortWidth(width) {
 //     //     parsedSceneLeft: parseFloat(sceneLeft)
 //     // });
 // }
+
+function calculateViewPortProperties() {
+    // ... existing code ...
+}

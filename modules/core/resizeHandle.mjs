@@ -7,18 +7,24 @@ const BUTTON_COLUMN_WIDTH = 20;
 const DEFAULT_WIDTH_PERCENT = 50;
 
 let _resizeManager = null;
+let _isInitialized = false;
 
-export function isResizeManagerInitialized() {
-    return !!_resizeManager;
+export function isInitialized() {
+    return _isInitialized;
 }
 
-export function initializeResizeHandle() {
-    if (_resizeManager) {
-        console.warn("ResizeManager already initialized.");
+/**
+ * Initializes the resize handle and attaches event listeners.
+ */
+export function initialize() {
+    if (_isInitialized) {
+        console.log("ResizeHandle already initialized, ignoring duplicate initialization request");
         return;
     }
     _resizeManager = new ResizeManager();
     _resizeManager._initialize();
+    _isInitialized = true;
+    console.log("ResizeHandle initialized");
 }
 
 export function setScenePercent(scenePercent) {
@@ -69,8 +75,6 @@ class ResizeManager {
         this.lastSnapIndex = null;
         this.percentage = DEFAULT_WIDTH_PERCENT;
         
-        this.initializeFocalLockButton();
-
         this._boundHandleDrag = this.handleDrag.bind(this);
         this._boundStopDrag = this.stopDrag.bind(this);
         this._debouncedWindowResize = debounce(this.handleWindowResize.bind(this), 50);
@@ -83,27 +87,10 @@ class ResizeManager {
         this.resumeContainerLeft.addEventListener('mousedown', (e) => this.startDrag(e));
         this.collapseLeftButton.addEventListener('click', () => this.collapseLeft());
         this.collapseRightButton.addEventListener('click', () => this.collapseRight());
-        window.addEventListener('resize', this._debouncedWindowResize);
-    }
-
-    initializeFocalLockButton() {
-        if (!this.focalLockButton) return;
-        
-        const updateIcon = (isLocked) => {
-            const icon = this.focalLockButton.querySelector('img');
-            if (icon) {
-                const iconName = isLocked ? 'Lock-Closed-white.png' : 'Lock-Open-white.png';
-                icon.src = `static_content/icons/focal-lock/${iconName}`;
-                icon.alt = isLocked ? 'Focal point locked' : 'Focal point unlocked';
-            }
-        };
-
         this.focalLockButton.addEventListener('click', () => {
-            const isLocked = focalPoint.toggleLockedToBullsEye();
-            updateIcon(isLocked);
+            focalPoint.toggleLockedToBullsEye();
         });
-
-        updateIcon(focalPoint.isLockedToBullsEye());
+        window.addEventListener('resize', this._debouncedWindowResize);
     }
 
     updateLayoutFromPercentage(percentage) {
@@ -183,11 +170,19 @@ class ResizeManager {
     }
 
     collapseLeft() {
-        this.updateLayoutFromPercentage(0);
+        const snapPercentage = 100 / this.nIncrements;
+        const currentSnapIndex = Math.round(this.percentage / snapPercentage);
+        const newIndex = Math.max(0, currentSnapIndex - 1);
+        const newPercentage = newIndex * snapPercentage;
+        this.updateLayoutFromPercentage(newPercentage);
     }
 
     collapseRight() {
-        this.updateLayoutFromPercentage(100);
+        const snapPercentage = 100 / this.nIncrements;
+        const currentSnapIndex = Math.round(this.percentage / snapPercentage);
+        const newIndex = Math.min(this.nIncrements, currentSnapIndex + 1);
+        const newPercentage = newIndex * snapPercentage;
+        this.updateLayoutFromPercentage(newPercentage);
     }
 
     updateButtonStates(percentage) {

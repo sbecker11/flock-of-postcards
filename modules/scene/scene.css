@@ -143,8 +143,11 @@ body.focal-point-locked .biz-resume-div.selected {
 }
 
 .biz-card-details-div {
-    border-radius: 25px;
-    pointer-events: none;
+    padding: 15px;
+    padding-bottom: 20px; /* Add padding to prevent text overlap */
+    height: 100%;
+    overflow-y: auto; /* Add scroll for overflowing content */
+    box-sizing: border-box; /* Ensure padding is included in height */
 }
 
 /* hide all biz-card-details-div fields by default */
@@ -449,5 +452,9 @@ body.focal-point-locked .biz-resume-div *,
 }
 .biz-card-div.selected .biz-card-details-div::-webkit-scrollbar-thumb:hover {
     background: rgba(255,255,255,0.5);
+}
+
+.biz-card-div.hovered {
+    border-color: #999;
 }
 

@@ -250,9 +250,6 @@
   pointer-events: auto;
 }
 
-/* Add percentage display under buttons */
-/* Removed scene-visible-percentage styles, see resume-container.css */
-
 #biz-card-sorting-container {
   position: relative;
   display: flex;
@@ -320,21 +317,11 @@
   padding-left: 5px;
 }
 
-/* #resume-container-footer-div {
-  display: flex;
-  flex-direction: column;
-  pointer-events: none;
-
-
-#resume-container-footer-div > div {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-} */
-
 .footnote {
-  margin: 0;
-  padding-left: 5px;
+  font-size: 0.8em;
+  color: #ccc;
+  text-align: center;
+  margin-top: 10px;
 }
 
 
@@ -344,90 +331,77 @@
   width: 20px;
   height: 20px;
   border-radius: 50%;
-  border: 1px solid gray;
-  background: rgba(50, 50, 50, 0.9);
-  color: white;
-  pointer-events: auto;
+  border: 1px solid #ccc;
+  cursor: pointer;
   display: flex;
-  align-items: center;
   justify-content: center;
-  font-size: 12px;
-  font-weight: bold;
-  line-height: 1;
-  /* margin: 2px 0; */
-  padding: 0;
-  z-index: 9993;
+  align-items: center;
+  transition: background-color 0.3s, border-color 0.3s;
+  z-index: 9912;
+  background-repeat: no-repeat;
+  background-position: center;
+  background-size: 12px 12px;
+  pointer-events: auto; /* Ensure buttons receive mouse events */
 }
 
 /* Specific styles for left collapse button */
 #collapse-left {
   cursor: w-resize; /* West cursor */
-  z-index: 61; /* Above container */
-  /* margin-top: 20px; Spacing from top */
 }
 
 /* Specific styles for right collapse button */
 #collapse-right {
   cursor: e-resize; /* East cursor */
-  z-index: 62; /* Above left button */
-  /* margin-top: 10px;  Spacing from left button */
+}
+
+#focal-lock-button.locked {
+  background-image: url('../static_content/icons/focal-lock/Lock-Closed-white.png');
+}
+
+#focal-lock-button.locked:hover {
+  background-image: url('../static_content/icons/focal-lock/Lock-Open-white.png');
+}
+
+#focal-lock-button {
+  background-image: url('../static_content/icons/focal-lock/Lock-Open-white.png');
+}
+
+#focal-lock-button:hover {
+  background-image: url('../static_content/icons/focal-lock/Lock-Closed-white.png');
+}
+
+#resize-handle:hover {
+  /* ... existing code ... */
 }
 
 #focal-lock {
-  background-color: transparent !important;
-  background-repeat: no-repeat;
-  background-position: center 2px; /* Move icon 2px higher */
-  background-size: 12px 12px;
+    background-color: var(--background-dark); /* Default: unlocked state */
+    background-image: url('/static_content/icons/focal-lock/Lock-Open-black.png');
+}
+
+#focal-lock.locked {
+    background-color: var(--background-light); /* Locked state */
+    background-image: url('/static_content/icons/focal-lock/Lock-Closed-white.png');
 }
 
 #focal-lock img {
-  width: 12px;
-  height: 12px;
-  display: block;
-  margin-bottom: 2px; /* Move icon 2px higher */
-  opacity: 0;
-  position: absolute;
+    display: none; /* Hide the img tag completely */
 }
 
 .toggle-circle:hover {
-  background-color: rgba(80, 80, 80, 1);
   border-color: white;
 }
 
-/* States for the B button */
-.toggle-circle.locked {
-  background-color: white;
-}
-.toggle-circle.unlocked {
-  background-color: gray;
-}
-.toggle-circle.locked:hover {
-  background-color: grey;
-  border-color:black;
-}
-.toggle-circle.unlocked:hover {
-  background-color: white;
-  border-color: black;
+.toggle-circle:focus {
+  outline: none;
+  box-shadow: 0 0 5px rgba(255, 255, 255, 0.5);
 }
 
-/* Handle all interactive states to prevent secondary circle */
-.toggle-circle:focus,
-.toggle-circle:active,
-.toggle-circle:hover,
-.toggle-circle:focus-visible,
-.toggle-circle:focus-within {
-  outline: none !important;
-  box-shadow: none !important;
-  border: 1px solid white !important; /* Just change border color on interaction */
-  /* No secondary circle */
-}
-
-
-/* Make sure the percentage span is visible without changing other styling */
 #scene-visible-percentage {
   display: block !important;
-  /* position: relative !important; */
   pointer-events: none;
+  height: 10px;
+  margin-top: 5px;
 }
 
 #scene-visible-percentage:hover {

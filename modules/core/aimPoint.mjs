@@ -1,8 +1,24 @@
 ///modules/core/aimPoint.mjs
 
 import * as mathUtils from '../utils/mathUtils.mjs';
+import * as viewPort from './viewPort.mjs';
 
 const _aimPointElement = document.getElementById("aim-point");
+
+let _isInitialized = false;
+
+export function initialize() {
+    if (_isInitialized) {
+        return;
+    }
+    const initialPosition = viewPort.getViewPortOrigin();
+    if (initialPosition) {
+        setAimPoint(initialPosition, "aimPoint.initialize");
+        _isInitialized = true;
+    } else {
+        console.error("aimPoint.initialize: Could not get initial position from viewPort.");
+    }
+}
 
 // Add scroll/wheel pass-through handlers to aim-point
 if (_aimPointElement) {
@@ -15,7 +31,7 @@ let _aimPointStatus = "";
 
 function setAimPointStatus(new_status) {
     _aimPointStatus = new_status;
-    console.log(`setAimPointStatus: ${_aimPointStatus}`);
+    // console.log(`setAimPointStatus: ${_aimPointStatus}`);
 }
 function getAimPointStatus() {
     return _aimPointStatus;
@@ -66,37 +82,6 @@ export function getAimPointElement() {
     return _aimPointElement;
 }
 
-// Define the aim point modes
-const AimPointMode = {
-    RETURN_TO_BULLS_EYE: 'returnToBullsEye',
-    ALWAYS_FOLLOW_POINTER: 'alwaysFollowPointer'
-};
-
-// Add configuration for aim point mode
-let _aimPointMode = AimPointMode.RETURN_TO_BULLS_EYE; // Default mode
-
-export function toggleAimPointMode() {
-    const newMode = _aimPointMode === AimPointMode.RETURN_TO_BULLS_EYE 
-        ? AimPointMode.ALWAYS_FOLLOW_POINTER 
-        : AimPointMode.RETURN_TO_BULLS_EYE;
-    setAimPointMode(newMode);
-}
-
-// Add setter/getter for the mode
-export function setAimPointMode(mode) {
-    if (!Object.values(AimPointMode).includes(mode)) {
-        console.error(`Invalid aim point mode: ${mode}`);
-        return;
-    }
-    _aimPointMode = mode;
-    //console.info(`AimPoint mode: ${mode}`);
-    saveState();
-}
-
-export function getAimPointMode() {
-    return _aimPointMode;
-}
-
 /**
  * Handle scroll/wheel events and pass them through to scene-container
  * @param {Event} event - The scroll or wheel event
@@ -117,7 +102,7 @@ function handleScrollPassThrough(event) {
     if (event.type === 'wheel') {
         const delta = event.deltaY;
         sceneContainer.scrollTop += delta;
-        console.log('AimPoint passed wheel event to scene-container, delta:', delta);
+        // console.log('AimPoint passed wheel event to scene-container, delta:', delta);
     }
 
     // For scroll events, create and dispatch a new event
@@ -127,7 +112,7 @@ function handleScrollPassThrough(event) {
             cancelable: true
         });
         sceneContainer.dispatchEvent(newEvent);
-        console.log('AimPoint passed scroll event to scene-container');
+        // console.log('AimPoint passed scroll event to scene-container');
     }
 }
 

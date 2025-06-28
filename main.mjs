@@ -14,12 +14,14 @@ import * as bizResumeDivSortingModule from './modules/scene/bizResumeDivSortingM
 import * as bullsEye from './modules/core/bullsEye.mjs';
 import * as focalPoint from './modules/core/focalPoint.mjs';
 import * as parallax from './modules/core/parallax.mjs';
-import { initializeResizeHandle } from './modules/core/resizeHandle.mjs';
+import * as resizeHandle from './modules/core/resizeHandle.mjs';
 import * as resumeContainer from './modules/resume/resumeContainer.mjs';
 import * as sceneContainer from './modules/scene/sceneContainer.mjs';
 import * as timeline from './modules/timeline/timeline.mjs';
 import * as viewPort from './modules/core/viewPort.mjs';
 import * as tests from './modules/tests/tests.mjs';
+import * as autoScroll from './modules/animation/autoScroll.mjs';
+import * as dateUtils from './modules/utils/dateUtils.mjs';
 
 // --------------------------------------
 // Constants
@@ -99,94 +101,63 @@ document.addEventListener('mouseup', function() {
     document.getElementById("scene-container").classList.remove('no-select');
 });
 
-// Add global key handler for focalPoint controls
-function setupGlobalKeyHandlers() {
-    // Import the keyDown module and initialize its handler
-    import('./modules/core/keyDown.mjs').then(module => {
-        // Initialize the key down handler
-        module.initializeKeyDownHandler();
-        console.log("Global key handlers set up - press 'b' to toggle focal point lock to bulls-eye");
-        
-        // Add a test to verify key handlers are working
-        window.testKeyHandlers = () => {
-            console.log("Testing key handlers...");
-            module.checkKeyEventCapture();
-        };
-        console.log("Added window.testKeyHandlers() function for debugging");
-    }).catch(error => {
-        console.error('Failed to initialize key handlers:', error);
-    });
-}
-
-// Add a direct key handler to the document for debugging
-function setupDirectKeyHandler() {
-    document.addEventListener('keydown', function(event) {
-        console.log(`Direct key handler in main.mjs: Key pressed: ${event.key}`);
-        
-        // Check if the key is 'b'
-        if (event.key.toLowerCase() === 'b') {
-            console.log("Direct key handler in main.mjs: 'b' key pressed");
-            
-            // Import the focalPoint module and toggle the lock
-            import('./modules/core/focalPoint.mjs').then(module => {
-                if (typeof module.toggleLockedToBullsEye === 'function') {
-                    const isLocked = module.toggleLockedToBullsEye();
-                    console.log(`Direct key handler in main.mjs: Focal point lock toggled to: ${isLocked}`);
-                    if (typeof module.logFocalPointState === 'function') {
-                        module.logFocalPointState();
-                    }
-                } else {
-                    console.error("Direct key handler in main.mjs: toggleLockedToBullsEye function not found");
-                }
-            }).catch(error => {
-                console.error('Direct key handler in main.mjs: Failed to import focalPoint module:', error);
-            });
-        }
-    });
-    
-    console.log("Direct key handler set up for debugging in main.mjs");
-}
-
 // Initialize the application
 async function initialize() {
-    tests.runSanityTests();
-
     try {
+        console.log("Initializing application");
+
+        const sceneContainerEl = document.getElementById('scene-container');
+        if (!sceneContainerEl) {
+            console.error("main: scene-container element not found, cannot proceed.");
+            return;
+        }
+
+        // Run sanity tests first
+        tests.runSanityTests();
+
         // STEP 1: Initialize viewPort first as it's a fundamental dependency
-        viewPort.initializeViewPort();
+        viewPort.initialize();
         // Make viewPort available globally
         window.viewPort = viewPort;
         console.log("ViewPort initialized and made available globally");
 
         // STEP 2: Initialize bullsEye which depends on viewPort
-        bullsEye.initializeBullsEye();
+        bullsEye.initialize();
         console.log("BullsEye initialized");
 
-        // STEP 3: Initialize focalPoint which depends on viewPort and bullsEye
+        // STEP 3: Initialize aimPoint
+        aimPoint.initialize();
+
+        // STEP 4: Initialize the resize handle
+        resizeHandle.initialize();
+        console.log("ResizeHandle initialized");
+
+        // STEP 5: Initialize focalPoint which depends on viewPort and bullsEye
         const focalPointElement = document.getElementById('focal-point');
         if (!focalPointElement) {
             throw new Error("Focal point element not found in the DOM");
         }
-        focalPoint.initializeFocalPoint(focalPointElement);
+        focalPoint.initialize();
         console.log("FocalPoint initialized");
+        focalPoint.startFocalPointAnimation();
+        console.log("FocalPoint animation started");
 
-        // STEP 4: Initialize core components in the correct order
-        // First sceneContainer (no dependencies)
-        sceneContainer.initializeSceneContainer();
-        console.log("SceneContainer initialized");
+        // STEP 6: Initialize the timeline
+        const { minYear, maxYear } = dateUtils.getMinMaxYears(jobs);
+        timeline.initialize(minYear, maxYear, maxYear);
 
-        scenePlane.initializeScenePlane();
-        console.log("ScenePlane initialized");
+        // Initialize the scene container now that timeline is ready
+        sceneContainer.initialize();
 
-        // Then resizeHandle (depends on sceneContainer)
-        initializeResizeHandle();
-        console.log("ResizeHandle initialized");
+        // Scroll to current year and month at startup
+        const now = new Date();
+        const currentYear = now.getFullYear();
+        const currentMonth = now.getMonth() + 1; // getMonth() is 0-based
+        if (sceneContainerEl && typeof timeline.sceneContainerScrollToYearMonth === 'function') {
+            timeline.sceneContainerScrollToYearMonth(sceneContainerEl, currentYear, currentMonth);
+        }
 
-        // Finally resumeContainer (depends on both sceneContainer and resizeHandle)
-        resumeContainer.initializeResumeContainer();
-        console.log("ResumeContainer initialized");
-
-        // STEP 5: Create and initialize resumeListController
+        // STEP 7: Create and initialize resumeListController
         window.resumeListController = resumeListController;
         console.log("ResumeListController instance created");
 
@@ -197,41 +168,32 @@ async function initialize() {
         const loadedJobs = await waitForJobs();
         console.log("Jobs loaded successfully:", loadedJobs.length);
 
-        // Initialize timeline
-        const [minTimelineYear, maxTimelineYear] = getMinMaxTimelineYears(loadedJobs);
-        const defaultTimelineYear = maxTimelineYear;
-        timeline.initializeTimeline(minTimelineYear, maxTimelineYear, defaultTimelineYear);
-
-        // Now that the timeline is initialized, set up the gradient overlays
-        sceneContainer.setupGradientOverlays();
-
-        // Scroll to current year and month at startup
-        const sceneContainerEl = document.getElementById('scene-container');
-        const now = new Date();
-        const currentYear = now.getFullYear();
-        const currentMonth = now.getMonth() + 1; // getMonth() is 0-based
-        if (sceneContainerEl && typeof timeline.sceneContainerScrollToYearMonth === 'function') {
-            timeline.sceneContainerScrollToYearMonth(sceneContainerEl, currentYear, currentMonth);
-        }
-
         // Sort jobs by date
         const sortedJobs = [...loadedJobs].sort((a, b) => {
             return new Date(b.start) - new Date(a.start);
         });
 
-        // STEP 6: Create all bizCards and bizResumeDivs
+        // STEP 8: Create all bizCards and bizResumeDivs
         const bizCardDivs = cardsController.createAllBizCardDivs(sortedJobs);
         const bizResumeDivs = resumeItemsController.createAllBizResumeDivs(bizCardDivs);
 
-        // STEP 7: Initialize resumeListController with the created bizResumeDivs
+        // STEP 9: Initialize resumeListController with the created bizResumeDivs
         resumeListController.initialize(sortedJobs, bizResumeDivs);
         console.log("ResumeListController initialized with bizResumeDivs");
 
-        // STEP 8: Initialize bizCardDivModule (now that resumeListController is fully initialized)
+        // STEP 10: Initialize other modules
+        if (scenePlane) {
+            scenePlane.initialize();
+        }
+        
+        // STEP 11: Activate mouse-based scrolling for the scene
+        autoScroll.initialize();
+
+        // STEP 12: Initialize CardsController (now that resumeListController is fully initialized)
         cardsController.initialize();
         console.log("CardsController initialized");
 
-        // STEP 9: Set up a delegated event listener for bizResumeDivs
+        // STEP 13: Set up a delegated event listener for bizResumeDivs
         const resumeContentDiv = document.getElementById('resume-content-div');
         if (resumeContentDiv) {
             resumeContentDiv.addEventListener('click', (event) => {
@@ -242,14 +204,14 @@ async function initialize() {
             });
         }
 
-        // STEP 10: Initialize sorting after all divs are created
+        // STEP 14: Initialize sorting after all divs are created
         bizResumeDivSortingModule.initialize(sortedJobs, bizCardDivs);
 
-        // STEP 11: Initialize parallax (depends on viewPort, focalPoint, and bizCardDivs)
-        parallax.initializeParallax();
+        // STEP 15: Initialize parallax (depends on viewPort, focalPoint, and bizCardDivs)
+        parallax.initialize();
         console.log("Parallax initialized");
 
-        // STEP 12: Ensure bizCardDivs always have pointer events enabled
+        // STEP 16: Ensure bizCardDivs always have pointer events enabled
         cardsController.setupPointerEventsObserver();
 
         // Force an initial parallax update
@@ -257,28 +219,8 @@ async function initialize() {
             parallax.updateParallax("initial-load", true);
         }, 100);
 
-        // Start animation loop
-        focalPoint.startFocalPointAnimation();
-
-        // STEP 13: Set up global key handlers
-        setupGlobalKeyHandlers();
-        
-        // STEP 14: Set up direct key handler for debugging
-        setupDirectKeyHandler();
-        
-        // Focal lock button toggle logic
-        const focalLockBtn = document.getElementById('focal-lock');
-        if (focalLockBtn) {
-            focalLockBtn.addEventListener('click', () => {
-                if (focalLockBtn.classList.contains('locked')) {
-                    focalLockBtn.classList.remove('locked');
-                    focalLockBtn.classList.add('unlocked');
-                } else {
-                    focalLockBtn.classList.remove('unlocked');
-                    focalLockBtn.classList.add('locked');
-                }
-            });
-        }
+        // Initialize key down handlers
+        keyDown.initialize();
         
         console.log("Application initialization complete");
     } catch (error) {

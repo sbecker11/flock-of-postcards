@@ -5,29 +5,33 @@ import * as focalPoint from '../core/focalPoint.mjs';
 import * as dateUtils from '../utils/dateUtils.mjs';
 import * as utils from '../utils/utils.mjs';
 
-let isInitialized = false;
+let _isInitialized = false;
 
-export function initializeSceneContainer() {
-    if (isSceneContainerInitialized()) {
-        console.log("initializeSceneContainer: Scene container already initialized, ignoring duplicate initialization request");
+/**
+ * Initializes the scene container and its gradient overlays.
+ */
+export function initialize() {
+    if (_isInitialized) {
+        console.log("SceneContainer already initialized.");
         return;
     }
-    
-    // Set up the scene container
+
     const sceneContainer = document.getElementById('scene-container');
     if (!sceneContainer) {
-        throw new Error('Scene container element not found');
+        console.error("Scene container element not found!");
+        return;
     }
-    
-    // Initialize any scene-related properties
-    // ...
-    
-    isInitialized = true;
-    console.log("Scene container initialized");
+
+    setupGradientOverlays();
+
+    // Any other scene container setup...
+
+    _isInitialized = true;
+    console.log("SceneContainer initialized successfully.");
 }
 
-export function isSceneContainerInitialized() {
-    return isInitialized;
+export function isInitialized() {
+    return _isInitialized;
 }
 
 // called from updateResumeContainer
@@ -119,9 +123,9 @@ export function getSceneVerticalPositionForDateString(dateStr) {
  * @returns {Object} Object containing sceneTop and sceneBottom values
  */
 export function getSceneVerticalPositions(startDateStr, endDateStr, minHeight=0) {
-    if (!isInitialized) {
+    if (!_isInitialized) {
         console.warn("getSceneVerticalPositions called before initialization");
-        initializeSceneContainer(); // Auto-initialize if needed
+        initialize(); // Auto-initialize if needed
     }
     
     // Calculate vertical positions based on dates

@@ -6,12 +6,24 @@ export const MAX_AUTOSCROLL_VELOCITY = 3.0;
 export const MIN_AUTOSCROLL_VELOCITY = 2.0;
 export const AUTOSCROLL_CHANGE_THRESHOLD = 2.0;
 export const ALLOW_FOCAL_POINT_AIMING_IN_WHEEL_EVENT = false;
+const SCROLL_ZONE_PERCENTAGE = 0.20;  // Top and bottom 20% of the container
 
 // Auto-scroll state
-let autoScrollingInterval = null;
-let autoScrollVelocity = 0;
-let oldAutoScrollVelocity = 0;
-let autoScrollEase = 0;
+let animationFrameId = null;
+let currentVelocity = 0;
+let sceneContainerElement = null;
+
+/**
+ * Initializes the mouse-based auto-scrolling functionality.
+ */
+export function initialize() {
+    const container = document.getElementById('scene-container');
+    if (!container) {
+        console.error("autoScroll: Could not find 'scene-container' element. Scrolling will not be enabled.");
+        return;
+    }
+    enableMouseBasedScrolling(container);
+}
 
 /**
  * Updates the auto-scroll velocity based on the focal point position
@@ -47,12 +59,11 @@ export function updateAutoScrollVelocity(focalPointY, sceneContainer) {
  */
 export function handlesceneContainerWheel(wheelEvent) {
     if (AUTOSCROLL_STOPS_ON_USER_SCROLL_OR_WHEEL) {
-        if (autoScrollingInterval != null) {
+        if (animationFrameId != null) {
             console.log("Scene-div container wheel detected, stopping autoscroll.");
-            clearInterval(autoScrollingInterval);
-            autoScrollingInterval = null;
-            autoScrollVelocity = 0;
-            oldAutoScrollVelocity = 0;
+            cancelAnimationFrame(animationFrameId);
+            animationFrameId = null;
+            currentVelocity = 0;
         }
     }
 
@@ -67,41 +78,75 @@ export function handlesceneContainerWheel(wheelEvent) {
 }
 
 /**
- * Starts the auto-scroll animation
- * @param {HTMLElement} sceneContainer - The scene-plane container element
+ * Starts the scrolling animation with a given velocity.
+ * @param {number} velocity - The speed and direction of the scroll. Positive for down, negative for up.
  */
-export function startAutoScroll(sceneContainer) {
-    if (!AUTOSCROLL_ENABLED || autoScrollingInterval != null) {
-        return;
+function startScrolling(velocity) {
+    currentVelocity = velocity;
+
+    // If the animation loop is not already running, start it.
+    if (!animationFrameId) {
+        animationFrameId = requestAnimationFrame(scrollLoop);
     }
-
-    autoScrollingInterval = setInterval(() => {
-        if (Math.abs(autoScrollVelocity) < 0.1) {
-            clearInterval(autoScrollingInterval);
-            autoScrollingInterval = null;
-            return;
-        }
-
-        const currentScroll = sceneContainer.scrollTop;
-        const newScroll = currentScroll + autoScrollVelocity;
-        sceneContainer.scrollTop = newScroll;
-
-        // Smoothly adjust velocity
-        if (Math.abs(autoScrollVelocity - oldAutoScrollVelocity) > AUTOSCROLL_CHANGE_THRESHOLD) {
-            autoScrollVelocity = oldAutoScrollVelocity + (autoScrollVelocity - oldAutoScrollVelocity) * 0.1;
-        }
-        oldAutoScrollVelocity = autoScrollVelocity;
-    }, AUTOSCROLL_REPEAT_MILLIS);
 }
 
 /**
- * Stops the auto-scroll animation
+ * Stops the scrolling animation.
  */
-export function stopAutoScroll() {
-    if (autoScrollingInterval != null) {
-        clearInterval(autoScrollingInterval);
-        autoScrollingInterval = null;
-        autoScrollVelocity = 0;
-        oldAutoScrollVelocity = 0;
+function stopScrolling() {
+    currentVelocity = 0;
+    // The loop will stop itself when velocity is 0
+}
+
+/**
+ * The core animation loop.
+ */
+function scrollLoop() {
+    if (!sceneContainerElement) {
+        animationFrameId = null;
+        return;
     }
+
+    if (Math.abs(currentVelocity) > 0) {
+        sceneContainerElement.scrollTop += currentVelocity;
+        animationFrameId = requestAnimationFrame(scrollLoop);
+    } else {
+        // Stop the loop if velocity is zero
+        animationFrameId = null;
+    }
+}
+
+/**
+ * Enables mouse-based auto-scrolling on a given container element.
+ * @param {HTMLElement} container - The container to enable scrolling on.
+ */
+function enableMouseBasedScrolling(container) {
+    sceneContainerElement = container;
+
+    container.addEventListener('mousemove', (event) => {
+        const rect = container.getBoundingClientRect();
+        const mouseY = event.clientY - rect.top;
+        const containerHeight = container.clientHeight;
+        const topScrollZone = containerHeight * SCROLL_ZONE_PERCENTAGE;
+        const bottomScrollZone = containerHeight * (1 - SCROLL_ZONE_PERCENTAGE);
+
+        if (mouseY < topScrollZone) {
+            // Mouse is in the top zone, scroll up
+            const intensity = 1 - (mouseY / topScrollZone);
+            const velocity = -MAX_AUTOSCROLL_VELOCITY * intensity;
+            startScrolling(velocity);
+        } else if (mouseY > bottomScrollZone) {
+            // Mouse is in the bottom zone, scroll down
+            const intensity = (mouseY - bottomScrollZone) / (containerHeight - bottomScrollZone);
+            const velocity = MAX_AUTOSCROLL_VELOCITY * intensity;
+            startScrolling(velocity);
+        } else {
+            // Mouse is in the neutral middle zone
+            stopScrolling();
+        }
+    });
+
+    container.addEventListener('mouseleave', () => {
+        stopScrolling();
+    });
 } 

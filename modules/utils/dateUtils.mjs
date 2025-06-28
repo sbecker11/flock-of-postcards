@@ -280,6 +280,53 @@ export function formatISO8601YearMonth(date) {
     return date.toISOString().substring(0, 7);
 }
 
+/**
+ * Iterates over a list of jobs and finds the minimum and maximum year.
+ * @param {Array<Object>} jobs - An array of job objects, where each object has 'start' and 'end' date strings.
+ * @returns {{minYear: number, maxYear: number}} - An object containing the minimum and maximum year found.
+ */
+export function getMinMaxYears(jobs) {
+    if (!jobs || jobs.length === 0) {
+        const currentYear = new Date().getFullYear();
+        return { minYear: currentYear, maxYear: currentYear };
+    }
+
+    let minYear = Infinity;
+    let maxYear = -Infinity;
+
+    jobs.forEach(job => {
+        const startDate = parseFlexibleDateString(job.start);
+        if (startDate) {
+            const startYear = startDate.getFullYear();
+            if (startYear < minYear) {
+                minYear = startYear;
+            }
+            if (startYear > maxYear) {
+                maxYear = startYear;
+            }
+        }
+
+        const endDate = parseFlexibleDateString(job.end);
+        if (endDate) {
+            const endYear = endDate.getFullYear();
+            if (endYear > maxYear) {
+                maxYear = endYear;
+            }
+            if (endYear < minYear) {
+              minYear = endYear;
+            }
+        }
+    });
+
+    // If no valid dates were found, default to the current year.
+    if (minYear === Infinity || maxYear === -Infinity) {
+        const currentYear = new Date().getFullYear();
+        return { minYear: currentYear, maxYear: currentYear };
+    }
+
+    return { minYear, maxYear };
+}
+
 /** EXAMPLES
  * 
  * Your shell alias format: date -u "+%FT%T UTC"

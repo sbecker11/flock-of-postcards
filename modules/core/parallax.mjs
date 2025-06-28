@@ -22,7 +22,7 @@ export const PARALLAX_Y_EXAGGERATION_FACTOR = 4.0;
 const PARANOID = true;
 
 // Track if parallax is initialized
-let _isParallaxInitialized = false;
+let _isInitialized = false;
 
 // Store references to event listeners for cleanup
 let _sceneContainerScrollListener = null;
@@ -34,34 +34,28 @@ let _lastUpdateTime = 0;
 const MIN_UPDATE_INTERVAL = 16; // ~60fps
 
 /**
- * initialize all parallax elements
- * called from main.mjs
+ * Initializes the parallax effect, sets up listeners.
  */
-export function initializeParallax() {
+export function initialize() {
     // Prevent duplicate initialization
-    if (_isParallaxInitialized) {
+    if (_isInitialized) {
         console.log("Parallax already initialized, ignoring duplicate initialization request");
         return;
     }
     
     // Check dependencies first
-    if (!viewPort.isViewPortInitialized()) {
+    if (!viewPort.isInitialized()) {
         throw new Error("Cannot initialize parallax: viewPort not initialized");
     }
     
     // Check if focalPoint is initialized
     try {
-        if (!focalPoint.isFocalPointInitialized()) {
+        if (!focalPoint.isInitialized()) {
             console.warn("FocalPoint not initialized, attempting to initialize it now");
             
             // Try to initialize focalPoint if not already initialized
-            const focalPointElement = document.getElementById('focal-point');
-            if (focalPointElement) {
-                focalPoint.initializeFocalPoint(focalPointElement);
-                console.log("FocalPoint initialized from parallax module");
-            } else {
-                throw new Error("Cannot initialize parallax: focalPoint not initialized and focal-point element not found");
-            }
+            focalPoint.initialize();
+            console.log("FocalPoint initialized from parallax module");
         }
     } catch (error) {
         throw new Error("Cannot initialize parallax: focalPoint not initialized - " + error.message);
@@ -202,11 +196,15 @@ export function initializeParallax() {
         window.addEventListener('resize', _windowResizeListener);
     }
     
-    _isParallaxInitialized = true;
+    _isInitialized = true;
     console.log("Parallax initialized successfully");
     
     // Emit event when initialization is complete
     eventBus.emit('parallax:initialized', {});
+}
+
+export function isInitialized() {
+    return _isInitialized;
 }
 
 function inBounds(top, bottom, rect) {
@@ -229,7 +227,7 @@ function inBounds(top, bottom, rect) {
  * @param {*} sceneRect - scene-relative viewport rect
  */
 export function viewAllBizCardDivs(focalPoint, prefix, sceneRect) {
-    if (!viewPort.isViewPortInitialized()) {
+    if (!viewPort.isInitialized()) {
         throw new Error("viewPortProperties is not initialized"); 
     }
 
@@ -246,6 +244,11 @@ export function viewAllBizCardDivs(focalPoint, prefix, sceneRect) {
 }
 
 function applyParallaxToBizCardDiv(bizCardDiv, dh, dv) {
+    // If the card has a clone, it means it's selected and the original should not be touched.
+    if (bizCardDiv.classList.contains('hasClone')) {
+        return;
+    }
+
     if (!hasRequiredAttributes(bizCardDiv)) {
         return;
     }

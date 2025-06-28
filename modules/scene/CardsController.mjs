@@ -37,7 +37,7 @@ class CardsController {
             console.warn("Cannot initialize CardsController: resumeListController not found or not initialized");
             return;
         }
-        if (!viewPort || !viewPort.isViewPortInitialized()) {
+        if (!viewPort || !viewPort.isInitialized()) {
             console.warn("Cannot initialize CardsController: viewPort not found or not initialized");
             return;
         }
