@@ -233,6 +233,11 @@ function reinitializeScroller() {
     border-radius: 25px !important;
 }
 
+.job-description-item {
+    margin: 0;
+    padding: 0;
+}
+
 .biz-resume-div h4, .biz-resume-div p {
     /* Let text wrap naturally */
     margin: 0;

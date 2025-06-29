@@ -79,7 +79,7 @@ export function createBizCardDetailsDiv(bizCardDiv, job) {
     const dates = sceneContainer.formatDateRange(start, end);
     const sceneZ = bizCardDiv.getAttribute('data-sceneZ') || 'N/A';
     const description = job.Description  || 'No description provided';
-    const descriptions = description ? description.split(BULLET) : [];  
+    const descriptions = description ? description.split(BULLET).filter(d => d.trim()) : [];
     const jobSkills = job['job-skills'] || {};   
     const skills = (jobSkills && typeof jobSkills === 'object' && !Array.isArray(jobSkills))
     ? Object.values(jobSkills) || []
@@ -92,16 +92,16 @@ export function createBizCardDetailsDiv(bizCardDiv, job) {
     <p class="biz-details-dates header-text">${dates}</p>
     <p class="biz-details-z-value header-text">(z: ${sceneZ}, id: ${jobIndex})</p>
 
-    <ul>
-        ${descriptions.map(item => `<li>${item}</li>`).join('')}
-    </ul>
-    <ul style="list-style-type: circle; margin-left: 20px;">
-    ${skills
-        .map(skill => skill.trim()) // Remove whitespace around skills
-        .filter(skill => skill)     // Remove empty skills
-        .map(skill => `<li>${skill}</li>`)
-        .join('')}
-    </ul>
+    <div class="job-description-items-container">
+        ${descriptions.map(item => `<p class="job-description-item">&bull;&nbsp;${item.trim()}</p>`).join('')}
+    </div>
+
+    <p class="biz-details-skills">
+        ${skills
+            .map(skill => skill.trim()) // Remove whitespace around skills
+            .filter(skill => skill)     // Remove empty skills
+            .join(' &bull; ')}
+    </p>
     <div class="scroll-caret">▼</div>
     `; 
 

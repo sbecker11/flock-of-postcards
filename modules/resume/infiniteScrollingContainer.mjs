@@ -186,26 +186,6 @@ class InfiniteScrollingContainer {
         });
       }
       
-      // Fix the description list
-      const descList = item.element.querySelector('.bulleted-job-description-items-ul');
-      if (descList) {
-        descList.style.display = 'block';
-        descList.style.listStyle = 'none';
-        descList.style.padding = '0 0 0 1.5rem';
-        descList.style.margin = '0.3rem 0';
-        descList.style.width = '100%';
-        
-        // Make description items compact but readable
-        const descItems = descList.querySelectorAll('.bulleted-job-description-items-li');
-        descItems.forEach(desc => {
-          desc.style.display = 'block';
-          desc.style.position = 'relative';
-          desc.style.marginBottom = '0.2rem';
-          desc.style.lineHeight = '1.25';
-          desc.style.width = '100%';
-        });
-      }
-      
       // Make details div proper
       const detailsDiv = item.element.querySelector('.biz-resume-details-div');
       if (detailsDiv) {
