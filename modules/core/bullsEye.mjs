@@ -1,6 +1,7 @@
 // modules/core/bullsEye.mjs
 
 import * as viewPort from './viewPort.mjs';
+import * as sceneViewLabel from './sceneViewLabel.mjs';
 
 let _bullsEyeElement = null;
 let _bullsEyeRad = 0;
@@ -45,8 +46,12 @@ export function getBullsEye() {
 export function updateBullsEye() {
     const {x:_centerX, y:_centerY} = viewPort.getViewPortOrigin();
 
+    console.log(`Repositioning BullsEye to: top=${_centerY}px, left=${_centerX}px`);
+
     // _bullsEyeElement.style.left = `${_centerX - _bullsEyeRad}px`;
     // _bullsEyeElement.style.top = `${_centerY - _bullsEyeRad}px`;
     _bullsEyeElement.style.left = `${_centerX}px`;
     _bullsEyeElement.style.top = `${_centerY}px`;
+
+    sceneViewLabel.repositionLabel();
 }

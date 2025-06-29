@@ -5,6 +5,7 @@ import * as timeline from '../timeline/timeline.mjs';
 import * as focalPoint from './focalPoint.mjs';
 import * as colorPalettes from '../colors/colorPalettes.mjs';
 import { selectionManager } from './selectionManager.mjs';
+import { toggleStepping } from './resizeHandle.mjs';
 
 /**
  * function that handles keyboard events
@@ -44,6 +45,10 @@ export function handleKeyDown(event) {
         case "c":
             console.log("'c' key pressed");
             colorPalettes.cycleColorPalette();
+            break;
+        case "s":
+            console.log("'s' key pressed");
+            toggleStepping();
             break;
         case "t":
             console.log("'t' key pressed");

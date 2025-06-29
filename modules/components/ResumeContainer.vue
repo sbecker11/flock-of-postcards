@@ -48,18 +48,6 @@ function selectPrevious() {
   }
 }
 
-function reinitializeScroller() {
-  if (window.resumeListController) {
-    console.log("Re-initializing infinite scroller...");
-    // We need to re-pass the elements to the controller to ensure it has the correct, rendered items.
-    const resumeContentDiv = document.getElementById('resume-content-div');
-    const bizResumeDivs = Array.from(resumeContentDiv.children);
-    window.resumeListController.reinitialize(bizResumeDivs);
-  } else {
-    console.error("Cannot re-initialize: scroller not found.");
-  }
-}
-
 </script>
 
 <template>
@@ -258,7 +246,8 @@ function reinitializeScroller() {
 .viewer-label {
     font-family: sans-serif;
     font-size: 14px;
-    color: white;
+    color: black;
     user-select: none;
+    text-shadow: 1px 1px 2px rgba(255, 255, 255, 0.5);
 }
 </style> 

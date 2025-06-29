@@ -115,6 +115,13 @@ export function getViewPortRect() {
     };
 }
 
+export function getVisualRect() {
+    if (!_sceneContainer) {
+        return { top: 0, left: 0, bottom: 0, right: 0, width: 0, height: 0 };
+    }
+    return _sceneContainer.getBoundingClientRect();
+}
+
 /**
  * Checks if a card div is within the viewPortProperties
  * @param {HTMLElement} cardDiv - The card div to check

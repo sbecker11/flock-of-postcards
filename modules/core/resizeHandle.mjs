@@ -2,11 +2,11 @@
 
 import * as viewPort from './viewPort.mjs';
 import * as focalPoint from '../core/focalPoint.mjs';
+import * as keyDown from './keyDown.mjs';
 
 const BUTTON_COLUMN_WIDTH = 20;
 const DEFAULT_WIDTH_PERCENT = 50;
 
-let _resizeManager = null;
 let _isInitialized = false;
 
 export function isInitialized() {
@@ -29,13 +29,23 @@ export function initialize() {
     resizeManager._initialize(handleElement);
     _isInitialized = true;
     console.log("resizeHandle initialized.");
+
+    // Ensure keydown is initialized after resize handle is ready
+    keyDown.initialize();
 }
 
 export function setScenePercent(scenePercent) {
-    if (!_resizeManager) {
+    if (!_isInitialized) {
         throw new Error("resizeManager not initialized");
     }
-    _resizeManager.updateLayoutFromPercentage(scenePercent);
+    resizeManager.updateLayoutFromPercentage(scenePercent);
+}
+
+export function toggleStepping() {
+    if (!_isInitialized) {
+        throw new Error("resizeManager not initialized");
+    }
+    resizeManager.toggleStepping();
 }
 
 function updatePercentageDisplay(percentage) {
@@ -51,11 +61,14 @@ function clampToRange(val, min, max) {
 
 class ResizeManager {
     constructor() {
-        this.nIncrements = 3;
+        this.incrementPercentage = 100 / 3;
+        this.defaultIncrementPercentage = 100 / 3;
+        this.secondaryIncrementPercentage = 100 / 10;
         this.hysteresisPixels = 2;
         this.percentage = DEFAULT_WIDTH_PERCENT;
         this.isDragging = false;
         this.debug = false;
+        this.setStateUpdater = null; // Will be set by the Vue component
 
         this._boundHandleDrag = this.handleDrag.bind(this);
         this._boundStopDrag = this.stopDrag.bind(this);
@@ -65,7 +78,6 @@ class ResizeManager {
     _initialize(handleElement) {
         this.getDOMElements(handleElement);
 
-        this.nIncrements = 3;
         this.hysteresisPixels = 2;
         this.isDragging = false;
         this.startX = 0;
@@ -74,12 +86,14 @@ class ResizeManager {
         
         this.setupEventListeners();
         this.updateLayoutFromPercentage(this.percentage);
+        this.updateSteppingVisuals();
     }
 
     getDOMElements(handleElement) {
         if (!handleElement) throw new Error("handleElement is required");
 
         this.resizeHandle = handleElement;
+        this.steppingIndicator = this.resizeHandle.querySelector('#stepping-indicator');
         this.collapseLeftButton = this.resizeHandle.querySelector('#collapse-left');
         this.collapseRightButton = this.resizeHandle.querySelector('#collapse-right');
         this.sceneVizPercent = this.resizeHandle.querySelector('#scene-visible-percentage');
@@ -88,7 +102,7 @@ class ResizeManager {
         this.sceneContainer = document.getElementById('scene-container');
         this.resumeContainer = document.getElementById('resume-container');
 
-        if (!this.sceneContainer || !this.resumeContainer || !this.collapseLeftButton || !this.collapseRightButton || !this.resizeHandle || !this.sceneVizPercent) {
+        if (!this.sceneContainer || !this.resumeContainer || !this.collapseLeftButton || !this.collapseRightButton || !this.resizeHandle || !this.sceneVizPercent || !this.steppingIndicator) {
             throw new Error('ResizeManager: One or more required DOM elements not found.');
         }
     }
@@ -118,6 +132,10 @@ class ResizeManager {
         }
         this.applyLayout();
         
+        if (this.setStateUpdater) {
+            this.setStateUpdater(this.percentage);
+        }
+
         requestAnimationFrame(() => this.triggerParallaxUpdate());
     }
 
@@ -144,7 +162,7 @@ class ResizeManager {
         this.sceneContainer.style.width = `${this.sceneWidth}px`;
 
         viewPort.setViewPortWidth(this.sceneWidth);
-        this.updateButtonStates(this.percentage);
+        // this.updateButtonStates(this.percentage); // Now handled by Vue computed properties
         updatePercentageDisplay(this.percentage);
     }
     
@@ -160,7 +178,7 @@ class ResizeManager {
         const newLeft = this.startResumeLeft + dx;
         const windowWidth = window.innerWidth;
         const maxSceneWidth = windowWidth - BUTTON_COLUMN_WIDTH;
-        let newPercentage = (newLeft / maxSceneWidth) * 100;
+        const newPercentage = (newLeft / maxSceneWidth) * 100;
         
         this.updateLayoutFromPercentage(newPercentage);
     }
@@ -172,31 +190,50 @@ class ResizeManager {
         
         document.removeEventListener('mousemove', this._boundHandleDrag);
         document.removeEventListener('mouseup', this._boundStopDrag);
-        
-        this.snapToIncrement();
-    }
-    
-    snapToIncrement() {
-        const snapPercentage = 100 / this.nIncrements;
-        const currentSnapIndex = Math.round(this.percentage / snapPercentage);
-        const newPercentage = currentSnapIndex * snapPercentage;
-        this.updateLayoutFromPercentage(newPercentage);
+
+        // Snap on release if stepping is enabled
+        if (this.incrementPercentage > 0) {
+            const snapPercentage = this.incrementPercentage;
+            const currentSnapIndex = Math.round(this.percentage / snapPercentage);
+            const newPercentage = currentSnapIndex * snapPercentage;
+            this.updateLayoutFromPercentage(newPercentage);
+        }
     }
 
     collapseLeft() {
-        const snapPercentage = 100 / this.nIncrements;
-        const currentSnapIndex = Math.round(this.percentage / snapPercentage);
-        const newIndex = Math.max(0, currentSnapIndex - 1);
-        const newPercentage = newIndex * snapPercentage;
-        this.updateLayoutFromPercentage(newPercentage);
+        if (this.incrementPercentage > 0) {
+            const snapPercentage = this.incrementPercentage;
+            const currentSnapIndex = Math.round(this.percentage / snapPercentage);
+            const newIndex = Math.max(0, currentSnapIndex - 1);
+            const newPercentage = newIndex * snapPercentage;
+            this.updateLayoutFromPercentage(newPercentage);
+        } else {
+            // Snap to the next lowest secondary increment
+            const increment = this.secondaryIncrementPercentage;
+            const currentBlock = Math.ceil(this.percentage / increment);
+            const targetBlock = Math.max(0, currentBlock - 1);
+            const newPercentage = targetBlock * increment;
+            this.updateLayoutFromPercentage(newPercentage);
+        }
     }
 
     collapseRight() {
-        const snapPercentage = 100 / this.nIncrements;
-        const currentSnapIndex = Math.round(this.percentage / snapPercentage);
-        const newIndex = Math.min(this.nIncrements, currentSnapIndex + 1);
-        const newPercentage = newIndex * snapPercentage;
-        this.updateLayoutFromPercentage(newPercentage);
+        if (this.incrementPercentage > 0) {
+            const snapPercentage = this.incrementPercentage;
+            const nIncrements = 100 / snapPercentage;
+            const currentSnapIndex = Math.round(this.percentage / snapPercentage);
+            const newIndex = Math.min(nIncrements, currentSnapIndex + 1);
+            const newPercentage = newIndex * snapPercentage;
+            this.updateLayoutFromPercentage(newPercentage);
+        } else {
+            // Snap to the next highest secondary increment
+            const increment = this.secondaryIncrementPercentage;
+            const nBlocks = 100 / increment;
+            const currentBlock = Math.floor(this.percentage / increment);
+            const targetBlock = Math.min(nBlocks, currentBlock + 1);
+            const newPercentage = targetBlock * increment;
+            this.updateLayoutFromPercentage(newPercentage);
+        }
     }
 
     updateButtonStates(percentage) {
@@ -206,6 +243,17 @@ class ResizeManager {
 
     handleWindowResize() {
         this.updateLayoutFromPercentage(this.percentage);
+    }
+
+    toggleStepping() {
+        if (this.incrementPercentage > 0) {
+            this.incrementPercentage = 0;
+            console.log(`Stepping disabled.`);
+        } else {
+            this.incrementPercentage = this.defaultIncrementPercentage;
+            console.log(`Stepping enabled: ${this.incrementPercentage.toFixed(2)}% increments.`);
+        }
+        this.updateSteppingVisuals();
     }
 
     startDrag(e) {
@@ -221,6 +269,14 @@ class ResizeManager {
         
         document.addEventListener('mousemove', this._boundHandleDrag);
         document.addEventListener('mouseup', this._boundStopDrag);
+    }
+
+    updateSteppingVisuals() {
+        if (!this.steppingIndicator) return;
+
+        // Add or remove the 'inverted' class based on the stepping state.
+        // Stepping is disabled when incrementPercentage is 0.
+        this.steppingIndicator.classList.toggle('inverted', this.incrementPercentage === 0);
     }
 }
 

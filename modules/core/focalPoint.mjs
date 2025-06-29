@@ -1401,6 +1401,14 @@ function animateFocalPoint() {
     ensureSceneElementsInteractive();
     
     // Rest of animation code...
+
+    if (_isLockedToBullsEye) {
+        bullsEye.recenterBullsEye("animateFocalPoint");
+
+        const bullsEyeNow = bullsEye.getBullsEye("animateFocalPoint");
+        setFocalPoint(bullsEyeNow, "animateFocalPoint: isLocked");
+        setStatus(FOCAL_POINT_STATE.LOCKED_TO_BULLS_EYE, "animateFocalPoint");
+    }
 }
 
 // Listen for events from dependencies

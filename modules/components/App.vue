@@ -2,6 +2,7 @@
 import { ref, onMounted, nextTick } from 'vue';
 import ResizeHandle from './ResizeHandle.vue';
 import ResumeContainer from './ResumeContainer.vue';
+import SceneViewLabel from './SceneViewLabel.vue';
 import * as parallax from '@/modules/core/parallax.mjs';
 import * as focalPoint from '@/modules/core/focalPoint.mjs';
 import * as aimPoint from '@/modules/core/aimPoint.mjs';
@@ -21,6 +22,8 @@ import * as jobsData from '@/static_content/jobs/jobs.mjs';
 import * as dateUtils from '@/modules/utils/dateUtils.mjs';
 import * as resizeHandle from '@/modules/core/resizeHandle.mjs';
 import * as scenePlane from '@/modules/scene/scenePlane.mjs';
+import * as autoScroll from '@/modules/animation/autoScroll.mjs';
+import * as sceneViewLabel from '@/modules/core/sceneViewLabel.mjs';
 
 const isMounted = ref(false);
 
@@ -34,10 +37,11 @@ onMounted(() => {
       focalPoint.initialize();
       parallax.initialize();
       aimPoint.initialize();
+      sceneViewLabel.initialize();
       bullsEye.initialize();
-      keyDown.initialize();
       sceneContainer.initialize();
       resizeHandle.initialize();
+      autoScroll.initialize();
       
       // Await palettes, as they are needed for card creation
       await colorPalettes.initializePaletteSelectorInstance();
@@ -89,10 +93,11 @@ onMounted(() => {
         <div id="timeline-container" class="timeline-timelineContainer-left"></div>
       </div>
       <div id="biz-details-div"></div>
-      <div id="aim-point"></div>
-      <div id="bulls-eye">+</div>
-      <div id="focal-point">⦻</div>
     </div>
+    <div id="aim-point"></div>
+    <div id="bulls-eye">+</div>
+    <div id="focal-point">⦻</div>
+    <SceneViewLabel />
     <ResumeContainer v-if="isMounted" />
   </div>
 </template>
