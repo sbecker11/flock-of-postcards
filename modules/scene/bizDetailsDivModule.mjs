@@ -33,11 +33,6 @@ export function createBizResumeDetailsDiv(bizResumeDiv, bizCardDiv) {
     // Set pointer-events to none so clicks pass through to the parent bizResumeDiv
     bizResumeDetailsDiv.style.pointerEvents = 'none';
 
-    // see createBizDetailsDiv::34  colorIndex format <number>
-    // console.log("createBizResumeDetailsDiv: colorIndex:", colorIndex);
-    bizResumeDetailsDiv.setAttribute("data-color-index", colorIndex);
-    bizResumeDetailsDiv.classList.add('color-index-foreground-only');
-
     const bizCardDetailsDiv = bizCardDiv.querySelector('.biz-card-details-div');
     if (!bizCardDetailsDiv) throw new Error('createBizResumeDetailsDiv: given null bizCardDetailsDiv');
     bizResumeDetailsDiv.innerHTML = bizCardDetailsDiv.innerHTML;
@@ -60,6 +55,7 @@ export function createBizCardDetailsDiv(bizCardDiv, job) {
     if (!utils.isNumericString(jobIndex)) throw new Error(' createBizCardDetailsDiv: given non-numeric jobIndex attribute string');
     bizCardDetailsDiv.classList.add('biz-card-details-div');
     bizCardDetailsDiv.id = `biz-card-details-div-${jobIndex}`;
+    bizCardDetailsDiv.style.backgroundColor = 'transparent';
 
     // see createBizDetailsDiv::34  colorIndex format <number>
     let colorIndex = bizCardDiv.getAttribute('data-color-index');
@@ -96,16 +92,17 @@ export function createBizCardDetailsDiv(bizCardDiv, job) {
     <p class="biz-details-dates header-text">${dates}</p>
     <p class="biz-details-z-value header-text">(z: ${sceneZ}, id: ${jobIndex})</p>
 
-    <ul class="bulleted-job-description-items-ul">
-        ${descriptions.map(item => `<li class="bulleted-job-description-items-li">${item}</li>`).join('')}
+    <ul>
+        ${descriptions.map(item => `<li>${item}</li>`).join('')}
     </ul>
-    <ul class="bulleted-job-skills-ul">
+    <ul style="list-style-type: circle; margin-left: 20px;">
     ${skills
         .map(skill => skill.trim()) // Remove whitespace around skills
         .filter(skill => skill)     // Remove empty skills
-        .map(skill => `<li class="bulleted-job-skills-li">${skill}</li>`)
+        .map(skill => `<li>${skill}</li>`)
         .join('')}
     </ul>
+    <div class="scroll-caret">▼</div>
     `; 
 
     return bizCardDetailsDiv;

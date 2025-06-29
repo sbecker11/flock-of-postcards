@@ -34,9 +34,76 @@ export function initialize(minYear, maxYear, defaultYear=null) {
         console.log("initializeTimeline: Timeline already initialized, ignoring duplicate initialization request");
         return;
     }
-    _initializeTimeline(minYear, maxYear, defaultYear);
+    _timelineContainer = document.getElementById("timeline-container");
+    if ( !_timelineContainer ) throw new Error("timeline-container not found");
+    _sceneContainer = document.getElementById("scene-container");
+    if ( !_sceneContainer ) throw new Error("sceneContainer not found");
+    _timelineYearMin = minYear;
+    if ( _timelineYearMin === undefined ) throw new Error("_timelineYearMin is undefined"); 
+    _timelineYearMax = maxYear;
+    if ( _timelineYearMax === undefined ) throw new Error("_timelineYearMax is undefined");
+    if ( _timelineYearMin > _timelineYearMax ) throw new Error("_timelineYearMin > _timelineYearMax");  
+    if ( defaultYear === null ) {
+        defaultYear = _timelineYearMax;
+    }
+    if ( defaultYear < _timelineYearMin || defaultYear > _timelineYearMax ) throw new Error("defaultYear out of range"); 
+    _defaultYear = defaultYear;
+    
+    inittimelineYearDivBottoms();
+
+    var alignment = _timelineContainer.classList.contains("timeline-timelineContainer-left") ? "left" : "right";
+
+    // year starts at the top at the maxYear
+    for (var year = _timelineYearMax; year >= _timelineYearMin; year--) {
+        var yearDiv = document.createElement("div");
+        yearDiv.classList.add("year-div");
+
+        if (alignment == "left") {
+            yearDiv.classList.add("year-div-left");
+            yearDiv.innerHTML = `&nbsp;${year}`;
+        }
+        else {
+            yearDiv.classList.add("year-div-right");
+            yearDiv.innerHTML = `${year}&nbsp;`;
+        }
+
+        var row = _timelineYearMax - year;
+        var yearDivBottom = (row + 1) * YEAR_BOTTOM_TO_BOTTOM;
+        const yearStr = `${year}`;
+        timelineYearDivBottoms[yearStr] = yearDivBottom;
+        const checkYearDivBottom = getTimelineYearBottom(yearStr);
+        if ( checkYearDivBottom != yearDivBottom ) {
+            console.error(`checkYearBtm:${checkYearDivBottom} != calcYearBtm:${yearDivBottom} `);
+        }
+        console.assert(checkYearDivBottom == yearDivBottom);
+
+        yearDiv.style.fontSize = `${YEARDIV_FONTSIZE}px`;
+        yearDiv.style.height = `${YEARDIV_FONTSIZE}px`;
+        yearDiv.style.bottom = `${yearDivBottom}px`;
+        yearDiv.style.top = `${yearDivBottom - YEARDIV_FONTSIZE}px`;
+        _timelineContainer.appendChild(yearDiv);
+
+        for (var month = 1; month <= 12; month++) {
+            var monthTick = document.createElement("div");
+            monthTick.classList.add("month-tick");
+            if (alignment == "left")
+                monthTick.classList.add("month-tick-left");
+            else
+                monthTick.classList.add("month-tick-right");
+            var monthStr = utils.zeroPad(month, 2);
+            var monthTickBottom = getTimelineYearMonthBottom(year.toString(), monthStr);
+            var checkYearMonthTick = yearDivBottom - (month - 1) * YEAR_BOTTOM_TO_BOTTOM / 12;
+            console.assert(checkYearMonthTick == monthTickBottom);
+
+            monthTick.style.fontSize = `${MONTHTICK_FONTSIZE}px`;
+            monthTick.style.height = `${MONTHTICK_FONTSIZE}px`;
+            monthTick.style.bottom = `${monthTickBottom}px`;
+            monthTick.style.top = `${monthTickBottom - MONTHTICK_FONTSIZE}px`;
+            monthTick.innerHTML = `${year}-${monthStr}`;
+            _timelineContainer.appendChild(monthTick);
+        } // month
+    } // year
     _timelineIsInitialized = true;
-    // Scroll to current year/month at the top
     sceneContainer.scrollSceneToCurrentYearMonthTop();
 }
 
@@ -104,94 +171,6 @@ export function getTimelineYearsHeight(numYears) {
  */
 export function getTimelineHeight() {
     return getTimelineYearMonthBottom(`${_timelineYearMin}`, "01");
-}
-
-/**
- * append year-divs and year-dashes into timeline-_timelineContainer
- * @param {number} minYear - The minimum year
- * @param {number} maxYear - The maximum year
- * @param {any} defaultYear - The optional default year
- */
-function _initializeTimeline(minYear, maxYear, defaultYear=null) {
-    _timelineContainer = document.getElementById("timeline-container");
-    if ( !_timelineContainer ) throw new Error("timeline-container not found");
-    _sceneContainer = document.getElementById("scene-container");
-    if ( !_sceneContainer ) throw new Error("sceneContainer not found");
-    _timelineYearMin = minYear;
-    if ( _timelineYearMin === undefined ) throw new Error("_timelineYearMin is undefined"); 
-    _timelineYearMax = maxYear;
-    if ( _timelineYearMax === undefined ) throw new Error("_timelineYearMax is undefined");
-    if ( _timelineYearMin > _timelineYearMax ) throw new Error("_timelineYearMin > _timelineYearMax");  
-    if ( defaultYear === null ) {
-        defaultYear = _timelineYearMax;
-    }
-    if ( defaultYear < _timelineYearMin || defaultYear > _timelineYearMax ) throw new Error("defaultYear out of range"); 
-    _defaultYear = defaultYear;
-    
-    inittimelineYearDivBottoms();
-
-    var alignment = _timelineContainer.classList.contains("timeline-timelineContainer-left") ? "left" : "right";
-
-    // year starts at the top at the maxYear
-    for (var year = _timelineYearMax; year >= _timelineYearMin; year--) {
-        var yearDiv = document.createElement("div");
-        yearDiv.classList.add("year-div");
-
-        if (alignment == "left") {
-            yearDiv.classList.add("year-div-left");
-            yearDiv.innerHTML = `&nbsp;${year}`;
-        }
-        else {
-            yearDiv.classList.add("year-div-right");
-            yearDiv.innerHTML = `${year}&nbsp;`;
-        }
-
-        var row = _timelineYearMax - year;
-        var yearDivBottom = (row + 1) * YEAR_BOTTOM_TO_BOTTOM;
-        const yearStr = `${year}`;
-        timelineYearDivBottoms[yearStr] = yearDivBottom;
-        const checkYearDivBottom = getTimelineYearBottom(yearStr);
-        if ( checkYearDivBottom != yearDivBottom ) {
-            console.error(`checkYearBtm:${checkYearDivBottom} != calcYearBtm:${yearDivBottom} `);
-        }
-        console.assert(checkYearDivBottom == yearDivBottom);
-
-        yearDiv.style.fontSize = `${YEARDIV_FONTSIZE}px`;
-        yearDiv.style.height = `${YEARDIV_FONTSIZE}px`;
-        yearDiv.style.bottom = `${yearDivBottom}px`;
-        yearDiv.style.top = `${yearDivBottom - YEARDIV_FONTSIZE}px`;
-        _timelineContainer.appendChild(yearDiv);
-
-        for (var month = 1; month <= 12; month++) {
-            var monthTick = document.createElement("div");
-            monthTick.classList.add("month-tick");
-            if (alignment == "left")
-                monthTick.classList.add("month-tick-left");
-            else
-                monthTick.classList.add("month-tick-right");
-            var monthStr = utils.zeroPad(month, 2);
-            var monthTickBottom = getTimelineYearMonthBottom(year.toString(), monthStr);
-            var checkYearMonthTick = yearDivBottom - (month - 1) * YEAR_BOTTOM_TO_BOTTOM / 12;
-            console.assert(checkYearMonthTick == monthTickBottom);
-
-            monthTick.style.fontSize = `${MONTHTICK_FONTSIZE}px`;
-            monthTick.style.height = `${MONTHTICK_FONTSIZE}px`;
-            monthTick.style.bottom = `${monthTickBottom}px`;
-            monthTick.style.top = `${monthTickBottom - MONTHTICK_FONTSIZE}px`;
-            monthTick.innerHTML = `${year}-${monthStr}`;
-            // // DEBUGGING
-            // if ( monthStr === '01' ) {
-            //     monthTick.innerHTML = `${year}-${monthStr}    (<span style="float: right;">${monthTickBottom}px</span>)`;
-            //     monthTick.style.width = '300px'; // Temporary wider width for debugging
-            //     monthTick.style.backgroundColor = 'rgba(0,255,0,1.0)'; // Green background to see bounds
-            //     monthTick.style.textAlign = "right";
-            //     monthTick.style.height = "30px";
-            //     monthTick.style.fontSize = "20pt";
-            // }
-            _timelineContainer.appendChild(monthTick);
-        } // month
-    } // year
-    sceneContainerScrollToYear(_sceneContainer, defaultYear);
 }
 
 export function sceneContainerScrollToYear(_sceneContainer, year) {

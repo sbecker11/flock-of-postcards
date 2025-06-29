@@ -1026,50 +1026,16 @@ function addDirectMouseListeners(element) {
     const listeners = {
         enter: (e) => {
             // console.log(`Direct mouseenter on ${element.id}`);
-            // Import bizCardDivModule and call simpleMouseEnterHandler
-            import('../scene/bizCardDivModule.mjs').then(module => {
-                try {
-                    module.simpleMouseEnterHandler(element);
-                } catch (error) {
-                    console.error(`Error in simpleMouseEnterHandler for ${element.id}:`, error);
-                    // Fallback: just add the class directly
-                    element.classList.add("hovered");
-                }
-            }).catch(error => {
-                console.error("Error importing bizCardDivModule:", error);
-                // Fallback: just add the class directly
-                element.classList.add("hovered");
-            });
+            // This handler is currently empty as the function it used to call was removed.
         },
         leave: (e) => {
             // console.log(`Direct mouseleave on ${element.id}`);
-            // Import bizCardDivModule and call simpleMouseLeaveHandler
-            import('../scene/bizCardDivModule.mjs').then(module => {
-                try {
-                    module.simpleMouseLeaveHandler(element);
-                } catch (error) {
-                    console.error(`Error in simpleMouseLeaveHandler for ${element.id}:`, error);
-                    // Fallback: just remove the class directly
-                    element.classList.remove("hovered");
-                }
-            }).catch(error => {
-                console.error("Error importing bizCardDivModule:", error);
-                // Fallback: just remove the class directly
-                element.classList.remove("hovered");
-            });
+            // This handler is currently empty as the function it used to call was removed.
+            element.classList.remove("hovered");
         },
         click: (e) => {
             // console.log(`Direct click on ${element.id}`);
-            // Import bizCardDivModule and call handleClickEvent
-            import('../scene/bizCardDivModule.mjs').then(module => {
-                try {
-                    module.handleClickEvent(element);
-                } catch (error) {
-                    console.error(`Error in handleClickEvent for ${element.id}:`, error);
-                }
-            }).catch(error => {
-                console.error("Error importing bizCardDivModule:", error);
-            });
+            // This handler is currently empty as the function it used to call was removed.
         }
     };
     
@@ -1540,5 +1506,38 @@ function focalPointAnimationLoop() {
 function wakeUp() {
     awaken(getFocalPoint());
 }
+
+function addDirectHoverHandlers(elements) {
+    if (!elements || elements.length === 0) {
+        console.warn("addDirectHoverHandlers: No elements found to add handlers to.");
+        return;
+    }
+
+    try {
+        elements.forEach(element => {
+            addDirectMouseListeners(element);
+        });
+    } catch (error) {
+        console.error("Error in addDirectHoverHandlers:", error);
+    }
+}
+
+// This call is commented out because 'hoverizr' is not defined anywhere in the project.
+// It appears to be leftover code from a refactoring.
+/*
+hoverizr.addHoverListenerFor(
+    ".biz-card-div",
+    (e) => {
+        // Enter
+        const element = e.target;
+        // console.log(`Hoverizr mouseenter on ${element.id}`);
+    },
+    (e) => {
+        // Leave
+        const element = e.target;
+        // console.log(`Hoverizr mouseleave on ${element.id}`);
+    }
+);
+*/
 
 

@@ -3,14 +3,19 @@
 import * as mathUtils from '../utils/mathUtils.mjs';
 import * as viewPort from './viewPort.mjs';
 
-const _aimPointElement = document.getElementById("aim-point");
-
+let _aimPointElement = null;
 let _isInitialized = false;
 
 export function initialize() {
     if (_isInitialized) {
         return;
     }
+
+    _aimPointElement = document.getElementById("aim-point");
+    if (!_aimPointElement) {
+        throw new Error("aimPoint.initialize: #aim-point element not found in DOM");
+    }
+
     const initialPosition = viewPort.getViewPortOrigin();
     if (initialPosition) {
         setAimPoint(initialPosition, "aimPoint.initialize");
@@ -18,13 +23,17 @@ export function initialize() {
     } else {
         console.error("aimPoint.initialize: Could not get initial position from viewPort.");
     }
-}
 
-// Add scroll/wheel pass-through handlers to aim-point
-if (_aimPointElement) {
+    // Add scroll/wheel pass-through handlers to aim-point
     _aimPointElement.addEventListener('wheel', handleScrollPassThrough, { passive: false });
     _aimPointElement.addEventListener('scroll', handleScrollPassThrough, { passive: false });
 }
+
+// Add scroll/wheel pass-through handlers to aim-point
+// if (_aimPointElement) {
+//     _aimPointElement.addEventListener('wheel', handleScrollPassThrough, { passive: false });
+//     _aimPointElement.addEventListener('scroll', handleScrollPassThrough, { passive: false });
+// }
 
 let _lastAimPointPosition = { x:0, y:0 };
 let _aimPointStatus = "";

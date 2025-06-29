@@ -38,7 +38,6 @@ class ResumeItemsController {
         bizResumeDiv.className = 'biz-resume-div';
         bizResumeDiv.setAttribute('data-job-index', jobIndex);
         bizResumeDiv.setAttribute('data-color-index', bizCardDiv.getAttribute('data-color-index'));
-        bizResumeDiv.setAttribute('data-color-group-index', bizCardDiv.getAttribute('data-color-group-index'));
 
         bizResumeDiv.style.pointerEvents = 'auto';
 

@@ -48,17 +48,9 @@ export function initialize() {
         throw new Error("Cannot initialize parallax: viewPort not initialized");
     }
     
-    // Check if focalPoint is initialized
-    try {
-        if (!focalPoint.isInitialized()) {
-            console.warn("FocalPoint not initialized, attempting to initialize it now");
-            
-            // Try to initialize focalPoint if not already initialized
-            focalPoint.initialize();
-            console.log("FocalPoint initialized from parallax module");
-        }
-    } catch (error) {
-        throw new Error("Cannot initialize parallax: focalPoint not initialized - " + error.message);
+    // Check if focalPoint is initialized. It is a strict dependency.
+    if (!focalPoint.isInitialized()) {
+        throw new Error("Cannot initialize parallax: focalPoint not initialized.");
     }
     
     // initializded set at the end of this function

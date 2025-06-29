@@ -11,7 +11,7 @@ import * as dateUtils from '../utils/dateUtils.mjs';
 import * as mathUtils from '../utils/mathUtils.mjs';
 import * as zUtils from '../utils/zUtils.mjs';
 import * as filters from '../core/filters.mjs';
-import { resumeListController } from '../resume/ResumeListController.mjs';
+// import { resumeListController } from '../resume/ResumeListController.mjs'; // No longer needed
 
 const BIZCARD_MAX_X_OFFSET = 100;
 const BIZCARD_MEAN_WIDTH = 200;
@@ -24,23 +24,27 @@ class CardsController {
         this.bizCardDivs = [];
         this.isInitialized = false;
         this._setupSelectionListeners();
-        this.setupPointerEventsObserver();
+        // The pointer events observer is set up in initialize now
     }
 
-    initialize() {
+    initialize(jobs) {
         if (this.isInitialized) {
             console.warn("CardsController already initialized");
             return;
         }
 
-        if (!resumeListController || !resumeListController.isInitialized()) {
-            console.warn("Cannot initialize CardsController: resumeListController not found or not initialized");
+        if (!jobs || jobs.length === 0) {
+            console.error("CardsController.initialize: jobs data is missing or empty.");
             return;
         }
         if (!viewPort || !viewPort.isInitialized()) {
             console.warn("Cannot initialize CardsController: viewPort not found or not initialized");
             return;
         }
+
+        // Create the cards first
+        this.createAllBizCardDivs(jobs);
+        this.setupPointerEventsObserver();
 
         this.isInitialized = true;
         console.info("CardsController initialized successfully");
@@ -181,7 +185,6 @@ class CardsController {
 
     // called by handleBizCardDivClickEvent
     // handles creation of clone
-    // does not sync with resumeDiv
     _selectBizCardDiv(bizCardDiv, caller='') {
         if (!bizCardDiv) return;
 
@@ -193,6 +196,7 @@ class CardsController {
         clone.classList.remove('hovered')
         clone.classList.add('selected' );
         clone.setAttribute("data-sceneZ", "0"); // marker for parallax to use SELECTED_CARD_Z_INDEX
+        clone.style.zIndex = '99'; // Force it to the top
 
         // The clone needs its own click listener to handle deselection
         clone.addEventListener('click', (e) => {
@@ -200,8 +204,40 @@ class CardsController {
             this.handleBizCardDivClickEvent(clone);
         });
 
+        // Add click listener for the custom scroll caret on the CLONE
+        const caret = clone.querySelector('.scroll-caret');
+        const detailsDiv = clone.querySelector('.biz-card-details-div');
+        if (caret && detailsDiv) {
+            caret.addEventListener('click', (e) => {
+                e.stopPropagation(); // Prevent card from being deselected
+                detailsDiv.scrollTo({ top: detailsDiv.scrollHeight, behavior: 'smooth' });
+            });
+        }
+
+        // Handle scroll caret visibility on the CLONE
+        if (detailsDiv && caret) {
+            // Use a timeout to allow browser to render and calculate scrollHeight
+            setTimeout(() => {
+                const hasOverflow = detailsDiv.scrollHeight > detailsDiv.clientHeight;
+                if (hasOverflow) {
+                    caret.classList.add('show');
+                }
+
+                // Add a scroll listener to hide the caret when at the bottom
+                detailsDiv.addEventListener('scroll', () => {
+                    const isAtBottom = detailsDiv.scrollHeight - detailsDiv.scrollTop <= detailsDiv.clientHeight + 1; // +1 for pixel rounding
+                    if (isAtBottom) {
+                        caret.classList.remove('show');
+                    } else {
+                        caret.classList.add('show');
+                    }
+                }, { passive: true });
+            }, 100);
+        }
+
         // The parallax engine will style this, we just need to add it to the DOM
         bizCardDiv.parentElement.appendChild(clone);
+        
         // hide the original
         bizCardDiv.style.display = 'none';
     }
@@ -246,11 +282,9 @@ class CardsController {
 
     handleSelectionChanged(event) {
         const { selectedJobIndex, caller } = event.detail;
-        
-        // First, ensure any existing selections are cleared, but prevent re-entry
-        if (caller !== 'handleSelectionChanged') {
-            this.handleSelectionCleared({ detail: { caller: 'handleSelectionChanged' } });
-        }
+
+        // Clear previous selections first
+        this.handleSelectionCleared({ detail: { caller: 'handleSelectionChanged' } });
 
         const bizCardDiv = this.getBizCardDivByJobIndex(selectedJobIndex);
         if (bizCardDiv) {
@@ -261,6 +295,7 @@ class CardsController {
 
     handleSelectionCleared(event) {
         const { caller } = event.detail;
+        // Find all original cards that have a clone and deselect them
         const cardsWithClones = document.querySelectorAll('.biz-card-div.hasClone');
         cardsWithClones.forEach(card => this._deselectBizCardDiv(card));
     }
@@ -295,9 +330,10 @@ class CardsController {
         const cardTop = parseFloat(bizCardDiv.getAttribute('data-sceneTop'));
         console.log(`CardsController.scrollBizCardDivIntoView: ${caller} cardTop: ${cardTop}`);
         
-        // Use a manual scroll calculation
+        // Use a manual scroll calculation with an offset
+        const scrollOffset = 20; // pixels
         sceneContainer.scrollTo({
-            top: cardTop,
+            top: cardTop - scrollOffset,
             behavior: 'smooth'
         });
     }
@@ -321,7 +357,13 @@ class CardsController {
             observer.observe(bizCardDiv, { attributes: true, attributeFilter: ['style'] });
         });
     }
+
+    _updateHoveredCard(jobIndex, shouldHover) {
+        const cardDiv = this.getBizCardDivByJobIndex(jobIndex);
+        if (cardDiv) {
+            cardDiv.classList.toggle('hovered', shouldHover);
+        }
+    }
 }
 
-const cardsController = new CardsController();
-export { cardsController };
+export const cardsController = new CardsController();

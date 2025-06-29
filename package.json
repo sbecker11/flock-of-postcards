@@ -5,6 +5,8 @@
   "main": "main.mjs",
   "type": "module",
   "scripts": {
+    "dev": "vite",
+    "build": "vite build",
     "start": "npm run kill-listeners &&concurrently \"npm run node-server\" \"npm run open-chrome\"",
     "node-server": "nodemon server.mjs",
     "open-chrome": "open-cli http://localhost:3009 --incognito",
@@ -38,8 +40,12 @@
     "sheetjs": "latest"
   },
   "devDependencies": {
+    "@vitejs/plugin-vue": "^6.0.0",
     "concurrently": "^9.1.2",
     "nodemon": "^3.1.10",
-    "open-cli": "^8.0.0"
+    "open-cli": "^8.0.0",
+    "typescript": "^5.8.3",
+    "vite": "^7.0.0",
+    "vue": "^3.5.17"
   }
 }

@@ -222,77 +222,60 @@ export function ensurePointerEvents() {
  * Ensures the gradient overlays are properly positioned within the scene container
  */
 export function setupGradientOverlays() {
-    const sceneContainer = document.getElementById('scene-container');
-    const scenePlane = document.getElementById('scene-plane');
+    const scenePlaneEl = document.getElementById('scene-plane');
+    if (!scenePlaneEl) {
+        console.error("setupGradientOverlays: scene-plane element not found");
+        return;
+    }
+
+    let topGradient = document.getElementById('scene-plane-top-gradient');
+    if (!topGradient) {
+        topGradient = document.createElement('div');
+        topGradient.id = 'scene-plane-top-gradient';
+        scenePlaneEl.prepend(topGradient);
+    }
+
+    let btmGradient = document.getElementById('scene-plane-btm-gradient');
+    if (!btmGradient) {
+        btmGradient = document.createElement('div');
+        btmGradient.id = 'scene-plane-btm-gradient';
+        scenePlaneEl.prepend(btmGradient);
+    }
+    
+    updateGradientHeights();
+}
+
+/**
+ * Updates the heights of the gradient overlays based on the timeline's height.
+ */
+export function updateGradientHeights() {
+    const scenePlaneEl = document.getElementById('scene-plane');
     const topGradient = document.getElementById('scene-plane-top-gradient');
     const btmGradient = document.getElementById('scene-plane-btm-gradient');
     const timelineContainer = document.getElementById('timeline-container');
-    
-    if (!sceneContainer || !scenePlane || !topGradient || !btmGradient || !timelineContainer) {
-        console.error("Missing elements for gradient setup");
+
+    if (!scenePlaneEl || !topGradient || !btmGradient || !timelineContainer) {
+        // This can happen on initial load before timeline is ready.
+        // A mutation observer or a delayed call could handle this if needed.
         return;
     }
-    
-    // Check if timeline is initialized
-    if (!timeline.isTimelineInitialized()) {
+
+    const timelineHeight = timelineContainer.offsetHeight;
+
+    if (timelineHeight === 0) {
         console.warn("Timeline not initialized yet, deferring gradient setup");
-        // Set up a retry mechanism
-        setTimeout(setupGradientOverlays, 500);
+        setTimeout(updateGradientHeights, 500);
         return;
     }
     
-    // Remove gradients from current parent
-    if (topGradient.parentNode) {
-        topGradient.parentNode.removeChild(topGradient);
-    }
-    
-    if (btmGradient.parentNode) {
-        btmGradient.parentNode.removeChild(btmGradient);
-    }
-    
-    // Add gradients to scene plane
-    scenePlane.appendChild(topGradient);
-    scenePlane.appendChild(btmGradient);
-    
-    // Calculate the total height of the timeline
-    const timelineHeight = timeline.getTimelineHeight();
-    
-    // Calculate gradient height as 25% of the timeline height
-    // This means each gradient will cover about 10 years (25% of 40 years)
+    scenePlaneEl.style.height = `${timelineHeight}px`;
+
     const gradientHeight = Math.round(timelineHeight * 0.25);
     
-    // Set the scene plane height to match the timeline height
-    scenePlane.style.height = `${timelineHeight}px`;
-    
-    // Set up styles for top gradient
-    topGradient.style.position = 'absolute';
-    topGradient.style.top = '0';
-    topGradient.style.left = '0';
-    topGradient.style.right = '0';
     topGradient.style.height = `${gradientHeight}px`;
-    topGradient.style.zIndex = '2';
-
-    // Position the bottom gradient at the bottom of the timeline
-    btmGradient.style.position = 'absolute';
-    btmGradient.style.bottom = '0';
-    btmGradient.style.left = '0';
-    btmGradient.style.right = '0';
     btmGradient.style.height = `${gradientHeight}px`;
-    btmGradient.style.zIndex = '2';
-    
-    console.log(`Gradient overlays set up with timeline height: ${timelineHeight}px, gradient height: ${gradientHeight}px`);
-    
-    // Ensure the scene plane and gradients update when the timeline changes
-    const resizeObserver = new ResizeObserver(() => {
-        const updatedTimelineHeight = timeline.getTimelineHeight();
-        scenePlane.style.height = `${updatedTimelineHeight}px`;
-        const updatedGradientHeight = Math.round(updatedTimelineHeight * 0.25);
-        topGradient.style.height = `${updatedGradientHeight}px`;
-        btmGradient.style.height = `${updatedGradientHeight}px`;
-        console.log(`Updated scene plane height: ${updatedTimelineHeight}px, gradient height: ${updatedGradientHeight}px`);
-    });
-    
-    resizeObserver.observe(timelineContainer);
+
+    console.log(`Updated scene plane height: ${timelineHeight}px, gradient height: ${gradientHeight}px`);
 }
 
 /**

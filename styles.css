@@ -7,6 +7,9 @@ reference for the #main-container to occupy the full height of the viewPort.
   --background-light: rgba(24, 24, 111, 1.0); 
   --background-middle: rgba(100, 100, 100, 1.0); 
   --background-dark: rgba(0, 0, 77, 1.0); 
+  --grey-darkest: #333333;
+  --grey-dark: #444444;
+  --grey-medium: #999999;
 }
 
 html, body {
@@ -30,6 +33,7 @@ Make #main-container take the full height of the viewPort using 100vh
 regardless of the window size.
 */
 #main-container {
+  display: flex; /* Arrange children (scene and resume) side-by-side */
   width: 100%; /* Full width */
   height: 100vh; /* Full viewPort height */
   position: relative; /* For absolute positioning of resize handle */
@@ -49,6 +53,30 @@ overflow and ensures consistent sizing.
   box-sizing: border-box;
 }
 
+#scene-container {
+  flex-grow: 1; /* Allow scene to take up remaining space */
+  position: relative; /* For positioning children like focal-point */
+}
+
+#resume-container {
+  display: flex; /* This will arrange the left (handle) and right (content) columns */
+  flex-direction: row;
+  width: 50%; /* Default width, will be changed by resize handle */
+  flex-shrink: 0; /* Prevent from shrinking */
+}
+
+#resume-container-left {
+  position: relative; /* Let the child resize handle position itself absolutely within this */
+  width: 20px; /* The width of the handle area */
+  flex-shrink: 0;
+  cursor: col-resize;
+  z-index: 10;
+}
+
+#resume-container-right {
+  flex-grow: 1; /* Take up the rest of the resume-container width */
+  overflow: hidden; /* Important for the child scroller */
+}
 
 #debugScrollingElement, 
 #debugFocalPointElement, 

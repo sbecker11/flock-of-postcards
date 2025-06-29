@@ -979,25 +979,23 @@ export async function initializePaletteSelectorInstance() {
  */
 export function assignColorIndex(element, jobIndex, totalJobs) {
     if (!_orderedPaletteNames.length) {
-        logger.error("No palettes loaded, cannot assign color index.");
-        return { colorIndex: 0, groupIndex: 0 };
+        console.error("No palettes loaded, cannot assign color index.");
+        return { colorIndex: 0 };
     }
 
     const currentPaletteName = getCurrentPaletteName();
     const currentPalette = _color_palettes[currentPaletteName];
     if (!currentPalette || !currentPalette.length) {
-        logger.error(`Current palette '${currentPaletteName}' is invalid or empty.`);
-        return { colorIndex: 0, groupIndex: 0 };
+        console.error(`Current palette '${currentPaletteName}' is invalid or empty.`);
+        return { colorIndex: 0 };
     }
 
     const colorIndex = jobIndex % currentPalette.length;
-    const groupIndex = Math.floor(jobIndex / currentPalette.length);
 
     element.setAttribute('data-color-index', colorIndex);
-    element.setAttribute('data-color-group-index', groupIndex);
     
     // Return both for other modules to use
-    return { colorIndex, groupIndex };
+    return { colorIndex };
 }
 
 // Function to safely get the current palette name

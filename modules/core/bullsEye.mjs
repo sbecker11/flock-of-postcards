@@ -2,8 +2,8 @@
 
 import * as viewPort from './viewPort.mjs';
 
-const _bullsEyeElement = document.getElementById("bulls-eye");
-const _bullsEyeRad = _bullsEyeElement.offsetWidth/2;
+let _bullsEyeElement = null;
+let _bullsEyeRad = 0;
 let _isInitialized = false;
 
 export function initialize() {
@@ -11,6 +11,12 @@ export function initialize() {
         console.warn("bullsEye.initialize: already initialized, ignoring duplicate initialization request");
         return;
     }
+    
+    _bullsEyeElement = document.getElementById("bulls-eye");
+    if (!_bullsEyeElement) {
+        throw new Error("bullsEye.initialize: #bulls-eye element not found in DOM");
+    }
+    _bullsEyeRad = _bullsEyeElement.offsetWidth / 2;
     
     // Check dependency on viewPort
     if (!viewPort.isInitialized()) {

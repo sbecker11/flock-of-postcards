@@ -60,8 +60,7 @@ html[native-dark-active] #scene-container,
 }
     
 /* scene/scene.css */
-.biz-card-div,
-.biz-resume-div {
+.biz-card-div {
     position: absolute; /* Required for z-index to work */
     font-size: 12px;
     padding: 0px;
@@ -81,42 +80,15 @@ html[native-dark-active] #scene-container,
     text-align: left;
 }
 
-/* High specificity rules for biz-resume-div to ensure they override any other styles */
-/* Note: position is now controlled by InfiniteScrollingContainer (absolute positioning) */
-#resume-content-div .biz-resume-div,
-.resume-content-div-child.biz-resume-div {
-    /* position: relative !important; -- REMOVED: Let InfiniteScrollingContainer control positioning */
-    width: 100% !important;
-    max-width: 100% !important;
-    margin: 0 !important; /* Remove all margins - spacing controlled by InfiniteScrollingContainer */
-    padding: 10px !important;
-    background-color: transparent;
-    overflow: visible !important;
-    border-radius: 25px;
-    box-sizing: border-box !important;
-    cursor: pointer;
-    z-index: 5; /* Changed from 4 to 5 to match BIZCARD_Z_INDEX_MIN */
-    transition: all 0s;
-    border: 1px solid white;
-    min-height: fit-content !important; /* Ensure minimum height fits content */
-    height: auto !important; /* Allow height to adjust to content */
-    display: block !important; /* Ensure block display */
-    pointer-events: auto !important; /* Ensure clicks are captured by the bizResumeDiv */
-}
-
 /* Ensure hover states are always visible with high specificity */
 .biz-card-div.hovered, 
 .biz-resume-div.hovered,
 #scene-container .biz-card-div.hovered,
-#scene-container .biz-resume-div.hovered,
 body.focal-point-locked .biz-card-div.hovered,
-body.focal-point-locked .biz-resume-div.hovered,
 .biz-card-div[data-hovered="true"],
 .biz-resume-div[data-hovered="true"],
 #scene-container .biz-card-div[data-hovered="true"],
-#scene-container .biz-resume-div[data-hovered="true"],
-body.focal-point-locked .biz-card-div[data-hovered="true"],
-body.focal-point-locked .biz-resume-div[data-hovered="true"] {
+body.focal-point-locked .biz-card-div[data-hovered="true"] {
     filter: brightness(1.25) !important;
     border: 3px solid blue !important;
     transition: none !important;
@@ -134,9 +106,7 @@ body.focal-point-locked .biz-resume-div[data-hovered="true"] {
 .biz-card-div.selected, 
 .biz-resume-div.selected,
 #scene-container .biz-card-div.selected,
-#scene-container .biz-resume-div.selected,
-body.focal-point-locked .biz-card-div.selected,
-body.focal-point-locked .biz-resume-div.selected {
+body.focal-point-locked .biz-card-div.selected {
     filter: brightness(1.75) !important;
     border: 10px solid purple !important;
     transition: none !important;
@@ -195,30 +165,6 @@ body.focal-point-locked .biz-resume-div.selected {
     pointer-events: none;
 }
 
-/* High specificity rules for details divs to ensure proper text wrapping */
-#resume-content-div .biz-resume-details-div,
-.biz-resume-div .biz-resume-details-div {
-    margin: 0px !important;
-    padding: 5px !important; /* Reduced from 20px to 5px for tighter spacing */
-    background-color: transparent;
-    font-family: Arial, Helvetica, sans-serif;
-    font-weight: normal;
-    font-size: 12px;
-    width: 100% !important;
-    max-width: 100% !important;
-    box-sizing: border-box !important;
-    word-wrap: break-word !important; /* Allow long words to break */
-    overflow-wrap: break-word !important; /* Modern property for word breaking */
-    white-space: normal !important; /* Ensure text wraps normally */
-    overflow: visible !important; /* Keep visible but ensure proper wrapping */
-    pointer-events: none !important; /* Ensure clicks pass through to the parent bizResumeDiv */
-}
-
-/* Ensure all children of biz-resume-details-div also have pointer-events: none */
-.biz-resume-details-div * {
-    pointer-events: none !important;
-}
-
 /* Lower specificity fallback for card details */
 .biz-card-details-div, .biz-resume-details-div {
     margin: 0px;
@@ -238,142 +184,6 @@ body.focal-point-locked .biz-resume-div.selected {
 .biz-resume-details-div .header-text {
     display: block;
     pointer-events: none;
-}
-
-/* High specificity rules for list elements */
-#resume-content-div .biz-resume-details-div .bulleted-job-description-items-ul,
-.biz-resume-div .biz-resume-details-div .bulleted-job-description-items-ul {
-    list-style: none !important;
-    padding-left: 1.5rem !important;
-    margin: 1rem 0 !important;
-    width: 100% !important;
-    max-width: 100% !important;
-    box-sizing: border-box !important;
-    overflow: visible !important;
-}
-
-#resume-content-div .biz-resume-details-div .bulleted-job-description-items-li,
-.biz-resume-div .biz-resume-details-div .bulleted-job-description-items-li {
-    position: relative !important;
-    margin-bottom: 0.5rem !important;
-    line-height: 1.4 !important;
-    display: block !important;
-    word-wrap: break-word !important;
-    overflow-wrap: break-word !important;
-    width: 100% !important;
-    max-width: calc(100% - 1.5rem) !important; /* Account for padding-left */
-    box-sizing: border-box !important;
-    white-space: normal !important;
-    overflow: visible !important;
-}
-
-/* Fallback rules with lower specificity */
-.biz-resume-details-div .bulleted-job-description-items-ul {
-    list-style: none;
-    padding-left: 1.5rem;
-    margin: 1rem 0;
-    width: 100%;
-    box-sizing: border-box;
-}
-
-.biz-resume-details-div .bulleted-job-description-items-li {
-    position: relative;
-    margin-bottom: 0.5rem;
-    line-height: 1.4;
-    display: block;
-    word-wrap: break-word;
-    overflow-wrap: break-word;
-    width: 100%;
-    box-sizing: border-box;
-}
-
-.bulleted-job-description-items-li::before {
-    content: "•";
-    position: absolute;
-    left: -1.5rem;
-    color: var(--text-color);
-}
-
-/* High specificity rules for skills list */
-#resume-content-div .biz-resume-details-div .bulleted-job-skills-ul,
-.biz-resume-div .biz-resume-details-div .bulleted-job-skills-ul {
-    list-style: none !important;
-    padding-left: 0 !important;
-    margin: 0.25rem 0 !important;
-    display: flex !important;
-    flex-wrap: wrap !important;
-    gap: 0.1rem !important;
-    width: 100% !important;
-    max-width: 100% !important;
-    box-sizing: border-box !important;
-    overflow: visible !important;
-}
-
-#resume-content-div .biz-resume-details-div .bulleted-job-skills-li,
-.biz-resume-div .biz-resume-details-div .bulleted-job-skills-li {
-    position: relative !important;
-    padding: 0.1rem 0rem !important;
-    font-size: 0.75rem !important;
-    white-space: nowrap !important;
-    line-height: 1.4 !important;
-    flex-shrink: 0 !important; /* Prevent skills from shrinking too much */
-    max-width: 100% !important;
-    overflow: visible !important;
-}
-
-/* Fallback rules with lower specificity */
-.bulleted-job-skills-ul {
-    list-style: none;
-    padding-left: 0;
-    margin: 0.25rem 0;
-    display: flex;
-    flex-wrap: wrap;
-    gap: 0.1rem;
-    width: 100%;
-    box-sizing: border-box;
-}
-
-.bulleted-job-skills-li {
-    position: relative;
-    padding: 0.1rem 0rem;
-    font-size: 0.75rem;
-    white-space: nowrap;
-    line-height: 1.4;
-    flex-shrink: 0; /* Prevent skills from shrinking too much */
-}
-
-.bulleted-job-skills-li::before {
-    content: "•";
-    margin-right: 0.15rem;
-    color: currentColor;
-    font-size: 1em;
-}
-
-/* Ensure all text elements within resume details wrap properly */
-#resume-content-div .biz-resume-details-div *,
-.biz-resume-div .biz-resume-details-div * {
-    max-width: 100% !important;
-    word-wrap: break-word !important;
-    overflow-wrap: break-word !important;
-    word-break: break-word !important;
-    box-sizing: border-box !important;
-}
-
-/* Ensure headers wrap properly */
-#resume-content-div .biz-resume-details-div h1,
-#resume-content-div .biz-resume-details-div h2,
-#resume-content-div .biz-resume-details-div h3,
-#resume-content-div .biz-resume-details-div p,
-.biz-resume-div .biz-resume-details-div h1,
-.biz-resume-div .biz-resume-details-div h2,
-.biz-resume-div .biz-resume-details-div h3,
-.biz-resume-div .biz-resume-details-div p {
-    width: 100% !important;
-    max-width: 100% !important;
-    word-wrap: break-word !important;
-    overflow-wrap: break-word !important;
-    white-space: normal !important;
-    margin: 0.5rem 0 !important;
 }
 
 .slide-in-from-top {
@@ -408,53 +218,47 @@ body.focal-point-locked .biz-card-div *,
     pointer-events: auto !important;
 }
 
-/* Same for bizResumeDivs */
-.biz-resume-div,
-.biz-resume-div *,
-body .biz-resume-div,
-body .biz-resume-div *,
-body.focal-point-locked .biz-resume-div,
-body.focal-point-locked .biz-resume-div *,
-#resume-container .biz-resume-div,
-#resume-container .biz-resume-div *,
-#resume-container.focal-point-locked .biz-resume-div,
-#resume-container.focal-point-locked .biz-resume-div * {
-    pointer-events: auto !important;
-}
-
 .biz-card-div.selected {
-    z-index: 99 !important;
-    filter: none !important;
-}
-
-.biz-resume-div {
-    width: 100%;
-    height: 100%;
+    z-index: 10;
 }
 
 .biz-card-div.selected .biz-card-details-div {
-    overflow-y: auto;
-    padding-bottom: 15px; /* Add space at the bottom */
-    height: 100%; /* Ensure the details div is constrained to the card's height */
+    overflow-y: auto; /* Enable scrolling on selected cards */
+    scrollbar-width: none; /* For Firefox */
 }
 
-/* For Webkit browsers like Chrome, Safari */
+/* Custom, narrow scrollbar for selected cards - HIDDEN */
 .biz-card-div.selected .biz-card-details-div::-webkit-scrollbar {
-    width: 8px;
+    display: none;
 }
-.biz-card-div.selected .biz-card-details-div::-webkit-scrollbar-track {
-    background: rgba(0,0,0,0.1);
-    border-radius: 10px;
+
+/* Caret button for scrolling */
+.scroll-caret {
+    display: none; /* Hidden by default */
+    position: absolute;
+    bottom: 5px;
+    right: 8px;
+    font-size: 20px;
+    color: white;
+    background-color: rgba(0, 0, 0, 0.4);
+    padding: 0px 8px;
+    border-radius: 50%;
+    cursor: pointer;
+    pointer-events: auto; /* Make sure it's clickable */
+    z-index: 15;
+    user-select: none;
+    transition: background-color 0.2s;
 }
-.biz-card-div.selected .biz-card-details-div::-webkit-scrollbar-thumb {
-    background: rgba(255,255,255,0.3);
-    border-radius: 10px;
+
+.scroll-caret:hover {
+    background-color: rgba(0, 0, 0, 0.7);
 }
-.biz-card-div.selected .biz-card-details-div::-webkit-scrollbar-thumb:hover {
-    background: rgba(255,255,255,0.5);
+
+.scroll-caret.show {
+    display: block;
 }
 
 .biz-card-div.hovered {
-    border-color: #999;
+    z-index: 9; /* Ensure hovered cards are above non-interacted ones */
 }
 

@@ -1,5 +1,5 @@
 import { cardsController } from './CardsController.mjs';
-import { resumeListController } from '../resume/ResumeListController.mjs';
+// import { resumeListController } from '../resume/ResumeListController.mjs'; // No longer needed
 import { selectionManager } from '../core/selectionManager.mjs';
 
 let _isInitialized = false;

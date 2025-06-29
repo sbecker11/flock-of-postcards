@@ -1,6 +1,6 @@
 // modules/core/keyDown.mjs
 
-import { resumeListController } from '../resume/ResumeListController.mjs';
+// import { resumeListController } from "../resume/ResumeListController.mjs"; // Obsolete
 import * as timeline from '../timeline/timeline.mjs';
 import * as focalPoint from './focalPoint.mjs';
 import * as colorPalettes from '../colors/colorPalettes.mjs';
@@ -19,19 +19,19 @@ export function handleKeyDown(event) {
     switch (event.key) {
         case "ArrowLeft":
             console.log("ArrowLeft pressed");
-            resumeListController.goToPreviousResumeItem();
+            // resumeListController.goToPreviousResumeItem();
             break;
         case "ArrowRight":
             console.log("ArrowRight pressed");
-            resumeListController.goToNextResumeItem();
+            // resumeListController.goToNextResumeItem();
             break;
         case "ArrowUp":
             console.log("ArrowUp pressed");
-            resumeListController.goToFirstResumeItem();
+            // resumeListController.goToFirstResumeItem();
             break;
         case "ArrowDown":
             console.log("ArrowDown pressed");
-            resumeListController.goToLastResumeItem();
+            // resumeListController.goToLastResumeItem();
             break;
         case " ": // Spacebar
             console.log("Spacebar pressed");

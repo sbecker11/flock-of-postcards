@@ -159,9 +159,6 @@ export function setViewPortWidth(width) {
 //         throw new Error(`bizCardDiv is not an HTMLElement: ${bizCardDiv}`);
 //     }
 
-//     const bullsEyeX = bullsEye.getBullsEye().x;
-//     // console.log("applyViewRelativeStyling:", bizCardDiv.id, "bullsEyeX:", bullsEyeX);
-
 
 //     // extract the static scene-relative geometry
 //     const sceneTop = parseInt(bizCardDiv.getAttribute("data-sceneTop"));
