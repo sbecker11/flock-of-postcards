@@ -187,22 +187,22 @@ function clearErrs() {
 function testArrayFunctions() {
     const arr = [1, 2, 3];
     if ( !isNumericArray(arr) ) {
-        // console.log(`ERROR: isNumericArray(${arr}) = false but expected true`);
+        CONSOLE_LOG_IGNORE(`ERROR: isNumericArray(${arr}) = false but expected true`);
         numErrs++;
     }
     try {
         validateIsNumericArray(arr);
     } catch (e) {
-        // console.log(`ERROR: validateIsNumericArray(${arr}) threw error but expected no error`);
+        CONSOLE_LOG_IGNORE(`ERROR: validateIsNumericArray(${arr}) threw error but expected no error`);
         numErrs++;
     }
     if ( arrayHasNaNs(arr) ) {
-        // console.log(`ERROR: arrayHasNaNs(${arr}) = true but expected false`);
+        CONSOLE_LOG_IGNORE(`ERROR: arrayHasNaNs(${arr}) = true but expected false`);
         numErrs++;
     }
     const arr2 = [1, 2, 3];
     if ( arraysAreEqual(arr, arr2) ) {
-        // console.log(`ERROR: arraysAreEqual(${arr}, ${arr2}) = true but expected false`);
+        CONSOLE_LOG_IGNORE(`ERROR: arraysAreEqual(${arr}, ${arr2}) = true but expected false`);
         numErrs++;
     }
 }
@@ -213,23 +213,23 @@ function testMinMaxAbs() {
     const val3 = 3;
 
     if ( abs(-val1) != val1 ) {
-        // console.log(`ERROR: abs(-${val1}) = ${abs(-val1)} but expected ${val1}`);
+        CONSOLE_LOG_IGNORE(`ERROR: abs(-${val1}) = ${abs(-val1)} but expected ${val1}`);
         numErrs++;
     }
     if ( abs_diff(val1, val2) != val2 - val1 ) {
-        // console.log(`ERROR: abs_diff(${val1}, ${val2}) = ${abs_diff(val1, val2)} but expected ${val2 - val1}`);
+        CONSOLE_LOG_IGNORE(`ERROR: abs_diff(${val1}, ${val2}) = ${abs_diff(val1, val2)} but expected ${val2 - val1}`);
         numErrs++;
     }
     if ( min(val1, val2) != val1 ) {
-        // console.log(`ERROR: min(${val1}, ${val2}) = ${min(val1, val2)} but expected ${val1}`);
+        CONSOLE_LOG_IGNORE(`ERROR: min(${val1}, ${val2}) = ${min(val1, val2)} but expected ${val1}`);
         numErrs++;
     }
     if ( max(val1, val2) != val2 ) {
-        // console.log(`ERROR: max(${val1}, ${val2}) = ${max(val1, val2)} but expected ${val2}`);
+        CONSOLE_LOG_IGNORE(`ERROR: max(${val1}, ${val2}) = ${max(val1, val2)} but expected ${val2}`);
         numErrs++;
     }
     if ( max3(val1, val2, val3) !== val3 ) {
-        // console.log(`ERROR: max3(${val1}, ${val2}, ${val3}) = ${max3(val1, val2, val3)} but expected ${val3}`);
+        CONSOLE_LOG_IGNORE(`ERROR: max3(${val1}, ${val2}, ${val3}) = ${max3(val1, val2, val3)} but expected ${val3}`);
         numErrs++;
     }
 }
@@ -241,14 +241,14 @@ function testClamps() {
     const expected = 1.5;
     const result = clamp(value, minVal, maxVal);
     if (result !== expected) {
-        // console.log(`ERROR: clamp(${value}, ${minVal}, ${maxVal}) = ${result} but expected ${expected}`);
+        CONSOLE_LOG_IGNORE(`ERROR: clamp(${value}, ${minVal}, ${maxVal}) = ${result} but expected ${expected}`);
         numErrs++;
     }
     const value2 = 2.5;
     const expected2 = 2;
     const result2 = clampInt(value2, minVal, maxVal);
     if (result2 !== expected2) {
-        // console.log(`ERROR: clampInt(${value2}, ${minVal}, ${maxVal}) = ${result2} but expected ${expected2}`);
+        CONSOLE_LOG_IGNORE(`ERROR: clampInt(${value2}, ${minVal}, ${maxVal}) = ${result2} but expected ${expected2}`);
         numErrs++;
     }
 }
@@ -262,7 +262,7 @@ function testLinearInterp() {
     const expected = 0.5;
     const result = linearInterp(x, x0, y0, x1, y1);
     if (result !== expected) {
-        // console.log(`ERROR: linearInterp(${x}, ${x0}, ${y0}, ${x1}, ${y1}) = ${result} but expected ${expected}`);
+        CONSOLE_LOG_IGNORE(`ERROR: linearInterp(${x}, ${x0}, ${y0}, ${x1}, ${y1}) = ${result} but expected ${expected}`);
         numErrs++;
     }
 }
@@ -270,7 +270,7 @@ function testLinearInterp() {
 function testArrayOfArrays() {
     const arr = [[1, 2, 3], [4, 5, 6]];
     if (!validateIsArrayOfArrays(arr) ) {
-        // console.log(`ERROR: validateIsArrayOfArrays(${arr}) threw error but expected no error`);
+        CONSOLE_LOG_IGNORE(`ERROR: validateIsArrayOfArrays(${arr}) threw error but expected no error`);
         numErrs++;
     }
 }
@@ -282,11 +282,11 @@ function testDistances() {
     let expected = Math.sqrt(2);
     let result = getPositionsEuclideanDistance(pos1, pos2);
     if (result !== expected) {
-        // console.log(`ERROR: getPositionsEuclideanDistance(${pos1}, ${pos2}) = ${result} but expected ${expected}`);
+        CONSOLE_LOG_IGNORE(`ERROR: getPositionsEuclideanDistance(${pos1}, ${pos2}) = ${result} but expected ${expected}`);
         numErrs++;
     }
     if ( getPositionsSquaredDistance(pos1, pos2) !== 2) {
-        // console.log(`ERROR: getPositionsSquaredDistance(${pos1}, ${pos2}) = ${result} but expected ${expected}`);
+        CONSOLE_LOG_IGNORE(`ERROR: getPositionsSquaredDistance(${pos1}, ${pos2}) = ${result} but expected ${expected}`);
         numErrs++;
     }
 
@@ -295,12 +295,12 @@ function testDistances() {
     expected = Math.sqrt(2);
     result = getEuclideanDistance(arr1, arr2);
     if (result !== expected) {
-        // console.log(`ERROR: getEuclideanDistance(${arr1}, ${arr2}) = ${result} but expected ${expected}`);
+        CONSOLE_LOG_IGNORE(`ERROR: getEuclideanDistance(${arr1}, ${arr2}) = ${result} but expected ${expected}`);
         numErrs++;
     }
 
     if ( getSquaredDistance(arr1, arr2) !== 2) {
-        // console.log(`ERROR: getSquaredDistance(${arr1}, ${arr2}) = ${result} but expected ${expected}`);
+        CONSOLE_LOG_IGNORE(`ERROR: getSquaredDistance(${arr1}, ${arr2}) = ${result} but expected ${expected}`);
         numErrs++;
     }
 }
@@ -309,7 +309,7 @@ function testRandomOffset() {
     const maxOffset = 10;
     const result = getRandomSignedOffset(maxOffset);
     if (result < -maxOffset || result > maxOffset) {
-        // console.log(`ERROR: getRandomSignedOffset(${maxOffset}) = ${result} but expected a value between -${maxOffset} and ${maxOffset}`);
+        CONSOLE_LOG_IGNORE(`ERROR: getRandomSignedOffset(${maxOffset}) = ${result} but expected a value between -${maxOffset} and ${maxOffset}`);
         numErrs++;
     }
 }
@@ -327,6 +327,6 @@ export function test_mathutils() {
     testDistances();
     testRandomOffset();
     if ( numErrs !== 0 ) {
-        // console.log(`mathUtils: ${numErrs} tests failed`);
+        CONSOLE_LOG_IGNORE(`mathUtils: ${numErrs} tests failed`);
     }
 }

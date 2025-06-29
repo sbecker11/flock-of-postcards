@@ -3,7 +3,7 @@
 import { debounce } from '../utils/utils.mjs';
 
 function handleResize() {
-    // console.log('Resize event triggered');
+    CONSOLE_LOG_IGNORE('Resize event triggered');
 
     // Add any logic that needs to run on resize here
 }
@@ -14,6 +14,6 @@ const debouncedResize = debounce(handleResize, 100);
 // Add event listener to the window
 window.addEventListener('resize', debouncedResize);
 
-// console.log('Resize handler initialized');
+CONSOLE_LOG_IGNORE('Resize handler initialized');
 
 export { debouncedResize as handleResize }; 

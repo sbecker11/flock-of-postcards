@@ -31,7 +31,7 @@ export function isTimelineInitialized() {
  */
 export function initialize(minYear, maxYear, defaultYear=null) {
     if (isTimelineInitialized()) {
-        // console.log("initializeTimeline: Timeline already initialized, ignoring duplicate initialization request");
+        CONSOLE_LOG_IGNORE("initializeTimeline: Timeline already initialized, ignoring duplicate initialization request");
         return;
     }
     _timelineContainer = document.getElementById("timeline-container");

@@ -30,7 +30,7 @@ const isMounted = ref(true);
 onMounted(() => {
   nextTick(async () => {
     try {
-      // console.log("App.vue: Component is mounted. Version check: 3. Initializing legacy modules...");
+      CONSOLE_LOG_IGNORE("App.vue: Component is mounted. Version check: 3. Initializing legacy modules...");
 
       // Initialize core modules that have no DOM dependencies or whose DOM is always present
       viewPort.initialize();
@@ -76,7 +76,7 @@ onMounted(() => {
       const sceneRect = { left: 0, top: 0, right: window.innerWidth, bottom: window.innerHeight }; // A default rect is fine for init
       parallax.viewAllBizCardDivs(currentFocalPoint, "App.vue-initial-render", sceneRect);
 
-      // console.log("App.vue: All legacy modules initialized successfully.");
+      CONSOLE_LOG_IGNORE("App.vue: All legacy modules initialized successfully.");
 
     } catch (error) {
       console.error("App.vue: Error during initialization:", error);

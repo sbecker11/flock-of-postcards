@@ -24,25 +24,25 @@ const sortOptions = ref([
 
 // Methods for buttons - these will now call the legacy controller
 function selectFirst() {
-  // console.log("selectFirst button clicked");
+  CONSOLE_LOG_IGNORE("selectFirst button clicked");
   if (window.resumeListController) {
     window.resumeListController.goToFirstResumeItem();
   }
 }
 function selectLast() {
-  // console.log("selectLast button clicked");
+  CONSOLE_LOG_IGNORE("selectLast button clicked");
   if (window.resumeListController) {
     window.resumeListController.goToLastResumeItem();
   }
 }
 function selectNext() {
-  // console.log("selectNext button clicked");
+  CONSOLE_LOG_IGNORE("selectNext button clicked");
   if (window.resumeListController) {
     window.resumeListController.goToNextResumeItem();
   }
 }
 function selectPrevious() {
-  // console.log("selectPrevious button clicked");
+  CONSOLE_LOG_IGNORE("selectPrevious button clicked");
   if (window.resumeListController) {
     window.resumeListController.goToPreviousResumeItem();
   }
@@ -96,6 +96,8 @@ function selectPrevious() {
     width: 100%;
     background-color: var(--grey-darkest); /* Dark Grey */
     position: relative; /* Needed for positioning the absolute label */
+    container-type: inline-size;
+    container-name: resume-container;
 }
 
 #resume-content {
@@ -105,6 +107,7 @@ function selectPrevious() {
     gap: 5px;
     overflow: hidden; /* Prevent content from spilling out */
     background-color: var(--grey-darkest); /* Dark Grey */
+    font-family: sans-serif;
 }
 
 #resume-content-header {
@@ -112,7 +115,6 @@ function selectPrevious() {
     color: white;
     padding: 10px;
     flex-shrink: 0; /* Fits children */
-    font-family: sans-serif;
 }
 
 #resume-content-div-wrapper {
@@ -148,7 +150,6 @@ function selectPrevious() {
     background-color: var(--grey-medium);
     padding: 10px;
     flex-shrink: 0; /* Fits children */
-    font-family: sans-serif;
 }
 
 #biz-card-controls {
@@ -158,6 +159,7 @@ function selectPrevious() {
     width: 100%;
     position: relative; /* Needed for z-index to apply */
     z-index: 100; /* High z-index to ensure it's on top of other elements */
+    flex-wrap: wrap; /* Allow wrapping for the 2x2 layout */
 }
 .biz-card-control-button {
     flex: 1 1 auto;
@@ -172,6 +174,21 @@ function selectPrevious() {
     transition: background-color 0.2s;
     text-shadow: 1px 1px 1px rgba(0, 0, 0, 0.8);
 }
+
+/* 2x2 layout for medium widths */
+@container (max-width: 320px) {
+    #biz-card-controls .biz-card-control-button {
+        flex-basis: calc(50% - 2.5px); /* 2 buttons per row, accounting for gap */
+    }
+}
+
+/* 1x4 (single column) layout for narrow widths */
+@container (max-width: 160px) {
+    #biz-card-controls {
+        flex-direction: column;
+    }
+}
+
 .biz-card-control-button:hover {
     background-color: #1976D2;
 }

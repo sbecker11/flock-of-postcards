@@ -48,7 +48,7 @@ class CardsController {
         this.setupPointerEventsObserver();
 
         this.isInitialized = true;
-        console.info("CardsController initialized successfully");
+        CONSOLE_INFO_IGNORE("CardsController initialized successfully");
     }
 
     createAllBizCardDivs(jobs) {
@@ -163,7 +163,7 @@ class CardsController {
         bizCardDiv.style.setProperty("z-index", zUtils.get_zIndexStr_from_z(sceneZ));
         bizCardDiv.style.filter = filters.get_filterStr_from_z(sceneZ);
 
-        // // console.log(`Card ID: ${bizCardDiv.id}, Filter: ${bizCardDiv.style.filter}`);
+        // CONSOLE_LOG_IGNORE(`Card ID: ${bizCardDiv.id}, Filter: ${bizCardDiv.style.filter}`);
     }
 
     _setupSelectionListeners() {
@@ -196,7 +196,7 @@ class CardsController {
         const newSceneLeft = sceneCenterX - (sceneWidth / 2);
         const sceneRight = sceneCenterX + (sceneWidth / 2);
 
-        // console.log(`Centering card ${bizCardDiv.id}: original left=${originalSceneLeft.toFixed(2)}, new left=${newSceneLeft.toFixed(2)}, deltaX=${(newSceneLeft - originalSceneLeft).toFixed(2)}`);
+        CONSOLE_LOG_IGNORE(`Centering card ${bizCardDiv.id}: original left=${originalSceneLeft.toFixed(2)}, new left=${newSceneLeft.toFixed(2)}, deltaX=${(newSceneLeft - originalSceneLeft).toFixed(2)}`);
 
         // Create a deep clone of the card
         const clone = bizCardDiv.cloneNode(true);
@@ -208,7 +208,7 @@ class CardsController {
         clone.setAttribute("data-sceneZ", zUtils.SELECTED_CARD_Z_VALUE); // marker for parallax to use SELECTED_CARD_Z_INDEX
         clone.style.zIndex = zUtils.SELECTED_CARD_Z_INDEX;
 
-        // console.log(`cDiv-clone ${clone.id}: z-index=${clone.style.zIndex}, data-sceneZ=${clone.getAttribute('data-sceneZ')}`);
+        CONSOLE_LOG_IGNORE(`cDiv-clone ${clone.id}: z-index=${clone.style.zIndex}, data-sceneZ=${clone.getAttribute('data-sceneZ')}`);
 
         // --- Apply the pre-calculated centered geometry to the clone ---
         clone.setAttribute("data-sceneCenterX", sceneCenterX.toString());
@@ -357,12 +357,12 @@ class CardsController {
     }
     
     scrollBizCardDivIntoView(bizCardDiv, caller='') {
-        // // console.log(`CardsController.scrollBizCardDivIntoView: ${caller} scrolling ${bizCardDiv.id} into view`);
+        // CONSOLE_LOG_IGNORE(`CardsController.scrollBizCardDivIntoView: ${caller} scrolling ${bizCardDiv.id} into view`);
         const sceneContainer = document.getElementById('scene-container');
         if (!sceneContainer) throw new Error(`CardsController.scrollBizCardDivIntoView: ${caller} sceneContainer not found`);
     
         const cardTop = parseFloat(bizCardDiv.getAttribute('data-sceneTop'));
-        // // console.log(`CardsController.scrollBizCardDivIntoView: ${caller} cardTop: ${cardTop}`);
+        // CONSOLE_LOG_IGNORE(`CardsController.scrollBizCardDivIntoView: ${caller} cardTop: ${cardTop}`);
         
         // Use a manual scroll calculation with an offset
         const scrollOffset = 20; // pixels

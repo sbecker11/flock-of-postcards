@@ -61,12 +61,12 @@ export function stringifyCircular(obj, seen = new Set()) {
   }
   
   export function testCircular() {
-    // console.log("testCircular");
+    CONSOLE_LOG_IGNORE("testCircular");
     const circularObject = createCirculerTestObject();
     const stringified = stringifyCircular(circularObject);
-    // console.log(stringified); // Output: '{"self":"[Circular Reference]"}'
+    CONSOLE_LOG_IGNORE(stringified); // Output: '{"self":"[Circular Reference]"}'
     const parsed = parseCircular(stringified);
-    // console.log(parsed); // Output: '{"self":"[Circular Reference]"}'
+    CONSOLE_LOG_IGNORE(parsed); // Output: '{"self":"[Circular Reference]"}'
   }
 
 
@@ -120,17 +120,17 @@ export function stringifyCircular(obj, seen = new Set()) {
   
 
   export function testCircular2() {
-    // console.log("testCircular2");
+    CONSOLE_LOG_IGNORE("testCircular2");
     const circularObject = createCirculerTestObject();
     const stringified = stringifyCircular2(circularObject);
-    // console.log(stringified); // Output: '{"self":"[Circular Reference]"}'
+    CONSOLE_LOG_IGNORE(stringified); // Output: '{"self":"[Circular Reference]"}'
     const parsed = parseCircular2(stringified);
-    // console.log(parsed); // Output: '{"self":"[Circular Reference]"}'
+    CONSOLE_LOG_IGNORE(parsed); // Output: '{"self":"[Circular Reference]"}'
   }
 
 
 export function testCircular3() {
-    // console.log("testCircular3");
+    CONSOLE_LOG_IGNORE("testCircular3");
 
     const obj = {
         name: "example",
@@ -147,11 +147,11 @@ export function testCircular3() {
 
     const jsonString = JSON.stringify(obj, replacer=replacer);
 
-    // console.log(jsonString);
+    CONSOLE_LOG_IGNORE(jsonString);
     // Expected output: {"name":"example","circularReference":"[Circular]"}
 
     const parsedObj = JSON.parse(jsonString);
-    // console.log(parsedObj);
+    CONSOLE_LOG_IGNORE(parsedObj);
     // Expected output: { name: 'example', circularReference: '[Circular]' }
 }
 

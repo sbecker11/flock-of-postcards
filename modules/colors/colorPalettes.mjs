@@ -227,7 +227,7 @@ async function loadOrRefreshPalettes(isRefresh = false) {
             linkEl.href = `${href}?v=${Date.now()}`;
         }
 
-        // console.log(`${functionName} complete. Generated CSS rules for ${_orderedPaletteNames.length} palettes.`);
+        CONSOLE_LOG_IGNORE(`${functionName} complete. Generated CSS rules for ${_orderedPaletteNames.length} palettes.`);
     } catch (error) {
         console.error('Failed to update CSS file:', error);
         // Fall back to injecting styles directly if file write fails
@@ -354,7 +354,7 @@ class PaletteSelector {
             // Change event for palette selection
             this.paletteSelector.addEventListener('change', (event) => {
                 const selectedValue = event.target.value;
-                // console.log("Palette selected via UI:", selectedValue);
+                CONSOLE_LOG_IGNORE("Palette selected via UI:", selectedValue);
                 this.selectPalette(selectedValue);
             });
 
@@ -426,7 +426,7 @@ class PaletteSelector {
 
         // all elements affected only by updatePaletteStyles
         const number_of_elements_without_data_color_index = Array.from(document.querySelectorAll(':not([data-color-index])')).length;
-        // console.log("number_of_elements_without_data_color_index:", number_of_elements_without_data_color_index);   
+        CONSOLE_LOG_IGNORE("number_of_elements_without_data_color_index:", number_of_elements_without_data_color_index);   
 
         // Update the CSS file via the server endpoint
         fetch('/api/write-css', {
@@ -531,7 +531,7 @@ class PaletteSelector {
             return;
         }
 
-        // console.log(`Selecting palette: ${selected_value}`);
+        CONSOLE_LOG_IGNORE(`Selecting palette: ${selected_value}`);
         
         // Store the selection in localStorage
         localStorage.setItem(LOCAL_STORAGE_PALETTE_KEY, selected_value);
@@ -561,7 +561,7 @@ class PaletteSelector {
             detail: { palette: selected_value }
         }));
         
-        // console.log(`Palette selection complete: ${selected_value}`);
+        CONSOLE_LOG_IGNORE(`Palette selection complete: ${selected_value}`);
         return true;
     }
 
@@ -596,8 +596,8 @@ class PaletteSelector {
             root.style.setProperty('--background-light', darkerRGBA);
             root.style.setProperty('--background-dark', darkestRGBA);
             
-            // console.log('colorPalettes:updateDocumentBackgroundColors: --background-light:', darkerRGBA);
-            // console.log('colorPalettes:updateDocumentBackgroundColors: --background-dark:', darkestRGBA);
+            CONSOLE_LOG_IGNORE('colorPalettes:updateDocumentBackgroundColors: --background-light:', darkerRGBA);
+            CONSOLE_LOG_IGNORE('colorPalettes:updateDocumentBackgroundColors: --background-dark:', darkestRGBA);
         } catch (error) {
             console.error("Error updating document background colors:", error);
             // Apply fallback defaults
@@ -608,11 +608,11 @@ class PaletteSelector {
 
     // Method to update all elements with data-color-index
     updateAllColorIndexedElements() {
-        // console.log(`Updating all elements with data-color-index...`);
+        CONSOLE_LOG_IGNORE(`Updating all elements with data-color-index...`);
         
         // Get ALL elements with data-color-index
         const elements = document.querySelectorAll('[data-color-index]');
-        // console.log(`Found ${elements.length} elements with data-color-index to update`);
+        CONSOLE_LOG_IGNORE(`Found ${elements.length} elements with data-color-index to update`);
         
         // Apply colors to all elements immediately
         for (const element of elements) {
@@ -623,7 +623,7 @@ class PaletteSelector {
             }
         }
         
-        // console.log(`Finished updating all ${elements.length} elements with data-color-index`);
+        CONSOLE_LOG_IGNORE(`Finished updating all ${elements.length} elements with data-color-index`);
     }
 
     // Method to force repaint on background elements
@@ -657,7 +657,7 @@ class PaletteSelector {
                     }
                 });
                 
-                // console.log(`Repainted ${elementStates.filter(s => s.needsRepaint).length} elements`);
+                CONSOLE_LOG_IGNORE(`Repainted ${elementStates.filter(s => s.needsRepaint).length} elements`);
             });
         }
 
@@ -781,7 +781,7 @@ class PaletteSelector {
             // all elements with 'data-color-index' attribute
             elements = document.querySelectorAll("[data-color-index]");
         }
-        // console.log("colorPalettes:applyCurrentPaletteToElements: elements:", elements.length);
+        CONSOLE_LOG_IGNORE("colorPalettes:applyCurrentPaletteToElements: elements:", elements.length);
 
         // Apply colors to all elements immediately
         for (const element of elements) {
@@ -834,8 +834,8 @@ class PaletteSelector {
 
             root.style.setProperty('--background-light', darkerRGBA);
             root.style.setProperty('--background-dark', darkestRGBA);
-            // console.log('colorPalettes:applyCurrentPaletteToDocument: --background-light:', darkerRGBA);
-            // console.log('colorPalettes:applyCurrentPaletteToDocument: --background-dark:', darkestRGBA);
+            CONSOLE_LOG_IGNORE('colorPalettes:applyCurrentPaletteToDocument: --background-light:', darkerRGBA);
+            CONSOLE_LOG_IGNORE('colorPalettes:applyCurrentPaletteToDocument: --background-dark:', darkestRGBA);
 
             // Force repaint on elements using these CSS variables
             this.forceRepaintOnBackgroundElements();
@@ -884,7 +884,7 @@ class PaletteSelector {
                     }
                 });
                 
-                // console.log(`Repainted ${elementStates.filter(s => s.needsRepaint).length} elements`);
+                CONSOLE_LOG_IGNORE(`Repainted ${elementStates.filter(s => s.needsRepaint).length} elements`);
             });
         }
 
@@ -914,7 +914,7 @@ class PaletteSelector {
         // If the previously selected palette is gone, select the first one
         if (!selectionStillExists && _orderedPaletteNames.length > 0) {
             this.paletteSelector.value = _orderedPaletteNames[0];
-            // console.log(`Previous selection "${currentSelectedValue}" removed, selecting "${_orderedPaletteNames[0]}".`);
+            CONSOLE_LOG_IGNORE(`Previous selection "${currentSelectedValue}" removed, selecting "${_orderedPaletteNames[0]}".`);
         } else if (_orderedPaletteNames.length === 0) {
             // Handle case where NO palettes are left after refresh
             let option = document.createElement('option');

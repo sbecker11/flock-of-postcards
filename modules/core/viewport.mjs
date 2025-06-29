@@ -48,7 +48,7 @@ export function initialize() {
     window.addEventListener('resize', calculateViewPortProperties);
 
     _isInitialized = true;
-    // console.log("ViewPort initialized successfully");
+    CONSOLE_LOG_IGNORE("ViewPort initialized successfully");
 }
 
 export function isInitialized() {
@@ -62,7 +62,7 @@ export function isInitialized() {
  * tells the bullsEye to update the position of its HTML element
  */
 export function updateViewPort() {
-    // // console.log("updateViewPort");
+    // CONSOLE_LOG_IGNORE("updateViewPort");
     if ( !isInitialized() ) {
         throw new Error("viewPortProperties is not initialized");
     }
@@ -92,11 +92,11 @@ export function updateViewPort() {
 }
 
 export function getViewPortOrigin() {
-    // // console.log("viewPort.getViewPortOrigin()");
+    // CONSOLE_LOG_IGNORE("viewPort.getViewPortOrigin()");
     if ( !isInitialized() ) {
         throw new Error("viewPortProperties is not initialized");
     }
-    //// console.log("^^^^^^^^^ getViewPortOrigin: viewPortProperties.centerX:", viewPortProperties.centerX);
+    //CONSOLE_LOG_IGNORE("^^^^^^^^^ getViewPortOrigin: viewPortProperties.centerX:", viewPortProperties.centerX);
     return { 
         x: viewPortProperties.centerX, 
         y: viewPortProperties.centerY 
@@ -141,7 +141,7 @@ export function isBizCardDivWithinViewPort(bizCardDiv) {
 }
 
 export function setViewPortWidth(width) {
-    // // console.log("viewPort.setViewPortWidth:", width );
+    // CONSOLE_LOG_IGNORE("viewPort.setViewPortWidth:", width );
     if ( !isInitialized() ) {
         throw new Error("viewPort not yet initialized");
     }
@@ -182,7 +182,7 @@ export function setViewPortWidth(width) {
 //     const viewHeight = sceneHeight;
 //     const viewZIndexStr = zUtils.get_zIndexStr_from_z(sceneZ, bizCardDiv.id);
 
-//     // // console.log(`sceneLeft:${sceneLeft} + bullsEyeX:${bullsEyeX} viewLeft:${viewLeft}`);
+//     // CONSOLE_LOG_IGNORE(`sceneLeft:${sceneLeft} + bullsEyeX:${bullsEyeX} viewLeft:${viewLeft}`);
 
 //     // apply view-relative styling
 //     bizCardDiv.style.top =     `${viewTop}px`;
@@ -191,7 +191,7 @@ export function setViewPortWidth(width) {
 //     bizCardDiv.style.height =  `${viewHeight}px`;
 //     bizCardDiv.style.zIndex =   viewZIndexStr;
 
-//     // // // console.log(`bizCardDiv view-relativestyling for ${bizCardDiv.id}:`, {
+//     // // CONSOLE_LOG_IGNORE(`bizCardDiv view-relativestyling for ${bizCardDiv.id}:`, {
 //     //     styleLeft: bizCardDiv.style.left,
 //     //     offsetLeft: bizCardDiv.offsetLeft,
 //     //     boundingLeft: bizCardDiv.getBoundingClientRect().left,

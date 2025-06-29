@@ -10,7 +10,7 @@ class SelectionManager extends EventTarget {
             return;
         }
 
-        // console.log(`SelectionManager: [${caller}] Selecting job index: ${jobIndex}`);
+        CONSOLE_LOG_IGNORE(`SelectionManager: [${caller}] Selecting job index: ${jobIndex}`);
         this.selectedJobIndex = jobIndex;
         this.dispatchEvent(new CustomEvent('selectionChanged', {
             detail: {
@@ -23,7 +23,7 @@ class SelectionManager extends EventTarget {
     clearSelection(caller = '') {
         if (this.selectedJobIndex === null) return;
         
-        // console.log(`SelectionManager: [${caller}] Clearing selection.`);
+        CONSOLE_LOG_IGNORE(`SelectionManager: [${caller}] Clearing selection.`);
         this.selectedJobIndex = null;
         this.dispatchEvent(new CustomEvent('selectionCleared', {
             detail: {
@@ -35,7 +35,7 @@ class SelectionManager extends EventTarget {
     hoverJobIndex(jobIndex, caller = '') {
         if (this.hoveredJobIndex === jobIndex) return;
 
-        // console.log(`SelectionManager: [${caller}] Hovering job index: ${jobIndex}`);
+        CONSOLE_LOG_IGNORE(`SelectionManager: [${caller}] Hovering job index: ${jobIndex}`);
         this.hoveredJobIndex = jobIndex;
         this.dispatchEvent(new CustomEvent('hoverChanged', {
             detail: {
@@ -48,7 +48,7 @@ class SelectionManager extends EventTarget {
     clearHover(caller = '') {
         if (this.hoveredJobIndex === null) return;
 
-        // console.log(`SelectionManager: [${caller}] Clearing hover.`);
+        CONSOLE_LOG_IGNORE(`SelectionManager: [${caller}] Clearing hover.`);
         this.hoveredJobIndex = null;
         this.dispatchEvent(new CustomEvent('hoverCleared', {
             detail: {

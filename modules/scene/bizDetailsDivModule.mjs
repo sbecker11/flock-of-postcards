@@ -49,7 +49,7 @@ export function createBizResumeDetailsDiv(bizResumeDiv, bizCardDiv) {
 export function createBizCardDetailsDiv(bizCardDiv, job) {
     if (!bizCardDiv) throw new Error('createBizDetailsDiv: given null bizCardDiv');
     if (!job) throw new Error('createBizDetailsDiv: given null job');
-    // // console.log("createBizDetailsDiv: job:", job);
+    // CONSOLE_LOG_IGNORE("createBizDetailsDiv: job:", job);
     const bizCardDetailsDiv = document.createElement('div');
     const jobIndex = bizCardDiv.getAttribute('data-job-index');
     if (!utils.isNumericString(jobIndex)) throw new Error(' createBizCardDetailsDiv: given non-numeric jobIndex attribute string');

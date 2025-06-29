@@ -28,7 +28,7 @@ export function initialize() {
     }
     resizeManager._initialize(handleElement);
     _isInitialized = true;
-    // console.log("resizeHandle initialized.");
+    CONSOLE_LOG_IGNORE("resizeHandle initialized.");
 
     // Ensure keydown is initialized after resize handle is ready
     keyDown.initialize();
@@ -140,17 +140,17 @@ class ResizeManager {
     }
 
     applyLayout() {
-        // console.log(`[ResizeManager] Applying layout: sceneWidth=${this.sceneWidth}px, resumeWidth=${this.resumeWidth}px`);
+        CONSOLE_LOG_IGNORE(`[ResizeManager] Applying layout: sceneWidth=${this.sceneWidth}px, resumeWidth=${this.resumeWidth}px`);
 
         if (this.sceneContainer) {
-            // console.log('[ResizeManager] Found sceneContainer, setting flex-basis.');
+            CONSOLE_LOG_IGNORE('[ResizeManager] Found sceneContainer, setting flex-basis.');
             this.sceneContainer.style.flexBasis = `${this.sceneWidth}px`;
         } else {
             console.error('[ResizeManager] sceneContainer element not found!');
         }
 
         if (this.resumeContainer) {
-            // console.log('[ResizeManager] Found resumeContainer, setting flex-basis.');
+            CONSOLE_LOG_IGNORE('[ResizeManager] Found resumeContainer, setting flex-basis.');
             this.resumeContainer.style.flexBasis = `${this.resumeWidth}px`;
         } else {
             console.error('[ResizeManager] resumeContainer element not found!');
@@ -248,10 +248,10 @@ class ResizeManager {
     toggleStepping() {
         if (this.incrementPercentage > 0) {
             this.incrementPercentage = 0;
-            // console.log(`Stepping disabled.`);
+            CONSOLE_LOG_IGNORE(`Stepping disabled.`);
         } else {
             this.incrementPercentage = this.defaultIncrementPercentage;
-            // console.log(`Stepping enabled: ${this.incrementPercentage.toFixed(2)}% increments.`);
+            CONSOLE_LOG_IGNORE(`Stepping enabled: ${this.incrementPercentage.toFixed(2)}% increments.`);
         }
         this.updateSteppingVisuals();
     }

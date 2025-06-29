@@ -60,7 +60,7 @@ export function updateAutoScrollVelocity(focalPointY, sceneContainer) {
 export function handlesceneContainerWheel(wheelEvent) {
     if (AUTOSCROLL_STOPS_ON_USER_SCROLL_OR_WHEEL) {
         if (animationFrameId != null) {
-            // console.log("Scene-div container wheel detected, stopping autoscroll.");
+            CONSOLE_LOG_IGNORE("Scene-div container wheel detected, stopping autoscroll.");
             cancelAnimationFrame(animationFrameId);
             animationFrameId = null;
             currentVelocity = 0;
