@@ -14,13 +14,13 @@ const MAX_TRANSFORMATION_SECONDS = 10;
 const args = process.argv.slice(2);
 
 if (args.length === 0) {
-  console.log('Usage: node xlsx2mjs.mjs [input.xlsx] [output.mjs]');
-  console.log('  - input.xlsx: Path to input Excel file (default: jobs.xlsx)');
-  console.log('  - output.mjs: Path to output Node.js module file (default: jobs.mjs)');
-  console.log('Examples:');
-  console.log('  node xlsx2mjs.mjs <outputs this usage message>');
-  console.log('  node xlsx2mjs.mjs my-jobs.xlsx my-output.mjs');
-  console.log('  node xlsx2mjs.mjs custom.xlsx');
+  // console.log('Usage: node xlsx2mjs.mjs [input.xlsx] [output.mjs]');
+  // console.log('  - input.xlsx: Path to input Excel file (default: jobs.xlsx)');
+  // console.log('  - output.mjs: Path to output Node.js module file (default: jobs.mjs)');
+  // console.log('Examples:');
+  // console.log('  node xlsx2mjs.mjs <outputs this usage message>');
+  // console.log('  node xlsx2mjs.mjs my-jobs.xlsx my-output.mjs');
+  // console.log('  node xlsx2mjs.mjs custom.xlsx');
   process.exit(0);
 }
 
@@ -44,10 +44,10 @@ function initCounters() {
 
 // Report counters
 function reportCounters(counters) {
-  console.log(`valid_no_changes_count: ${counters.valid_no_changes_cnt}`);
-  console.log(`valid_some_changes_count: ${counters.valid_some_changes_cnt}`);
-  console.log(`invalid_all_changes_count: ${counters.invalid_all_changes_cnt}`);
-  console.log(`skipped_timeout_count: ${counters.skipped_timeout_cnt}`);
+  // console.log(`valid_no_changes_count: ${counters.valid_no_changes_cnt}`);
+  // console.log(`valid_some_changes_count: ${counters.valid_some_changes_cnt}`);
+  // console.log(`invalid_all_changes_count: ${counters.invalid_all_changes_cnt}`);
+  // console.log(`skipped_timeout_count: ${counters.skipped_timeout_cnt}`);
 }
 
 // Simple Levenshtein distance for string similarity
@@ -100,16 +100,16 @@ async function testUrl(url) {
   try {
     const response = await fetchWithTimeout(url, { method: 'HEAD', redirect: 'follow' }, MAX_TRANSFORMATION_SECONDS * 1000);
     if (response.status === 200) {
-      console.log(`Success: url:${url} is reachable`);
+      // console.log(`Success: url:${url} is reachable`);
       return { valid: url, code: -1 };
     }
   } catch (e) {
     if (e.name === 'AbortError') {
-      console.log(`Timeout: url:${url} exceeded ${MAX_TRANSFORMATION_SECONDS}s`);
+      // console.log(`Timeout: url:${url} exceeded ${MAX_TRANSFORMATION_SECONDS}s`);
       return { valid: null, code: -3 };
     }
   }
-  console.log(`Failure: url:${url} could not be resolved`);
+  // console.log(`Failure: url:${url} could not be resolved`);
   return null;
 }
 
@@ -137,12 +137,12 @@ async function testPermutedUrl(originalUrl) {
   try {
     const response = await fetchWithTimeout(originalUrl, { method: 'HEAD', redirect: 'follow' }, MAX_TRANSFORMATION_SECONDS * 1000);
     if (response.status === 200) {
-      console.log(`Success: original_url:${originalUrl} is already valid with no transformation`);
+      // console.log(`Success: original_url:${originalUrl} is already valid with no transformation`);
       return { original: originalUrl, valid: originalUrl, code: -1 };
     }
   } catch (e) {
     if (e.name === 'AbortError') {
-      console.log(`Timeout: original_url:${originalUrl} exceeded ${MAX_TRANSFORMATION_SECONDS}s`);
+      // console.log(`Timeout: original_url:${originalUrl} exceeded ${MAX_TRANSFORMATION_SECONDS}s`);
       return { original: originalUrl, valid: null, code: -3 };
     }
   }
@@ -153,12 +153,12 @@ async function testPermutedUrl(originalUrl) {
     try {
       const response = await fetchWithTimeout(strippedUrl, { method: 'HEAD', redirect: 'follow' }, MAX_TRANSFORMATION_SECONDS * 1000);
       if (response.status === 200) {
-        console.log(`Success: original_url:${originalUrl} was made valid by removing trailing slash: '${strippedUrl}'`);
+        // console.log(`Success: original_url:${originalUrl} was made valid by removing trailing slash: '${strippedUrl}'`);
         return { original: originalUrl, valid: strippedUrl, code: -2 };
       }
     } catch (e) {
       if (e.name === 'AbortError') {
-        console.log(`Timeout: stripped_url:${strippedUrl} exceeded ${MAX_TRANSFORMATION_SECONDS}s`);
+        // console.log(`Timeout: stripped_url:${strippedUrl} exceeded ${MAX_TRANSFORMATION_SECONDS}s`);
         return { original: originalUrl, valid: null, code: -3 };
       }
     }
@@ -170,18 +170,18 @@ async function testPermutedUrl(originalUrl) {
     try {
       const response = await fetchWithTimeout(url, { method: 'HEAD', redirect: 'follow' }, MAX_TRANSFORMATION_SECONDS * 1000);
       if (response.status === 200) {
-        console.log(`Success: original_url:${originalUrl} was made valid:'${url}' with transformation code ${i}`);
+        // console.log(`Success: original_url:${originalUrl} was made valid:'${url}' with transformation code ${i}`);
         return { original: originalUrl, valid: url, code: i };
       }
     } catch (e) {
       if (e.name === 'AbortError') {
-        console.log(`Timeout: url:${url} exceeded ${MAX_TRANSFORMATION_SECONDS}s`);
+        // console.log(`Timeout: url:${url} exceeded ${MAX_TRANSFORMATION_SECONDS}s`);
         return { original: originalUrl, valid: null, code: -3 };
       }
     }
   }
 
-  console.log(`Failure: original_url:'${originalUrl}' could not be transformed into a valid url`);
+  // console.log(`Failure: original_url:'${originalUrl}' could not be transformed into a valid url`);
   return null;
 }
 
@@ -222,8 +222,8 @@ async function processDescription(text) {
 // Main function
 async function convertXlsxToMjs() {
   try {
-    console.log(`Processing input: ${inputXlsxFile}`);
-    console.log(`Outputting to: ${outputMjsFile}`);
+    // console.log(`Processing input: ${inputXlsxFile}`);
+    // console.log(`Outputting to: ${outputMjsFile}`);
 
     const workbook = new ExcelJS.Workbook();
     await workbook.xlsx.readFile(inputXlsxFile);
@@ -258,7 +258,7 @@ async function convertXlsxToMjs() {
       if (obj['employer']) {
         const employer = obj['employer'].trim();
         employerNames.push(employer);
-        console.log(`Found employer in jobs sheet: "${employer}"`);
+        // console.log(`Found employer in jobs sheet: "${employer}"`);
       }
     });
 
@@ -276,13 +276,13 @@ async function convertXlsxToMjs() {
       const jobName = skillsHeaders[col]?.toString().trim();
       if (jobName) {
         jobSkillsMap[jobName] = { column: col, skills: {} };
-        console.log(`Found job-skills header: "${jobName}" in column ${col}`);
+        // console.log(`Found job-skills header: "${jobName}" in column ${col}`);
       }
     }
 
     // Log all unique employers from both sheets
-    console.log('All employers from jobs sheet:', [...new Set(employerNames)]);
-    console.log('All employers from job-skills sheet:', Object.keys(jobSkillsMap));
+    // console.log('All employers from jobs sheet:', [...new Set(employerNames)]);
+    // console.log('All employers from job-skills sheet:', Object.keys(jobSkillsMap));
 
     skillsSheet.eachRow((row, rowNumber) => {
       if (rowNumber <= 2) return;
@@ -308,11 +308,11 @@ async function convertXlsxToMjs() {
       const employer = row['employer']?.toString().trim();
       if (employer) {
         // Find exact match in job-skills sheet headers
-        console.log(`Trying to match employer: "${employer}"`);
-        console.log(`Available matches: ${Object.keys(jobSkillsMap).join(', ')}`);
+        // console.log(`Trying to match employer: "${employer}"`);
+        // console.log(`Available matches: ${Object.keys(jobSkillsMap).join(', ')}`);
         const match = Object.keys(jobSkillsMap).find(key => {
           const matches = key === employer;
-          console.log(`Comparing "${key}" with "${employer}": ${matches}`);
+          // console.log(`Comparing "${key}" with "${employer}": ${matches}`);
           return matches;
         });
         if (match) {
@@ -332,7 +332,7 @@ async function convertXlsxToMjs() {
     // Write to .mjs file with export
     const mjsContent = `export const jobs = ${JSON.stringify(processedData, null, 2)};`;
     await writeFile(outputMjsFile, mjsContent, 'utf-8');
-    console.log(`Successfully output ${outputMjsFile}.`);
+    // console.log(`Successfully output ${outputMjsFile}.`);
   } catch (error) {
     console.error('Error:', error.message);
     process.exit(1);

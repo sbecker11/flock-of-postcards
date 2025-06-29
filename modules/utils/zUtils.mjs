@@ -44,6 +44,7 @@ export const z_index_from_z = (z) => { return SUM_Z - z; }
 // Special case Z-indices
 export const BULLSEYE_Z_INDEX = 98;            // no parallax
 export const SELECTED_CARD_Z_INDEX = 99;       // no parallax, higher than bulls-eye
+export const SELECTED_CARD_Z_VALUE = 0;        // Special value for selected cards, not used for normal parallax
 export const FOCAL_POINT_Z_INDEX = 100;        // no parallax
 export const AIM_POINT_Z_INDEX = 101;          // no parallax
 
@@ -116,7 +117,7 @@ export function get_zIndexStr_from_z(z) {
  */
 export function test_zUtils() {
     // Test bizCard z-index to z conversion
-    // console.log("Testing bizCard z-index to z conversion...");
+    // // console.log("Testing bizCard z-index to z conversion...");
     for (let z_index = ALL_CARDS_Z_INDEX_MIN; z_index <= ALL_CARDS_Z_INDEX_MAX; z_index++) {
         const z = z_from_z_index(z_index);
         validate_z(z);
@@ -128,10 +129,10 @@ export function test_zUtils() {
     }
     for ( let z=ALL_CARDS_Z_MIN; z <= ALL_CARDS_Z_MAX; z++ ) {
         const z_index = z_index_from_z(z);
-        // console.log("Z:", z, "z_index:", z_index, "z-z_index:", z-z_index);
+        // // console.log("Z:", z, "z_index:", z_index, "z-z_index:", z-z_index);
     }
     for ( let z_index=ALL_CARDS_Z_INDEX_MIN; z_index <= ALL_CARDS_Z_INDEX_MAX; z_index++ ) {
         const z = z_from_z_index(z_index);
-        // console.log("z_index:", z_index, "z:", z, "z-z_index:", z-z_index);
+        // // console.log("z_index:", z_index, "z:", z, "z-z_index:", z-z_index);
     }
 } 

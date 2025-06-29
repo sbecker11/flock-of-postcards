@@ -13,45 +13,45 @@ import { toggleStepping } from './resizeHandle.mjs';
  */
 export function handleKeyDown(event) {
     if (event.ctrlKey && event.shiftKey && event.altKey && event.key === 'D') {
-        console.log("Ctrl+Shift+Alt+D detected: Dumping managers to console");
+        // console.log("Ctrl+Shift+Alt+D detected: Dumping managers to console");
         window.dumpManagersToConsole();
     }
 
     switch (event.key) {
         case "ArrowLeft":
-            console.log("ArrowLeft pressed");
+            // console.log("ArrowLeft pressed");
             // resumeListController.goToPreviousResumeItem();
             break;
         case "ArrowRight":
-            console.log("ArrowRight pressed");
+            // console.log("ArrowRight pressed");
             // resumeListController.goToNextResumeItem();
             break;
         case "ArrowUp":
-            console.log("ArrowUp pressed");
+            // console.log("ArrowUp pressed");
             // resumeListController.goToFirstResumeItem();
             break;
         case "ArrowDown":
-            console.log("ArrowDown pressed");
+            // console.log("ArrowDown pressed");
             // resumeListController.goToLastResumeItem();
             break;
         case " ": // Spacebar
-            console.log("Spacebar pressed");
+            // console.log("Spacebar pressed");
             // focalPoint.toggleFocalPointLock();
             break;
         case "b":
-            console.log("'b' key pressed");
+            // console.log("'b' key pressed");
             focalPoint.toggleLockedToBullsEye();
             break;
         case "c":
-            console.log("'c' key pressed");
+            // console.log("'c' key pressed");
             colorPalettes.cycleColorPalette();
             break;
         case "s":
-            console.log("'s' key pressed");
+            // console.log("'s' key pressed");
             toggleStepping();
             break;
         case "t":
-            console.log("'t' key pressed");
+            // console.log("'t' key pressed");
             timeline.toggleTimelineVisibility();
             break;
         default:
@@ -67,14 +67,14 @@ let _isInitialized = false;
  */
 export function initialize() {
     if (_isInitialized) {
-        console.log("Keydown handler already initialized.");
+        // console.log("Keydown handler already initialized.");
         return;
     }
 
     document.addEventListener('keydown', handleKeyDown);
 
     _isInitialized = true;
-    console.log("Keydown handler initialized.");
+    // console.log("Keydown handler initialized.");
 }
 
 export function isInitialized() {

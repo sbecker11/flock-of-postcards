@@ -11,6 +11,7 @@ import * as dateUtils from '../utils/dateUtils.mjs';
 import * as mathUtils from '../utils/mathUtils.mjs';
 import * as zUtils from '../utils/zUtils.mjs';
 import * as filters from '../core/filters.mjs';
+import { updateParallax, applyParallaxToBizCardDiv } from '../core/parallax.mjs';
 // import { resumeListController } from '../resume/ResumeListController.mjs'; // No longer needed
 
 const BIZCARD_MAX_X_OFFSET = 100;
@@ -162,7 +163,7 @@ class CardsController {
         bizCardDiv.style.setProperty("z-index", zUtils.get_zIndexStr_from_z(sceneZ));
         bizCardDiv.style.filter = filters.get_filterStr_from_z(sceneZ);
 
-        // console.log(`Card ID: ${bizCardDiv.id}, Filter: ${bizCardDiv.style.filter}`);
+        // // console.log(`Card ID: ${bizCardDiv.id}, Filter: ${bizCardDiv.style.filter}`);
     }
 
     _setupSelectionListeners() {
@@ -188,6 +189,15 @@ class CardsController {
     _selectBizCardDiv(bizCardDiv, caller='') {
         if (!bizCardDiv) return;
 
+        // --- Pre-calculate the centered geometry from the original card ---
+        const originalSceneLeft = parseFloat(bizCardDiv.getAttribute("data-sceneLeft"));
+        const sceneWidth = parseFloat(bizCardDiv.getAttribute("data-sceneWidth"));
+        const sceneCenterX = 0;
+        const newSceneLeft = sceneCenterX - (sceneWidth / 2);
+        const sceneRight = sceneCenterX + (sceneWidth / 2);
+
+        // console.log(`Centering card ${bizCardDiv.id}: original left=${originalSceneLeft.toFixed(2)}, new left=${newSceneLeft.toFixed(2)}, deltaX=${(newSceneLeft - originalSceneLeft).toFixed(2)}`);
+
         // Create a deep clone of the card
         const clone = bizCardDiv.cloneNode(true);
         clone.id = bizCardDiv.id + '-clone';
@@ -195,12 +205,19 @@ class CardsController {
         if ( !clone.classList.contains('biz-card-div') ) throw new Error('Clone is not a biz-card-div');
         clone.classList.remove('hovered')
         clone.classList.add('selected' );
-        clone.setAttribute("data-sceneZ", "0"); // marker for parallax to use SELECTED_CARD_Z_INDEX
-        clone.style.zIndex = '99'; // Force it to the top
+        clone.setAttribute("data-sceneZ", zUtils.SELECTED_CARD_Z_VALUE); // marker for parallax to use SELECTED_CARD_Z_INDEX
+        clone.style.zIndex = zUtils.SELECTED_CARD_Z_INDEX;
+
+        // console.log(`cDiv-clone ${clone.id}: z-index=${clone.style.zIndex}, data-sceneZ=${clone.getAttribute('data-sceneZ')}`);
+
+        // --- Apply the pre-calculated centered geometry to the clone ---
+        clone.setAttribute("data-sceneCenterX", sceneCenterX.toString());
+        clone.setAttribute("data-sceneLeft", newSceneLeft.toString());
+        clone.setAttribute("data-sceneRight", sceneRight.toString());
 
         // The clone needs its own click listener to handle deselection
         clone.addEventListener('click', (e) => {
-            e.stopPropagation();
+            // e.stopPropagation(); // DO NOT stop propagation here
             this.handleBizCardDivClickEvent(clone);
         });
 
@@ -235,17 +252,31 @@ class CardsController {
             }, 100);
         }
 
-        // The parallax engine will style this, we just need to add it to the DOM
-        bizCardDiv.parentElement.appendChild(clone);
-        
-        // hide the original
+        // --- Add clone to the scene ---
+        const scenePlaneEl = document.getElementById('scene-plane');
+        scenePlaneEl.appendChild(clone);
+
+        // Hide the original card now that the clone is in the DOM
         bizCardDiv.style.display = 'none';
+
+        // --- Explicitly update the clone's parallax to its centered state ---
+        applyParallaxToBizCardDiv(clone, 0, 0);
+
+        // --- Final check after adding to DOM ---
+        const originalLeft = window.getComputedStyle(bizCardDiv).left;
+        const cloneLeft = window.getComputedStyle(clone).left;
+        const originalCenterX = parseFloat(bizCardDiv.getAttribute("data-sceneCenterX"));
+
+        if (originalCenterX !== 0 && originalLeft === cloneLeft) {
+            throw new Error(`Error: cDiv for job index ${bizCardDiv.dataset.jobIndex} has centerX of ${originalCenterX} but its left (${originalLeft}) is the same as its clone's left (${cloneLeft}).`);
+        }
     }
 
     // This is now the primary method for removing a clone and showing the original card.
     // It's called by the selectionCleared event handler.
     _deselectBizCardDiv(bizCardDiv) {
-        if ( !bizCardDiv ||!bizCardDiv.classList.contains('hasClone') ) return;
+        if (!bizCardDiv || !bizCardDiv.classList.contains('hasClone')) return;
+        
         const cloneId = bizCardDiv.id + '-clone';
         const clone = document.getElementById(cloneId);
         if (clone) {
@@ -253,7 +284,10 @@ class CardsController {
         }
 
         bizCardDiv.classList.remove('hasClone');
-        bizCardDiv.style.display = 'block';
+        bizCardDiv.style.display = 'block'; // Unhide the original card
+
+        // We don't need to force a parallax update here, as the regular mouse-move based
+        // parallax will take over naturally.
     }
 
     handleBizCardDivClickEvent(bizCardDiv) {
@@ -323,12 +357,12 @@ class CardsController {
     }
     
     scrollBizCardDivIntoView(bizCardDiv, caller='') {
-        console.log(`CardsController.scrollBizCardDivIntoView: ${caller} scrolling ${bizCardDiv.id} into view`);
+        // // console.log(`CardsController.scrollBizCardDivIntoView: ${caller} scrolling ${bizCardDiv.id} into view`);
         const sceneContainer = document.getElementById('scene-container');
         if (!sceneContainer) throw new Error(`CardsController.scrollBizCardDivIntoView: ${caller} sceneContainer not found`);
     
         const cardTop = parseFloat(bizCardDiv.getAttribute('data-sceneTop'));
-        console.log(`CardsController.scrollBizCardDivIntoView: ${caller} cardTop: ${cardTop}`);
+        // // console.log(`CardsController.scrollBizCardDivIntoView: ${caller} cardTop: ${cardTop}`);
         
         // Use a manual scroll calculation with an offset
         const scrollOffset = 20; // pixels
@@ -362,6 +396,12 @@ class CardsController {
         const cardDiv = this.getBizCardDivByJobIndex(jobIndex);
         if (cardDiv) {
             cardDiv.classList.toggle('hovered', shouldHover);
+        }
+    }
+
+    _highlightCard(bizCardDiv, shouldHighlight) {
+        if (shouldHighlight) {
+            // ... existing code ...
         }
     }
 }

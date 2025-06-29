@@ -7,7 +7,7 @@ let scenePlane = null;
 
 export function initialize() {
     if (_isInitialized) {
-        console.log("initializeScenePlane: Scene plane already initialized, ignoring duplicate initialization request");
+        // console.log("initializeScenePlane: Scene plane already initialized, ignoring duplicate initialization request");
         return;
     }
     
@@ -27,7 +27,7 @@ export function initialize() {
     scenePlane.addEventListener('click', handleScenePlaneClick);
     
     _isInitialized = true;
-    console.log("Scene plane initialized");
+    // console.log("Scene plane initialized");
 }
 
 export function isInitialized() {

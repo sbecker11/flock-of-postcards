@@ -32,12 +32,12 @@ app.use((req, res, next) => {
 // Serve static files (HTML, JS, CSS, and the palette JSON files)
 // Make sure client-side fetch paths match how files are served.
 // Serving the whole project root might be needed if index.html is there.
-console.log(`Serving static files from root: ${PROJECT_ROOT}`);
+// console.log(`Serving static files from root: ${PROJECT_ROOT}`);
 
 // Add logging for CSS file requests
 app.use((req, res, next) => {
     if (req.path.endsWith('.css')) {
-        console.log(`CSS file requested: ${req.path}`);
+        // console.log(`CSS file requested: ${req.path}`);
     }
     next();
 });
@@ -53,8 +53,8 @@ app.use(express.static(PROJECT_ROOT, {
 
 // --- API Endpoint for Dynamic Manifest ---
 app.get('/api/palette-manifest', async (req, res) => {
-    console.log(`Request received for /api/palette-manifest`);
-    console.log(`Scanning directory: ${PALETTE_DIR_PATH}`);
+    // console.log(`Request received for /api/palette-manifest`);
+    // console.log(`Scanning directory: ${PALETTE_DIR_PATH}`);
     try {
         // Read all entries in the directory
         const allEntries = await fs.readdir(PALETTE_DIR_PATH);
@@ -66,7 +66,7 @@ app.get('/api/palette-manifest', async (req, res) => {
             entry !== 'palette-manifest.json' // Exclude the old static manifest
         );
 
-        console.log(`Found ${jsonFiles.length} palette JSON files.`);
+        // console.log(`Found ${jsonFiles.length} palette JSON files.`);
 
         // *** Custom Sort: Numeric prefix (0-9) then alphabetical ***
         jsonFiles.sort((a, b) => {
@@ -108,7 +108,7 @@ app.get('/api/palette-manifest', async (req, res) => {
 
 // --- API Endpoint for Writing CSS ---
 app.post('/api/write-css', async (req, res) => {
-    console.log('Received request to write CSS file');
+    // console.log('Received request to write CSS file');
     try {
         // Ensure the CSS directory exists
         const cssDir = path.dirname(CSS_FILE_PATH);
@@ -116,7 +116,7 @@ app.post('/api/write-css', async (req, res) => {
 
         // Write the CSS content
         await fs.writeFile(CSS_FILE_PATH, req.body);
-        console.log(`Successfully wrote CSS to ${CSS_FILE_PATH}`);
+        // console.log(`Successfully wrote CSS to ${CSS_FILE_PATH}`);
         res.json({ success: true });
     } catch (error) {
         console.error('Error writing CSS file:', error);
@@ -139,9 +139,9 @@ function startServer(port) {
 
     const server = app.listen(port, () => {
         // Success!
-        console.log(`Server listening on http://localhost:${port}`);
-        console.log(`Serving dynamic palette manifest at /api/palette-manifest`);
-        console.log(`Palette directory path: ${PALETTE_DIR_PATH}`);
+        // console.log(`Server listening on http://localhost:${port}`);
+        // console.log(`Serving dynamic palette manifest at /api/palette-manifest`);
+        // console.log(`Palette directory path: ${PALETTE_DIR_PATH}`);
     });
 
     server.on('error', (err) => {

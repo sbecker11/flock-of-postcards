@@ -88,14 +88,14 @@ export class PropStyleCounter {
   
     reportPropStyles() {
       for (const prop_style in this.prop_styles) {
-        console.log(`${prop_style}: ${this.prop_styles[prop_style]}`);
+        // console.log(`${prop_style}: ${this.prop_styles[prop_style]}`);
       }
     }
   }
   
 
 export function showPosition(position, prefix="") {
-    console.log(prefix, JSON.stringify(position, formatNumbersReplacer, 2));
+    // console.log(prefix, JSON.stringify(position, formatNumbersReplacer, 2));
 }
 
 export function showElement(element, prefix="", logLevel=LogLevel.LOG) {
@@ -142,7 +142,7 @@ export function showElement(element, prefix="", logLevel=LogLevel.LOG) {
         filter: element.style.filter,
         classList: element.classList
     }
-    console.log(JSON.stringify(elementInfo, formatNumbersReplacer, 2));
+    // console.log(JSON.stringify(elementInfo, formatNumbersReplacer, 2));
 }
 
 
@@ -196,13 +196,13 @@ export function updateEventListener(element, eventType, listener, options = {}) 
     // If options.remove is true, remove the listener
     if (options.remove === true) {
         element.removeEventListener(eventType, listener);
-        console.log(`Removed ${eventType} listener from`, element);
+        // console.log(`Removed ${eventType} listener from`, element);
         return;
     }
 
     // Otherwise, add the listener
     element.addEventListener(eventType, listener, options);
-    console.log(`Added ${eventType} listener to`, element, 'with options:', options);
+    // console.log(`Added ${eventType} listener to`, element, 'with options:', options);
 }
 
 

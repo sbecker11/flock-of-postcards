@@ -20,7 +20,7 @@ export function on(eventName, callback) {
  * @param {any} data - Data to pass to listeners
  */
 export function emit(eventName, data) {
-    console.log(`Event emitted: ${eventName}`);
+    // console.log(`Event emitted: ${eventName}`);
     if (listeners.has(eventName)) {
         for (const callback of listeners.get(eventName)) {
             try {

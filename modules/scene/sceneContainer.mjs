@@ -12,7 +12,7 @@ let _isInitialized = false;
  */
 export function initialize() {
     if (_isInitialized) {
-        console.log("SceneContainer already initialized.");
+        // console.log("SceneContainer already initialized.");
         return;
     }
 
@@ -27,7 +27,7 @@ export function initialize() {
     // Any other scene container setup...
 
     _isInitialized = true;
-    console.log("SceneContainer initialized successfully.");
+    // console.log("SceneContainer initialized successfully.");
 }
 
 export function isInitialized() {
@@ -36,7 +36,7 @@ export function isInitialized() {
 
 // called from updateResumeContainer
 export function updateSceneContainer() {
-    // console.log("updateSceneContainer");
+    // // console.log("updateSceneContainer");
     // viewPort updates interal properties and its chlldren
     // using the current sceneContainer.offsetWidth and resumeContainerw.offset
     viewPort.updateViewPort();
@@ -106,10 +106,10 @@ export function getSceneVerticalPositionForDateString(dateStr) {
     const monthString = (date.getMonth() + 1).toString().padStart(2, '0');
     // Get position from timeline
     const position = timeline.getTimelineYearMonthBottom(yearString, monthString);
-    console.log(`******* yearString:${yearString} monthString:${monthString} -> position:${position}`);
+    // console.log(`******* yearString:${yearString} monthString:${monthString} -> position:${position}`);
 
     // Add debug logging
-    //console.log(`Date: ${dateStr} -> Year: ${yearString}, Month: ${monthString} -> Position: ${position}`);
+    //// console.log(`Date: ${dateStr} -> Year: ${yearString}, Month: ${monthString} -> Position: ${position}`);
     
     return position;
 }
@@ -183,7 +183,7 @@ export function getSceneVerticalPositions(startDateStr, endDateStr, minHeight=0)
     if (pixelDiff > pixelsPerMonth) {
         console.error(`Date range pixel mismatch: startDate:${startDate} endDate:${endDate} - Expected:${expectedPixels}px, Actual:${sceneHeight}px, Diff:${pixelDiff}px > pixelsPerMonth:${pixelsPerMonth}px`);
     } else {
-        console.log(`Date range pixel match: startDate:${startDate} endDate:${endDate} - Expected:${expectedPixels}px, Actual:${sceneHeight}px, Diff:${pixelDiff}px`);
+        // console.log(`Date range pixel match: startDate:${startDate} endDate:${endDate} - Expected:${expectedPixels}px, Actual:${sceneHeight}px, Diff:${pixelDiff}px`);
     }
     
     return { sceneTop, sceneBottom };
@@ -202,7 +202,7 @@ export function ensurePointerEvents() {
     
     // Ensure scene container has pointer events
     if (sceneContainer.style.pointerEvents !== 'auto') {
-        console.log("Fixing scene container pointer-events");
+        // console.log("Fixing scene container pointer-events");
         sceneContainer.style.pointerEvents = 'auto';
     }
     
@@ -210,12 +210,12 @@ export function ensurePointerEvents() {
     const bizCardDivs = sceneContainer.querySelectorAll('.biz-card-div');
     bizCardDivs.forEach(div => {
         if (div.style.pointerEvents !== 'auto') {
-            console.log(`Fixing pointer-events for ${div.id}`);
+            // console.log(`Fixing pointer-events for ${div.id}`);
             div.style.pointerEvents = 'auto';
         }
     });
     
-    console.log("Scene container and bizCardDivs pointer events fixed");
+    // console.log("Scene container and bizCardDivs pointer events fixed");
 }
 
 /**
@@ -275,7 +275,7 @@ export function updateGradientHeights() {
     topGradient.style.height = `${gradientHeight}px`;
     btmGradient.style.height = `${gradientHeight}px`;
 
-    console.log(`Updated scene plane height: ${timelineHeight}px, gradient height: ${gradientHeight}px`);
+    // console.log(`Updated scene plane height: ${timelineHeight}px, gradient height: ${gradientHeight}px`);
 }
 
 /**

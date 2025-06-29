@@ -32,7 +32,7 @@ class InfiniteScrollingContainer {
   }
 
   reinitialize() {
-    console.log("Re-running positioning logic...");
+    // console.log("Re-running positioning logic...");
     this.positionItems();
     this.scrollToItem(this.currentIndex, 'reinitialize', true); // Force immediate scroll without animation
   }
@@ -557,7 +557,7 @@ class InfiniteScrollingContainer {
       return;
     }
     
-    console.log(`InfiniteScrollingContainer: Scrolling to item at index ${index}`);
+    // console.log(`InfiniteScrollingContainer: Scrolling to item at index ${index}`);
     
     // Find the item in allItems
     const item = this.allItems.find(item => 
@@ -569,12 +569,12 @@ class InfiniteScrollingContainer {
       return;
     }
     
-    console.log(`InfiniteScrollingContainer: Found item: ${item.element.id}`);
+    // console.log(`InfiniteScrollingContainer: Found item: ${item.element.id}`);
     
     // Calculate the scroll position
     const scrollTop = item.top;
     
-    console.log(`InfiniteScrollingContainer: Scrolling to position: ${scrollTop}`);
+    // console.log(`InfiniteScrollingContainer: Scrolling to position: ${scrollTop}`);
     
     // Scroll to the item
     if (smooth) {
@@ -669,7 +669,7 @@ class InfiniteScrollingContainer {
       return false;
     }
     
-    console.log(`InfiniteScrollingContainer: Scrolling to item at index ${index}`);
+    // console.log(`InfiniteScrollingContainer: Scrolling to item at index ${index}`);
     
     // Find the item in allItems
     const item = this.allItems.find(item => 
@@ -681,12 +681,12 @@ class InfiniteScrollingContainer {
       return false;
     }
     
-    console.log(`InfiniteScrollingContainer: Found item: ${item.element.id}`);
+    // console.log(`InfiniteScrollingContainer: Found item: ${item.element.id}`);
     
     // Calculate the scroll position
     const scrollTop = item.top;
     
-    console.log(`InfiniteScrollingContainer: Scrolling to position: ${scrollTop}`);
+    // console.log(`InfiniteScrollingContainer: Scrolling to position: ${scrollTop}`);
 
     // Calculate final scroll position with an offset to ensure the header is visible
     const scrollOffset = 20; // pixels

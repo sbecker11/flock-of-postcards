@@ -24,25 +24,25 @@ const sortOptions = ref([
 
 // Methods for buttons - these will now call the legacy controller
 function selectFirst() {
-  console.log("selectFirst button clicked");
+  // console.log("selectFirst button clicked");
   if (window.resumeListController) {
     window.resumeListController.goToFirstResumeItem();
   }
 }
 function selectLast() {
-  console.log("selectLast button clicked");
+  // console.log("selectLast button clicked");
   if (window.resumeListController) {
     window.resumeListController.goToLastResumeItem();
   }
 }
 function selectNext() {
-  console.log("selectNext button clicked");
+  // console.log("selectNext button clicked");
   if (window.resumeListController) {
     window.resumeListController.goToNextResumeItem();
   }
 }
 function selectPrevious() {
-  console.log("selectPrevious button clicked");
+  // console.log("selectPrevious button clicked");
   if (window.resumeListController) {
     window.resumeListController.goToPreviousResumeItem();
   }

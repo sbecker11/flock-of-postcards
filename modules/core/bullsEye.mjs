@@ -24,10 +24,10 @@ export function initialize() {
         throw new Error("Cannot initialize bullsEye: viewPort not initialized");
     }
     
-    console.log("Initializing bullsEye...");
+    // console.log("Initializing bullsEye...");
     updateBullsEye();
     _isInitialized = true;
-    console.log("bullsEye initialized successfully");
+    // console.log("bullsEye initialized successfully");
 }
 
 export function isInitialized() {
@@ -46,7 +46,7 @@ export function getBullsEye() {
 export function updateBullsEye() {
     const {x:_centerX, y:_centerY} = viewPort.getViewPortOrigin();
 
-    console.log(`Repositioning BullsEye to: top=${_centerY}px, left=${_centerX}px`);
+    // console.log(`Repositioning BullsEye to: top=${_centerY}px, left=${_centerX}px`);
 
     // _bullsEyeElement.style.left = `${_centerX - _bullsEyeRad}px`;
     // _bullsEyeElement.style.top = `${_centerY - _bullsEyeRad}px`;

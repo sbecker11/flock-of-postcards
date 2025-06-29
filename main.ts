@@ -8,4 +8,4 @@ import App from '@/modules/components/App.vue';
 // --- Vue App Initialization ---
 const app = createApp(App);
 app.mount('#app');
-console.log('Vue root app mounted.');
+// console.log('Vue root app mounted.');

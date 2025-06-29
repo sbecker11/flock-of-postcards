@@ -25,12 +25,12 @@ import * as scenePlane from '@/modules/scene/scenePlane.mjs';
 import * as autoScroll from '@/modules/animation/autoScroll.mjs';
 import * as sceneViewLabel from '@/modules/core/sceneViewLabel.mjs';
 
-const isMounted = ref(false);
+const isMounted = ref(true);
 
 onMounted(() => {
   nextTick(async () => {
     try {
-      console.log("App.vue: Component is mounted. Version check: 3. Initializing legacy modules...");
+      // console.log("App.vue: Component is mounted. Version check: 3. Initializing legacy modules...");
 
       // Initialize core modules that have no DOM dependencies or whose DOM is always present
       viewPort.initialize();
@@ -76,13 +76,12 @@ onMounted(() => {
       const sceneRect = { left: 0, top: 0, right: window.innerWidth, bottom: window.innerHeight }; // A default rect is fine for init
       parallax.viewAllBizCardDivs(currentFocalPoint, "App.vue-initial-render", sceneRect);
 
-      console.log("App.vue: All legacy modules initialized successfully.");
+      // console.log("App.vue: All legacy modules initialized successfully.");
 
     } catch (error) {
       console.error("App.vue: Error during initialization:", error);
     }
   });
-  isMounted.value = true;
 });
 </script>
 
@@ -90,6 +89,8 @@ onMounted(() => {
   <div id="app-container">
     <div id="scene-container">
       <div id="scene-plane">
+        <div id="scene-plane-top-gradient"></div>
+        <div id="scene-plane-btm-gradient"></div>
         <div id="timeline-container" class="timeline-timelineContainer-left"></div>
       </div>
       <div id="biz-details-div"></div>
@@ -98,7 +99,7 @@ onMounted(() => {
     <div id="bulls-eye">+</div>
     <div id="focal-point">⦻</div>
     <SceneViewLabel />
-    <ResumeContainer v-if="isMounted" />
+    <ResumeContainer />
   </div>
 </template>
 

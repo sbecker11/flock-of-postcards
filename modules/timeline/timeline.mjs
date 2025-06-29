@@ -31,7 +31,7 @@ export function isTimelineInitialized() {
  */
 export function initialize(minYear, maxYear, defaultYear=null) {
     if (isTimelineInitialized()) {
-        console.log("initializeTimeline: Timeline already initialized, ignoring duplicate initialization request");
+        // console.log("initializeTimeline: Timeline already initialized, ignoring duplicate initialization request");
         return;
     }
     _timelineContainer = document.getElementById("timeline-container");
@@ -105,6 +105,14 @@ export function initialize(minYear, maxYear, defaultYear=null) {
     } // year
     _timelineIsInitialized = true;
     sceneContainer.scrollSceneToCurrentYearMonthTop();
+
+    // After the timeline is fully rendered, set the explicit height of the scene plane
+    // so that the bottom gradient can correctly position itself.
+    const scenePlane = document.getElementById('scene-plane');
+    if (scenePlane) {
+        const timelineHeight = getTimelineHeight();
+        scenePlane.style.height = `${timelineHeight}px`;
+    }
 }
 
 // the global set of all yearDivBottoms created 

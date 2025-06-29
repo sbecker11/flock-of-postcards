@@ -39,7 +39,7 @@ const MIN_UPDATE_INTERVAL = 16; // ~60fps
 export function initialize() {
     // Prevent duplicate initialization
     if (_isInitialized) {
-        console.log("Parallax already initialized, ignoring duplicate initialization request");
+        // console.log("Parallax already initialized, ignoring duplicate initialization request");
         return;
     }
     
@@ -54,11 +54,11 @@ export function initialize() {
     }
     
     // initializded set at the end of this function
-    console.log("Initializing parallax...");
+    // console.log("Initializing parallax...");
     
     // Check if any bizCardDivs exist
     const bizCardDivs = document.getElementsByClassName("biz-card-div");
-    // console.log(`Found ${bizCardDivs.length} bizCardDivs for parallax`);
+    // // console.log(`Found ${bizCardDivs.length} bizCardDivs for parallax`);
     
     // Check if they have the required attributes
     let missingAttributesCount = 0;
@@ -71,7 +71,7 @@ export function initialize() {
     if (missingAttributesCount > 0) {
         throw new Error(`${missingAttributesCount} bizCardDivs are missing required attributes for parallax`);
     } else {
-        // console.log("All bizCardDivs have required attributes for parallax");
+        // // console.log("All bizCardDivs have required attributes for parallax");
     }
     
     // Remove any existing listeners before adding a new one
@@ -80,7 +80,7 @@ export function initialize() {
     
     // Register as a focalPoint-only listener with our new handler
     focalPoint.addFocalPointOnlyListener(handleFocalPointChange);
-    // console.log("Parallax registered with focalPoint as a focal-point-only listener");
+    // // console.log("Parallax registered with focalPoint as a focal-point-only listener");
     
     // Add direct scroll event listener to scene container
     const sceneContainer = document.getElementById('scene-container');
@@ -144,7 +144,7 @@ export function initialize() {
         
         // Start observing the scene container
         _windowResizeObserver.observe(sceneContainer);
-        // console.log("Added ResizeObserver to scene container in parallax");
+        // // console.log("Added ResizeObserver to scene container in parallax");
         
         // Store previous dimensions to check for actual changes
         let prevWidth = sceneContainer.clientWidth;
@@ -189,7 +189,7 @@ export function initialize() {
     }
     
     _isInitialized = true;
-    console.log("Parallax initialized successfully");
+    // console.log("Parallax initialized successfully");
     
     // Emit event when initialization is complete
     eventBus.emit('parallax:initialized', {});
@@ -235,7 +235,11 @@ export function viewAllBizCardDivs(focalPoint, prefix, sceneRect) {
     }
 }
 
-function applyParallaxToBizCardDiv(bizCardDiv, dh, dv) {
+export function applyParallaxToBizCardDiv(bizCardDiv, dh, dv) {
+    if (bizCardDiv.id.endsWith('-clone')) {
+        // console.log(`Parallax for clone ${bizCardDiv.id}: dh=${dh}, dv=${dv}`);
+    }
+
     // If the card has a clone, it means it's selected and the original should not be touched.
     if (bizCardDiv.classList.contains('hasClone')) {
         return;
@@ -272,7 +276,7 @@ function applyParallaxToBizCardDiv(bizCardDiv, dh, dv) {
     bizCardDiv.style.transform = `translate(${dx}px, ${dy}px) translateZ(${divZ}px)`;
 
     // Log the ID and computed top position
-    // console.log(`Card ID: ${bizCardDiv.id}, Top: ${viewTop}px`);
+    // // console.log(`Card ID: ${bizCardDiv.id}, Top: ${viewTop}px`);
 }
 
 /**
@@ -355,7 +359,7 @@ export function updateParallax(source = "external", force = false) {
  * @param {string} prefix - Source of the update for logging
  */
 function handleFocalPointChange(focalPointPos, prefix) {
-    // console.log("parallax.handleFocalPointChange called with:", {
+    // // console.log("parallax.handleFocalPointChange called with:", {
     //     focalPointPos,
     //     prefix
     // });

@@ -38,10 +38,10 @@ export async function initializeModule(moduleName) {
     }
     
     // Initialize the module
-    console.log(`Initializing module: ${moduleName}`);
+    // console.log(`Initializing module: ${moduleName}`);
     await modules.get(moduleName)();
     initializedModules.add(moduleName);
-    console.log(`Module initialized: ${moduleName}`);
+    // console.log(`Module initialized: ${moduleName}`);
 }
 
 /**
