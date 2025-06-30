@@ -59,7 +59,7 @@ export async function initializeAllModules() {
  */
 
 // Import all modules that need initialization
-import * as viewPort from './viewPort.mjs';
+import * as viewPort from './viewport.mjs';
 import * as sceneViewLabel from './sceneViewLabel.mjs';
 import * as sceneContainer from '../scene/sceneContainer.mjs';
 import * as scenePlane from '../scene/scenePlane.mjs';
