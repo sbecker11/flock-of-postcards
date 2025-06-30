@@ -16,6 +16,8 @@ function clampToRange(val, min, max) {
 }
 
 function updateLayout(newUiPercentage, shouldSave = true) {
+    console.log('=== updateLayout START ===');
+    console.log('updateLayout called with percentage:', newUiPercentage, 'shouldSave:', shouldSave);
     const windowWidth = window.innerWidth;
     const maxSceneWidth = windowWidth - HANDLE_WIDTH;
     const clampedUiPercentage = clampToRange(newUiPercentage, 0, 100);
@@ -23,16 +25,22 @@ function updateLayout(newUiPercentage, shouldSave = true) {
     const newSceneWidth = Math.round((clampedUiPercentage / 100) * maxSceneWidth);
     sceneWidthInPixels.value = newSceneWidth;
     
+    console.log('Calling viewPort.setViewPortWidth with:', newSceneWidth);
     viewPort.setViewPortWidth(newSceneWidth);
     
     if (AppState) {
         AppState.layout.panelSizePercentage = clampedUiPercentage;
         if (shouldSave) {
+            console.log('Saving state...');
             saveState(AppState);
         }
     }
     
-    window.dispatchEvent(new CustomEvent('layout-changed', { detail: { sceneWidth: newSceneWidth } }));
+    console.log('About to dispatch layout-changed event with sceneWidth:', newSceneWidth);
+    const event = new CustomEvent('layout-changed', { detail: { sceneWidth: newSceneWidth } });
+    window.dispatchEvent(event);
+    console.log('layout-changed event dispatched');
+    console.log('=== updateLayout END ===');
     
     return clampedUiPercentage;
 }

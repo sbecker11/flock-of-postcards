@@ -23,11 +23,63 @@ let animationFrameId = null;
 // --- Private Logic ---
 
 function updateBullsEyePosition() {
-    const rect = viewPort.getVisualRect();
-    if (rect) {
-        bullsEyePosition.x = rect.left + rect.width / 2;
-        bullsEyePosition.y = rect.top + rect.height / 2;
+    console.log('=== updateBullsEyePosition START ===');
+    console.log('updateBullsEyePosition called, viewPort.isInitialized():', viewPort.isInitialized());
+    console.log('window.innerWidth:', window.innerWidth, 'window.innerHeight:', window.innerHeight);
+    
+    if (!viewPort.isInitialized()) {
+        // If viewport is not initialized yet, set default position to window center temporarily
+        bullsEyePosition.x = window.innerWidth / 2;
+        bullsEyePosition.y = window.innerHeight / 2;
+        console.log('Viewport not initialized, using window center:', bullsEyePosition);
+        return;
     }
+    
+    // Get the scene container to calculate the correct position
+    const sceneContainer = document.getElementById('scene-container');
+    if (sceneContainer) {
+        const sceneRect = sceneContainer.getBoundingClientRect();
+        const sceneCenterX = sceneRect.left + sceneRect.width / 2;
+        const sceneCenterY = sceneRect.top + sceneRect.height / 2;
+        
+        bullsEyePosition.x = sceneCenterX;
+        bullsEyePosition.y = sceneCenterY;
+        console.log('Using scene container center:', bullsEyePosition);
+        
+        // Also recenter the bullsEye element directly
+        const bullsEyeElement = document.getElementById('bulls-eye');
+        if (bullsEyeElement) {
+            console.log('Recentering bullsEye element to:', { x: sceneCenterX, y: sceneCenterY });
+            bullsEyeElement.style.left = `${sceneCenterX}px`;
+            bullsEyeElement.style.top = `${sceneCenterY}px`;
+        } else {
+            console.log('BullsEye element not found in DOM');
+        }
+        
+        // Also recenter the aimPoint element directly
+        const aimPointElement = document.getElementById('aim-point');
+        if (aimPointElement) {
+            console.log('Recentering aimPoint element to:', { x: sceneCenterX, y: sceneCenterY });
+            aimPointElement.style.left = `${sceneCenterX}px`;
+            aimPointElement.style.top = `${sceneCenterY}px`;
+        } else {
+            console.log('AimPoint element not found in DOM');
+        }
+    } else {
+        // Fallback to viewport center
+        const centerPosition = viewPort.getViewPortOrigin();
+        console.log('viewPort.getViewPortOrigin() returned:', centerPosition);
+        if (centerPosition) {
+            bullsEyePosition.x = centerPosition.x;
+            bullsEyePosition.y = centerPosition.y;
+            console.log('Using viewport center as fallback:', bullsEyePosition);
+        } else {
+            console.log('centerPosition is null/undefined, using window center as fallback');
+            bullsEyePosition.x = window.innerWidth / 2;
+            bullsEyePosition.y = window.innerHeight / 2;
+        }
+    }
+    console.log('=== updateBullsEyePosition END ===');
 }
 
 function animate() {
@@ -37,8 +89,11 @@ function animate() {
     }
 
     if (mode.value === MODES.LOCKED) {
+        // Update bullsEye position to ensure it's current
+        updateBullsEyePosition();
         focalPoint.target.x = bullsEyePosition.x;
         focalPoint.target.y = bullsEyePosition.y;
+        console.log('LOCKED mode - target position:', focalPoint.target, 'bullsEyePosition:', bullsEyePosition);
     }
 
     const distanceSq = mathUtils.getPositionsSquaredDistance(focalPoint.current, focalPoint.target);
@@ -46,6 +101,7 @@ function animate() {
     if (distanceSq < 0.5) {
         focalPoint.current.x = focalPoint.target.x;
         focalPoint.current.y = focalPoint.target.y;
+        console.log('At target - current position:', focalPoint.current);
         // Keep animating if locked to always track the bullseye
         if (mode.value === MODES.LOCKED) {
             animationFrameId = requestAnimationFrame(animate);
@@ -55,6 +111,7 @@ function animate() {
     } else {
         focalPoint.current.x += (focalPoint.target.x - focalPoint.current.x) * EASE_FACTOR;
         focalPoint.current.y += (focalPoint.target.y - focalPoint.current.y) * EASE_FACTOR;
+        console.log('Animating - current position:', focalPoint.current, 'target:', focalPoint.target);
         animationFrameId = requestAnimationFrame(animate);
     }
 }
@@ -111,10 +168,35 @@ export function useFocalPoint() {
 
     // Initialize to locked state at center
     updateBullsEyePosition();
-    focalPoint.target.x = bullsEyePosition.x;
-    focalPoint.current.x = bullsEyePosition.x;
-    focalPoint.target.y = bullsEyePosition.y;
-    focalPoint.current.y = bullsEyePosition.y;
+    
+    // Use bullsEye position if viewport is available, otherwise use window center
+    if (viewPort.isInitialized()) {
+      focalPoint.target.x = bullsEyePosition.x;
+      focalPoint.current.x = bullsEyePosition.x;
+      focalPoint.target.y = bullsEyePosition.y;
+      focalPoint.current.y = bullsEyePosition.y;
+      console.log('Viewport initialized, using bullsEye position:', { x: focalPoint.current.x, y: focalPoint.current.y });
+    } else {
+      focalPoint.target.x = window.innerWidth / 2;
+      focalPoint.current.x = window.innerWidth / 2;
+      focalPoint.target.y = window.innerHeight / 2;
+      focalPoint.current.y = window.innerHeight / 2;
+      console.log('Viewport not initialized, using window center:', { x: focalPoint.current.x, y: focalPoint.current.y });
+      
+      // Set up a check to update position when viewport becomes available
+      const checkViewportInterval = setInterval(() => {
+        if (viewPort.isInitialized()) {
+          console.log('Viewport now initialized, updating focal point position');
+          updateBullsEyePosition();
+          focalPoint.target.x = bullsEyePosition.x;
+          focalPoint.current.x = bullsEyePosition.x;
+          focalPoint.target.y = bullsEyePosition.y;
+          focalPoint.current.y = bullsEyePosition.y;
+          clearInterval(checkViewportInterval);
+        }
+      }, 100);
+    }
+    
     startAnimation();
   });
 

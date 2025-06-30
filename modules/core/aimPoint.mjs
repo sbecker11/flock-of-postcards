@@ -24,18 +24,26 @@ export function initialize() {
         throw new Error("aimPoint.initialize: #aim-point element not found in DOM");
     }
 
-    const initialPosition = viewPort.getViewPortOrigin();
+    const initialPosition = getSceneContainerCenter();
     if (initialPosition) {
         setAimPoint(initialPosition, "aimPoint.initialize");
         _isInitialized = true;
         CONSOLE_LOG_IGNORE("aimPoint initialized successfully");
     } else {
-        console.error("aimPoint.initialize: Could not get initial position from viewPort.");
+        console.error("aimPoint.initialize: Could not get initial position from scene container.");
     }
 
     // Add scroll/wheel pass-through handlers to aim-point
     _aimPointElement.addEventListener('wheel', handleScrollPassThrough, { passive: false });
     _aimPointElement.addEventListener('scroll', handleScrollPassThrough, { passive: false });
+    
+    // Listen for layout changes to update aimPoint position
+    window.addEventListener('layout-changed', () => {
+        if (_isInitialized) {
+            const newPosition = getSceneContainerCenter();
+            setAimPoint(newPosition, "aimPoint.layout-changed");
+        }
+    });
 }
 
 // Add scroll/wheel pass-through handlers to aim-point
@@ -56,16 +64,39 @@ function getAimPointStatus() {
 }
 
 /**
- * set the aimPoint position which is viewPort-relative
+ * Get the center position of the scene container
+ * @returns {object} The center position {x, y}
+ */
+function getSceneContainerCenter() {
+    const sceneContainer = document.getElementById('scene-container');
+    if (sceneContainer) {
+        const sceneRect = sceneContainer.getBoundingClientRect();
+        return {
+            x: sceneRect.left + sceneRect.width / 2,
+            y: sceneRect.top + sceneRect.height / 2
+        };
+    }
+    // Fallback to viewport center
+    return viewPort.getViewPortOrigin();
+}
+
+/**
+ * set the aimPoint position which is scene container center
  * @param {*} position 
  * @param {*} prefix 
  */
 export function setAimPoint(position, prefix="") {
     if (position == null) throw new Error("setAimPoint: position is null");
 
+    // Use scene container center if position is the viewport center
+    let targetPosition = position;
+    if (position === viewPort.getViewPortOrigin()) {
+        targetPosition = getSceneContainerCenter();
+    }
+
     // skip move if move is too small
-    const squaredDist = mathUtils.getPositionsSquaredDistance(position, _lastAimPointPosition);
-    _lastAimPointPosition = position;
+    const squaredDist = mathUtils.getPositionsSquaredDistance(targetPosition, _lastAimPointPosition);
+    _lastAimPointPosition = targetPosition;
     if ( squaredDist < 0.25 ) { // 0.50 squared
         setAimPointStatus("PAUSED");
         return;
@@ -75,13 +106,13 @@ export function setAimPoint(position, prefix="") {
         }
     }
 
-    _aimPointElement.style.left = `${position.x}px`;
-    _aimPointElement.style.top = `${position.y}px`;
+    _aimPointElement.style.left = `${targetPosition.x}px`;
+    _aimPointElement.style.top = `${targetPosition.y}px`;
     if (_aimPointElement.classList.contains('hidden')) {
         _aimPointElement.classList.remove('hidden');
     }
     if (prefix != "") {
-        //CONSOLE_LOG_IGNORE(`setAimPoint:${prefix}`, position);
+        //CONSOLE_LOG_IGNORE(`setAimPoint:${prefix}`, targetPosition);
     }
 }
 

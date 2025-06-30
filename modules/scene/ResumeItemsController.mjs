@@ -4,6 +4,7 @@ import * as utils from '../utils/utils.mjs';
 import * as BizDetailsDivModule from './bizDetailsDivModule.mjs';
 import { selectionManager } from '../core/selectionManager.mjs';
 import { cardsController } from './CardsController.mjs';
+import { applyPaletteToElement } from '../composables/useColorPalette.mjs';
 // No longer directly manipulating other managers
 // import { bizCardDivManager } from './bizCardDivManager.mjs';
 // import * as scenePlane from './scenePlane.mjs';
@@ -35,16 +36,20 @@ class ResumeItemsController {
         CONSOLE_LOG_IGNORE("ResumeItemsController initialized.");
     }
 
-    createAllBizResumeDivs(bizCardDivs) {
+    async createAllBizResumeDivs(bizCardDivs) {
         if (!bizCardDivs || bizCardDivs.length === 0) {
             console.error("ResumeItemsController: Cannot create resume divs, no card divs provided.");
             return [];
         }
-        this.bizResumeDivs = bizCardDivs.map(cardDiv => this.createBizResumeDiv(cardDiv));
+        this.bizResumeDivs = [];
+        for (const cardDiv of bizCardDivs) {
+            const resumeDiv = await this.createBizResumeDiv(cardDiv);
+            this.bizResumeDivs.push(resumeDiv);
+        }
         return this.bizResumeDivs;
     }
 
-    createBizResumeDiv(bizCardDiv) {
+    async createBizResumeDiv(bizCardDiv) {
         if (!bizCardDiv) throw new Error('createBizResumeDiv: bizCardDiv not found');
 
         const jobIndexStr = bizCardDiv.getAttribute('data-job-index');
@@ -63,6 +68,9 @@ class ResumeItemsController {
 
         const bizResumeDetailsDiv = BizDetailsDivModule.createBizResumeDetailsDiv(bizResumeDiv, bizCardDiv);
         bizResumeDiv.appendChild(bizResumeDetailsDiv);
+
+        // Apply the current color palette
+        await applyPaletteToElement(bizResumeDiv);
 
         this._setupMouseListeners(bizResumeDiv);
 

@@ -69,15 +69,18 @@ export function applyParallaxToBizCardDiv(bizCardDiv, dh, dv) {
     if (bizCardDiv.classList.contains('hasClone')) {
         return; // Do not apply parallax to the original card if it's selected (has a clone).
     }
-
     const sceneZ = parseFloat(bizCardDiv.getAttribute('data-sceneZ'));
     if (isNaN(sceneZ)) {
         return; // Element doesn't have a valid Z position.
     }
-    
+
     // The parallax effect is scaled by the card's Z position.
-    // A higher z-value means the card is further away, so it should move less.
-    const zScale = 1 - ((sceneZ - zUtils.ALL_CARDS_Z_MIN) / (zUtils.ALL_CARDS_Z_MAX - zUtils.ALL_CARDS_Z_MIN));
+    // A higher z- means the card is further away, so it should move less.
+    let zScale = 0;
+    if (sceneZ > 0) 
+        zScale = (1 - ((sceneZ - zUtils.ALL_CARDS_Z_MIN) / (zUtils.ALL_CARDS_Z_MAX - zUtils.ALL_CARDS_Z_MIN)));
+    // console.log("sceneZ:", sceneZ, "zScale:", zScale );
+
     const translateX = dh * zScale;
     const translateY = dv * zScale;
     

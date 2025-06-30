@@ -1,4 +1,6 @@
 <script setup>
+console.log('App.vue script setup is running');
+
 import { ref, onMounted, nextTick, computed } from 'vue';
 import ResumeContainer from './ResumeContainer.vue';
 import ResizeHandle from './ResizeHandle.vue';
@@ -21,10 +23,14 @@ const { sceneWidth, initializeResizeHandleState } = useResizeHandle();
 const isLoading = ref(true);
 const error = ref(null);
 
-const focalPointStyle = computed(() => ({
-  left: `${focalPointPosition.value.x}px`,
-  top: `${focalPointPosition.value.y}px`,
-}));
+const focalPointStyle = computed(() => {
+  const style = {
+    left: `${focalPointPosition.value.x}px`,
+    top: `${focalPointPosition.value.y}px`,
+  };
+  console.log('focalPointStyle computed:', style, 'focalPointPosition:', focalPointPosition.value);
+  return style;
+});
 
 const sceneContainerStyle = computed(() => ({
   width: `${sceneWidth.value}px`,
@@ -32,12 +38,18 @@ const sceneContainerStyle = computed(() => ({
 
 onMounted(async () => {
   try {
+    console.log('App.vue: onMounted started');
     await initializeState();
+    console.log('App.vue: initializeState completed');
     initializeResizeHandleState();
+    console.log('App.vue: initializeResizeHandleState completed');
     initializeTimeline(jobsData);
+    console.log('App.vue: initializeTimeline completed');
     isLoading.value = false;
     await nextTick();
+    console.log('App.vue: About to call moduleManager.initialize()');
     await moduleManager.initialize();
+    console.log('App.vue: moduleManager.initialize() completed');
     console.log("Application initialized successfully.");
   } catch (e) {
     console.error("App.vue: Error during initialization:", e);

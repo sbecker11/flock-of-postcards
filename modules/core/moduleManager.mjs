@@ -84,7 +84,12 @@ const STAGES = [
     modules: [
       { name: 'viewPort', init: viewPort.initialize },
       { name: 'aimPoint', init: aimPoint.initialize },
-      { name: 'bullsEye', init: bullsEye.initialize },
+      { name: 'bullsEye', init: () => {
+        console.log('ModuleManager: About to initialize bullsEye');
+        const result = bullsEye.initialize();
+        console.log('ModuleManager: bullsEye initialization completed');
+        return result;
+      }},
       { name: 'sceneViewLabel', init: sceneViewLabel.initialize },
       { name: 'autoScroll', init: autoScroll.initialize },
       { name: 'keyDown', init: keyDown.initialize },
@@ -95,11 +100,11 @@ const STAGES = [
     name: 'Data Controllers (depends on data)',
     modules: [
         { name: 'cardsController', init: () => cardsController.initialize(jobsData) },
-        { name: 'resumeItemsController', init: () => {
+        { name: 'resumeItemsController', init: async () => {
             // First, initialize the controller itself.
             resumeItemsController.initialize();
             // Then, create the divs which is its primary role in setup.
-            const bizResumeDivs = resumeItemsController.createAllBizResumeDivs(cardsController.bizCardDivs);
+            const bizResumeDivs = await resumeItemsController.createAllBizResumeDivs(cardsController.bizCardDivs);
             const resumeContentDiv = document.getElementById('resume-content-div');
             if (resumeContentDiv) {
               bizResumeDivs.forEach(div => resumeContentDiv.appendChild(div));
@@ -158,6 +163,64 @@ export async function initialize() {
   // Final step: apply the initial layout now that all modules are ready.
   const { applyInitialLayout } = useResizeHandle();
   applyInitialLayout();
+
+  // Ensure viewport is updated with the correct dimensions
+  viewPort.updateViewPort();
+
+  // Ensure aimPoint is positioned at the correct center
+  if (aimPoint.isInitialized()) {
+    const centerPosition = viewPort.getViewPortOrigin();
+    aimPoint.setAimPoint(centerPosition, 'moduleManager.initialize');
+  }
+
+  // Ensure focal point is positioned at the bullsEye center (default modality)
+  // We need to trigger a layout-changed event to update the focal point
+  window.dispatchEvent(new CustomEvent('layout-changed', { detail: { sceneWidth: 0 } }));
+
+  // Ensure bullsEye is centered after the viewport dimensions are set
+  if (bullsEye.isInitialized()) {
+    bullsEye.recenterBullsEye();
+    
+    // Wait for DOM to be fully rendered
+    requestAnimationFrame(() => {
+      if (bullsEye.isInitialized()) {
+        bullsEye.recenterBullsEye();
+        
+        requestAnimationFrame(() => {
+          if (bullsEye.isInitialized()) {
+            bullsEye.recenterBullsEye();
+          }
+        });
+      }
+    });
+  }
+
+  // Listen for layout changes to ensure bullsEye stays centered
+  window.addEventListener('layout-changed', () => {
+    if (bullsEye.isInitialized()) {
+      requestAnimationFrame(() => {
+        bullsEye.recenterBullsEye();
+      });
+    }
+    if (aimPoint.isInitialized()) {
+      requestAnimationFrame(() => {
+        const centerPosition = viewPort.getViewPortOrigin();
+        aimPoint.setAimPoint(centerPosition, 'moduleManager.layout-changed');
+      });
+    }
+  });
+
+  // Also ensure centering after a short delay to catch any late layout changes
+  setTimeout(() => {
+    if (bullsEye.isInitialized()) {
+      viewPort.updateViewPort();
+      bullsEye.recenterBullsEye();
+    }
+    if (aimPoint.isInitialized()) {
+      const centerPosition = viewPort.getViewPortOrigin();
+      aimPoint.setAimPoint(centerPosition, 'moduleManager.timeout');
+    }
+  }, 100);
 
   console.log('ModuleManager: All modules initialized successfully.');
 }
