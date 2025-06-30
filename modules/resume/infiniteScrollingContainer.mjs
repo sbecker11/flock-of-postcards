@@ -1,7 +1,5 @@
 // modules/scene/infiniteScrollingContainer.mjs
 
-import * as colorPalettes from '../colors/colorPalettes.mjs';
-
 class InfiniteScrollingContainer {
   constructor(scrollportElement, contentElement, options = {}) {
     this.scrollport = scrollportElement;
@@ -151,8 +149,7 @@ class InfiniteScrollingContainer {
 
       // Use left and right positioning to create gaps - force with setProperty
       item.element.style.setProperty('left', '10px', 'important');
-      item.element.style.setProperty('right', '10px', 'important');
-      item.element.style.setProperty('width', 'auto', 'important');
+      item.element.style.setProperty('width', 'calc(100% - 20px)', 'important');
       item.element.style.setProperty('min-width', '0', 'important'); // Allow compression below natural min-width
       item.element.style.setProperty('max-width', 'none', 'important'); // Remove any max-width constraints
       
@@ -255,11 +252,8 @@ class InfiniteScrollingContainer {
       currentTop += contentHeight;
     });
     
-    // Set container height
+    // Set the total height of the content holder for proper scrolling
     this.contentHolder.style.height = `${currentTop}px`;
-
-    // Reapply color palettes after positioning (colors get lost during style manipulation)
-    this.reapplyColorPalettes();
 
     // Position at start
     this.scrollToIndex(0, false);
@@ -387,26 +381,10 @@ class InfiniteScrollingContainer {
       currentScrollTop = this.scrollport.scrollTop;
       needsUpdate = true;
     }
-    
-    // Batch DOM writes
-    if (needsUpdate) {
-      requestAnimationFrame(() => {
-        this.positionItems();
-        // Restore scroll position
-        this.scrollport.scrollTop = currentScrollTop;
-        // Reapply colors after resize
-        this.reapplyColorPalettes();
-      });
-    }
   }
 
   reapplyColorPalettes() {
-    // Reapply color palettes to all resume divs after style manipulation
-    this.allItems.forEach(item => {
-      if (item.element && item.element.classList.contains('biz-resume-div')) {
-        colorPalettes.applyCurrentColorPaletteToElement(item.element);
-      }
-    });
+    // This is now handled automatically by the useColorPalette composable
   }
 
   bindEvents() {
@@ -647,7 +625,12 @@ class InfiniteScrollingContainer {
   }
 
   addDirectClickHandlers() {
-    // THIS IS INTENTIONALLY LEFT BLANK TO PREVENT A DEAD IMPORT
+    this.allItems.forEach(item => {
+      // Add direct click handlers to all items
+      item.element.addEventListener('click', () => {
+        // THIS IS INTENTIONALLY LEFT BLANK TO PREVENT A DEAD IMPORT
+      });
+    });
   }
 
   // Public method to manually trigger a click on a bizResumeDiv

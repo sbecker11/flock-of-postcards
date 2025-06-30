@@ -29,12 +29,15 @@ html[native-dark-active] #scene-container,
 
 #scene-plane {
     position: relative;
+    transform-style: preserve-3d;
     background-color: var(--background-dark);
     width: 100%;
     min-height: 200vh; /* Ensure content is taller than viewPort */
     scroll-behavior: smooth;
     z-index: 2; /* Higher than gradients */
     isolation: isolate;
+    display: flex;
+    justify-content: center;
 }
 
 #scene-plane-top-gradient {

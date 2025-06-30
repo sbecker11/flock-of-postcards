@@ -1,16 +1,25 @@
 <script setup>
-import { ref, onMounted, computed } from 'vue';
-import { resizeManager } from '@/modules/core/resizeHandle.mjs';
-import * as focalPoint from '@/modules/core/focalPoint.mjs';
+import { ref, computed } from 'vue';
+import { useFocalPoint } from '@/modules/composables/useFocalPoint.mjs';
+import { useResizeHandle } from '@/modules/composables/useResizeHandle.mjs';
 
-// Create a ref to attach to the component's root element
-const handleRef = ref(null);
+// --- Composables ---
+const { 
+  percentage: scenePercentage, 
+  isLeftCollapsed, 
+  isRightCollapsed, 
+  steppingEnabled,
+  startDrag, 
+  collapseLeft, 
+  collapseRight, 
+  toggleStepping 
+} = useResizeHandle();
 
-const scenePercentage = ref(50);
-const isLeftCollapsed = computed(() => scenePercentage.value <= 0);
-const isRightCollapsed = computed(() => scenePercentage.value >= 100);
+const { 
+  mode: focalPointMode,
+  cycleMode: cycleFocalPointMode
+} = useFocalPoint();
 
-const focalPointMode = ref('locked'); // locked, following, dragging
 const isHovering = ref(false);
 
 const nextMode = computed(() => {
@@ -26,89 +35,38 @@ const displayMode = computed(() => {
     return isHovering.value ? nextMode.value : focalPointMode.value;
 });
 
-// Expose the handleRef so it can be accessed from the component instance
-defineExpose({
-  handleRef
-});
-
-// The onMounted hook is removed. Initialization will be handled by main.ts
-
 // --- Component Methods ---
-
-function setMode(newMode) {
-  focalPointMode.value = newMode;
-  focalPoint.setMode(newMode);
+function toggleFocalLock(event) {
+  event.stopPropagation();
+  cycleFocalPointMode();
 }
-
-function toggleFocalLock() {
-  let nextMode;
-  switch (focalPointMode.value) {
-    case 'locked':
-      nextMode = 'following';
-      break;
-    case 'following':
-      nextMode = 'dragging';
-      break;
-    case 'dragging':
-      nextMode = 'locked';
-      break;
-  }
-  setMode(nextMode);
-}
-
-const startDrag = (e) => {
-  // Prevent drag from starting on a button
-  if (e.target.closest('button')) return;
-  resizeManager.startDrag(e);
-};
-
-const collapseLeft = () => {
-  resizeManager.collapseLeft();
-};
-
-const collapseRight = () => {
-  resizeManager.collapseRight();
-};
-
-const toggleStepping = () => resizeManager.toggleStepping();
-
-// Expose a method for the legacy module to update the Vue component's state
-resizeManager.setStateUpdater = (newPercentage) => {
-  scenePercentage.value = Math.round(newPercentage);
-};
-
-onMounted(() => {
-  document.addEventListener('focalModeChange', (event) => {
-    const newMode = event.detail.mode;
-    if (['locked', 'following', 'dragging'].includes(newMode)) {
-      setMode(newMode);
-    }
-  });
-});
 </script>
 
 <template>
-    <div id="resize-handle" ref="handleRef" class="resize-handle" @mousedown="startDrag">
-        <button id="collapse-left" class="toggle-circle" @click.stop="collapseLeft" :disabled="isLeftCollapsed" title="Collapse Left">‹</button>
-        <button id="collapse-right" class="toggle-circle" @click.stop="collapseRight" :disabled="isRightCollapsed" title="Collapse Right">›</button>
-        <button id="stepping-indicator" class="toggle-circle" @click.stop="toggleStepping" title="Toggle Stepping (s)">S</button>
-        <button id="tri-state-toggle" 
-                class="toggle-circle" 
-                :class="[displayMode, { hovering: isHovering }]"
-                @click.stop="toggleFocalLock" 
-                @mouseenter="isHovering = true"
-                @mouseleave="isHovering = false"
-                :title="'Focal Point: ' + focalPointMode">
-            <span v-if="displayMode === 'locked'">⦻</span>
-            <span v-if="displayMode === 'following'">›</span>
-            <span v-if="displayMode === 'dragging'">⤮</span>
-        </button>
-        <span id="scene-visible-percentage" class="percentage-display">{{ scenePercentage }}%</span>
+    <div id="resize-handle" class="resize-handle" @mousedown="startDrag">
+        <div class="button-container">
+            <button id="collapse-left" class="toggle-circle" @click.stop="collapseLeft" :disabled="isLeftCollapsed" title="Collapse Left">‹</button>
+            <button id="tri-state-toggle" 
+                    class="toggle-circle" 
+                    :class="[displayMode, { hovering: isHovering }]"
+                    @click.stop="toggleFocalLock" 
+                    @mouseenter="isHovering = true"
+                    @mouseleave="isHovering = false"
+                    :title="'Focal Point: ' + focalPointMode">
+                <span v-if="displayMode === 'locked'">⦻</span>
+                <span v-if="displayMode === 'following'">›</span>
+                <span v-if="displayMode === 'dragging'">⤮</span>
+            </button>
+            <button id="stepping-indicator" class="toggle-circle" :class="{ 'inverted': steppingEnabled }" @click.stop="toggleStepping" title="Toggle Stepping (s)">S</button>
+            <button id="collapse-right" class="toggle-circle" @click.stop="collapseRight" :disabled="isRightCollapsed" title="Collapse Right">›</button>
+        </div>
+        <span id="scene-visible-percentage" class="percentage-display">{{ Math.round(scenePercentage) }}%</span>
     </div>
 </template>
 
 <style scoped>
 .resize-handle {
+    position: relative;
     width: 20px;
     height: 100%;
     cursor: col-resize;
@@ -116,11 +74,22 @@ onMounted(() => {
     z-index: 20;
     display: flex;
     flex-direction: column;
-    justify-content: flex-start;
+    justify-content: flex-end;
     align-items: center;
-    padding: 20px 0;
+    padding-bottom: 20px;
     box-sizing: border-box;
     flex-shrink: 0;
+}
+
+.button-container {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 10px;
 }
 
 .toggle-circle {
@@ -138,18 +107,6 @@ onMounted(() => {
     font-weight: bold;
     padding: 0;
     flex-shrink: 0;
-    position: relative;
-    left: 3px;
-}
-
-.toggle-circle:not(:first-child) {
-    margin-top: 10px;
-}
-
-.toggle-circle.inverted {
-    background-color: var(--button-text-color, white);
-    color: var(--button-bg-color, #555);
-    border: 1px solid var(--button-bg-color, #555);
 }
 
 #tri-state-toggle {
@@ -158,20 +115,17 @@ onMounted(() => {
     border-radius: 50%;
     border: 2px solid white;
     background-color: rgba(0,0,0,0.5);
-    background-size: 60%;
-    background-position: center;
-    background-repeat: no-repeat;
+    background-image: none;
     cursor: pointer;
     transition: background-color 0.2s;
     font-size: 16px;
     line-height: 1;
-    color: white;
     text-align: center;
     position: relative;
 }
 
-#tri-state-toggle:hover {
-    background-color: rgba(0,0,0,0.8);
+#tri-state-toggle span {
+    color: white;
 }
 
 #tri-state-toggle.hovering {
@@ -180,18 +134,21 @@ onMounted(() => {
     border-color: black;
 }
 
-#tri-state-toggle.locked {
-    background-image: none;
+#tri-state-toggle.hovering span {
+    color: black;
 }
 
 #tri-state-toggle.following {
-    background-image: none;
     font-size: 24px;
 }
 
 #tri-state-toggle.dragging {
-    background-image: none;
     font-size: 24px;
+}
+
+#tri-state-toggle.following span {
+    position: relative;
+    top: -1px;
 }
 
 #stepping-indicator {

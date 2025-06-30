@@ -1,8 +1,16 @@
 <script setup>
 import { ref, onMounted, watch } from 'vue';
-import ResizeHandle from '@/modules/components/ResizeHandle.vue';
 import { jobs } from '@/static_content/jobs/jobs.mjs';
 import { selectionManager } from '@/modules/core/selectionManager.mjs';
+import { useColorPalette } from '@/modules/composables/useColorPalette.mjs';
+
+// Use the color palette composable
+const {
+  orderedPaletteNames,
+  filenameToNameMap,
+  currentPaletteFilename,
+  setCurrentPalette
+} = useColorPalette();
 
 const currentSortRule = ref({ field: 'startDate', direction: 'desc' });
 
@@ -40,7 +48,7 @@ function selectNext() {
   }
 }
 function selectPrevious() {
-  CONSOLE_LOG_IGNORE("selectPrevious button clicked");
+  console.log("selectPrevious button clicked");
   if (window.resumeListController) {
     window.resumeListController.goToPreviousResumeItem();
   }
@@ -49,62 +57,58 @@ function selectPrevious() {
 </script>
 
 <template>
-    <div id="resume-container">
-        <ResizeHandle />
-        <div id="resume-content">
-            <div id="resume-content-header">
-                <p class="intro">Welcome to your flock-of-postcards!</p>
-                <div id="color-palette-container" tabindex="-1">
-                    <select id="color-palette-selector" tabindex="0"></select>
-                </div>
-                <div id="biz-card-sorting-container" tabindex="-1">
-                    <select id="biz-resume-div-sorting-selector" v-model="currentSortRule" tabindex="0">
-                        <option v-for="option in sortOptions" :key="option.text" :value="option.value">
-                            {{ option.text }}
-                        </option>
-                    </select>
-                </div>
-                <div id="biz-card-controls">
-                    <button @click="selectFirst" class="biz-card-control-button">First</button>
-                    <button @click="selectPrevious" class="biz-card-control-button">Prev</button>
-                    <button @click="selectNext" class="biz-card-control-button">Next</button>
-                    <button @click="selectLast" class="biz-card-control-button">Last</button>
-                </div>
+    <div id="resume-content">
+        <div id="resume-content-header">
+            <p class="intro">Welcome to your flock-of-postcards!</p>
+            <div id="color-palette-container" tabindex="-1">
+                <select 
+                    id="color-palette-selector" 
+                    v-model="currentPaletteFilename"
+                    tabindex="0"
+                >
+                    <option v-for="name in orderedPaletteNames" :key="name" :value="Object.keys(filenameToNameMap).find(key => filenameToNameMap[key] === name)">
+                        {{ name }}
+                    </option>
+                </select>
             </div>
-            <div id="resume-content-div-wrapper" class="scrollable-container">
-                <!-- The content of this div is now entirely managed by the legacy InfiniteScrollingContainer -->
-                <div id="resume-content-div"></div>
+            <div id="biz-card-sorting-container" tabindex="-1">
+                <select id="biz-resume-div-sorting-selector" v-model="currentSortRule" tabindex="0">
+                    <option v-for="option in sortOptions" :key="option.text" :value="option.value">
+                        {{ option.text }}
+                    </option>
+                </select>
             </div>
-            <div id="resume-content-footer">
-                <div>
-                    <span class="viewer-label">Resume Viewer</span>
-                </div>
+            <div id="biz-card-controls">
+                <button @click="selectFirst" class="biz-card-control-button">First</button>
+                <button @click="selectPrevious" class="biz-card-control-button">Prev</button>
+                <button @click="selectNext" class="biz-card-control-button">Next</button>
+                <button @click="selectLast" class="biz-card-control-button">Last</button>
+            </div>
+        </div>
+        <div id="resume-content-div-wrapper" class="scrollable-container">
+            <!-- The content of this div is now entirely managed by the legacy InfiniteScrollingContainer -->
+            <div id="resume-content-div"></div>
+        </div>
+        <div id="resume-content-footer">
+            <div>
+                <span class="viewer-label">Resume Viewer</span>
             </div>
         </div>
     </div>
 </template>
 
 <style scoped>
-#resume-container {
-    flex: 1;
+#resume-content {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
     display: flex;
-    flex-direction: row; /* Horizontal columns */
+    flex-direction: column;
     gap: 5px;
     overflow: hidden;
-    width: 100%;
-    background-color: var(--grey-darkest); /* Dark Grey */
-    position: relative; /* Needed for positioning the absolute label */
-    container-type: inline-size;
-    container-name: resume-container;
-}
-
-#resume-content {
-    flex: 1; /* This makes it resizable */
-    display: flex;
-    flex-direction: column; /* Vertical rows */
-    gap: 5px;
-    overflow: hidden; /* Prevent content from spilling out */
-    background-color: var(--grey-darkest); /* Dark Grey */
+    background-color: var(--grey-darkest);
     font-family: sans-serif;
 }
 

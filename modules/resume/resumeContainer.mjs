@@ -1,7 +1,10 @@
 // modules/resume/resumeContainer.mjs
 
 import * as sceneContainer  from '../scene/sceneContainer.mjs';
-import * as resizeHandle from '../core/resizeHandle.mjs';
+import { getJobsData } from '../../static_content/jobs/jobs.mjs';
+import * as selectionManager from '../core/selectionManager.mjs';
+import * as dom from '../utils/domUtils.mjs';
+import * as eventBus from '../core/eventBus.mjs';
 
 // Add a flag to track initialization
 let _isInitialized = false;

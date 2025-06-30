@@ -21,6 +21,13 @@ export function initialize() {
     if (!_sceneViewLabelElement) {
         throw new Error("sceneViewLabel.initialize: #scene-view-label element not found in DOM");
     }
+
+    // Listen for layout changes to reposition the label
+    window.addEventListener('layout-changed', () => repositionLabel());
+
+    // Initial positioning
+    repositionLabel();
+
     _isInitialized = true;
 }
 

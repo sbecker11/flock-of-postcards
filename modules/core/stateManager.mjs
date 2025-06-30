@@ -81,10 +81,19 @@ export async function saveState(state) {
  */
 export let AppState = null;
 
+let initStatePromise = null;
+
 /**
  * Initializes the global AppState by loading it from the server.
  * This must be called before any other module tries to access AppState.
+ * This function is now idempotent: it will only load state once.
  */
-export async function initializeState() {
-    AppState = await loadState();
+export function initializeState() {
+    if (!initStatePromise) {
+        initStatePromise = loadState().then(state => {
+            AppState = state;
+            return state;
+        });
+    }
+    return initStatePromise;
 } 

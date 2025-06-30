@@ -2,7 +2,6 @@
 
 import * as utils from '../utils/utils.mjs';
 import * as BizDetailsDivModule from './bizDetailsDivModule.mjs';
-import * as colorPalettes from '../colors/colorPalettes.mjs';
 import { selectionManager } from '../core/selectionManager.mjs';
 import { cardsController } from './CardsController.mjs';
 // No longer directly manipulating other managers
@@ -65,8 +64,6 @@ class ResumeItemsController {
         const bizResumeDetailsDiv = BizDetailsDivModule.createBizResumeDetailsDiv(bizResumeDiv, bizCardDiv);
         bizResumeDiv.appendChild(bizResumeDetailsDiv);
 
-        colorPalettes.applyCurrentColorPaletteToElement(bizResumeDiv);
-        
         this._setupMouseListeners(bizResumeDiv);
 
         return bizResumeDiv;

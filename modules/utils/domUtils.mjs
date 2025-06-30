@@ -1,7 +1,7 @@
 // modules/utils/domUtils.mjs
 
 import * as utils from './utils.mjs';
-import * as colorUtils from '../colors/colorUtils.mjs';
+import { get_RGB_from_Hex, getContrastingColor, isHexColor as isHexColorString } from '../utils/colorUtils.mjs';
 
 export function hasClass(element, className) {
     return element && className && element.classList.contains(className);

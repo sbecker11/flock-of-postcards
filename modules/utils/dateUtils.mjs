@@ -249,9 +249,9 @@ export function formatISO8601WithTimezone(date) {
     const seconds = String(date.getSeconds()).padStart(2, '0');
 
     const timezoneOffset = -date.getTimezoneOffset();
+    const offsetSign = timezoneOffset >= 0 ? '+' : '-';
     const offsetHours = String(Math.floor(Math.abs(timezoneOffset) / 60)).padStart(2, '0');
     const offsetMinutes = String(Math.abs(timezoneOffset) % 60).padStart(2, '0');
-    const offsetSign = timezoneOffset >= 0 ? '+' : '-';
 
     return `${year}-${month}-${day}T${hours}:${minutes}:${seconds}${offsetSign}${offsetHours}:${offsetMinutes}`;
 }
@@ -265,7 +265,10 @@ export function formatISO8601DateOnly(date) {
     if (!(date instanceof Date) || isNaN(date.getTime())) {
         throw new Error('Invalid Date object');
     }
-    return date.toISOString().split('T')[0];
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const day = String(date.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
 }
 
 /**
@@ -619,4 +622,32 @@ export function test_dateUtils() {
     assertEqual(errorThrown, true, "Should have thrown error for whitespace string");
 
     CONSOLE_LOG_IGNORE("dateUtils tests finished.");
+}
+
+/**
+ * Formats a date range for display, e.g., "Jan 2022 - Mar 2023".
+ * @param {string | Date} start - Start date string or Date object.
+ * @param {string | Date} end - End date string or Date object, can be "CURRENT_DATE".
+ * @returns {string} Formatted date range string.
+ */
+export function formatDateRange(start, end) {
+    const startDate = parseFlexibleDateString(start);
+    const endDate = (end === "CURRENT_DATE" || end === "Present")
+        ? new Date()
+        : parseFlexibleDateString(end);
+
+    if (!startDate) return "Invalid start date";
+    if (!endDate) return "Invalid end date";
+
+    const formatDate = (date) => {
+        if ((end === "CURRENT_DATE" || end === "Present") && date.getTime() === endDate.getTime()) {
+            return "Present";
+        }
+        return date.toLocaleDateString('en-US', {
+            year: 'numeric',
+            month: 'short'
+        });
+    };
+
+    return `${formatDate(startDate)} - ${formatDate(endDate)}`;
 }

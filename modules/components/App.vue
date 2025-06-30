@@ -1,37 +1,48 @@
 <script setup>
-import { ref, onMounted, nextTick } from 'vue';
+import { ref, onMounted, nextTick, computed } from 'vue';
 import ResumeContainer from './ResumeContainer.vue';
+import ResizeHandle from './ResizeHandle.vue';
 import SceneViewLabel from './SceneViewLabel.vue';
+import Timeline from './Timeline.vue';
 import { initializeState } from '@/modules/core/stateManager.mjs';
 import * as moduleManager from '@/modules/core/moduleManager.mjs';
-import { onColorPaletteChanged, applyCurrentColorPaletteToDocument } from '@/modules/colors/colorPalettes.mjs';
+import { useColorPalette } from '@/modules/composables/useColorPalette.mjs';
+import { initialize as initializeTimeline } from '../composables/useTimeline.mjs';
+import { useFocalPoint } from '@/modules/composables/useFocalPoint.mjs';
+import { useResizeHandle } from '@/modules/composables/useResizeHandle.mjs';
+import { jobs as jobsData } from '@/static_content/jobs/jobs.mjs';
+import * as colorUtils from '../utils/colorUtils.mjs';
 
-const isMounted = ref(true);
+// Initialize reactive systems
+useColorPalette();
+const { position: focalPointPosition, isLocked, isDragging } = useFocalPoint();
+const { sceneWidth, initializeResizeHandleState } = useResizeHandle();
+
 const isLoading = ref(true);
 const error = ref(null);
 
+const focalPointStyle = computed(() => ({
+  left: `${focalPointPosition.value.x}px`,
+  top: `${focalPointPosition.value.y}px`,
+}));
+
+const sceneContainerStyle = computed(() => ({
+  width: `${sceneWidth.value}px`,
+}));
+
 onMounted(async () => {
   try {
-    // First, load the application state.
     await initializeState();
-
-    // Now that state is loaded, we can stop loading and render the main app structure.
+    initializeResizeHandleState();
+    initializeTimeline(jobsData);
     isLoading.value = false;
-    
-    // Wait for the next DOM update cycle to ensure all elements are actually rendered.
     await nextTick();
-
-    // With the DOM ready, initialize all other modules.
     await moduleManager.initialize();
-
-    // Subscribe to color palette changes to update the document's theme.
-    onColorPaletteChanged(applyCurrentColorPaletteToDocument);
-
     console.log("Application initialized successfully.");
   } catch (e) {
     console.error("App.vue: Error during initialization:", e);
     error.value = e.message || 'An unknown error occurred during initialization.';
-    isLoading.value = false; // Also stop loading on error
+    isLoading.value = false;
   }
 });
 </script>
@@ -46,28 +57,32 @@ onMounted(async () => {
     <p>{{ error }}</p>
   </div>
   <div v-else id="app-container">
-    <div id="scene-container">
+    <div id="scene-container" :style="sceneContainerStyle">
       <div id="scene-plane-top-gradient"></div>
       <div id="scene-plane-btm-gradient"></div>
       <div id="scene-plane">
-        <div id="timeline-container" class="timeline-container-left"></div>
+        <Timeline alignment="left" />
       </div>
       <div id="biz-details-div"></div>
     </div>
+    <div id="resume-container">
+      <ResizeHandle />
+      <div class="resume-wrapper">
+        <ResumeContainer />
+      </div>
+    </div>
     <div id="aim-point"></div>
     <div id="bulls-eye">+</div>
-    <div id="focal-point">⦻</div>
+    <div 
+      id="focal-point" 
+      :style="focalPointStyle" 
+      :class="{ locked: isLocked, dragging: isDragging }"
+    >⦻</div>
     <SceneViewLabel />
-    <ResumeContainer />
   </div>
 </template>
 
 <style>
-#resume-container {
-  z-index: 2; /* Higher stacking context to ensure controls are clickable */
-}
-
-/* Global styles or component-specific styles */
 #app-container {
   display: flex;
   flex-direction: row;
@@ -77,43 +92,31 @@ onMounted(async () => {
 }
 
 #scene-container {
-  position: relative; /* For scene plane, timeline, and resize handle positioning */
+  position: relative; 
   height: 100%;
-  flex-grow: 1; /* Allow scene to take up remaining space */
-  z-index: 1; /* Lower stacking context */
+  flex-shrink: 0; 
+  z-index: 1; 
 }
 
-/*
-#timeline-container {
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
+#resume-container {
+  display: flex;
+  position: relative;
+  flex: 1;
+  min-width: 0;
   height: 100%;
-  z-index: 3;
-  pointer-events: none;
 }
-*/
+
+.resume-wrapper {
+  flex: 1;
+  min-width: 0;
+  position: relative; /* Required for child's absolute positioning */
+}
 
 #scene-plane {
     position: relative;
 }
-
 </style> 
 
 <style scoped>
-#resume-container {
-    flex: 1;
-    display: flex;
-    flex-direction: row; /* Horizontal columns */
-    gap: 5px;
-    overflow: hidden;
-    width: 100%;
-    background-color: var(--grey-darkest); /* Dark Grey */
-    position: relative; /* Needed for positioning the absolute label */
-}
-
-#resume-content {
-    flex: 1; /* This makes it resizable */
-}
+/* All scoped styles have been moved to global or are no longer needed */
 </style> 

@@ -5,12 +5,12 @@
   "main": "main.mjs",
   "type": "module",
   "scripts": {
-    "dev": "vite",
+    "dev": "npm run kill-listeners && concurrently \"npm:node-server\" \"vite\"",
     "build": "vite build",
     "start": "npm run kill-listeners &&concurrently \"npm run node-server\" \"npm run open-chrome\"",
     "node-server": "nodemon server.mjs",
     "open-chrome": "open-cli http://localhost:3009 --incognito",
-    "kill-listeners": "lsof -i :3009 | awk 'NR>1 {print $2}' | xargs -r kill -9 || true"
+    "kill-listeners": "lsof -i :3009 | awk 'NR>1 && $2 != $$ {print $2}' | xargs -r kill -9 || true"
   },
   "repository": {
     "type": "git",
@@ -29,6 +29,7 @@
   "homepage": "https://github.com/sbecker11/flock-of-postcards#readme",
   "dependencies": {
     "@google/generative-ai": "^0.24.1",
+    "@vueuse/core": "^13.4.0",
     "cors": "^2.8.5",
     "dayjs": "^1.11.10",
     "exceljs": "^4.4.0",

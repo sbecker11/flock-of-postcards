@@ -60,23 +60,22 @@ export async function initializeAllModules() {
 
 // Import all modules that need initialization
 import * as viewPort from './viewPort.mjs';
-import * as aimPoint from './aimPoint.mjs';
-import * as bullsEye from './bullsEye.mjs';
-import * as focalPoint from './focalPoint.mjs';
-import * as parallax from './parallax.mjs';
 import * as sceneViewLabel from './sceneViewLabel.mjs';
 import * as sceneContainer from '../scene/sceneContainer.mjs';
 import * as scenePlane from '../scene/scenePlane.mjs';
-import * as resizeHandle from './resizeHandle.mjs';
 import * as autoScroll from '../animation/autoScroll.mjs';
+import * as parallax from './parallax.mjs';
+import * as aimPoint from './aimPoint.mjs';
+import * as bullsEye from './bullsEye.mjs';
 import * as colorPalettes from '../colors/colorPalettes.mjs';
 import * as dateUtils from '../utils/dateUtils.mjs';
-import * as timeline from '../timeline/timeline.mjs';
 import { jobs as jobsData } from '@/static_content/jobs/jobs.mjs';
 import { cardsController } from '../scene/CardsController.mjs';
 import { resumeItemsController } from '../scene/ResumeItemsController.mjs';
 import { resumeListController } from '../resume/ResumeListController.mjs';
 import * as keyDown from './keyDown.mjs';
+import { useResizeHandle } from '../composables/useResizeHandle.mjs';
+import { readyPromise as palettesReady } from '../composables/useColorPalette.mjs';
 
 // Define the initialization stages
 const STAGES = [
@@ -87,26 +86,9 @@ const STAGES = [
       { name: 'aimPoint', init: aimPoint.initialize },
       { name: 'bullsEye', init: bullsEye.initialize },
       { name: 'sceneViewLabel', init: sceneViewLabel.initialize },
-      { name: 'resizeHandle', init: resizeHandle.initialize },
       { name: 'autoScroll', init: autoScroll.initialize },
       { name: 'keyDown', init: keyDown.initialize },
       { name: 'sceneContainer', init: sceneContainer.initialize },
-    ],
-  },
-  {
-    name: 'Color Palettes & Timeline (Async)',
-    modules: [
-        { name: 'colorPalettes', init: colorPalettes.initialize },
-        { name: 'timeline', init: () => {
-            const { minYear, maxYear } = dateUtils.getMinMaxYears(jobsData);
-            timeline.initialize(minYear, maxYear);
-        }},
-    ],
-  },
-  {
-    name: 'Focal Point (depends on Core)',
-    modules: [
-      { name: 'focalPoint', init: focalPoint.initialize },
     ],
   },
   {
@@ -138,13 +120,7 @@ const STAGES = [
       name: 'Final Assembly & Rendering',
       modules: [
         { name: 'scenePlane', init: scenePlane.initialize },
-        { name: 'parallax', init: () => {
-            parallax.initialize();
-            // Perform initial render now that cards exist
-            const currentFocalPoint = focalPoint.getFocalPoint();
-            const sceneRect = viewPort.getVisualRect();
-            parallax.viewAllBizCardDivs(currentFocalPoint, "moduleManager-initial-render", sceneRect);
-        }},
+        { name: 'parallax', init: parallax.initialize },
       ]
   }
 ];
@@ -155,6 +131,9 @@ const STAGES = [
 export async function initialize() {
   console.log('ModuleManager: Starting initialization...');
   let stageOutput = null; // To pass output from one module to the next within a stage
+
+  // Ensure palettes are ready before any module initialization
+  await palettesReady;
 
   for (const stage of STAGES) {
     console.log(`--- Initializing Stage: ${stage.name} ---`);
@@ -175,6 +154,10 @@ export async function initialize() {
     }
     stageOutput = null; // Reset for the next stage
   }
+
+  // Final step: apply the initial layout now that all modules are ready.
+  const { applyInitialLayout } = useResizeHandle();
+  applyInitialLayout();
 
   console.log('ModuleManager: All modules initialized successfully.');
 }

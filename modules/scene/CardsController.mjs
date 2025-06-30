@@ -1,19 +1,18 @@
 // scene/CardsController.mjs
 
-import * as colorPalettes from '../colors/colorPalettes.mjs';
-import { onColorPaletteChanged } from '../colors/colorPalettes.mjs';
 import { selectionManager } from '../core/selectionManager.mjs';
 import * as scenePlane from './scenePlane.mjs';
 import * as utils from '../utils/utils.mjs';
-import * as viewPort from '../core/viewPort.mjs';
+import * as viewPort from '../core/viewport.mjs';
 import * as BizDetailsDivModule from './bizDetailsDivModule.mjs';
-import * as timeline from '../timeline/timeline.mjs';
+import { useTimeline } from '../composables/useTimeline.mjs';
 import * as dateUtils from '../utils/dateUtils.mjs';
 import * as mathUtils from '../utils/mathUtils.mjs';
 import * as zUtils from '../utils/zUtils.mjs';
 import * as filters from '../core/filters.mjs';
-import { updateParallax, applyParallaxToBizCardDiv } from '../core/parallax.mjs';
+import { applyParallaxToBizCardDiv } from '../core/parallax.mjs';
 import { jobs } from '../../static_content/jobs/jobs.mjs';
+import { applyPaletteToElement } from '../composables/useColorPalette.mjs';
 // import { resumeListController } from '../resume/ResumeListController.mjs'; // No longer needed
 
 const BIZCARD_MAX_X_OFFSET = 100;
@@ -22,26 +21,28 @@ const BIZCARD_MAX_WIDTH_OFFSET = 40;
 const BIZCARD_MIN_Z_DIFF = 2;
 const MIN_HEIGHT = 200;
 
+// Get the timeline functions once
+const { getPositionForDate } = useTimeline();
+
 class CardsController {
     constructor() {
         this.bizCardDivs = [];
         this.isInitialized = false;
         this._setupSelectionListeners();
         // The pointer events observer is set up in initialize now
-        onColorPaletteChanged(this.handleColorPaletteChanged.bind(this));
     }
 
-    initialize(jobsData) {
+    async initialize(jobsData) {
         if (this.isInitialized) {
             console.warn("CardsController already initialized.");
             return;
         }
-        this.bizCardDivs = this._createAllBizCardDivs(jobsData);
+        this.bizCardDivs = await this._createAllBizCardDivs(jobsData);
         this.isInitialized = true;
         CONSOLE_LOG_IGNORE("CardsController initialized.");
     }
 
-    _createAllBizCardDivs(jobsData) {
+    async _createAllBizCardDivs(jobsData) {
         const divs = [];
         const scenePlaneEl = document.getElementById('scene-plane');
         if (!scenePlaneEl) {
@@ -49,35 +50,63 @@ class CardsController {
             return divs;
         }
 
-        jobsData.forEach((job, index) => {
-            const bizCardDiv = this.createBizCardDiv(job, index, jobsData.length);
+        for (let index = 0; index < jobsData.length; index++) {
+            const job = jobsData[index];
+            const bizCardDiv = await this.createBizCardDiv(job, index, jobsData.length);
             divs.push(bizCardDiv);
-        });
+        }
         
-        divs.forEach(card => scenePlaneEl.appendChild(card));
+        divs.forEach(card => {
+            if (card instanceof Node) {
+                scenePlaneEl.appendChild(card);
+            } else {
+                console.warn('Skipped appending non-Node:', card);
+            }
+        });
         
         return divs;
     }
 
-    createBizCardDiv(job, index, totalJobs) {
-        const bizCardDiv = document.createElement('div');
-        bizCardDiv.className = 'biz-card-div';
-        bizCardDiv.id = this.createBizCardDivId(index);
-        bizCardDiv.setAttribute('data-job-index', index.toString());
-        
-        this._setBizCardDivSceneGeometry(bizCardDiv, job);
-        
-        const { colorIndex, groupIndex } = colorPalettes.assignColorIndex(bizCardDiv, index, totalJobs);
-        bizCardDiv.setAttribute('data-color-index', colorIndex);
+    async createBizCardDiv(job, index, totalJobs) {
+        try {
+            const bizCardDiv = document.createElement('div');
+            bizCardDiv.className = 'biz-card-div';
+            bizCardDiv.id = this.createBizCardDivId(index);
+            bizCardDiv.setAttribute('data-job-index', index.toString());
+            
+            this._setBizCardDivSceneGeometry(bizCardDiv, job);
+            
+            // --- Apply initial layout styles from the geometry attributes ---
+            const sceneTop = parseFloat(bizCardDiv.getAttribute('data-sceneTop'));
+            const sceneLeft = parseFloat(bizCardDiv.getAttribute('data-sceneLeft'));
+            const sceneWidth = parseFloat(bizCardDiv.getAttribute('data-sceneWidth'));
+            const sceneHeight = parseFloat(bizCardDiv.getAttribute('data-sceneHeight'));
+            const { x: viewPortX } = viewPort.getViewPortOrigin();
 
-        const bizCardDetailsDiv = BizDetailsDivModule.createBizCardDetailsDiv(bizCardDiv, job, colorIndex);
-        bizCardDiv.appendChild(bizCardDetailsDiv);
+            bizCardDiv.style.position = 'absolute';
+            bizCardDiv.style.top = `${sceneTop}px`;
+            bizCardDiv.style.left = `${sceneLeft}px`;
+            bizCardDiv.style.width = `${sceneWidth}px`;
+            bizCardDiv.style.height = `${sceneHeight}px`;
 
-        colorPalettes.applyCurrentColorPaletteToElement(bizCardDiv, groupIndex);
+            // Assign a color index for styling. Using a prime number
+            // helps distribute colors more interestingly.
+            const colorIndex = index % 7;
+            bizCardDiv.setAttribute('data-color-index', colorIndex);
 
-        this._setupMouseListeners(bizCardDiv);
+            const bizCardDetailsDiv = BizDetailsDivModule.createBizCardDetailsDiv(bizCardDiv, job, colorIndex);
+            bizCardDiv.appendChild(bizCardDetailsDiv);
 
-        return bizCardDiv;
+            // Apply the current color palette
+            await applyPaletteToElement(bizCardDiv);
+
+            this._setupMouseListeners(bizCardDiv);
+
+            return bizCardDiv;
+        } catch (err) {
+            console.error('createBizCardDiv error:', err);
+            return null;
+        }
     }
     
     createBizCardDivId(jobIndex) {
@@ -109,21 +138,9 @@ class CardsController {
             return;
         }
 
-        const timelineHeight = timeline.getTimelineHeight();
-
-        // Get the bottom-up coordinates from our timeline module.
-        const start_year_str = startDate.getFullYear().toString();
-        const start_month_str = (startDate.getMonth() + 1).toString();
-        const bottomUp_start = timeline.getTimelineYearMonthBottom(start_year_str, start_month_str);
-
-        const end_year_str = endDate.getFullYear().toString();
-        const end_month_str = (endDate.getMonth() + 1).toString();
-        const bottomUp_end = timeline.getTimelineYearMonthBottom(end_year_str, end_month_str);
-
-        // Convert to a top-down coordinate system for the parallax engine.
-        // The top of the card corresponds to the end date.
-        let sceneTop = timelineHeight - bottomUp_end;
-        let sceneBottom = timelineHeight - bottomUp_start;
+        // Get the top and bottom positions from our new composable
+        let sceneTop = getPositionForDate(endDate);
+        let sceneBottom = getPositionForDate(startDate);
 
         let sceneHeight = sceneBottom - sceneTop;
         const sceneCenterY = sceneTop + sceneHeight / 2;
@@ -216,6 +233,8 @@ class CardsController {
         clone.setAttribute("data-sceneCenterX", sceneCenterX.toString());
         clone.setAttribute("data-sceneLeft", newSceneLeft.toString());
         clone.setAttribute("data-sceneRight", sceneRight.toString());
+        
+        clone.style.left = `${newSceneLeft}px`;
 
         // The clone needs its own click listener to handle deselection
         clone.addEventListener('click', (e) => {
@@ -404,35 +423,6 @@ class CardsController {
     _highlightCard(bizCardDiv, shouldHighlight) {
         if (shouldHighlight) {
             // ... existing code ...
-        }
-    }
-
-    handleColorPaletteChanged(event) {
-        if (!this.isInitialized) return;
-
-        console.log("CardsController handling color palette change...");
-        const { paletteName } = event.detail;
-
-        this.bizCardDivs.forEach(cardDiv => {
-            const groupIndex = parseInt(cardDiv.getAttribute('data-color-index'), 10);
-            colorPalettes.applyCurrentColorPaletteToElement(cardDiv, groupIndex);
-
-            // Also update the details div inside
-            const detailsDiv = cardDiv.querySelector('.biz-card-details-div');
-            if (detailsDiv) {
-                colorPalettes.applyCurrentColorPaletteToElement(detailsDiv, groupIndex);
-            }
-        });
-
-        // If a card is selected, its clone also needs to be updated
-        const clone = document.querySelector('.biz-card-div.selected');
-        if (clone) {
-            const groupIndex = parseInt(clone.getAttribute('data-color-index'), 10);
-            colorPalettes.applyCurrentColorPaletteToElement(clone, groupIndex);
-            const detailsDiv = clone.querySelector('.biz-card-details-div');
-            if (detailsDiv) {
-                colorPalettes.applyCurrentColorPaletteToElement(detailsDiv, groupIndex);
-            }
         }
     }
 }

@@ -2,7 +2,7 @@
 
 
 import * as colorPalettes from '../../modules/colors/colorPalettes.mjs';
-import * as colorUtils from '../../modules/colors/colorUtils.mjs';
+import * as colorUtils from '../../modules/utils/colorUtils.mjs';
 import * as dateUtils from '../../modules/utils/dateUtils.mjs'
 import * as domUtils from '../../modules/utils/domUtils.mjs';
 import * as jsonUtils from '../../modules/utils/jsonUtils.mjs';

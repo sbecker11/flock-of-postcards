@@ -1,7 +1,7 @@
 // modules/cssColors.mjs
 
-import { isString } from '../utils/utils.mjs';
-import * as colorUtils from './colorUtils.mjs';
+import * as colorUtils from '../utils/colorUtils.mjs';
+import * as utils from '../utils/utils.mjs';
 
 const CSS_COLORS = {
     "AliceBlue": "#F0F8FF",
@@ -158,12 +158,12 @@ function _getLowerCaseCssColors()  {
 }
 
 export function get_HEX_from_CssColor(cssColor, verbose=false) {
-    if ( isString(cssColor) ) {
+    if ( utils.isString(cssColor) ) {
         let color = cssColor.toLowerCase();
         let colors = LOWERCASE_CSS_COLORS;
         if ( color in colors ) {
             let HEX = colors[color];
-            if ( isHexColorString(HEX)) {
+            if ( colorUtils.isHexColorString(HEX)) {
                 return HEX;
             }
             if ( verbose )

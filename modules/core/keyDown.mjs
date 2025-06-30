@@ -1,11 +1,6 @@
 // modules/core/keyDown.mjs
 
-// import { resumeListController } from "../resume/ResumeListController.mjs"; // Obsolete
-import * as timeline from '../timeline/timeline.mjs';
-import * as focalPoint from './focalPoint.mjs';
-import * as colorPalettes from '../colors/colorPalettes.mjs';
-import { selectionManager } from './selectionManager.mjs';
-import { toggleStepping } from './resizeHandle.mjs';
+// import { toggleStepping } from './resizeHandle.mjs'; // TODO: Re-implement with composable
 
 /**
  * function that handles keyboard events
@@ -13,57 +8,48 @@ import { toggleStepping } from './resizeHandle.mjs';
  */
 export function handleKeyDown(event) {
     if (event.ctrlKey && event.shiftKey && event.altKey && event.key === 'D') {
-        CONSOLE_LOG_IGNORE("Ctrl+Shift+Alt+D detected: Dumping managers to console");
+        console.log("Ctrl+Shift+Alt+D detected: Dumping managers to console");
         window.dumpManagersToConsole();
     }
 
     switch (event.key) {
+        // Arrow keys and spacebar are currently disabled pending a refactor
+        // to use the central selectionManager or a new composable.
         case "ArrowLeft":
-            CONSOLE_LOG_IGNORE("ArrowLeft pressed");
-            // resumeListController.goToPreviousResumeItem();
-            break;
         case "ArrowRight":
-            CONSOLE_LOG_IGNORE("ArrowRight pressed");
-            // resumeListController.goToNextResumeItem();
-            break;
         case "ArrowUp":
-            CONSOLE_LOG_IGNORE("ArrowUp pressed");
-            // resumeListController.goToFirstResumeItem();
-            break;
         case "ArrowDown":
-            CONSOLE_LOG_IGNORE("ArrowDown pressed");
-            // resumeListController.goToLastResumeItem();
-            break;
         case " ": // Spacebar
-            CONSOLE_LOG_IGNORE("Spacebar pressed");
-            // focalPoint.toggleFocalPointLock();
             break;
+
+        // Focal point mode controls
         case "b":
-            CONSOLE_LOG_IGNORE("'b' key pressed for bullseye");
+            console.log("'b' key pressed for bullseye");
             document.dispatchEvent(new CustomEvent('focalModeChange', { detail: { mode: 'locked' } }));
             break;
         case "f":
-            CONSOLE_LOG_IGNORE("'f' key pressed for following");
+            console.log("'f' key pressed for following");
             document.dispatchEvent(new CustomEvent('focalModeChange', { detail: { mode: 'following' } }));
             break;
         case "d":
-            CONSOLE_LOG_IGNORE("'d' key pressed for dragging");
+            console.log("'d' key pressed for dragging");
             document.dispatchEvent(new CustomEvent('focalModeChange', { detail: { mode: 'dragging' } }));
             break;
-        case "c":
-            CONSOLE_LOG_IGNORE("'c' key pressed");
-            colorPalettes.cycleColorPalette();
-            break;
+        
+        // Other controls
         case "s":
-            CONSOLE_LOG_IGNORE("'s' key pressed");
-            toggleStepping();
+            console.log("'s' key pressed");
+            // toggleStepping();
             break;
-        case "t":
-            CONSOLE_LOG_IGNORE("'t' key pressed");
-            timeline.toggleTimelineVisibility();
+        
+        // Obsolete controls 'c' (color palettes) and 't' (timeline) were removed.
+        
+        case 'l':
+            eventBus.emit('focal-point-lock-toggle');
             break;
+        
         default:
-            // log.log("Key pressed: " + event.key);
+            // console.log("Key pressed: " + event.key);
             break;
     }
 }
@@ -75,14 +61,14 @@ let _isInitialized = false;
  */
 export function initialize() {
     if (_isInitialized) {
-        CONSOLE_LOG_IGNORE("Keydown handler already initialized.");
+        console.log("Keydown handler already initialized.");
         return;
     }
 
     document.addEventListener('keydown', handleKeyDown);
 
     _isInitialized = true;
-    CONSOLE_LOG_IGNORE("Keydown handler initialized.");
+    console.log("Keydown handler initialized.");
 }
 
 export function isInitialized() {

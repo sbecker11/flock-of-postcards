@@ -1,6 +1,6 @@
 {
   "version": "1.0",
-  "lastUpdated": "2025-06-30T04:01:16.118Z",
+  "lastUpdated": "2025-06-30T15:39:24.221Z",
   "layout": {
     "panelSizePercentage": 66.66666666666667
   },
@@ -15,10 +15,231 @@
       "field": "startDate",
       "direction": "desc"
     },
-    "selectedJobIndex": 12
+    "selectedJobIndex": 16
   },
   "theme": {
     "colorPalette": "50_Dark_Grey_Monotone.json"
   },
-  "colorPalette": "40 Cosmic.json"
+  "colorPalette": "40 Cosmic.json",
+  "color": {
+    "palettes": {
+      "Oceanic": [
+        "#003087",
+        "#005B96",
+        "#0077B6",
+        "#0096C7",
+        "#00B4D8",
+        "#48CAE4",
+        "#90E0EF",
+        "#006D77",
+        "#83C5BE",
+        "#EDF6F9",
+        "#023047"
+      ],
+      "Hyperpop": [
+        "#FF007A",
+        "#00FFCC",
+        "#FFCC00",
+        "#9900FF",
+        "#FF3366",
+        "#33FF99",
+        "#FF6600",
+        "#CC00FF",
+        "#66FFCC",
+        "#FF9933",
+        "#FF00CC",
+        "#00CCFF",
+        "#9400D3"
+      ],
+      "Retro": [
+        "#FF6F61",
+        "#FFB400",
+        "#2A4D69",
+        "#4B86B4",
+        "#F4A261",
+        "#E76F51",
+        "#D9BF77",
+        "#264653",
+        "#9B5DE5",
+        "#F15BB5"
+      ],
+      "Canyon": [
+        "#8C5523",
+        "#D9A566",
+        "#BF6F4A",
+        "#4A2C1F",
+        "#E8C8A3",
+        "#6B4E31",
+        "#A67B5B",
+        "#F2D2A9",
+        "#5C4033",
+        "#C68E67"
+      ],
+      "Cosmic": [
+        "#1A0D2E",
+        "#2E1A47",
+        "#4B286D",
+        "#6A3594",
+        "#8A42B8",
+        "#A66EBF",
+        "#C49AD6",
+        "#3F8CFF",
+        "#66A3FF",
+        "#99C2FF",
+        "#FFD700",
+        "#FFEA80"
+      ],
+      "Dark Grey Monotone": [
+        "#555555"
+      ],
+      "emerald": [
+        "#0c3832",
+        "#145a4f",
+        "#278172",
+        "#58a89c"
+      ],
+      "Black Monotone": [
+        "#222222"
+      ],
+      "blue berries on cheese": [
+        "#262a54",
+        "#344b98",
+        "#497bdc",
+        "#af803e"
+      ],
+      "blue caddelack": [
+        "#093f80",
+        "#139fd8",
+        "#059cd5",
+        "#055496",
+        "#072a6c",
+        "#0079b8",
+        "#3bcff5",
+        "#073276",
+        "#073d7d",
+        "#0c225b",
+        "#054084"
+      ],
+      "blue tonal": [
+        "#132e3f",
+        "#214b5c",
+        "#4a5054",
+        "#7a5248",
+        "#d36d3b",
+        "#ffcc69"
+      ],
+      "blues": [
+        "#302376",
+        "#015277",
+        "#636fab",
+        "#15aec2",
+        "#8eaccd"
+      ],
+      "cailidiscopic": [
+        "#252d47",
+        "#823e55",
+        "#16808b",
+        "#da6b3c",
+        "#f8a355"
+      ],
+      "fire": [
+        "#731810",
+        "#bf1d0b",
+        "#ec3d0f",
+        "#aa8e86",
+        "#f68e22"
+      ],
+      "jungle": [
+        "#3f0948",
+        "#0c2836",
+        "#a62278",
+        "#335418",
+        "#1e6e5a"
+      ],
+      "Medium Grey Monotone": [
+        "#888888"
+      ],
+      "mitzibushi red": [
+        "#5a0924",
+        "#9d2a59",
+        "#2a0411",
+        "#2d0714",
+        "#5f011c",
+        "#740120"
+      ],
+      "orange-purple": [
+        "#70187c",
+        "#7a2027",
+        "#d41916",
+        "#2848c8",
+        "#a828c8"
+      ],
+      "purpley": [
+        "#532961",
+        "#a93ec1",
+        "#2865d2",
+        "#816190",
+        "#c9b7c7"
+      ],
+      "rose blush": [
+        "#c1543c",
+        "#d27765",
+        "#aa859d",
+        "#ed8f7f"
+      ],
+      "snow springtime": [
+        "#515b59",
+        "#b18aa5",
+        "#c39b2a",
+        "#aabcd1"
+      ],
+      "so cherry": [
+        "#ab0e4a",
+        "#540018",
+        "#37020c",
+        "#4e0016",
+        "#480016",
+        "#a60450",
+        "#a60040"
+      ],
+      "springtime": [
+        "#4a1e1b",
+        "#9e1757",
+        "#0b95a7",
+        "#71900b",
+        "#ed73bd"
+      ],
+      "sweeps": [
+        "#4b327c",
+        "#983324",
+        "#c16717",
+        "#ef8c19",
+        "#321953",
+        "#fdc005"
+      ],
+      "vivid yellow on blue": [
+        "#0e4a4b",
+        "#096573",
+        "#0c8b8c",
+        "#a97111",
+        "#edc204",
+        "#e18a00",
+        "#09181d"
+      ],
+      "White Monotone": [
+        "#DDDDDD"
+      ],
+      "yellow blue corn": [
+        "#2e1b5d",
+        "#62478e",
+        "#af7966",
+        "#9683c2"
+      ],
+      "yellow grey": [
+        "#4f687c",
+        "#f9a21d",
+        "#657785"
+      ]
+    }
+  }
 }
