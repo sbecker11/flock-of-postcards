@@ -107,16 +107,29 @@ export function useColorPalette() {
  * Applies the current color palette to a specific HTML element.
  * @param {HTMLElement} element The element to apply the palette to.
  */
-export function applyPaletteToElement(element) {
+export async function applyPaletteToElement(element) {
     if (!element) return;
 
-    const palette = AppState.color.palettes[currentPaletteFilename.value];
-    if (!palette) return;
-
     // Use a data-attribute for the color index, assuming it's set on the element
-    const colorIndex = parseInt(element.getAttribute('data-color-index'), 10) || 0;
-    
-    const bg = palette.colors[colorIndex % palette.colors.length];
+    const colorIndexAttr = element.getAttribute('data-color-index');
+
+    // If the attribute is not set or is not a valid number,
+    // this element has not been configured for color theming
+    if (colorIndexAttr === null || isNaN(parseInt(colorIndexAttr,   10))) 
+        return;
+    const colorIndex = parseInt(colorIndexAttr, 10);
+
+    // Get the palette name from the filename
+    const paletteName = filenameToNameMap.value[currentPaletteFilename.value];
+    if (!paletteName) {
+        throw new Error(`Palette name not found for filename: ${currentPaletteFilename.value}`);
+    }
+
+    // If the palette is not found or is empty, throw an Error
+    const palette = AppState.color.palettes[paletteName];
+    if (!palette) throw new Error(`Palette not found for name: ${paletteName}`);
+
+    const bg = palette[colorIndex % palette.length];
     const fg = colorUtils.getContrastingColor(bg);
 
     element.style.backgroundColor = bg;
