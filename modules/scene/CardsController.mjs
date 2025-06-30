@@ -1,6 +1,7 @@
 // scene/CardsController.mjs
 
 import * as colorPalettes from '../colors/colorPalettes.mjs';
+import { onColorPaletteChanged } from '../colors/colorPalettes.mjs';
 import { selectionManager } from '../core/selectionManager.mjs';
 import * as scenePlane from './scenePlane.mjs';
 import * as utils from '../utils/utils.mjs';
@@ -12,6 +13,7 @@ import * as mathUtils from '../utils/mathUtils.mjs';
 import * as zUtils from '../utils/zUtils.mjs';
 import * as filters from '../core/filters.mjs';
 import { updateParallax, applyParallaxToBizCardDiv } from '../core/parallax.mjs';
+import { jobs } from '../../static_content/jobs/jobs.mjs';
 // import { resumeListController } from '../resume/ResumeListController.mjs'; // No longer needed
 
 const BIZCARD_MAX_X_OFFSET = 100;
@@ -26,43 +28,35 @@ class CardsController {
         this.isInitialized = false;
         this._setupSelectionListeners();
         // The pointer events observer is set up in initialize now
+        onColorPaletteChanged(this.handleColorPaletteChanged.bind(this));
     }
 
-    initialize(jobs) {
+    initialize(jobsData) {
         if (this.isInitialized) {
-            console.warn("CardsController already initialized");
+            console.warn("CardsController already initialized.");
             return;
         }
-
-        if (!jobs || jobs.length === 0) {
-            console.error("CardsController.initialize: jobs data is missing or empty.");
-            return;
-        }
-        if (!viewPort || !viewPort.isInitialized()) {
-            console.warn("Cannot initialize CardsController: viewPort not found or not initialized");
-            return;
-        }
-
-        // Create the cards first
-        this.createAllBizCardDivs(jobs);
-        this.setupPointerEventsObserver();
-
+        this.bizCardDivs = this._createAllBizCardDivs(jobsData);
         this.isInitialized = true;
-        CONSOLE_INFO_IGNORE("CardsController initialized successfully");
+        CONSOLE_LOG_IGNORE("CardsController initialized.");
     }
 
-    createAllBizCardDivs(jobs) {
+    _createAllBizCardDivs(jobsData) {
+        const divs = [];
         const scenePlaneEl = document.getElementById('scene-plane');
         if (!scenePlaneEl) {
             console.error("Scene plane element not found!");
-            return [];
+            return divs;
         }
 
-        this.bizCardDivs = jobs.map((job, index) => this.createBizCardDiv(job, index, jobs.length));
+        jobsData.forEach((job, index) => {
+            const bizCardDiv = this.createBizCardDiv(job, index, jobsData.length);
+            divs.push(bizCardDiv);
+        });
         
-        this.bizCardDivs.forEach(card => scenePlaneEl.appendChild(card));
+        divs.forEach(card => scenePlaneEl.appendChild(card));
         
-        return this.bizCardDivs;
+        return divs;
     }
 
     createBizCardDiv(job, index, totalJobs) {
@@ -115,13 +109,21 @@ class CardsController {
             return;
         }
 
+        const timelineHeight = timeline.getTimelineHeight();
+
+        // Get the bottom-up coordinates from our timeline module.
         const start_year_str = startDate.getFullYear().toString();
         const start_month_str = (startDate.getMonth() + 1).toString();
-        let sceneBottom = timeline.getTimelineYearMonthBottom(start_year_str, start_month_str);
+        const bottomUp_start = timeline.getTimelineYearMonthBottom(start_year_str, start_month_str);
 
         const end_year_str = endDate.getFullYear().toString();
         const end_month_str = (endDate.getMonth() + 1).toString();
-        let sceneTop = timeline.getTimelineYearMonthBottom(end_year_str, end_month_str);
+        const bottomUp_end = timeline.getTimelineYearMonthBottom(end_year_str, end_month_str);
+
+        // Convert to a top-down coordinate system for the parallax engine.
+        // The top of the card corresponds to the end date.
+        let sceneTop = timelineHeight - bottomUp_end;
+        let sceneBottom = timelineHeight - bottomUp_start;
 
         let sceneHeight = sceneBottom - sceneTop;
         const sceneCenterY = sceneTop + sceneHeight / 2;
@@ -402,6 +404,35 @@ class CardsController {
     _highlightCard(bizCardDiv, shouldHighlight) {
         if (shouldHighlight) {
             // ... existing code ...
+        }
+    }
+
+    handleColorPaletteChanged(event) {
+        if (!this.isInitialized) return;
+
+        console.log("CardsController handling color palette change...");
+        const { paletteName } = event.detail;
+
+        this.bizCardDivs.forEach(cardDiv => {
+            const groupIndex = parseInt(cardDiv.getAttribute('data-color-index'), 10);
+            colorPalettes.applyCurrentColorPaletteToElement(cardDiv, groupIndex);
+
+            // Also update the details div inside
+            const detailsDiv = cardDiv.querySelector('.biz-card-details-div');
+            if (detailsDiv) {
+                colorPalettes.applyCurrentColorPaletteToElement(detailsDiv, groupIndex);
+            }
+        });
+
+        // If a card is selected, its clone also needs to be updated
+        const clone = document.querySelector('.biz-card-div.selected');
+        if (clone) {
+            const groupIndex = parseInt(clone.getAttribute('data-color-index'), 10);
+            colorPalettes.applyCurrentColorPaletteToElement(clone, groupIndex);
+            const detailsDiv = clone.querySelector('.biz-card-details-div');
+            if (detailsDiv) {
+                colorPalettes.applyCurrentColorPaletteToElement(detailsDiv, groupIndex);
+            }
         }
     }
 }

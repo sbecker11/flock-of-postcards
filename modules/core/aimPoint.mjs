@@ -4,7 +4,15 @@ import * as mathUtils from '../utils/mathUtils.mjs';
 import * as viewPort from './viewPort.mjs';
 
 let _aimPointElement = null;
+let _aimPointPosition = null;
 let _isInitialized = false;
+
+/**
+ * @returns {boolean} Whether the aim point is initialized.
+ */
+export function isInitialized() {
+    return _isInitialized;
+}
 
 export function initialize() {
     if (_isInitialized) {
@@ -20,6 +28,7 @@ export function initialize() {
     if (initialPosition) {
         setAimPoint(initialPosition, "aimPoint.initialize");
         _isInitialized = true;
+        CONSOLE_LOG_IGNORE("aimPoint initialized successfully");
     } else {
         console.error("aimPoint.initialize: Could not get initial position from viewPort.");
     }

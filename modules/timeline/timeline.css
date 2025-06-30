@@ -21,6 +21,7 @@
     color: #444444;
     border-bottom : 1px solid #444444;
     pointer-events: none;
+    /* The height will now be determined by content, not fixed. */
   }
   
   .year-div-right {

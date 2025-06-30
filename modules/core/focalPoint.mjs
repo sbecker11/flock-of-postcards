@@ -264,6 +264,15 @@ export function isInitialized() {
  * Initializes the focal point element and its listeners.
  */
 export function initialize() {
+    // --- Dependency Checks ---
+    if (!aimPoint.isInitialized()) {
+        throw new Error("focalPoint requires aimPoint to be initialized.");
+    }
+    if (!bullsEye.isInitialized()) {
+        throw new Error("focalPoint requires bullsEye to be initialized.");
+    }
+    // --- End Dependency Checks ---
+
     if (_isInitialized) {
         // CONSOLE_LOG_IGNORE("Focal point already initialized");
         return;

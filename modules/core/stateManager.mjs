@@ -1,3 +1,5 @@
+import { deepMerge } from '../utils/utils.mjs';
+
 const STORAGE_KEY = 'flockOfPostcards_appState';
 
 /**
@@ -45,7 +47,8 @@ async function loadState() {
         }
         const state = await response.json();
         console.log("Loaded state from server:", state);
-        return state;
+        // Merge the loaded state into the default state to ensure all keys exist
+        return deepMerge(getDefaultState(), state);
     } catch (e) {
         console.error('Error fetching state from server, using default state.', e);
         return getDefaultState();

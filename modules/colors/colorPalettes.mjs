@@ -1,6 +1,6 @@
 // modules/colors/colorPalettes.mjs
 
-import * as colorUtils from './colorUtils.mjs';
+import * as colorUtils from '../utils/colorUtils.mjs';
 import * as utils from '../utils/utils.mjs';
 import * as domUtils from '../utils/domUtils.mjs';
 import { AppState, saveState } from '../core/stateManager.mjs';
@@ -40,6 +40,19 @@ let _palettesLoadedPromise = null; // Promise to track loading state
 let _orderedPaletteNames = []; // Store the ordered names here
 let _filenameToNameMap = {}; // Store mapping from filename to internal name
 let _selectorInstance = null; // Cache for the resolved selector instance
+let _isInitialized = false;
+
+// Create a new EventTarget to act as our event hub for color palette changes.
+const colorPaletteEventHub = new EventTarget();
+
+// Add a public method to subscribe to color palette changes.
+export function onColorPaletteChanged(callback) {
+    colorPaletteEventHub.addEventListener('colorPaletteChanged', callback);
+}
+
+export function isInitialized() {
+    return _isInitialized;
+}
 
 // Add a ColorSet class to manage the four colors for each palette entry
 class ColorSet {
@@ -203,6 +216,37 @@ async function loadOrRefreshPalettes(isRefresh = false) {
         .map(filename => _filenameToNameMap[filename])
         .filter(name => name && _color_palettes.hasOwnProperty(name));
 
+    // --- Update UI Dropdown ---
+    _selectorInstance = document.querySelector('#color-palette-selector');
+    if (_selectorInstance) {
+        const previouslySelectedFilename = _selectorInstance.value;
+        _selectorInstance.innerHTML = ''; // Clear options
+        _orderedPaletteNames.forEach(paletteName => {
+            // Find the filename that maps to this palette name
+            const filename = Object.keys(_filenameToNameMap).find(key => _filenameToNameMap[key] === paletteName);
+            if (filename) {
+                const option = document.createElement('option');
+                option.value = filename; // The value is the filename
+                option.textContent = paletteName; // The text is the user-friendly name
+                _selectorInstance.appendChild(option);
+            }
+        });
+
+        // Restore selection from state, or previous value, or default to first option
+        const lastSelectedFilename = AppState.colorPalette || previouslySelectedFilename || Object.keys(_filenameToNameMap)[0];
+        if (lastSelectedFilename) {
+            _selectorInstance.value = lastSelectedFilename;
+        }
+
+        if (!_selectorInstance.dataset.listenerAttached) {
+            _selectorInstance.addEventListener('change', (event) => {
+                const selectedFilename = event.target.value;
+                setCurrentColorPalette(selectedFilename);
+            });
+            _selectorInstance.dataset.listenerAttached = 'true';
+        }
+    }
+
     // --- Write CSS file ---
     try {
         const cssContent = cssRules.join('\n');
@@ -252,7 +296,16 @@ async function loadOrRefreshPalettes(isRefresh = false) {
         if (!isRefresh) throw new Error("Initial palette load resulted in zero palettes.");
     }
     
-    return true;
+    _isInitialized = true;
+    console.log("Color palettes initialized.");
+
+    // Set the initial palette based on the loaded state.
+    // This will also trigger the initial 'colorPaletteChanged' event.
+    const initialPaletteFilename = AppState.colorPalette || Object.keys(_filenameToNameMap)[0];
+    setCurrentColorPalette(initialPaletteFilename);
+    applyCurrentColorPaletteToDocument();
+
+    return true; // Indicate that an update occurred
 }
 
 // Initial load wrapper (kept separate for clarity)
@@ -268,6 +321,84 @@ async function initialPaletteLoad() {
         // Error already logged, fallbacks set in loadOrRefreshPalettes
         // We still need to resolve the promise, perhaps with null or a default selector?
     }
+}
+
+export function setCurrentColorPalette(filename) {
+    if (!filename) return;
+    const paletteName = _filenameToNameMap[filename];
+    if (!_color_palettes[paletteName]) {
+        console.error(`Invalid palette name for filename: ${filename}`);
+        return;
+    }
+
+    AppState.colorPalette = filename;
+    saveState(AppState); // Save the state change
+
+    // Dispatch a custom event to notify listeners that the palette has changed.
+    colorPaletteEventHub.dispatchEvent(new CustomEvent('colorPaletteChanged', {
+        detail: {
+            paletteName: paletteName,
+            palette: _color_palettes[paletteName]
+        }
+    }));
+}
+
+export function applyCurrentColorPaletteToDocument() {
+    const paletteFilename = AppState.colorPalette;
+    if (!paletteFilename) return;
+
+    const paletteName = _filenameToNameMap[paletteFilename];
+    const palette = _color_palettes[paletteName];
+
+    if (!palette) {
+        console.warn(`No palette found for name: ${paletteName}`);
+        return;
+    }
+
+    // --- Update document background ---
+    const root = document.documentElement;
+    // We'll use the darkest color for the background, similar to the old implementation.
+    // To find the darkest, we can check the brightness.
+    let darkestColor = palette.reduce((darkest, current) => {
+        return colorUtils.getPerceivedBrightness(current) < colorUtils.getPerceivedBrightness(darkest) ? current : darkest;
+    }, palette[0]);
+
+    const darkHex = darkestColor || "#333333";
+    let rgb = colorUtils.get_RGB_from_Hex(darkHex);
+    let hsv = colorUtils.get_HSV_from_RGB(rgb);
+
+    // Calculate a 'darker' color
+    let darkerHsv = {...hsv};
+    darkerHsv.v *= 0.75;
+    const darkerRgb = colorUtils.get_RGB_from_HSV(darkerHsv);
+
+    // Calculate 'darkest' color
+    let darkestHsv = {...hsv};
+    darkestHsv.v *= 0.35;
+    const darkestRgb = colorUtils.get_RGB_from_HSV(darkestHsv);
+
+    const darkerRgba = `rgba(${darkerRgb.r}, ${darkerRgb.g}, ${darkerRgb.b}, 1.0)`;
+    const darkestRgba = `rgba(${darkestRgb.r}, ${darkestRgb.g}, ${darkestRgb.b}, 1.0)`;
+
+    // Set CSS variables for other elements to use
+    root.style.setProperty('--background-light', darkerRgba);
+    root.style.setProperty('--background-dark', darkestRgba);
+
+    // --- Update cards ---
+    const elements = document.querySelectorAll('[data-color-index]');
+    elements.forEach(element => {
+        const colorIndexAttr = element.getAttribute("data-color-index");
+        if (colorIndexAttr === null || isNaN(parseInt(colorIndexAttr, 10))) return;
+        
+        const colorIndex = parseInt(colorIndexAttr, 10);
+        const color = palette[colorIndex % palette.length];
+
+        if (color) {
+            const foregroundColor = colorUtils.getContrastingColor(color);
+            element.style.backgroundColor = color;
+            element.style.color = foregroundColor;
+        }
+    });
 }
 
 function getOrCreatePaletteSelectorSingletonInstance() {
@@ -798,96 +929,36 @@ class PaletteSelector {
     // then apply the current palette to all elements with the
     // "data-color-index" attribute
     async applyCurrentPaletteToDocument() {
-        const root = document.documentElement;
-        const fallbackLightRGBA = FALLBACK_LIGHT_RGBA;
-        const fallbackDarkRGBA = FALLBACK_DARK_RGBA;
+        const paletteFilename = AppState.colorPalette;
+        const paletteName = _filenameToNameMap[paletteFilename];
+        if (!paletteName) return;
 
-        // used for document background colors
-        this.initializeDarkestBgHexColor();
-        const darkHex = this.darkest_bgHexColor;
+        const palette = _color_palettes[paletteName];
+        if (!palette || palette.length === 0) return;
 
-        if (!darkHex) {
-            console.warn("colorPalettes:applyCurrentPaletteToDocument: darkHex is null");
-            return; // Don't proceed if darkest couldn't be found
+        if (isMonotonePalette(palette)) {
+            document.documentElement.style.setProperty('--background-dark', '#2d2d2d');
+            document.documentElement.style.setProperty('--background-middle', '#424242');
+            document.documentElement.style.setProperty('--background-light', '#5b5b5b');
+            return;
         }
 
-        try {
-            let darkRGB = colorUtils.get_RGB_from_Hex(darkHex);
-            let darkHSV = colorUtils.get_HSV_from_RGB(darkRGB);
+        // Find the darkest color in the palette to use as the base for the background.
+        let darkestColor = palette[0];
+        let minBrightness = colorUtils.getPerceivedBrightness(darkestColor);
 
-            // Calculate darker
-            let darkerHSV = [...darkHSV]; // Clone
-            darkerHSV[2] *= 0.75; // Reduce brightness less drastically
-            const darkerHex = colorUtils.get_Hex_from_HSV(darkerHSV);
-
-            // Calculate darkest
-            let darkestHSV = [...darkHSV]; // Clone
-            darkestHSV[2] *= 0.35; // Reduce brightness more
-            const darkestHex = colorUtils.get_Hex_from_HSV(darkestHSV);
-            const darkerRGB = colorUtils.get_RGB_from_Hex(darkerHex);
-            const darkestRGB = colorUtils.get_RGB_from_Hex(darkestHex);
-
-            const darkerRGBA = colorUtils.get_RGBA_from_RGB(darkerRGB, 1.0) || fallbackLightRGBA;
-            const darkestRGBA = colorUtils.get_RGBA_from_RGB(darkestRGB, 1.0) || fallbackDarkRGBA;
-
-            root.style.setProperty('--background-light', darkerRGBA);
-            root.style.setProperty('--background-dark', darkestRGBA);
-            CONSOLE_LOG_IGNORE('colorPalettes:applyCurrentPaletteToDocument: --background-light:', darkerRGBA);
-            CONSOLE_LOG_IGNORE('colorPalettes:applyCurrentPaletteToDocument: --background-dark:', darkestRGBA);
-
-            // Force repaint on elements using these CSS variables
-            this.forceRepaintOnBackgroundElements();
-
-        } catch (error) {
-            console.error("Error applying palette to document background:", error);
-            // Apply fallBack defaults directly
-            root.style.setProperty('--background-light', FALLBACK_LIGHT_RGBA);
-            root.style.setProperty('--background-dark', FALLBACK_DARK_RGBA);
-            
-            // Still try to force repaint
-            this.forceRepaintOnBackgroundElements();
+        for (let i = 1; i < palette.length; i++) {
+            const currentBrightness = colorUtils.getPerceivedBrightness(palette[i]);
+            if (currentBrightness < minBrightness) {
+                minBrightness = currentBrightness;
+                darkestColor = palette[i];
+            }
         }
 
-        this.applyCurrentPaletteToElements();
-    }
-
-    // Add this new method to force repaint on elements using CSS variables
-    forceRepaintOnBackgroundElements() {
-        // List of elements that use the CSS variables
-        const elementsToRepaint = [
-            document.getElementById('scene-container'),
-            document.getElementById('scene-plane'),
-            document.getElementById('scene-plane-top-gradient'),
-            document.getElementById('scene-plane-btm-gradient'),
-            document.body,
-            document.documentElement
-        ];
-        
-        // Optimize repainting of elements
-        function optimizedRepaint(elementsToRepaint) {
-            if (!elementsToRepaint || elementsToRepaint.length === 0) return;
-            
-            // Batch DOM reads
-            const elementStates = elementsToRepaint.map(element => ({
-                element,
-                needsRepaint: !!element
-            }));
-            
-            // Use requestAnimationFrame to batch DOM writes
-            requestAnimationFrame(() => {
-                // Method 3: Use a non-visual property change (least intrusive)
-                elementStates.forEach(state => {
-                    if (state.needsRepaint) {
-                        state.element.dataset.repaintTimestamp = Date.now().toString();
-                    }
-                });
-                
-                CONSOLE_LOG_IGNORE(`Repainted ${elementStates.filter(s => s.needsRepaint).length} elements`);
-            });
-        }
-
-        // Replace the original repainting code with this optimized version
-        optimizedRepaint(elementsToRepaint);
+        // Use the true darkest color to generate the theme.
+        document.documentElement.style.setProperty('--background-dark', darkestColor);
+        document.documentElement.style.setProperty('--background-middle', colorUtils.adjustBrightness(darkestColor, 1.5));
+        document.documentElement.style.setProperty('--background-light', colorUtils.adjustBrightness(darkestColor, 2.0));
     }
 
     // --- Helper to rebuild dropdown --- 
@@ -998,13 +1069,24 @@ export function assignColorIndex(element, jobIndex, totalJobs) {
 
 // Function to safely get the current palette name
 export function getCurrentPaletteName() {
-    // Try to get from the selector first
-    const selector = _selectorInstance;
-    if (selector) {
-        return selector.current_value;
+    if (!_selectorInstance) {
+        // Fallback if the UI hasn't been initialized yet
+        const firstPaletteName = _orderedPaletteNames.length > 0 ? _orderedPaletteNames[0] : null;
+        if (!firstPaletteName) {
+            console.error("getCurrentPaletteName: Selector not ready and no palettes loaded.");
+        }
+        return firstPaletteName;
     }
-    // If selector is not available, use the first palette
-    return _orderedPaletteNames.length > 0 ? _orderedPaletteNames[0] : null;
+    // Get the selected *filename* from the dropdown's value
+    const selectedFilename = _selectorInstance.value;
+    // Use the map to find the corresponding palette name
+    const paletteName = _filenameToNameMap[selectedFilename];
+
+    if (!paletteName) {
+        console.warn(`Could not find palette name for filename: ${selectedFilename}`);
+        return _orderedPaletteNames.length > 0 ? _orderedPaletteNames[0] : null;
+    }
+    return paletteName;
 }
 
 /**
@@ -1012,16 +1094,25 @@ export function getCurrentPaletteName() {
  * @param {HTMLElement} element - The element to apply colors to
  */
 export function applyCurrentColorPaletteToElement(element) {
-    try {
-        const selector = _selectorInstance;
-        if (selector) {
-            selector.applyCurrentColorPaletteToElement(element);
-        } else {
-            console.warn("No palette selector instance available yet");
-        }
-    } catch (error) {
-        console.error("Error applying color palette to element:", error);
+    if (!element) return;
+    const colorIndex = element.getAttribute('data-color-index');
+    if (colorIndex === null || !isColorIndexString(colorIndex)) {
+        return; // No valid color index, nothing to apply
     }
+
+    const paletteName = getCurrentPaletteName();
+    if (!paletteName) {
+        console.warn("Cannot apply palette: No current palette is selected.");
+        return;
+    }
+
+    // Remove any old palette classes
+    const classesToRemove = Array.from(element.classList).filter(c => c.startsWith(CSS_CLASS.PALETTE_PREFIX));
+    element.classList.remove(...classesToRemove);
+
+    // Add the new, correct class
+    const newClass = generateClassName(paletteName, colorIndex);
+    element.classList.add(newClass);
 }
 
 /**
@@ -1040,45 +1131,18 @@ export function isColorIndexString(colorIndex) {
     return Number.isInteger(num) && num >= 0;
 }
 
-if (!_selectorInstance || isRefresh) {
-    _selectorInstance = await domUtils.getDynamicElement('#color-palette-selector');
-}
-
-const previouslySelectedFilename = _selectorInstance.value;
-
-_selectorInstance.innerHTML = '';
-_orderedPaletteNames.forEach(paletteName => {
-    const filename = Object.keys(_filenameToNameMap).find(key => _filenameToNameMap[key] === paletteName);
-    if(filename){
-        const option = document.createElement('option');
-        option.value = filename;
-        option.textContent = paletteName;
-        _selectorInstance.appendChild(option);
-    }
-});
-
-const lastSelected = localStorage.getItem('lastSelectedPalette');
-const targetPaletteFilename = previouslySelectedFilename || lastSelected || _selectorInstance.options[0]?.value;
-
-if (targetPaletteFilename) {
-    _selectorInstance.value = targetPaletteFilename;
-    selectPalette(targetPaletteFilename); 
-}
-
-if (!_selectorInstance.dataset.listenerAttached) {
-    _selectorInstance.addEventListener('change', (event) => {
-        const selectedFilename = event.target.value;
-        localStorage.setItem('lastSelectedPalette', selectedFilename);
-        selectPalette(selectedFilename);
-    });
-    _selectorInstance.dataset.listenerAttached = 'true';
-}
-
-return true;
-
-/**
- * @returns {boolean} Whether the given number is a non-negative integer.
- */
 function isNonNegativeInteger(num) {
     return Number.isInteger(num) && num >= 0;
+}
+
+export async function initialize() {
+    // This function is the single entry point called by the moduleManager.
+    // It ensures that palettes are loaded and CSS is generated before other modules proceed.
+    await loadOrRefreshPalettes(false);
+    _isInitialized = true;
+    console.log("Color palettes initialized.");
+}
+
+function isMonotonePalette(palette) {
+    return palette.every(hex => colorUtils.isGrey(colorUtils.get_RGB_from_Hex(hex)));
 }

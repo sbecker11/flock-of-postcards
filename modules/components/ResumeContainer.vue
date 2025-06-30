@@ -230,8 +230,8 @@ function selectPrevious() {
   Force the biz-resume-details-div AND all of its children to have a transparent background.
   This is the definitive fix to ensure the parent's rounded corners and background are visible.
 */
-.biz-resume-div > .biz-resume-details-div,
-.biz-resume-div > .biz-resume-details-div * {
+.biz-resume-div .biz-resume-details-div,
+.biz-resume-div .biz-resume-details-div * {
     background-color: transparent !important;
     border-radius: 25px !important;
 }

@@ -324,6 +324,10 @@ export function getMinMaxYears(jobs) {
         return { minYear: currentYear, maxYear: currentYear };
     }
 
+    // After finding the maxYear from data, ensure it's at least the *next* year.
+    const currentYear = new Date().getFullYear() + 1;
+    maxYear = Math.max(maxYear, currentYear);
+
     return { minYear, maxYear };
 }
 

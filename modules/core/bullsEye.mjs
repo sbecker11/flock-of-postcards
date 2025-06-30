@@ -21,7 +21,7 @@ export function initialize() {
     
     // Check dependency on viewPort
     if (!viewPort.isInitialized()) {
-        throw new Error("Cannot initialize bullsEye: viewPort not initialized");
+        throw new Error("bullsEye requires viewPort to be initialized.");
     }
     
     CONSOLE_LOG_IGNORE("Initializing bullsEye...");

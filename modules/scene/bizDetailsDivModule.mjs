@@ -32,6 +32,7 @@ export function createBizResumeDetailsDiv(bizResumeDiv, bizCardDiv) {
 
     // Set pointer-events to none so clicks pass through to the parent bizResumeDiv
     bizResumeDetailsDiv.style.pointerEvents = 'none';
+    bizResumeDetailsDiv.style.backgroundColor = 'transparent';
 
     const bizCardDetailsDiv = bizCardDiv.querySelector('.biz-card-details-div');
     if (!bizCardDetailsDiv) throw new Error('createBizResumeDetailsDiv: given null bizCardDetailsDiv');

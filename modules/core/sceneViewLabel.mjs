@@ -1,18 +1,31 @@
-import * as viewPort from './viewport.mjs';
+import * as domUtils from '../utils/domUtils.mjs';
+import * as viewPort from './viewPort.mjs';
 
-let sceneViewLabelElement = null;
+let _sceneViewLabelElement = null;
+let _isInitialized = false;
+
+export function isInitialized() {
+    return _isInitialized;
+}
 
 export function initialize() {
-    sceneViewLabelElement = document.getElementById('scene-view-label');
-    if (!sceneViewLabelElement) {
-        console.error('sceneViewLabel.initialize: #scene-view-label not found in DOM.');
+    if (!viewPort.isInitialized()) {
+        throw new Error("sceneViewLabel requires viewPort to be initialized.");
+    }
+    
+    if (_isInitialized) {
+        console.warn("sceneViewLabel.initialize: already initialized");
         return;
     }
-    CONSOLE_LOG_IGNORE('SceneViewLabel initialized');
+    _sceneViewLabelElement = document.getElementById("scene-view-label");
+    if (!_sceneViewLabelElement) {
+        throw new Error("sceneViewLabel.initialize: #scene-view-label element not found in DOM");
+    }
+    _isInitialized = true;
 }
 
 export function repositionLabel() {
-    if (!sceneViewLabelElement) return;
+    if (!_sceneViewLabelElement) return;
 
     const visualRect = viewPort.getVisualRect();
 
@@ -21,7 +34,11 @@ export function repositionLabel() {
 
     CONSOLE_LOG_IGNORE(`Repositioning SceneViewLabel to: top=${top}px, left=${left}px`);
 
-    sceneViewLabelElement.style.top = `${top}px`;
-    sceneViewLabelElement.style.left = `${left}px`;
-    sceneViewLabelElement.style.right = 'auto';
+    _sceneViewLabelElement.style.top = `${top}px`;
+    _sceneViewLabelElement.style.left = `${left}px`;
+    _sceneViewLabelElement.style.right = 'auto';
+}
+
+export function setSceneViewLabel(text) {
+    // ... existing code ...
 } 

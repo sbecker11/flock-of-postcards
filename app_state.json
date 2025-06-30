@@ -1,0 +1,24 @@
+{
+  "version": "1.0",
+  "lastUpdated": "2025-06-30T04:01:16.118Z",
+  "layout": {
+    "panelSizePercentage": 66.66666666666667
+  },
+  "resizeHandle": {
+    "steppingEnabled": true
+  },
+  "focalPoint": {
+    "mode": "following"
+  },
+  "resume": {
+    "sortRule": {
+      "field": "startDate",
+      "direction": "desc"
+    },
+    "selectedJobIndex": 12
+  },
+  "theme": {
+    "colorPalette": "50_Dark_Grey_Monotone.json"
+  },
+  "colorPalette": "40 Cosmic.json"
+}

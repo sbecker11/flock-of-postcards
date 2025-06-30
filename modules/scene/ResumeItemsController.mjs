@@ -4,6 +4,7 @@ import * as utils from '../utils/utils.mjs';
 import * as BizDetailsDivModule from './bizDetailsDivModule.mjs';
 import * as colorPalettes from '../colors/colorPalettes.mjs';
 import { selectionManager } from '../core/selectionManager.mjs';
+import { cardsController } from './CardsController.mjs';
 // No longer directly manipulating other managers
 // import { bizCardDivManager } from './bizCardDivManager.mjs';
 // import * as scenePlane from './scenePlane.mjs';
@@ -12,12 +13,32 @@ import { selectionManager } from '../core/selectionManager.mjs';
 class ResumeItemsController {
     constructor() {
         this.bizResumeDivs = [];
+        this.isInitialized = false;
         this._setupSelectionListeners();
     }
 
+    // This is now a separate function for the module manager to check.
+    isInitialized() {
+        return this.isInitialized;
+    }
+
+    initialize() {
+        if (!cardsController.isInitialized) {
+            throw new Error("ResumeItemsController requires cardsController to be initialized.");
+        }
+        if (this.isInitialized) {
+            console.warn("ResumeItemsController already initialized.");
+            return;
+        }
+        // This controller's main job is done in the moduleManager now,
+        // so we just set the flag.
+        this.isInitialized = true;
+        CONSOLE_LOG_IGNORE("ResumeItemsController initialized.");
+    }
+
     createAllBizResumeDivs(bizCardDivs) {
-        if (!bizCardDivs || !Array.isArray(bizCardDivs)) {
-            console.error("createAllBizResumeDivs requires an array of bizCardDivs");
+        if (!bizCardDivs || bizCardDivs.length === 0) {
+            console.error("ResumeItemsController: Cannot create resume divs, no card divs provided.");
             return [];
         }
         this.bizResumeDivs = bizCardDivs.map(cardDiv => this.createBizResumeDiv(cardDiv));

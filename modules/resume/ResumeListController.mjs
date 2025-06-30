@@ -22,6 +22,12 @@ class ResumeListController {
   }
 
   initialize(originalJobsData, bizResumeDivs) {
+    // --- Dependency Checks ---
+    if (!resumeItemsController.isInitialized) {
+        throw new Error("ResumeListController requires resumeItemsController to be initialized.");
+    }
+    // --- End Dependency Checks ---
+
     this.resumeContentDiv = document.getElementById('resume-content-div');
     if ( !this.resumeContentDiv ) throw new Error('ResumeListController: initialize: resume-content-div not found in DOM');
     this.resumeContentWrapper = document.getElementById('resume-content-div-wrapper');

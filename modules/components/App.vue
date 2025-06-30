@@ -1,30 +1,10 @@
 <script setup>
 import { ref, onMounted, nextTick } from 'vue';
-import ResizeHandle from './ResizeHandle.vue';
 import ResumeContainer from './ResumeContainer.vue';
 import SceneViewLabel from './SceneViewLabel.vue';
-import * as parallax from '@/modules/core/parallax.mjs';
-import * as focalPoint from '@/modules/core/focalPoint.mjs';
-import * as aimPoint from '@/modules/core/aimPoint.mjs';
-import * as bullsEye from '@/modules/core/bullsEye.mjs';
-import * as viewPort from '@/modules/core/viewport.mjs';
-import * as eventBus from '@/modules/core/eventBus.mjs';
-import * as keyDown from '@/modules/core/keyDown.mjs';
-import * as colorPalettes from '@/modules/colors/colorPalettes.mjs';
-import * as sceneContainer from '@/modules/scene/sceneContainer.mjs';
-import * as timeline from '@/modules/timeline/timeline.mjs';
-import * as bizDetailsDivModule from '@/modules/scene/bizDetailsDivModule.mjs';
-import { cardsController } from '@/modules/scene/CardsController.mjs';
-import { resumeListController } from '@/modules/resume/ResumeListController.mjs';
-import { resumeItemsController } from '@/modules/scene/ResumeItemsController.mjs';
+import { initializeState } from '@/modules/core/stateManager.mjs';
 import * as moduleManager from '@/modules/core/moduleManager.mjs';
-import * as jobsData from '@/static_content/jobs/jobs.mjs';
-import * as dateUtils from '@/modules/utils/dateUtils.mjs';
-import * as resizeHandle from '@/modules/core/resizeHandle.mjs';
-import * as scenePlane from '@/modules/scene/scenePlane.mjs';
-import * as autoScroll from '@/modules/animation/autoScroll.mjs';
-import * as sceneViewLabel from '@/modules/core/sceneViewLabel.mjs';
-import { initializeState } from './modules/core/stateManager.mjs';
+import { onColorPaletteChanged, applyCurrentColorPaletteToDocument } from '@/modules/colors/colorPalettes.mjs';
 
 const isMounted = ref(true);
 const isLoading = ref(true);
@@ -32,19 +12,26 @@ const error = ref(null);
 
 onMounted(async () => {
   try {
-    // First, load the application state from the server.
+    // First, load the application state.
     await initializeState();
+
+    // Now that state is loaded, we can stop loading and render the main app structure.
+    isLoading.value = false;
     
-    // Once state is loaded, initialize all other modules.
-    // The moduleManager will ensure they are initialized in the correct order.
+    // Wait for the next DOM update cycle to ensure all elements are actually rendered.
+    await nextTick();
+
+    // With the DOM ready, initialize all other modules.
     await moduleManager.initialize();
+
+    // Subscribe to color palette changes to update the document's theme.
+    onColorPaletteChanged(applyCurrentColorPaletteToDocument);
 
     console.log("Application initialized successfully.");
   } catch (e) {
     console.error("App.vue: Error during initialization:", e);
     error.value = e.message || 'An unknown error occurred during initialization.';
-  } finally {
-    isLoading.value = false;
+    isLoading.value = false; // Also stop loading on error
   }
 });
 </script>
@@ -60,10 +47,10 @@ onMounted(async () => {
   </div>
   <div v-else id="app-container">
     <div id="scene-container">
+      <div id="scene-plane-top-gradient"></div>
+      <div id="scene-plane-btm-gradient"></div>
       <div id="scene-plane">
-        <div id="scene-plane-top-gradient"></div>
-        <div id="scene-plane-btm-gradient"></div>
-        <div id="timeline-container" class="timeline-timelineContainer-left"></div>
+        <div id="timeline-container" class="timeline-container-left"></div>
       </div>
       <div id="biz-details-div"></div>
     </div>
@@ -96,15 +83,17 @@ onMounted(async () => {
   z-index: 1; /* Lower stacking context */
 }
 
+/*
 #timeline-container {
   position: absolute;
   top: 0;
   left: 0;
   width: 100%;
   height: 100%;
-  z-index: 3; /* Must be lower than the minimum card z-index (10) */
+  z-index: 3;
   pointer-events: none;
 }
+*/
 
 #scene-plane {
     position: relative;

@@ -205,7 +205,31 @@ export function validateIsPlainObject(obj) {
     }
 }
 
+/**
+ * Deeply merges two objects. The source object's properties overwrite the target object's properties.
+ * @param {object} target - The target object to merge into.
+ * @param {object} source - The source object to merge from.
+ * @returns {object} The merged object.
+ */
+export function deepMerge(target, source) {
+    const output = { ...target };
 
+    if (isPlainObject(target) && isPlainObject(source)) {
+        Object.keys(source).forEach(key => {
+            if (isPlainObject(source[key])) {
+                if (!(key in target)) {
+                    Object.assign(output, { [key]: source[key] });
+                } else {
+                    output[key] = deepMerge(target[key], source[key]);
+                }
+            } else {
+                Object.assign(output, { [key]: source[key] });
+            }
+        });
+    }
+
+    return output;
+}
 
 /**
  * called by modules/tests/tests.mjs::runSanityTests()

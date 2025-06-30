@@ -3,108 +3,52 @@
 import * as utils from '../utils/utils.mjs';
 import * as mathUtils from '../utils/mathUtils.mjs';
 import * as sceneContainer from '../scene/sceneContainer.mjs';
+import * as dateUtils from '../utils/dateUtils.mjs';
   
 //---------------------------------
 // TimeLine globals 
 
-// @ts-ignore
-var _timelineContainer = null;
-// @ts-ignore
-var _sceneContainer = null;
+const TIMELINE_CONTAINER_ID = 'timeline-container';
+
+let _timelineContainer = null;
+let _isInitialized = false;
+let _sceneContainer = null;
+let _yearMonths = [];
 
 // initizlized in initializeTimeline
 var _timelineYearMin = 0;
 var _timelineYearMax = 0;
 var _defaultYear = null;
 
-let _timelineIsInitialized = false;
-
-export function isTimelineInitialized() {
-    return _timelineIsInitialized;
+export function isInitialized() {
+    return _isInitialized;
 }
 
 /**
- * initializes the timeLineContainer
- * @param {*} minYear : int
- * @param {*} maxYear : int
- * @param {*} defaultYear : any optional
+ * Initializes the timeline module.
+ * @param {number} startYear - The first year to display on the timeline.
+ * @param {number} endYear - The last year to display on the timeline.
  */
-export function initialize(minYear, maxYear, defaultYear=null) {
-    if (isTimelineInitialized()) {
-        CONSOLE_LOG_IGNORE("initializeTimeline: Timeline already initialized, ignoring duplicate initialization request");
+export function initialize(startYear, endYear) {
+    if (_isInitialized) {
+        console.warn("Timeline already initialized.");
         return;
     }
-    _timelineContainer = document.getElementById("timeline-container");
-    if ( !_timelineContainer ) throw new Error("timeline-container not found");
-    _sceneContainer = document.getElementById("scene-container");
-    if ( !_sceneContainer ) throw new Error("sceneContainer not found");
-    _timelineYearMin = minYear;
-    if ( _timelineYearMin === undefined ) throw new Error("_timelineYearMin is undefined"); 
-    _timelineYearMax = maxYear;
-    if ( _timelineYearMax === undefined ) throw new Error("_timelineYearMax is undefined");
-    if ( _timelineYearMin > _timelineYearMax ) throw new Error("_timelineYearMin > _timelineYearMax");  
-    if ( defaultYear === null ) {
-        defaultYear = _timelineYearMax;
+    _timelineYearMin = startYear;
+    _timelineYearMax = endYear;
+    _timelineContainer = document.getElementById(TIMELINE_CONTAINER_ID);
+    if (!_timelineContainer) {
+        throw new Error(`Timeline container #${TIMELINE_CONTAINER_ID} not found`);
     }
-    if ( defaultYear < _timelineYearMin || defaultYear > _timelineYearMax ) throw new Error("defaultYear out of range"); 
-    _defaultYear = defaultYear;
-    
-    inittimelineYearDivBottoms();
+    _sceneContainer = document.getElementById("scene-container");
+    if (!_sceneContainer) {
+        throw new Error("Scene container not found for timeline");
+    }
 
-    var alignment = _timelineContainer.classList.contains("timeline-timelineContainer-left") ? "left" : "right";
-
-    // year starts at the top at the maxYear
-    for (var year = _timelineYearMax; year >= _timelineYearMin; year--) {
-        var yearDiv = document.createElement("div");
-        yearDiv.classList.add("year-div");
-
-        if (alignment == "left") {
-            yearDiv.classList.add("year-div-left");
-            yearDiv.innerHTML = `&nbsp;${year}`;
-        }
-        else {
-            yearDiv.classList.add("year-div-right");
-            yearDiv.innerHTML = `${year}&nbsp;`;
-        }
-
-        var row = _timelineYearMax - year;
-        var yearDivBottom = (row + 1) * YEAR_BOTTOM_TO_BOTTOM;
-        const yearStr = `${year}`;
-        timelineYearDivBottoms[yearStr] = yearDivBottom;
-        const checkYearDivBottom = getTimelineYearBottom(yearStr);
-        if ( checkYearDivBottom != yearDivBottom ) {
-            console.error(`checkYearBtm:${checkYearDivBottom} != calcYearBtm:${yearDivBottom} `);
-        }
-        console.assert(checkYearDivBottom == yearDivBottom);
-
-        yearDiv.style.fontSize = `${YEARDIV_FONTSIZE}px`;
-        yearDiv.style.height = `${YEARDIV_FONTSIZE}px`;
-        yearDiv.style.bottom = `${yearDivBottom}px`;
-        yearDiv.style.top = `${yearDivBottom - YEARDIV_FONTSIZE}px`;
-        _timelineContainer.appendChild(yearDiv);
-
-        for (var month = 1; month <= 12; month++) {
-            var monthTick = document.createElement("div");
-            monthTick.classList.add("month-tick");
-            if (alignment == "left")
-                monthTick.classList.add("month-tick-left");
-            else
-                monthTick.classList.add("month-tick-right");
-            var monthStr = utils.zeroPad(month, 2);
-            var monthTickBottom = getTimelineYearMonthBottom(year.toString(), monthStr);
-            var checkYearMonthTick = yearDivBottom - (month - 1) * YEAR_BOTTOM_TO_BOTTOM / 12;
-            console.assert(checkYearMonthTick == monthTickBottom);
-
-            monthTick.style.fontSize = `${MONTHTICK_FONTSIZE}px`;
-            monthTick.style.height = `${MONTHTICK_FONTSIZE}px`;
-            monthTick.style.bottom = `${monthTickBottom}px`;
-            monthTick.style.top = `${monthTickBottom - MONTHTICK_FONTSIZE}px`;
-            monthTick.innerHTML = `${year}-${monthStr}`;
-            _timelineContainer.appendChild(monthTick);
-        } // month
-    } // year
-    _timelineIsInitialized = true;
-    sceneContainer.scrollSceneToCurrentYearMonthTop();
+    const years = createYears(startYear, endYear);
+    renderTimeline(years);
+    _isInitialized = true;
+    CONSOLE_LOG_IGNORE('Timeline initialized');
 
     // After the timeline is fully rendered, set the explicit height of the scene plane
     // so that the bottom gradient can correctly position itself.
@@ -113,6 +57,69 @@ export function initialize(minYear, maxYear, defaultYear=null) {
         const timelineHeight = getTimelineHeight();
         scenePlane.style.height = `${timelineHeight}px`;
     }
+}
+
+/**
+ * Creates the year elements for the timeline.
+ * @param {number} startYear - The first year to create.
+ * @param {number} endYear - The last year to create.
+ * @returns {Array<Object>} An array of year objects.
+ */
+function createYears(startYear, endYear) {
+    const years = [];
+    for (let year = endYear; year >= startYear; year--) {
+        const yearData = {
+            year: year,
+            months: []
+        };
+        for (let month = 1; month <= 12; month++) {
+            yearData.months.push({ month: month });
+        }
+        years.push(yearData);
+    }
+    return years;
+}
+
+/**
+ * Renders the full timeline based on the years data.
+ * @param {Array<Object>} years - The array of year objects to render.
+ */
+function renderTimeline(years) {
+    _timelineContainer.innerHTML = ''; // Clear existing timeline
+    const alignment = _timelineContainer.classList.contains("timeline-container-left") ? "left" : "right";
+    const yearCount = _timelineYearMax - _timelineYearMin + 1;
+
+    years.forEach((yearData, yearIndex) => {
+        const yearDiv = document.createElement("div");
+        yearDiv.classList.add("year-div", `year-div-${alignment}`);
+        yearDiv.innerHTML = alignment === 'left' ? `&nbsp;${yearData.year}` : `${yearData.year}&nbsp;`;
+
+        const yearDivBottom = (yearCount - yearIndex) * YEAR_BOTTOM_TO_BOTTOM;
+        yearDiv.style.fontSize = `${YEARDIV_FONTSIZE}px`;
+        yearDiv.style.bottom = `${yearDivBottom}px`;
+        _timelineContainer.appendChild(yearDiv);
+
+        yearData.months.forEach((monthData, monthIndex) => {
+            const monthTick = document.createElement("div");
+            monthTick.classList.add("month-tick", `month-tick-${alignment}`);
+            const monthStr = utils.zeroPad(monthData.month, 2);
+            const monthTickBottom = yearDivBottom - (monthIndex) * YEAR_BOTTOM_TO_BOTTOM / 12;
+            
+            monthTick.style.fontSize = `${MONTHTICK_FONTSIZE}px`;
+            monthTick.style.bottom = `${monthTickBottom}px`;
+            monthTick.innerHTML = `${yearData.year}-${monthStr}`;
+            _timelineContainer.appendChild(monthTick);
+        });
+    });
+}
+
+/**
+ * @returns {number} The total height of the timeline content.
+ */
+export function getTimelineHeight() {
+    if (!_isInitialized) return 0;
+    const yearCount = _timelineContainer.querySelectorAll('.year-div').length;
+    return (yearCount + 1) * YEAR_BOTTOM_TO_BOTTOM;
 }
 
 // the global set of all yearDivBottoms created 
@@ -124,9 +131,9 @@ function inittimelineYearDivBottoms() {
 }
 
 // YEAR dimensions are in px
-const YEAR_BOTTOM_TO_BOTTOM = 162;
-const YEARDIV_FONTSIZE = 48;
-const MONTHTICK_FONTSIZE = 9;
+const YEAR_BOTTOM_TO_BOTTOM = 200;
+const YEARDIV_FONTSIZE = 60;
+const MONTHTICK_FONTSIZE = 8;
 
 // --------------------------------------
 // Timeline functions 
@@ -145,7 +152,7 @@ export function getTimelineYearBottom(yearStr) {
     utils.validateFloat(yearNum);
     utils.validateFloat(_timelineYearMin);
     utils.validateFloat(_timelineYearMax);
-    const yearOffset = (_timelineYearMax - (yearNum-1)) * YEAR_BOTTOM_TO_BOTTOM;
+    const yearOffset = (yearNum - _timelineYearMin + 1) * YEAR_BOTTOM_TO_BOTTOM;
     return yearOffset;
 }
 
@@ -171,14 +178,6 @@ export function getTimelineYearMonthBottom(yearStr, monthStr) {
  */
 export function getTimelineYearsHeight(numYears) {
     return numYears * YEAR_BOTTOM_TO_BOTTOM;
-}
-/**
- * Gets the height of the timeline in pixels
- * @returns {number} The height in pixels
- * take care to always append "px" for pixels
- */
-export function getTimelineHeight() {
-    return getTimelineYearMonthBottom(`${_timelineYearMin}`, "01");
 }
 
 export function sceneContainerScrollToYear(_sceneContainer, year) {

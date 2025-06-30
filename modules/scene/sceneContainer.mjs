@@ -5,29 +5,28 @@ import * as focalPoint from '../core/focalPoint.mjs';
 import * as dateUtils from '../utils/dateUtils.mjs';
 import * as utils from '../utils/utils.mjs';
 
+let _sceneContainer = null;
 let _isInitialized = false;
 
 /**
- * Initializes the scene container and its gradient overlays.
+ * Initializes the scene container, gets the DOM element, and sets up event listeners.
  */
 export function initialize() {
     if (_isInitialized) {
-        CONSOLE_LOG_IGNORE("SceneContainer already initialized.");
+        console.warn("sceneContainer.initialize: already initialized");
         return;
     }
-
-    const sceneContainer = document.getElementById('scene-container');
-    if (!sceneContainer) {
-        console.error("Scene container element not found!");
-        return;
+    _sceneContainer = document.getElementById('scene-container');
+    if (!_sceneContainer) {
+        throw new Error('Scene container element #scene-container not found');
     }
 
-    setupGradientOverlays();
-
-    // Any other scene container setup...
-
+    _sceneContainer.addEventListener('scroll', () => {
+        const scrollTop = _sceneContainer.scrollTop;
+    });
+    
     _isInitialized = true;
-    CONSOLE_LOG_IGNORE("SceneContainer initialized successfully.");
+    CONSOLE_LOG_IGNORE('Scene container initialized');
 }
 
 export function isInitialized() {
@@ -294,4 +293,15 @@ export function scrollSceneToCurrentYearMonthTop() {
     const month = now.getMonth() + 1; // JS months are 0-based
     // Use timeline util to scroll
     timeline.sceneContainerScrollToYearMonth(sceneContainer, year, month);
+}
+
+/**
+ * Returns the scene container element.
+ * @returns {HTMLElement} The scene container element.
+ */
+export function getSceneContainer() {
+    if (!_isInitialized) {
+        throw new Error('Scene container not initialized');
+    }
+    return _sceneContainer;
 }
