@@ -34,7 +34,7 @@ class ResumeListController {
     // Listen ONLY for selection changes to trigger scrolling. Styling is handled by ResumeItemsController.
     selectionManager.addEventListener('selectionChanged', this.handleSelectionChanged.bind(this));
 
-    this.currentSortRule = { field: 'original', direction: 'asc' };
+    this.currentSortRule = { field: 'startDate', direction: 'desc' };
     this.updateSortedIndices();
     
     if (this.sortedIndices.length > 0) {
@@ -142,15 +142,10 @@ class ResumeListController {
   }
 
   applySortRule(sortRule) {
-    const previouslySelectedJobIndex = selectionManager.getSelectedJobIndex();
-
     this.currentSortRule = { ...sortRule };
     this.updateSortedIndices();
-    this.applySortedOrder();
-
-    if (previouslySelectedJobIndex !== null) {
-      this.scrollToJobIndex(previouslySelectedJobIndex, 'applySortRule');
-    }
+    this.applyNewSort();
+    this.goToFirstResumeItem();
   }
 
   scrollToJobIndex(jobIndex, caller = '') {
@@ -183,10 +178,7 @@ class ResumeListController {
           comparison = this.compareStrings(a.job.employer, b.job.employer);
           break;
         case 'startDate':
-          comparison = this.compareDates(a.job.startDate, b.job.startDate);
-          break;
-        case 'endDate':
-          comparison = this.compareDates(a.job.endDate, b.job.endDate);
+          comparison = this.compareDates(a.job.start, b.job.start);
           break;
         case 'role':
           comparison = this.compareStrings(a.job.role, b.job.role);
@@ -238,14 +230,18 @@ class ResumeListController {
     return isNaN(parsed.getTime()) ? null : parsed;
   }
 
-  applySortedOrder() {
+  applyNewSort() {
     if (!this.infiniteScroller) return;
-    
+
     // Create new array of divs in sorted order
     const sortedDivs = this.sortedIndices.map(originalIndex => this.bizResumeDivs[originalIndex]);
-    
-    // Update the infinite scroller with the new order
-    this.infiniteScroller.setItems(sortedDivs);
+
+    // Update the infinite scroller with the new order, starting at index 0
+    const startingIndex = 0;
+    this.infiniteScroller.setItems(sortedDivs, startingIndex);
+
+    // After setting items, explicitly scroll to the new starting index without animation
+    this.infiniteScroller.scrollToItem(startingIndex, 'applyNewSort', true);
   }
 
   // Convenience methods for common sorts

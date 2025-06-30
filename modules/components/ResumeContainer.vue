@@ -17,9 +17,7 @@ const sortOptions = ref([
   { value: { field: 'startDate', direction: 'desc' }, text: 'Start Date (Newest First)' },
   { value: { field: 'startDate', direction: 'asc' }, text: 'Start Date (Oldest First)' },
   { value: { field: 'employer', direction: 'asc' }, text: 'Employer (A-Z)' },
-  { value: { field: 'employer', direction: 'desc' }, text: 'Employer (Z-A)' },
   { value: { field: 'role', direction: 'asc' }, text: 'Role (A-Z)' },
-  { value: { field: 'role', direction: 'desc' }, text: 'Role (Z-A)' },
 ]);
 
 // Methods for buttons - these will now call the legacy controller

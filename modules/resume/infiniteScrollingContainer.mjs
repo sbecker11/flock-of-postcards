@@ -51,15 +51,15 @@ class InfiniteScrollingContainer {
     this.scrollport.style.cursor = 'ns-resize';
   }
 
-  setItems(items) {
+  setItems(items, startingIndex = 0) {
     // Clear the container of any previous items and clones
     this.contentHolder.innerHTML = '';
     
     this.originalItems = [...items];
     this.createClonedStructure();
     this.positionItems();
-    this.currentIndex = 0;
-    CONSOLE_INFO_IGNORE(`InfiniteScrollingContainer: Set ${items.length} items`);
+    this.currentIndex = startingIndex; // Use the provided starting index
+    CONSOLE_INFO_IGNORE(`InfiniteScrollingContainer: Set ${items.length} items, starting at index ${startingIndex}`);
     
     // Ensure click handlers are added
     this.addDirectClickHandlers();

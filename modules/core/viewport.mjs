@@ -4,6 +4,7 @@ import * as utils from '../utils/utils.mjs';
 
 import * as domUtils from '../utils/domUtils.mjs';
 import * as bullsEye from './bullsEye.mjs';
+import * as focalPoint from './focalPoint.mjs';
 
 // Constants
 const VIEWPORT_PADDING = 100; // Padding around the viewPortProperties
@@ -89,6 +90,11 @@ export function updateViewPort() {
 
     // tell the bullsEye to update the position of its HTML element (using getViewPortCenter()
     bullsEye.updateBullsEye();
+    
+    // If the focal point is locked, tell it to start easing to the new bullseye position.
+    if (focalPoint.isLockedToBullsEye()) {
+        focalPoint.startEasingToBullsEye('viewport-update');
+    }
 }
 
 export function getViewPortOrigin() {

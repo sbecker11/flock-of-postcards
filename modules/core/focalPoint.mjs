@@ -997,8 +997,6 @@ function onMouseUp_stopDraggingFocalPoint(event) {
  * handles the case when the window is resized
  * and the focalPoint is locked to bullsEye state
  */
-window.addEventListener('resize', handleOnWindowResize);
-
 let _resizeTimeout = null;
 const RESIZE_DEBOUNCE_DELAY = 150; // ms
 
