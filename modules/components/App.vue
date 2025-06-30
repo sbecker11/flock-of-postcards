@@ -34,9 +34,9 @@ onMounted(() => {
 
       // Initialize core modules that have no DOM dependencies or whose DOM is always present
       viewPort.initialize();
+      aimPoint.initialize();
       focalPoint.initialize();
       parallax.initialize();
-      aimPoint.initialize();
       sceneViewLabel.initialize();
       bullsEye.initialize();
       sceneContainer.initialize();

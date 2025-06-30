@@ -10,6 +10,8 @@ reference for the #main-container to occupy the full height of the viewPort.
   --grey-darkest: #333333;
   --grey-dark: #444444;
   --grey-medium: #999999;
+  --scene-font-family: 'Inter', sans-serif;
+  --scene-font-weight: 400;
 }
 
 html, body {
@@ -106,5 +108,27 @@ overflow and ensures consistent sizing.
   width: 16px;
   height: 16px;
   margin: 1px; /* Adjust as needed for spacing */
+}
+
+.user-select-none {
+  user-select: none;
+  -webkit-user-select: none; /* For Safari */
+  -moz-user-select: none;    /* For Firefox */
+  -ms-user-select: none;     /* For Internet Explorer/Edge */
+}
+
+#focal-point {
+  position: fixed;
+  z-index: 1000;
+}
+
+/* Change the cursor to "grab" when the focal point is draggable and has arrived at its destination */
+#focal-point.focal-point-is-draggable {
+    cursor: grab;
+}
+
+/* Change the cursor to "grabbing" when the focal point is actively being dragged */
+#focal-point.focal-point-is-being-dragged {
+    cursor: grabbing;
 }
 

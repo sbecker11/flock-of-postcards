@@ -39,8 +39,16 @@ export function handleKeyDown(event) {
             // focalPoint.toggleFocalPointLock();
             break;
         case "b":
-            CONSOLE_LOG_IGNORE("'b' key pressed");
-            focalPoint.toggleLockedToBullsEye();
+            CONSOLE_LOG_IGNORE("'b' key pressed for bullseye");
+            document.dispatchEvent(new CustomEvent('focalModeChange', { detail: { mode: 'locked' } }));
+            break;
+        case "f":
+            CONSOLE_LOG_IGNORE("'f' key pressed for following");
+            document.dispatchEvent(new CustomEvent('focalModeChange', { detail: { mode: 'following' } }));
+            break;
+        case "d":
+            CONSOLE_LOG_IGNORE("'d' key pressed for dragging");
+            document.dispatchEvent(new CustomEvent('focalModeChange', { detail: { mode: 'dragging' } }));
             break;
         case "c":
             CONSOLE_LOG_IGNORE("'c' key pressed");

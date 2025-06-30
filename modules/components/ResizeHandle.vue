@@ -1,7 +1,7 @@
 <script setup>
 import { ref, onMounted, computed } from 'vue';
 import { resizeManager } from '@/modules/core/resizeHandle.mjs';
-import { toggleLockedToBullsEye } from '@/modules/core/focalPoint.mjs';
+import * as focalPoint from '@/modules/core/focalPoint.mjs';
 
 // Create a ref to attach to the component's root element
 const handleRef = ref(null);
@@ -9,6 +9,22 @@ const handleRef = ref(null);
 const scenePercentage = ref(50);
 const isLeftCollapsed = computed(() => scenePercentage.value <= 0);
 const isRightCollapsed = computed(() => scenePercentage.value >= 100);
+
+const focalPointMode = ref('locked'); // locked, following, dragging
+const isHovering = ref(false);
+
+const nextMode = computed(() => {
+  switch (focalPointMode.value) {
+    case 'locked': return 'following';
+    case 'following': return 'dragging';
+    case 'dragging': return 'locked';
+    default: return 'locked';
+  }
+});
+
+const displayMode = computed(() => {
+    return isHovering.value ? nextMode.value : focalPointMode.value;
+});
 
 // Expose the handleRef so it can be accessed from the component instance
 defineExpose({
@@ -19,8 +35,25 @@ defineExpose({
 
 // --- Component Methods ---
 
+function setMode(newMode) {
+  focalPointMode.value = newMode;
+  focalPoint.setMode(newMode);
+}
+
 function toggleFocalLock() {
-  toggleLockedToBullsEye();
+  let nextMode;
+  switch (focalPointMode.value) {
+    case 'locked':
+      nextMode = 'following';
+      break;
+    case 'following':
+      nextMode = 'dragging';
+      break;
+    case 'dragging':
+      nextMode = 'locked';
+      break;
+  }
+  setMode(nextMode);
 }
 
 const startDrag = (e) => {
@@ -43,14 +76,33 @@ const toggleStepping = () => resizeManager.toggleStepping();
 resizeManager.setStateUpdater = (newPercentage) => {
   scenePercentage.value = Math.round(newPercentage);
 };
+
+onMounted(() => {
+  document.addEventListener('focalModeChange', (event) => {
+    const newMode = event.detail.mode;
+    if (['locked', 'following', 'dragging'].includes(newMode)) {
+      setMode(newMode);
+    }
+  });
+});
 </script>
 
 <template>
     <div id="resize-handle" ref="handleRef" class="resize-handle" @mousedown="startDrag">
         <button id="collapse-left" class="toggle-circle" @click.stop="collapseLeft" :disabled="isLeftCollapsed" title="Collapse Left">‹</button>
         <button id="collapse-right" class="toggle-circle" @click.stop="collapseRight" :disabled="isRightCollapsed" title="Collapse Right">›</button>
-        <button id="focal-lock" class="toggle-circle" @click.stop="toggleFocalLock" title="Toggle Focal Point Lock"></button>
         <button id="stepping-indicator" class="toggle-circle" @click.stop="toggleStepping" title="Toggle Stepping (s)">S</button>
+        <button id="tri-state-toggle" 
+                class="toggle-circle" 
+                :class="[displayMode, { hovering: isHovering }]"
+                @click.stop="toggleFocalLock" 
+                @mouseenter="isHovering = true"
+                @mouseleave="isHovering = false"
+                :title="'Focal Point: ' + focalPointMode">
+            <span v-if="displayMode === 'locked'">⦻</span>
+            <span v-if="displayMode === 'following'">›</span>
+            <span v-if="displayMode === 'dragging'">⤮</span>
+        </button>
         <span id="scene-visible-percentage" class="percentage-display">{{ scenePercentage }}%</span>
     </div>
 </template>
@@ -100,16 +152,46 @@ resizeManager.setStateUpdater = (newPercentage) => {
     border: 1px solid var(--button-bg-color, #555);
 }
 
-#focal-lock {
-    background-size: 16px 16px;
-    background-repeat: no-repeat;
+#tri-state-toggle {
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    border: 2px solid white;
+    background-color: rgba(0,0,0,0.5);
+    background-size: 60%;
     background-position: center;
-    background-image: url('/static_content/icons/focal-lock/Lock-Open-white.png');
+    background-repeat: no-repeat;
+    cursor: pointer;
+    transition: background-color 0.2s;
+    font-size: 16px;
+    line-height: 1;
+    color: white;
+    text-align: center;
+    position: relative;
 }
 
-/* This class will be added by focalPoint.mjs */
-#focal-lock.locked {
-    background-image: url('/static_content/icons/focal-lock/Lock-Closed-white.png');
+#tri-state-toggle:hover {
+    background-color: rgba(0,0,0,0.8);
+}
+
+#tri-state-toggle.hovering {
+    background-color: white;
+    color: black;
+    border-color: black;
+}
+
+#tri-state-toggle.locked {
+    background-image: none;
+}
+
+#tri-state-toggle.following {
+    background-image: none;
+    font-size: 24px;
+}
+
+#tri-state-toggle.dragging {
+    background-image: none;
+    font-size: 24px;
 }
 
 #stepping-indicator {
