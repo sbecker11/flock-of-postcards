@@ -8,6 +8,7 @@ import * as domUtils from '../utils/domUtils.mjs';
 import { resumeItemsController } from '../scene/ResumeItemsController.mjs';
 import { selectionManager } from '../core/selectionManager.mjs';
 import { cardsController } from '../scene/CardsController.mjs';
+import { AppState, saveState } from '../core/stateManager.mjs';
 
 class ResumeListController {
   constructor() {
@@ -31,14 +32,22 @@ class ResumeListController {
     
     this.setupInfiniteScrolling();
     
-    // Listen ONLY for selection changes to trigger scrolling. Styling is handled by ResumeItemsController.
+    // Listen for selection changes to save state
     selectionManager.addEventListener('selectionChanged', this.handleSelectionChanged.bind(this));
 
-    this.currentSortRule = { field: 'startDate', direction: 'desc' };
-    this.updateSortedIndices();
+    // Initialize with saved state
+    this.applySortRule(AppState.resume.sortRule, true); // isInitializing = true
     
+    // Select the saved job index
     if (this.sortedIndices.length > 0) {
-      selectionManager.selectJobIndex(this.sortedIndices[0], 'ResumeListController.initialize');
+      const savedJobIndex = AppState.resume.selectedJobIndex;
+      // Ensure the saved index is valid before selecting
+      if (this.sortedIndices.includes(savedJobIndex)) {
+        selectionManager.selectJobIndex(savedJobIndex, 'ResumeListController.initialize');
+      } else {
+        // If saved index is invalid (e.g., data changed), select the first item
+        selectionManager.selectJobIndex(this.sortedIndices[0], 'ResumeListController.initialize');
+      }
     }
 
     this._isInitialized = true;
@@ -63,6 +72,13 @@ class ResumeListController {
   // region Event Handlers from SelectionManager
   handleSelectionChanged(event) {
     const { selectedJobIndex, caller } = event.detail;
+
+    // Save the newly selected index to our global state
+    if (caller !== 'ResumeListController.initialize') {
+        AppState.resume.selectedJobIndex = selectedJobIndex;
+        saveState(AppState);
+    }
+
     this.scrollToJobIndex(selectedJobIndex, `ResumeListController.handleSelectionChanged from ${caller}`);
 
     // Log the left property of the cDiv
@@ -141,11 +157,22 @@ class ResumeListController {
     selectionManager.selectJobIndex(lastJobIndex, 'ResumeListController.goToLastResumeItem');
   }
 
-  applySortRule(sortRule) {
+  applySortRule(sortRule, isInitializing = false) {
     this.currentSortRule = { ...sortRule };
+
+    // Save the new sort rule to global state, unless during initial page load
+    if (!isInitializing) {
+        AppState.resume.sortRule = this.currentSortRule;
+        saveState(AppState);
+    }
+
     this.updateSortedIndices();
     this.applyNewSort();
-    this.goToFirstResumeItem();
+
+    // After sorting, go to the first item, unless we are initializing
+    if (!isInitializing) {
+        this.goToFirstResumeItem();
+    }
   }
 
   scrollToJobIndex(jobIndex, caller = '') {

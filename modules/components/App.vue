@@ -24,69 +24,41 @@ import * as resizeHandle from '@/modules/core/resizeHandle.mjs';
 import * as scenePlane from '@/modules/scene/scenePlane.mjs';
 import * as autoScroll from '@/modules/animation/autoScroll.mjs';
 import * as sceneViewLabel from '@/modules/core/sceneViewLabel.mjs';
+import { initializeState } from './modules/core/stateManager.mjs';
 
 const isMounted = ref(true);
+const isLoading = ref(true);
+const error = ref(null);
 
-onMounted(() => {
-  nextTick(async () => {
-    try {
-      CONSOLE_LOG_IGNORE("App.vue: Component is mounted. Version check: 3. Initializing legacy modules...");
+onMounted(async () => {
+  try {
+    // First, load the application state from the server.
+    await initializeState();
+    
+    // Once state is loaded, initialize all other modules.
+    // The moduleManager will ensure they are initialized in the correct order.
+    await moduleManager.initialize();
 
-      // Initialize core modules that have no DOM dependencies or whose DOM is always present
-      viewPort.initialize();
-      aimPoint.initialize();
-      focalPoint.initialize();
-      parallax.initialize();
-      sceneViewLabel.initialize();
-      bullsEye.initialize();
-      sceneContainer.initialize();
-      resizeHandle.initialize();
-      autoScroll.initialize();
-      
-      // Await palettes, as they are needed for card creation
-      await colorPalettes.initializePaletteSelectorInstance();
-
-      // Initialize timeline, which is also needed for card creation
-      const { minYear, maxYear } = dateUtils.getMinMaxYears(jobsData.jobs);
-      timeline.initialize(minYear, maxYear, maxYear);
-
-      // Initialize controllers
-      cardsController.initialize(jobsData.jobs);
-      
-      // ResumeItemsController creates the resume divs from the card divs
-      const bizResumeDivs = resumeItemsController.createAllBizResumeDivs(cardsController.bizCardDivs);
-      
-      // Manually append the created resume divs into the Vue component's managed DOM
-      const resumeContentDiv = document.getElementById('resume-content-div');
-      if (resumeContentDiv) {
-        bizResumeDivs.forEach(div => resumeContentDiv.appendChild(div));
-      } else {
-        console.error("App.vue: #resume-content-div not found! Cannot add resume items.");
-      }
-
-      // Now that the resume items are in the DOM, initialize the list controller
-      resumeListController.initialize(jobsData.jobs, bizResumeDivs);
-      window.resumeListController = resumeListController; // Expose for legacy access
-
-      // Initialize the scene plane after cards and resume are ready
-      scenePlane.initialize();
-
-      // Perform the initial render of the parallax effect on the newly created cards
-      const currentFocalPoint = focalPoint.getFocalPoint();
-      const sceneRect = { left: 0, top: 0, right: window.innerWidth, bottom: window.innerHeight }; // A default rect is fine for init
-      parallax.viewAllBizCardDivs(currentFocalPoint, "App.vue-initial-render", sceneRect);
-
-      CONSOLE_LOG_IGNORE("App.vue: All legacy modules initialized successfully.");
-
-    } catch (error) {
-      console.error("App.vue: Error during initialization:", error);
-    }
-  });
+    console.log("Application initialized successfully.");
+  } catch (e) {
+    console.error("App.vue: Error during initialization:", e);
+    error.value = e.message || 'An unknown error occurred during initialization.';
+  } finally {
+    isLoading.value = false;
+  }
 });
 </script>
 
 <template>
-  <div id="app-container">
+  <div v-if="isLoading" class="loading-overlay">
+    <div class="spinner"></div>
+    <p>Loading Your Experience...</p>
+  </div>
+  <div v-else-if="error" class="error-overlay">
+    <h2>Initialization Failed</h2>
+    <p>{{ error }}</p>
+  </div>
+  <div v-else id="app-container">
     <div id="scene-container">
       <div id="scene-plane">
         <div id="scene-plane-top-gradient"></div>

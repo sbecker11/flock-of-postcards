@@ -3,6 +3,7 @@
 import * as colorUtils from './colorUtils.mjs';
 import * as utils from '../utils/utils.mjs';
 import * as domUtils from '../utils/domUtils.mjs';
+import { AppState, saveState } from '../core/stateManager.mjs';
 
 // Directory where palette files are stored
 const PALETTE_DIR = './static_content/colorPalettes/';
@@ -14,9 +15,6 @@ const FALLBACK_DARK_HEX = '#666666';
 const FALLBACK_WHITE_HEX = '#FFFFFF';
 const FALLBACK_GREY_HEX = '#888888';
 const FALLBACK_BLACK_HEX = '#000000';
-
-// Add localStorage key constant
-const LOCAL_STORAGE_PALETTE_KEY = 'lastSelectedPalette';
 
 const SELECTED_CLASS = 'color-selected';
 
@@ -1039,5 +1037,48 @@ export function isColorIndexString(colorIndex) {
     
     // Convert to number and check if it's a valid integer
     const num = parseInt(colorIndex, 10);
+    return Number.isInteger(num) && num >= 0;
+}
+
+if (!_selectorInstance || isRefresh) {
+    _selectorInstance = await domUtils.getDynamicElement('#color-palette-selector');
+}
+
+const previouslySelectedFilename = _selectorInstance.value;
+
+_selectorInstance.innerHTML = '';
+_orderedPaletteNames.forEach(paletteName => {
+    const filename = Object.keys(_filenameToNameMap).find(key => _filenameToNameMap[key] === paletteName);
+    if(filename){
+        const option = document.createElement('option');
+        option.value = filename;
+        option.textContent = paletteName;
+        _selectorInstance.appendChild(option);
+    }
+});
+
+const lastSelected = localStorage.getItem('lastSelectedPalette');
+const targetPaletteFilename = previouslySelectedFilename || lastSelected || _selectorInstance.options[0]?.value;
+
+if (targetPaletteFilename) {
+    _selectorInstance.value = targetPaletteFilename;
+    selectPalette(targetPaletteFilename); 
+}
+
+if (!_selectorInstance.dataset.listenerAttached) {
+    _selectorInstance.addEventListener('change', (event) => {
+        const selectedFilename = event.target.value;
+        localStorage.setItem('lastSelectedPalette', selectedFilename);
+        selectPalette(selectedFilename);
+    });
+    _selectorInstance.dataset.listenerAttached = 'true';
+}
+
+return true;
+
+/**
+ * @returns {boolean} Whether the given number is a non-negative integer.
+ */
+function isNonNegativeInteger(num) {
     return Number.isInteger(num) && num >= 0;
 }

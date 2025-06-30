@@ -7,6 +7,7 @@ import * as viewPort from './viewPort.mjs';
 import * as bullsEye from './bullsEye.mjs';
 import * as aimPoint from './aimPoint.mjs';
 import * as eventBus from '../core/eventBus.mjs';
+import { AppState, saveState } from './stateManager.mjs';
 
 /**
  * class to manage the mouse drag state
@@ -114,125 +115,6 @@ function setStatus(new_status, prefix="") {
 
 export function getStatus() {
     return _status;
-}
-
-/*
- * Add these functions near the top of the file, after the imports
- */
-function saveDraggableState(state) {
-    try {
-        localStorage.setItem('focalPoint_isDraggable', JSON.stringify(state));
-    } catch (e) {
-        console.error('Failed to save draggable state:', e);
-    }
-}
-
-/**
- * @returns the last saved draggable state
- */
-function loadDraggableState() {
-    try {
-        const saved = localStorage.getItem('focalPoint_isDraggable');
-        return saved !== null ? JSON.parse(saved) : true;  // Default to true if not set
-    } catch (e) {
-        console.error('Failed to load draggable state:', e);
-        return true;  // Default to true on error
-    }
-}
-
-// Add state management functions after the imports
-const STORAGE_KEY = 'focalPoint_state';
-
-/**
- * @returns the default state
- */
-function getDefaultState() {
-    return {
-        isDraggable: false,
-        isLockedToBullsEye: true,
-        _lastFocalPoint: null,
-        _lastSceneRect: null,
-        scenePercentage: 50, // Default 50% split
-        selectedPalette: null, // Will be set to first available palette
-        lastUpdated: new Date().toISOString(),
-        version: "1.0"
-    };
-}
-
-/**
- * save state to local storage
- */
-export function saveState() {
-    try {
-        const paletteSelector = document.getElementById('color-palette-selector');
-        const sceneContainer = document.getElementById('scene-container');
-        
-        const state = {
-            isDraggable: _isDraggable,
-            isLockedToBullsEye: _isLockedToBullsEye,
-            _lastFocalPoint: getFocalPoint(),
-            _lastSceneRect: getSceneRect(),
-            selectedPalette: paletteSelector ? paletteSelector.value : null,
-            lastUpdated: new Date().toISOString(),
-            version: "1.0"
-        };
-        // CONSOLE_LOG_IGNORE('Saving focalPoint state:', state);
-        localStorage.setItem(STORAGE_KEY, JSON.stringify(state, null, 2));
-        //CONSOLE_LOG_IGNORE('Saved focalPoint state:', state);
-    } catch (e) {
-        console.error('Failed to save focalPoint state:', e);
-    }
-}
-
-/**
- * load state from local storage
- * @returns the loaded state
- */
-function loadState() {
-    try {
-        const saved = localStorage.getItem(STORAGE_KEY);
-        if (!saved) {
-            return getDefaultState();
-        }
-        const state = JSON.parse(saved);
-        //CONSOLE_LOG_IGNORE('Loaded focalPoint state:', state);
-        return state;
-    } catch (e) {
-        console.error('Failed to load focalPoint state:', e);
-        return getDefaultState();
-    }
-}
-
-/*
- * Initialize state from storage
- */
-function initializeState() {
-    const state = loadState();
-    _isDraggable = state.isDraggable;
-    _isLockedToBullsEye = state.isLockedToBullsEye;
-    
-    const sceneContainer = document.getElementById('scene-container');
-    const resumeContainer = document.getElementById('resume-container');
-
-    // Apply palette selection if available
-    const paletteSelector = document.getElementById('color-palette-selector');
-    if (paletteSelector && state.selectedPalette) {
-        paletteSelector.value = state.selectedPalette;
-        // Trigger change event to apply the palette
-        const event = new Event('change');
-        paletteSelector.dispatchEvent(event);
-    }
-
-    return state;
-}
-
-/*
- * Externally callable function to get current 
- * state (useful for debugging and for 
- * inter-session state management
- */
-export function getCurrentState() {
-    return loadState();
 }
 
 /**
@@ -392,7 +274,7 @@ export function initialize() {
         throw new Error("Focal point element #focal-point not found");
     }
     
-    initializeState();
+    // The old initializeState() is no longer needed here, as state is managed centrally.
     setupMouseListeners();
     initializeSceneRect();
     updateLockIcon();
@@ -400,11 +282,14 @@ export function initialize() {
     _isInitialized = true;
     // CONSOLE_LOG_IGNORE("Focal point initialized");
 
-    // Per user request, start in the locked state, instantly.
-    _mode = FOCAL_POINT_MODES.LOCKED;
-    updateFocalPointClasses();
-    moveFocalPointTo(bullsEye.getBullsEye(), 'initialize-snap-to-lock');
-    startFocalPointAnimation("initialization"); // Start animation loop to enforce lock
+    // Initialize mode from the global AppState
+    setMode(AppState.focalPoint.mode, true); // Pass true to prevent saving on init
+    
+    // This logic ensures the focal point starts visually in the correct state without animation
+    if (_mode === FOCAL_POINT_MODES.LOCKED) {
+        moveFocalPointTo(bullsEye.getBullsEye(), 'initialize-snap-to-lock');
+    }
+    startFocalPointAnimation("initialization"); // Start animation loop
 }
 
 export function isSceneRectInitialized() {
@@ -1161,9 +1046,14 @@ function updateFocalPointClasses() {
     }
 }
 
-export function setMode(newMode) {
+export function setMode(newMode, isInitializing = false) {
     _mode = newMode;
-    // CONSOLE_LOG_IGNORE(`focalPoint.setMode: ${_mode}`);
+
+    // Update global state and save, unless during initial page load
+    if (!isInitializing) {
+        AppState.focalPoint.mode = newMode;
+        saveState(AppState);
+    }
 
     switch (_mode) {
         case FOCAL_POINT_MODES.LOCKED:

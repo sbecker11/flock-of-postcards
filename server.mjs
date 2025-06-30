@@ -7,6 +7,7 @@ import cors from 'cors';
 const PROJECT_ROOT = process.cwd();
 const PALETTE_DIR_PATH = path.resolve(PROJECT_ROOT, 'static_content', 'colorPalettes');
 const CSS_FILE_PATH = path.resolve(PROJECT_ROOT, 'static_content', 'css', 'palette-styles.css');
+const STATE_FILE_PATH = path.resolve(PROJECT_ROOT, 'app_state.json');
 
 const app = express();
 
@@ -14,6 +15,8 @@ const app = express();
 // Enable CORS for all origins (adjust for production if needed)
 app.use(cors());
 
+// Parse JSON bodies for the state endpoint
+app.use(express.json());
 // Parse text bodies for the CSS endpoint
 app.use(express.text());
 
@@ -50,6 +53,35 @@ app.use(express.static(PROJECT_ROOT, {
         }
     }
 }));
+
+// --- State Management Endpoints ---
+app.get('/api/state', async (req, res) => {
+    try {
+        await fs.access(STATE_FILE_PATH);
+        const stateData = await fs.readFile(STATE_FILE_PATH, 'utf-8');
+        res.json(JSON.parse(stateData));
+    } catch (error) {
+        // If the file doesn't exist (ENOENT), it's not an error.
+        // The client will handle creating a default state.
+        if (error.code === 'ENOENT') {
+            res.status(404).json({ error: 'State file not found. Client should use default.' });
+        } else {
+            console.error('Error reading state file:', error);
+            res.status(500).json({ error: 'Failed to read state file.' });
+        }
+    }
+});
+
+app.post('/api/state', async (req, res) => {
+    try {
+        const stateData = JSON.stringify(req.body, null, 2);
+        await fs.writeFile(STATE_FILE_PATH, stateData, 'utf-8');
+        res.json({ success: true, message: 'State saved successfully.' });
+    } catch (error) {
+        console.error('Error writing state file:', error);
+        res.status(500).json({ error: 'Failed to write state file.' });
+    }
+});
 
 // --- API Endpoint for Dynamic Manifest ---
 app.get('/api/palette-manifest', async (req, res) => {

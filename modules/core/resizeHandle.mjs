@@ -3,6 +3,7 @@
 import * as viewPort from './viewPort.mjs';
 import * as focalPoint from '../core/focalPoint.mjs';
 import * as keyDown from './keyDown.mjs';
+import { AppState, saveState } from './stateManager.mjs';
 
 const BUTTON_COLUMN_WIDTH = 20;
 const DEFAULT_WIDTH_PERCENT = 50;
@@ -82,7 +83,12 @@ class ResizeManager {
         this.isDragging = false;
         this.startX = 0;
         this.lastSnapIndex = null;
-        this.percentage = DEFAULT_WIDTH_PERCENT;
+        
+        // Load initial stepping state
+        this.incrementPercentage = AppState.resizeHandle.steppingEnabled ? this.defaultIncrementPercentage : 0;
+
+        // Load initial percentage from state
+        this.percentage = AppState.layout.panelSizePercentage;
         
         this.setupEventListeners();
         this.updateLayoutFromPercentage(this.percentage);
@@ -130,6 +136,11 @@ class ResizeManager {
             this.sceneWidth = windowWidth - this.resumeWidth;
             this.resumeLeft = this.sceneWidth;
         }
+
+        // Save the new percentage to the global state
+        AppState.layout.panelSizePercentage = this.percentage;
+        saveState(AppState);
+
         this.applyLayout();
         
         if (this.setStateUpdater) {
@@ -248,11 +259,12 @@ class ResizeManager {
     toggleStepping() {
         if (this.incrementPercentage > 0) {
             this.incrementPercentage = 0;
-            CONSOLE_LOG_IGNORE(`Stepping disabled.`);
+            AppState.resizeHandle.steppingEnabled = false;
         } else {
             this.incrementPercentage = this.defaultIncrementPercentage;
-            CONSOLE_LOG_IGNORE(`Stepping enabled: ${this.incrementPercentage.toFixed(2)}% increments.`);
+            AppState.resizeHandle.steppingEnabled = true;
         }
+        saveState(AppState);
         this.updateSteppingVisuals();
     }
 
