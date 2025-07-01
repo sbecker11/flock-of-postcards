@@ -4,12 +4,12 @@
  */
 import { watchEffect } from 'vue';
 import { useFocalPoint } from '../composables/useFocalPoint.mjs';
-import * as viewPort from './viewPort.mjs';
+import * as viewPort from './viewport.mjs';
 import * as zUtils from '../utils/zUtils.mjs';
 
 // Parallax constants
-export const PARALLAX_X_EXAGGERATION_FACTOR = 5.0;
-export const PARALLAX_Y_EXAGGERATION_FACTOR = 4.0;
+export const PARALLAX_X_EXAGGERATION_FACTOR = 0.9;
+export const PARALLAX_Y_EXAGGERATION_FACTOR = 1.0;
 
 let _isInitialized = false;
 
@@ -23,7 +23,8 @@ export function initialize() {
     }
 
     if (!viewPort.isInitialized()) {
-        throw new Error("Cannot initialize parallax: viewPort not initialized");
+        console.error("Parallax initialization failed: viewPort not initialized.");
+        return;
     }
 
     const { position: focalPointPosition } = useFocalPoint();
@@ -33,6 +34,7 @@ export function initialize() {
         console.error("Parallax initialization failed: #scene-container not found.");
         return;
     }
+
 
     watchEffect(() => {
         const rect = sceneContainer.getBoundingClientRect();
@@ -44,15 +46,64 @@ export function initialize() {
         // Calculate focal point position relative to the scene's center
         const dh = (sceneCenterX - fpX) * PARALLAX_X_EXAGGERATION_FACTOR;
         const dv = (sceneCenterY - fpY) * PARALLAX_Y_EXAGGERATION_FACTOR;
-
+    
         const bizCardDivs = document.getElementsByClassName("biz-card-div");
         for (const bizCardDiv of bizCardDivs) {
             applyParallaxToBizCardDiv(bizCardDiv, dh, dv);
         }
     });
 
+    // Listen for viewport changes to ensure parallax updates
+    window.addEventListener('viewport-changed', () => {
+        console.log('Parallax: viewport-changed event received, triggering update');
+        // Force a re-evaluation of the watchEffect by accessing its dependencies
+        const rect = sceneContainer.getBoundingClientRect();
+        const { x: fpX, y: fpY } = focalPointPosition.value;
+        
+        const sceneCenterX = rect.left + rect.width / 2;
+        const sceneCenterY = rect.top + rect.height / 2;
+        const dh = (sceneCenterX - fpX) * PARALLAX_X_EXAGGERATION_FACTOR;
+        const dv = (sceneCenterY - fpY) * PARALLAX_Y_EXAGGERATION_FACTOR;
+    
+        const bizCardDivs = document.getElementsByClassName("biz-card-div");
+        
+        // Bundle values for debugging
+        const debugInfo = {
+            // Scene container rect
+            rectLeft: rect.left,
+            rectTop: rect.top,
+            rectWidth: rect.width,
+            rectHeight: rect.height,
+            
+            // Scene center
+            sceneCenterX: sceneCenterX,
+            sceneCenterY: sceneCenterY,
+            
+            // Focal point
+            focalPointX: fpX,
+            focalPointY: fpY,
+            
+            // Parallax displacement
+            dh: dh,
+            dv: dv,
+            
+            // Exaggeration factors
+            parallaxXFactor: PARALLAX_X_EXAGGERATION_FACTOR,
+            parallaxYFactor: PARALLAX_Y_EXAGGERATION_FACTOR,
+            
+            // Card count
+            cardCount: bizCardDivs.length
+        };
+        
+        console.log('Manual parallax debug info:', debugInfo);
+        
+        for (const bizCardDiv of bizCardDivs) {
+            applyParallaxToBizCardDiv(bizCardDiv, dh, dv);
+        }
+    });
+
     _isInitialized = true;
-    console.log("Parallax initialized successfully");
+    window.CONSOLE_LOG_IGNORE("Parallax initialized successfully");
 }
 
 export function isInitialized() {
@@ -78,21 +129,17 @@ export function applyParallaxToBizCardDiv(bizCardDiv, dh, dv) {
     // A higher z- means the card is further away, so it should move less.
     let zScale = 0;
     if (sceneZ > 0) 
-        zScale = (1 - ((sceneZ - zUtils.ALL_CARDS_Z_MIN) / (zUtils.ALL_CARDS_Z_MAX - zUtils.ALL_CARDS_Z_MIN)));
-    // console.log("sceneZ:", sceneZ, "zScale:", zScale );
+        zScale = (0.9 - ((sceneZ - zUtils.ALL_CARDS_Z_MIN - 1) / (zUtils.ALL_CARDS_Z_MAX - zUtils.ALL_CARDS_Z_MIN)));
 
-    const translateX = dh * zScale;
-    const translateY = dv * zScale;
+    // default before parallax
+    let translateX = viewPort.getViewPortOrigin().x;
+    let translateY = 0;
     
-    // For selected items (clones), we might want a different or no parallax effect.
-    // The clone will have a very high z-index but we can also check its ID.
-    if (bizCardDiv.id.endsWith('-clone')) {
-         // Clones are centered, so we only apply a fraction of the parallax
-         const cloneTranslateX = translateX * 0.1;
-         const cloneTranslateY = translateY * 0.1;
-         bizCardDiv.style.transform = `translateX(${cloneTranslateX}px) translateY(${cloneTranslateY}px) translateZ(${sceneZ}px)`;
-    } else {
-        bizCardDiv.style.transform = `translateX(${translateX}px) translateY(${translateY}px) translateZ(${sceneZ}px)`;
-    }
+    // only original cDivs with zScale > 0are subject to parallax
+    translateX += dh * zScale;
+    translateY += dv * zScale;
+    
+    const transformString = `translateX(${translateX}px) translateY(${translateY}px)`;
+    bizCardDiv.style.transform = transformString;
 }
 

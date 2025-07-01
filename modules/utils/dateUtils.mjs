@@ -25,11 +25,11 @@ export const getMonthDates = (year, month) => {
 /**
  * Usage Examples
  * const { start, end } = getMonthDates(2023, 6);
- * CONSOLE_LOG_IGNORE(start); // June 1, 2023
- * CONSOLE_LOG_IGNORE(end);   // June 30, 2023
+ * window.CONSOLE_LOG_IGNORE(start); // June 1, 2023
+ * window.CONSOLE_LOG_IGNORE(end);   // June 30, 2023
  * 
  * const { start, end } = getMonthDates(2024, 2);
- * CONSOLE_LOG_IGNORE(end);   // February 29, 2024 (leap year!)
+ * window.CONSOLE_LOG_IGNORE(end);   // February 29, 2024 (leap year!)
  */
 
 /**
@@ -577,7 +577,7 @@ function assertEqual(actual, expected, message) {
  * Tests for the parseFlexibleDateString function.
  */
 export function test_dateUtils() {
-    CONSOLE_LOG_IGNORE("Running dateUtils tests...");
+    window.CONSOLE_LOG_IGNORE("Running dateUtils tests...");
 
     // Test case 1: YYYY-MM-DD
     let d1 = parseFlexibleDateString("2023-01-15");
@@ -621,7 +621,7 @@ export function test_dateUtils() {
     }
     assertEqual(errorThrown, true, "Should have thrown error for whitespace string");
 
-    CONSOLE_LOG_IGNORE("dateUtils tests finished.");
+    window.CONSOLE_LOG_IGNORE("dateUtils tests finished.");
 }
 
 /**

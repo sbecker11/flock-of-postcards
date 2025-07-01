@@ -33,7 +33,7 @@ class ResumeItemsController {
         // This controller's main job is done in the moduleManager now,
         // so we just set the flag.
         this.isInitialized = true;
-        CONSOLE_LOG_IGNORE("ResumeItemsController initialized.");
+        window.CONSOLE_LOG_IGNORE("ResumeItemsController initialized.");
     }
 
     async createAllBizResumeDivs(bizCardDivs) {

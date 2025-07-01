@@ -1,5 +1,7 @@
 import { ref, computed } from 'vue';
 import * as viewPort from '@/modules/core/viewPort.mjs';
+import * as bullsEye from '@/modules/core/bullsEye.mjs';
+import * as aimPoint from '@/modules/core/aimPoint.mjs';
 import { AppState, saveState } from '@/modules/core/stateManager.mjs';
 
 const HANDLE_WIDTH = 20;
@@ -15,9 +17,45 @@ function clampToRange(val, min, max) {
     return Math.max(min, Math.min(max, val));
 }
 
+function handleViewportResize() {
+    window.CONSOLE_LOG_IGNORE('=== handleViewportResize START ===');
+    
+    // 1. Recenter the bullsEye
+    if (bullsEye.isInitialized()) {
+        window.CONSOLE_LOG_IGNORE('Recentering bullsEye...');
+        bullsEye.recenterBullsEye();
+    } else {
+        window.CONSOLE_LOG_IGNORE('BullsEye not initialized, skipping recenter');
+    }
+    
+    // 2. Update aimPoint position to bullsEye center
+    if (aimPoint.isInitialized()) {
+        window.CONSOLE_LOG_IGNORE('Updating aimPoint to bullsEye center...');
+        const bullsEyeCenter = bullsEye.getBullsEye();
+        aimPoint.setAimPoint(bullsEyeCenter, 'viewportResize');
+    } else {
+        window.CONSOLE_LOG_IGNORE('AimPoint not initialized, skipping update');
+    }
+    
+    // 3. Update focal point to aimPoint position
+    // The focal point should automatically follow the aimPoint in locked mode
+    // We can trigger this by dispatching a custom event that the focal point listens to
+    window.CONSOLE_LOG_IGNORE('Dispatching focal-point-update event...');
+    const event = new CustomEvent('focal-point-update', { 
+        detail: { 
+            source: 'viewportResize',
+            position: bullsEye.getBullsEye()
+        } 
+    });
+    window.dispatchEvent(event);
+    
+    window.CONSOLE_LOG_IGNORE('=== handleViewportResize END ===');
+}
+
 function updateLayout(newUiPercentage, shouldSave = true) {
-    console.log('=== updateLayout START ===');
-    console.log('updateLayout called with percentage:', newUiPercentage, 'shouldSave:', shouldSave);
+    window.CONSOLE_LOG_IGNORE("updateLayout called with:", newUiPercentage, "shouldSave:", shouldSave);
+    window.CONSOLE_LOG_IGNORE('=== updateLayout START ===');
+    window.CONSOLE_LOG_IGNORE('updateLayout called with percentage:', newUiPercentage, 'shouldSave:', shouldSave);
     const windowWidth = window.innerWidth;
     const maxSceneWidth = windowWidth - HANDLE_WIDTH;
     const clampedUiPercentage = clampToRange(newUiPercentage, 0, 100);
@@ -25,22 +63,26 @@ function updateLayout(newUiPercentage, shouldSave = true) {
     const newSceneWidth = Math.round((clampedUiPercentage / 100) * maxSceneWidth);
     sceneWidthInPixels.value = newSceneWidth;
     
-    console.log('Calling viewPort.setViewPortWidth with:', newSceneWidth);
+    window.CONSOLE_LOG_IGNORE('Calling viewPort.setViewPortWidth with:', newSceneWidth);
     viewPort.setViewPortWidth(newSceneWidth);
     
     if (AppState) {
         AppState.layout.panelSizePercentage = clampedUiPercentage;
         if (shouldSave) {
-            console.log('Saving state...');
+            window.CONSOLE_LOG_IGNORE('Saving state...');
             saveState(AppState);
         }
     }
     
-    console.log('About to dispatch layout-changed event with sceneWidth:', newSceneWidth);
+    window.CONSOLE_LOG_IGNORE('About to dispatch layout-changed event with sceneWidth:', newSceneWidth);
     const event = new CustomEvent('layout-changed', { detail: { sceneWidth: newSceneWidth } });
     window.dispatchEvent(event);
-    console.log('layout-changed event dispatched');
-    console.log('=== updateLayout END ===');
+    window.CONSOLE_LOG_IGNORE('layout-changed event dispatched');
+    
+    // Call the viewport resize handler after layout change
+    handleViewportResize();
+    
+    window.CONSOLE_LOG_IGNORE('=== updateLayout END ===');
     
     return clampedUiPercentage;
 }
@@ -54,6 +96,7 @@ export function useResizeHandle() {
     }
 
     function applyInitialLayout() {
+        window.CONSOLE_LOG_IGNORE("applyInitialLayout called");
         updateLayout(uiPercentage.value, false);
     }
     
@@ -65,6 +108,7 @@ export function useResizeHandle() {
     });
 
     function updateLayoutFromPercentage(newPercentage, shouldSave = true) {
+        window.CONSOLE_LOG_IGNORE("updateLayoutFromPercentage called with:", newPercentage, "shouldSave:", shouldSave);
         uiPercentage.value = updateLayout(newPercentage, shouldSave);
     }
 

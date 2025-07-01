@@ -26,6 +26,10 @@
   <div id="app"></div>
 
   <!-- Load Vue app -->
+   <script>
+    window.CONSOLE_LOG_IGNORE = () => {};
+    window.CONSOLE_INFO_IGNORE = () => {};
+   </script>
   <script type="module" src="/main.ts"></script>
 
   <!-- The legacy main.mjs is now disabled. All initialization is handled by main.ts -->

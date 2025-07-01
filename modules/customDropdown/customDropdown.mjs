@@ -102,8 +102,8 @@ export class CustomDropdown {
         this.container.appendChild(this.dropdown);
         
         // Debug: Log final button state
-        CONSOLE_LOG_IGNORE('Button after append:', this.button);
-        CONSOLE_LOG_IGNORE('Button computed style:', window.getComputedStyle(this.button, '::after'));
+        window.CONSOLE_LOG_IGNORE('Button after append:', this.button);
+        window.CONSOLE_LOG_IGNORE('Button computed style:', window.getComputedStyle(this.button, '::after'));
     }
     
     selectOption(value) {

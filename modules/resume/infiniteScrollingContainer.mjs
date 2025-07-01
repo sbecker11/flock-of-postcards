@@ -22,6 +22,9 @@ class InfiniteScrollingContainer {
     this.lastY = 0;
     this.velocity = 0;
     this.momentumAnimationId = null;
+    this.resizeTimeoutId = null; // For debounced resize handling
+    this.lastContentWidth = 0;
+    this.lastContentHeight = 0;
 
     this.init();
     
@@ -30,7 +33,7 @@ class InfiniteScrollingContainer {
   }
 
   reinitialize() {
-    CONSOLE_LOG_IGNORE("Re-running positioning logic...");
+    window.CONSOLE_LOG_IGNORE("Re-running positioning logic...");
     this.positionItems();
     this.scrollToItem(this.currentIndex, 'reinitialize', true); // Force immediate scroll without animation
   }
@@ -38,6 +41,7 @@ class InfiniteScrollingContainer {
   init() {
     this.setupContainer();
     this.bindEvents();
+    this.setupResizeObserver();
     CONSOLE_INFO_IGNORE('InfiniteScrollingContainer initialized');
   }
 
@@ -345,31 +349,21 @@ class InfiniteScrollingContainer {
   }
 
   setupResizeObserver() {
-    // Use ResizeObserver to detect when container width changes
-    if (typeof ResizeObserver !== 'undefined') {
-      this.resizeObserver = new ResizeObserver((entries) => {
-        // Use requestAnimationFrame to batch DOM operations
-        requestAnimationFrame(() => {
-          // Debounce the repositioning to avoid excessive calls
-          clearTimeout(this.resizeTimeout);
-          this.resizeTimeout = setTimeout(() => {
-            this.handleContainerResize();
-          }, 200);
-        });
-      });
-
-      this.resizeObserver.observe(this.scrollport);
-    } else {
-      // Fallback for browsers without ResizeObserver
-      window.addEventListener('resize', () => {
-        requestAnimationFrame(() => {
-          clearTimeout(this.resizeTimeout);
-          this.resizeTimeout = setTimeout(() => {
-            this.handleContainerResize();
-          }, 200);
-        });
-      });
-    }
+    // Create a ResizeObserver to watch for container size changes
+    this.resizeObserver = new ResizeObserver((entries) => {
+      for (const entry of entries) {
+        // Only trigger if the content size changed (not just scroll position)
+        if (entry.contentRect.width !== this.lastContentWidth || 
+            entry.contentRect.height !== this.lastContentHeight) {
+          this.lastContentWidth = entry.contentRect.width;
+          this.lastContentHeight = entry.contentRect.height;
+          this.handleResize();
+        }
+      }
+    });
+    
+    // Start observing the content holder
+    this.resizeObserver.observe(this.contentHolder);
   }
 
   handleContainerResize() {
@@ -535,7 +529,7 @@ class InfiniteScrollingContainer {
       return;
     }
     
-    CONSOLE_LOG_IGNORE(`InfiniteScrollingContainer: Scrolling to item at index ${index}`);
+    window.CONSOLE_LOG_IGNORE(`InfiniteScrollingContainer: Scrolling to item at index ${index}`);
     
     // Find the item in allItems
     const item = this.allItems.find(item => 
@@ -547,12 +541,12 @@ class InfiniteScrollingContainer {
       return;
     }
     
-    CONSOLE_LOG_IGNORE(`InfiniteScrollingContainer: Found item: ${item.element.id}`);
+    window.CONSOLE_LOG_IGNORE(`InfiniteScrollingContainer: Found item: ${item.element.id}`);
     
     // Calculate the scroll position
     const scrollTop = item.top;
     
-    CONSOLE_LOG_IGNORE(`InfiniteScrollingContainer: Scrolling to position: ${scrollTop}`);
+    window.CONSOLE_LOG_IGNORE(`InfiniteScrollingContainer: Scrolling to position: ${scrollTop}`);
     
     // Scroll to the item
     if (smooth) {
@@ -652,7 +646,7 @@ class InfiniteScrollingContainer {
       return false;
     }
     
-    CONSOLE_LOG_IGNORE(`InfiniteScrollingContainer: Scrolling to item at index ${index}`);
+    window.CONSOLE_LOG_IGNORE(`InfiniteScrollingContainer: Scrolling to item at index ${index}`);
     
     // Find the item in allItems
     const item = this.allItems.find(item => 
@@ -664,12 +658,12 @@ class InfiniteScrollingContainer {
       return false;
     }
     
-    CONSOLE_LOG_IGNORE(`InfiniteScrollingContainer: Found item: ${item.element.id}`);
+    window.CONSOLE_LOG_IGNORE(`InfiniteScrollingContainer: Found item: ${item.element.id}`);
     
     // Calculate the scroll position
     const scrollTop = item.top;
     
-    CONSOLE_LOG_IGNORE(`InfiniteScrollingContainer: Scrolling to position: ${scrollTop}`);
+    window.CONSOLE_LOG_IGNORE(`InfiniteScrollingContainer: Scrolling to position: ${scrollTop}`);
 
     // Calculate final scroll position with an offset to ensure the header is visible
     const scrollOffset = 20; // pixels
@@ -728,6 +722,132 @@ class InfiniteScrollingContainer {
     );
     
     return item ? item.originalIndex : -1;
+  }
+
+  // Method to recalculate heights when content changes
+  recalculateHeights() {
+    window.CONSOLE_LOG_IGNORE('Recalculating heights for all items...');
+    
+    const spacing = 5;
+    let currentTop = 0;
+    
+    this.allItems.forEach((item, index) => {
+      // Add minimal spacing between items (not before first)
+      if (index > 0) {
+        currentTop += spacing;
+      }
+      
+      // Temporarily set height to auto to measure actual content
+      item.element.style.height = 'auto';
+      item.element.style.minHeight = 'auto';
+      
+      // Force layout calculation
+      void item.element.offsetHeight;
+      
+      // Measure the actual content height
+      const scrollHeight = item.element.scrollHeight;
+      const offsetHeight = item.element.offsetHeight;
+      const contentHeight = Math.min(scrollHeight, offsetHeight || scrollHeight);
+      
+      // Set the new height
+      item.element.style.height = `${contentHeight}px`;
+      item.element.style.minHeight = `${contentHeight}px`;
+      
+      // Update position
+      item.element.style.top = `${currentTop}px`;
+      
+      // Update item data
+      item.top = currentTop;
+      item.height = contentHeight;
+      
+      // Move to next position
+      currentTop += contentHeight;
+    });
+    
+    // Update total content height
+    this.contentHolder.style.height = `${currentTop}px`;
+    
+    window.CONSOLE_LOG_IGNORE('Height recalculation complete. Total height:', currentTop);
+  }
+
+  // Method to update a specific item's height and recalculate positions
+  updateItemHeight(originalIndex) {
+    window.CONSOLE_LOG_IGNORE(`Updating height for item at original index: ${originalIndex}`);
+    
+    const cloneCount = Math.min(this.options.cloneCount, this.originalItems.length);
+    const itemIndex = cloneCount + originalIndex; // Account for tail clones
+    
+    if (itemIndex >= this.allItems.length) {
+      window.CONSOLE_LOG_IGNORE(`Item index ${itemIndex} out of bounds`);
+      return;
+    }
+    
+    const item = this.allItems[itemIndex];
+    
+    // Temporarily set height to auto to measure actual content
+    item.element.style.height = 'auto';
+    item.element.style.minHeight = 'auto';
+    
+    // Force layout calculation
+    void item.element.offsetHeight;
+    
+    // Measure the actual content height
+    const scrollHeight = item.element.scrollHeight;
+    const offsetHeight = item.element.offsetHeight;
+    const newHeight = Math.min(scrollHeight, offsetHeight || scrollHeight);
+    
+    // Set the new height
+    item.element.style.height = `${newHeight}px`;
+    item.element.style.minHeight = `${newHeight}px`;
+    
+    // Update item data
+    item.height = newHeight;
+    
+    // Recalculate positions for all items after this one
+    this.recalculatePositionsFromIndex(itemIndex);
+    
+    window.CONSOLE_LOG_IGNORE(`Updated item ${originalIndex} height to ${newHeight}px`);
+  }
+
+  // Helper method to recalculate positions starting from a specific index
+  recalculatePositionsFromIndex(startIndex) {
+    const spacing = 5;
+    let currentTop = startIndex > 0 ? this.allItems[startIndex - 1].top + this.allItems[startIndex - 1].height + spacing : 0;
+    
+    for (let i = startIndex; i < this.allItems.length; i++) {
+      const item = this.allItems[i];
+      
+      // Update position
+      item.element.style.top = `${currentTop}px`;
+      item.top = currentTop;
+      
+      // Move to next position
+      currentTop += item.height + spacing;
+    }
+    
+    // Update total content height
+    this.contentHolder.style.height = `${currentTop}px`;
+  }
+
+  // Debounced resize observer to wait until container stops resizing
+  setupDebouncedResizeObserver() {
+    // Clear any existing timeout
+    if (this.resizeTimeoutId) {
+      clearTimeout(this.resizeTimeoutId);
+    }
+    
+    // Set a new timeout to recalculate after resize stops
+    this.resizeTimeoutId = setTimeout(() => {
+      window.CONSOLE_LOG_IGNORE('Resize stopped, recalculating heights...');
+      this.recalculateHeights();
+      this.resizeTimeoutId = null;
+    }, 300); // Wait 300ms after last resize event
+  }
+
+  // Method to trigger debounced resize handling
+  handleResize() {
+    window.CONSOLE_LOG_IGNORE('Resize detected, starting debounced recalculation...');
+    this.setupDebouncedResizeObserver();
   }
 }
 

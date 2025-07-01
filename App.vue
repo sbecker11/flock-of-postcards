@@ -21,7 +21,7 @@ export default {
         isLoading.value = false;
         await nextTick();
         await moduleManager.initialize();
-        console.log("Application initialized successfully.");
+        window.CONSOLE_LOG_IGNORE("Application initialized successfully.");
       } catch (e) {
         console.error("Error initializing application:", e);
         // ...error handling code...

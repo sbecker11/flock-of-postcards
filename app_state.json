@@ -1,6 +1,6 @@
 {
   "version": "1.0",
-  "lastUpdated": "2025-06-30T20:50:18.541Z",
+  "lastUpdated": "2025-07-01T08:17:55.650Z",
   "layout": {
     "panelSizePercentage": 66.66666666666667
   },
@@ -15,7 +15,7 @@
       "field": "startDate",
       "direction": "desc"
     },
-    "selectedJobIndex": 10
+    "selectedJobIndex": 6
   },
   "theme": {
     "colorPalette": "50_Dark_Grey_Monotone.json"

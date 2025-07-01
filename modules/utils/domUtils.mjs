@@ -88,14 +88,14 @@ export class PropStyleCounter {
   
     reportPropStyles() {
       for (const prop_style in this.prop_styles) {
-        CONSOLE_LOG_IGNORE(`${prop_style}: ${this.prop_styles[prop_style]}`);
+        window.CONSOLE_LOG_IGNORE(`${prop_style}: ${this.prop_styles[prop_style]}`);
       }
     }
   }
   
 
 export function showPosition(position, prefix="") {
-    CONSOLE_LOG_IGNORE(prefix, JSON.stringify(position, formatNumbersReplacer, 2));
+    window.CONSOLE_LOG_IGNORE(prefix, JSON.stringify(position, formatNumbersReplacer, 2));
 }
 
 export function showElement(element, prefix="", logLevel=LogLevel.LOG) {
@@ -142,7 +142,7 @@ export function showElement(element, prefix="", logLevel=LogLevel.LOG) {
         filter: element.style.filter,
         classList: element.classList
     }
-    CONSOLE_LOG_IGNORE(JSON.stringify(elementInfo, formatNumbersReplacer, 2));
+    window.CONSOLE_LOG_IGNORE(JSON.stringify(elementInfo, formatNumbersReplacer, 2));
 }
 
 
@@ -196,13 +196,13 @@ export function updateEventListener(element, eventType, listener, options = {}) 
     // If options.remove is true, remove the listener
     if (options.remove === true) {
         element.removeEventListener(eventType, listener);
-        CONSOLE_LOG_IGNORE(`Removed ${eventType} listener from`, element);
+        window.CONSOLE_LOG_IGNORE(`Removed ${eventType} listener from`, element);
         return;
     }
 
     // Otherwise, add the listener
     element.addEventListener(eventType, listener, options);
-    CONSOLE_LOG_IGNORE(`Added ${eventType} listener to`, element, 'with options:', options);
+    window.CONSOLE_LOG_IGNORE(`Added ${eventType} listener to`, element, 'with options:', options);
 }
 
 

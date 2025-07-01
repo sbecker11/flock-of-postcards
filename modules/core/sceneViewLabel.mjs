@@ -39,7 +39,7 @@ export function repositionLabel() {
     const top = visualRect.bottom - 20;
     const left = visualRect.right - 60;
 
-    CONSOLE_LOG_IGNORE(`Repositioning SceneViewLabel to: top=${top}px, left=${left}px`);
+    window.CONSOLE_LOG_IGNORE(`Repositioning SceneViewLabel to: top=${top}px, left=${left}px`);
 
     _sceneViewLabelElement.style.top = `${top}px`;
     _sceneViewLabelElement.style.left = `${left}px`;

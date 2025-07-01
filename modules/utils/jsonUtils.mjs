@@ -61,12 +61,12 @@ export function stringifyCircular(obj, seen = new Set()) {
   }
   
   export function testCircular() {
-    CONSOLE_LOG_IGNORE("testCircular");
+    window.CONSOLE_LOG_IGNORE("testCircular");
     const circularObject = createCirculerTestObject();
     const stringified = stringifyCircular(circularObject);
-    CONSOLE_LOG_IGNORE(stringified); // Output: '{"self":"[Circular Reference]"}'
+    window.CONSOLE_LOG_IGNORE(stringified); // Output: '{"self":"[Circular Reference]"}'
     const parsed = parseCircular(stringified);
-    CONSOLE_LOG_IGNORE(parsed); // Output: '{"self":"[Circular Reference]"}'
+    window.CONSOLE_LOG_IGNORE(parsed); // Output: '{"self":"[Circular Reference]"}'
   }
 
 
@@ -120,17 +120,17 @@ export function stringifyCircular(obj, seen = new Set()) {
   
 
   export function testCircular2() {
-    CONSOLE_LOG_IGNORE("testCircular2");
+    window.CONSOLE_LOG_IGNORE("testCircular2");
     const circularObject = createCirculerTestObject();
     const stringified = stringifyCircular2(circularObject);
-    CONSOLE_LOG_IGNORE(stringified); // Output: '{"self":"[Circular Reference]"}'
+    window.CONSOLE_LOG_IGNORE(stringified); // Output: '{"self":"[Circular Reference]"}'
     const parsed = parseCircular2(stringified);
-    CONSOLE_LOG_IGNORE(parsed); // Output: '{"self":"[Circular Reference]"}'
+    window.CONSOLE_LOG_IGNORE(parsed); // Output: '{"self":"[Circular Reference]"}'
   }
 
 
 export function testCircular3() {
-    CONSOLE_LOG_IGNORE("testCircular3");
+    window.CONSOLE_LOG_IGNORE("testCircular3");
 
     const obj = {
         name: "example",
@@ -147,11 +147,11 @@ export function testCircular3() {
 
     const jsonString = JSON.stringify(obj, replacer=replacer);
 
-    CONSOLE_LOG_IGNORE(jsonString);
+    window.CONSOLE_LOG_IGNORE(jsonString);
     // Expected output: {"name":"example","circularReference":"[Circular]"}
 
     const parsedObj = JSON.parse(jsonString);
-    CONSOLE_LOG_IGNORE(parsedObj);
+    window.CONSOLE_LOG_IGNORE(parsedObj);
     // Expected output: { name: 'example', circularReference: '[Circular]' }
 }
 

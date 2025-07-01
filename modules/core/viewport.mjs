@@ -48,7 +48,7 @@ export function initialize() {
     window.addEventListener('resize', calculateViewPortProperties);
 
     _isInitialized = true;
-    CONSOLE_LOG_IGNORE("ViewPort initialized successfully");
+    window.CONSOLE_LOG_IGNORE("ViewPort initialized successfully");
 }
 
 export function isInitialized() {
@@ -62,7 +62,7 @@ export function isInitialized() {
  * tells the bullsEye to update the position of its HTML element
  */
 export function updateViewPort() {
-    // CONSOLE_LOG_IGNORE("updateViewPort");
+    // window.CONSOLE_LOG_IGNORE("updateViewPort");
     if ( !isInitialized() ) {
         throw new Error("viewPortProperties is not initialized");
     }
@@ -89,14 +89,23 @@ export function updateViewPort() {
 
     // tell the bullsEye to update the position of its HTML element (using getViewPortCenter()
     bullsEye.updateBullsEye();
+    
+    // Dispatch viewport-changed event for other components to listen to
+    const event = new CustomEvent('viewport-changed', { 
+        detail: { 
+            centerX: viewPortProperties.centerX,
+            centerY: viewPortProperties.centerY,
+            width: viewPortWidth,
+            height: viewPortHeight
+        } 
+    });
+    window.dispatchEvent(event);
 }
 
 export function getViewPortOrigin() {
-    // CONSOLE_LOG_IGNORE("viewPort.getViewPortOrigin()");
     if ( !isInitialized() ) {
         throw new Error("viewPortProperties is not initialized");
     }
-    //CONSOLE_LOG_IGNORE("^^^^^^^^^ getViewPortOrigin: viewPortProperties.centerX:", viewPortProperties.centerX);
     return { 
         x: viewPortProperties.centerX, 
         y: viewPortProperties.centerY 
@@ -141,7 +150,7 @@ export function isBizCardDivWithinViewPort(bizCardDiv) {
 }
 
 export function setViewPortWidth(width) {
-    // CONSOLE_LOG_IGNORE("viewPort.setViewPortWidth:", width );
+    // window.CONSOLE_LOG_IGNORE("viewPort.setViewPortWidth:", width );
     if ( !isInitialized() ) {
         throw new Error("viewPort not yet initialized");
     }
@@ -182,7 +191,7 @@ export function setViewPortWidth(width) {
 //     const viewHeight = sceneHeight;
 //     const viewZIndexStr = zUtils.get_zIndexStr_from_z(sceneZ, bizCardDiv.id);
 
-//     // CONSOLE_LOG_IGNORE(`sceneLeft:${sceneLeft} + bullsEyeX:${bullsEyeX} viewLeft:${viewLeft}`);
+//     // window.CONSOLE_LOG_IGNORE(`sceneLeft:${sceneLeft} + bullsEyeX:${bullsEyeX} viewLeft:${viewLeft}`);
 
 //     // apply view-relative styling
 //     bizCardDiv.style.top =     `${viewTop}px`;
@@ -191,7 +200,7 @@ export function setViewPortWidth(width) {
 //     bizCardDiv.style.height =  `${viewHeight}px`;
 //     bizCardDiv.style.zIndex =   viewZIndexStr;
 
-//     // // CONSOLE_LOG_IGNORE(`bizCardDiv view-relativestyling for ${bizCardDiv.id}:`, {
+//     // // window.CONSOLE_LOG_IGNORE(`bizCardDiv view-relativestyling for ${bizCardDiv.id}:`, {
 //     //     styleLeft: bizCardDiv.style.left,
 //     //     offsetLeft: bizCardDiv.offsetLeft,
 //     //     boundingLeft: bizCardDiv.getBoundingClientRect().left,

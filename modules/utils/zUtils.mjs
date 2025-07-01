@@ -117,7 +117,7 @@ export function get_zIndexStr_from_z(z) {
  */
 export function test_zUtils() {
     // Test bizCard z-index to z conversion
-    // CONSOLE_LOG_IGNORE("Testing bizCard z-index to z conversion...");
+    // window.CONSOLE_LOG_IGNORE("Testing bizCard z-index to z conversion...");
     for (let z_index = ALL_CARDS_Z_INDEX_MIN; z_index <= ALL_CARDS_Z_INDEX_MAX; z_index++) {
         const z = z_from_z_index(z_index);
         validate_z(z);
@@ -129,10 +129,10 @@ export function test_zUtils() {
     }
     for ( let z=ALL_CARDS_Z_MIN; z <= ALL_CARDS_Z_MAX; z++ ) {
         const z_index = z_index_from_z(z);
-        // CONSOLE_LOG_IGNORE("Z:", z, "z_index:", z_index, "z-z_index:", z-z_index);
+        // window.CONSOLE_LOG_IGNORE("Z:", z, "z_index:", z_index, "z-z_index:", z-z_index);
     }
     for ( let z_index=ALL_CARDS_Z_INDEX_MIN; z_index <= ALL_CARDS_Z_INDEX_MAX; z_index++ ) {
         const z = z_from_z_index(z_index);
-        // CONSOLE_LOG_IGNORE("z_index:", z_index, "z:", z, "z-z_index:", z-z_index);
+        // window.CONSOLE_LOG_IGNORE("z_index:", z_index, "z:", z, "z-z_index:", z-z_index);
     }
 } 

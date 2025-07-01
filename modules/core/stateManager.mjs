@@ -39,14 +39,14 @@ async function loadState() {
         const response = await fetch('/api/state');
         if (!response.ok) {
             if (response.status === 404) {
-                console.log("No saved state found on server, using default state.");
+                window.CONSOLE_LOG_IGNORE("No saved state found on server, using default state.");
             } else {
                 console.error(`Failed to load state, server responded with status: ${response.status}`);
             }
             return getDefaultState();
         }
         const state = await response.json();
-        console.log("Loaded state from server:", state);
+        window.CONSOLE_LOG_IGNORE("Loaded state from server:", state);
         // Merge the loaded state into the default state to ensure all keys exist
         return deepMerge(getDefaultState(), state);
     } catch (e) {
@@ -69,7 +69,7 @@ export async function saveState(state) {
             },
             body: JSON.stringify(state),
         });
-        // console.log("Saved state to server:", state); // This can be noisy
+        // window.CONSOLE_LOG_IGNORE("Saved state to server:", state); // This can be noisy
     } catch (e) {
         console.error('Failed to save state to server.', e);
     }

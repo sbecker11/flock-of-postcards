@@ -1,8 +1,8 @@
 // modules/core/bullsEye.mjs
 
-console.log('BullsEye module file is being executed');
+window.CONSOLE_LOG_IGNORE('BullsEye module file is being executed');
 
-import * as viewPort from './viewPort.mjs';
+import * as viewPort from './viewport.mjs';
 import * as sceneViewLabel from './sceneViewLabel.mjs';
 
 let _bullsEyeElement = null;
@@ -10,7 +10,7 @@ let _bullsEyeRad = 0;
 let _isInitialized = false;
 
 export function initialize() {
-    console.log('BullsEye.initialize() called, _isInitialized:', _isInitialized);
+    window.CONSOLE_LOG_IGNORE('BullsEye.initialize() called, _isInitialized:', _isInitialized);
     if (_isInitialized) {
         console.warn("bullsEye.initialize: already initialized, ignoring duplicate initialization request");
         return;
@@ -27,22 +27,22 @@ export function initialize() {
         throw new Error("bullsEye requires viewPort to be initialized.");
     }
     
-    CONSOLE_LOG_IGNORE("Initializing bullsEye...");
+    window.CONSOLE_LOG_IGNORE("Initializing bullsEye...");
     recenterBullsEye();
     
     // Set up the layout-changed event listener
     window.addEventListener('layout-changed', () => {
-        console.log('BullsEye: layout-changed event received, _isInitialized:', _isInitialized);
+        window.CONSOLE_LOG_IGNORE('BullsEye: layout-changed event received, _isInitialized:', _isInitialized);
         if (_isInitialized && _bullsEyeElement) {
-            console.log('BullsEye: calling recenterBullsEye()');
+            window.CONSOLE_LOG_IGNORE('BullsEye: calling recenterBullsEye()');
             recenterBullsEye();
         } else {
-            console.log('BullsEye: not initialized or element not found, skipping recenter');
+            window.CONSOLE_LOG_IGNORE('BullsEye: not initialized or element not found, skipping recenter');
         }
     });
     
     _isInitialized = true;
-    CONSOLE_LOG_IGNORE("bullsEye initialized successfully");
+    window.CONSOLE_LOG_IGNORE("bullsEye initialized successfully");
 }
 
 export function isInitialized() {
@@ -61,14 +61,14 @@ export function getBullsEye() {
 export function recenterBullsEye() {
     const {x:_centerX, y:_centerY} = viewPort.getViewPortOrigin();
 
-    CONSOLE_LOG_IGNORE(`Repositioning BullsEye to: top=${_centerY}px, left=${_centerX}px`);
+    window.CONSOLE_LOG_IGNORE(`Repositioning BullsEye to: top=${_centerY}px, left=${_centerX}px`);
 
     // Since CSS has transform: translate(-50%, -50%), set position to exact center
     // The transform will handle centering the element around this point
     _bullsEyeElement.style.left = `${_centerX}px`;
     _bullsEyeElement.style.top = `${_centerY}px`;
     
-    CONSOLE_LOG_IGNORE(`BullsEye final position - left: ${_centerX}px, top: ${_centerY}px`);
+    window.CONSOLE_LOG_IGNORE(`BullsEye final position - left: ${_centerX}px, top: ${_centerY}px`);
     
     sceneViewLabel.repositionLabel();
 }

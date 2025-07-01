@@ -1,5 +1,5 @@
 <script setup>
-console.log('App.vue script setup is running');
+window.CONSOLE_LOG_IGNORE('App.vue script setup is running');
 
 import { ref, onMounted, nextTick, computed } from 'vue';
 import ResumeContainer from './ResumeContainer.vue';
@@ -14,6 +14,7 @@ import { useFocalPoint } from '@/modules/composables/useFocalPoint.mjs';
 import { useResizeHandle } from '@/modules/composables/useResizeHandle.mjs';
 import { jobs as jobsData } from '@/static_content/jobs/jobs.mjs';
 import * as colorUtils from '../utils/colorUtils.mjs';
+import { selectionManager } from '@/modules/core/selectionManager.mjs';
 
 // Initialize reactive systems
 useColorPalette();
@@ -28,7 +29,7 @@ const focalPointStyle = computed(() => {
     left: `${focalPointPosition.value.x}px`,
     top: `${focalPointPosition.value.y}px`,
   };
-  console.log('focalPointStyle computed:', style, 'focalPointPosition:', focalPointPosition.value);
+  window.CONSOLE_LOG_IGNORE('focalPointStyle computed:', style, 'focalPointPosition:', focalPointPosition.value);
   return style;
 });
 
@@ -36,21 +37,33 @@ const sceneContainerStyle = computed(() => ({
   width: `${sceneWidth.value}px`,
 }));
 
+const handleSceneContainerClick = (event) => {
+  // Only clear selection if clicking directly on the scene container or its immediate children
+  // Don't clear if clicking on interactive elements like cards
+  if (event.target.id === 'scene-container' || 
+      event.target.id === 'scene-plane' ||
+      event.target.id === 'scene-plane-top-gradient' ||
+      event.target.id === 'scene-plane-btm-gradient' ||
+      event.target.id === 'biz-details-div') {
+    selectionManager.clearSelection('App.vue.sceneContainerClick');
+  }
+};
+
 onMounted(async () => {
   try {
-    console.log('App.vue: onMounted started');
+    window.CONSOLE_LOG_IGNORE('App.vue: onMounted started');
     await initializeState();
-    console.log('App.vue: initializeState completed');
+    window.CONSOLE_LOG_IGNORE('App.vue: initializeState completed');
     initializeResizeHandleState();
-    console.log('App.vue: initializeResizeHandleState completed');
+    window.CONSOLE_LOG_IGNORE('App.vue: initializeResizeHandleState completed');
     initializeTimeline(jobsData);
-    console.log('App.vue: initializeTimeline completed');
+    window.CONSOLE_LOG_IGNORE('App.vue: initializeTimeline completed');
     isLoading.value = false;
     await nextTick();
-    console.log('App.vue: About to call moduleManager.initialize()');
+    window.CONSOLE_LOG_IGNORE('App.vue: About to call moduleManager.initialize()');
     await moduleManager.initialize();
-    console.log('App.vue: moduleManager.initialize() completed');
-    console.log("Application initialized successfully.");
+    window.CONSOLE_LOG_IGNORE('App.vue: moduleManager.initialize() completed');
+    window.CONSOLE_LOG_IGNORE("Application initialized successfully.");
   } catch (e) {
     console.error("App.vue: Error during initialization:", e);
     error.value = e.message || 'An unknown error occurred during initialization.';
@@ -69,7 +82,7 @@ onMounted(async () => {
     <p>{{ error }}</p>
   </div>
   <div v-else id="app-container">
-    <div id="scene-container" :style="sceneContainerStyle">
+    <div id="scene-container" :style="sceneContainerStyle" @click="handleSceneContainerClick">
       <div id="scene-plane-top-gradient"></div>
       <div id="scene-plane-btm-gradient"></div>
       <div id="scene-plane">

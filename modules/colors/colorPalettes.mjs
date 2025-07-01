@@ -23,7 +23,7 @@ export function isInitialized() {
 // The actual logic is now in the useColorPalette composable.
 async function initialize() {
     _isInitialized = true;
-    console.log("Legacy color palettes module initialized.");
+    window.CONSOLE_LOG_IGNORE("Legacy color palettes module initialized.");
 }
 
 export default {

@@ -30,25 +30,25 @@ const sortOptions = ref([
 
 // Methods for buttons - these will now call the legacy controller
 function selectFirst() {
-  CONSOLE_LOG_IGNORE("selectFirst button clicked");
+  window.CONSOLE_LOG_IGNORE("selectFirst button clicked");
   if (window.resumeListController) {
     window.resumeListController.goToFirstResumeItem();
   }
 }
 function selectLast() {
-  CONSOLE_LOG_IGNORE("selectLast button clicked");
+  window.CONSOLE_LOG_IGNORE("selectLast button clicked");
   if (window.resumeListController) {
     window.resumeListController.goToLastResumeItem();
   }
 }
 function selectNext() {
-  CONSOLE_LOG_IGNORE("selectNext button clicked");
+  window.CONSOLE_LOG_IGNORE("selectNext button clicked");
   if (window.resumeListController) {
     window.resumeListController.goToNextResumeItem();
   }
 }
 function selectPrevious() {
-  console.log("selectPrevious button clicked");
+  window.CONSOLE_LOG_IGNORE("selectPrevious button clicked");
   if (window.resumeListController) {
     window.resumeListController.goToPreviousResumeItem();
   }
@@ -219,7 +219,8 @@ function selectPrevious() {
 }
 .biz-resume-div {
     position: relative !important; /* Force override of any absolute positioning */
-    display: block !important; /* Ensure block-level behavior in the flex container */
+    display: flex !important; /* Use flexbox to allow height adjustment */
+    flex-direction: column; /* Stack children vertically */
     width: 100%;
     padding: 10px;
     border-bottom: 1px solid #eee;
@@ -228,6 +229,7 @@ function selectPrevious() {
     color: #333;
     flex-shrink: 0; /* Prevent items from shrinking, force stacking */
     border-radius: 25px !important;  /* Clip inner content */
+    min-height: fit-content; /* Allow height to fit content */
 }
 
 /* 

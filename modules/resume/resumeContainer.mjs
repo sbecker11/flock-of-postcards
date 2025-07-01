@@ -12,11 +12,11 @@ let _isInitialized = false;
 // called from resizeHandle.mjs
 export function initialize() {
     if (isInitialized()) {
-        CONSOLE_LOG_IGNORE("initializeResumeContainer: Resume container already initialized, ignoring duplicate initialization request");
+        window.CONSOLE_LOG_IGNORE("initializeResumeContainer: Resume container already initialized, ignoring duplicate initialization request");
         return;
     }
     
-    CONSOLE_LOG_IGNORE("initializeResumeContainer");
+    window.CONSOLE_LOG_IGNORE("initializeResumeContainer");
     
     // Check if sceneContainer is already initialized
     if (!sceneContainer.isInitialized()) {
@@ -26,16 +26,16 @@ export function initialize() {
     // Check if resizeHandle is already initialized
     if (!resizeHandle.isInitialized()) {
         resizeHandle.initialize();
-        CONSOLE_LOG_IGNORE("ResizeManager initialized by resumeContainer");
+        window.CONSOLE_LOG_IGNORE("ResizeManager initialized by resumeContainer");
     } else {
-        CONSOLE_LOG_IGNORE("ResizeManager already initialized");
+        window.CONSOLE_LOG_IGNORE("ResizeManager already initialized");
     }
     
     // Mark as initialized
     _isInitialized = true;
 }
 export function updateResumeContainer() {
-    // CONSOLE_LOG_IGNORE("updateResumeContainer");   
+    // window.CONSOLE_LOG_IGNORE("updateResumeContainer");   
     sceneContainer.updateSceneContainer();
     resizeHandle.updateResizeHandle();
 }

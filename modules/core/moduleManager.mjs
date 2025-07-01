@@ -38,10 +38,10 @@ export async function initializeModule(moduleName) {
     }
     
     // Initialize the module
-    CONSOLE_LOG_IGNORE(`Initializing module: ${moduleName}`);
+    window.CONSOLE_LOG_IGNORE(`Initializing module: ${moduleName}`);
     await modules.get(moduleName)();
     initializedModules.add(moduleName);
-    CONSOLE_LOG_IGNORE(`Module initialized: ${moduleName}`);
+    window.CONSOLE_LOG_IGNORE(`Module initialized: ${moduleName}`);
 }
 
 /**
@@ -85,9 +85,9 @@ const STAGES = [
       { name: 'viewPort', init: viewPort.initialize },
       { name: 'aimPoint', init: aimPoint.initialize },
       { name: 'bullsEye', init: () => {
-        console.log('ModuleManager: About to initialize bullsEye');
+        window.CONSOLE_LOG_IGNORE('ModuleManager: About to initialize bullsEye');
         const result = bullsEye.initialize();
-        console.log('ModuleManager: bullsEye initialization completed');
+        window.CONSOLE_LOG_IGNORE('ModuleManager: bullsEye initialization completed');
         return result;
       }},
       { name: 'sceneViewLabel', init: sceneViewLabel.initialize },
@@ -134,17 +134,17 @@ const STAGES = [
  * Initializes all application modules in their designated order.
  */
 export async function initialize() {
-  console.log('ModuleManager: Starting initialization...');
+  window.CONSOLE_LOG_IGNORE('ModuleManager: Starting initialization...');
   let stageOutput = null; // To pass output from one module to the next within a stage
 
   // Ensure palettes are ready before any module initialization
   await palettesReady;
 
   for (const stage of STAGES) {
-    console.log(`--- Initializing Stage: ${stage.name} ---`);
+    window.CONSOLE_LOG_IGNORE(`--- Initializing Stage: ${stage.name} ---`);
     for (const module of stage.modules) {
       try {
-        console.log(`Initializing ${module.name}...`);
+        window.CONSOLE_LOG_IGNORE(`Initializing ${module.name}...`);
         // Await async initializers
         const result = await Promise.resolve(module.init(stageOutput));
         // If a module returns a result, pass it to the next module in the same stage
@@ -163,6 +163,7 @@ export async function initialize() {
   // Final step: apply the initial layout now that all modules are ready.
   const { applyInitialLayout } = useResizeHandle();
   applyInitialLayout();
+  window.CONSOLE_LOG_IGNORE("applyInitialLayout completed");
 
   // Ensure viewport is updated with the correct dimensions
   viewPort.updateViewPort();
@@ -222,5 +223,5 @@ export async function initialize() {
     }
   }, 100);
 
-  console.log('ModuleManager: All modules initialized successfully.');
+  window.CONSOLE_LOG_IGNORE('ModuleManager: All modules initialized successfully.');
 }

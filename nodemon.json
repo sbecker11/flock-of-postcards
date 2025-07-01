@@ -1,0 +1,36 @@
+{
+  "watch": ["server.mjs"],
+  "ignore": [
+    "node_modules/**/*",
+    "static_content/**/*",
+    "modules/**/*",
+    "*.vue",
+    "*.ts",
+    "*.js",
+    "*.mjs",
+    "*.json",
+    "*.html",
+    "*.css",
+    "*.scss",
+    "*.sass",
+    "*.less",
+    "*.md",
+    "*.txt",
+    "*.log",
+    "*.git",
+    "*.gitignore",
+    "*.env",
+    "*.env.local",
+    "*.env.development",
+    "*.env.production",
+    "dist/**/*",
+    "build/**/*",
+    ".vite/**/*",
+    ".cache/**/*"
+  ],
+  "ext": "mjs",
+  "env": {
+    "NODE_ENV": "development"
+  },
+  "delay": 1000
+} 

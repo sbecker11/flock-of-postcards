@@ -28,7 +28,7 @@ export function initialize() {
     if (initialPosition) {
         setAimPoint(initialPosition, "aimPoint.initialize");
         _isInitialized = true;
-        CONSOLE_LOG_IGNORE("aimPoint initialized successfully");
+        window.CONSOLE_LOG_IGNORE("aimPoint initialized successfully");
     } else {
         console.error("aimPoint.initialize: Could not get initial position from scene container.");
     }
@@ -57,7 +57,7 @@ let _aimPointStatus = "";
 
 function setAimPointStatus(new_status) {
     _aimPointStatus = new_status;
-    // CONSOLE_LOG_IGNORE(`setAimPointStatus: ${_aimPointStatus}`);
+    // window.CONSOLE_LOG_IGNORE(`setAimPointStatus: ${_aimPointStatus}`);
 }
 function getAimPointStatus() {
     return _aimPointStatus;
@@ -112,7 +112,7 @@ export function setAimPoint(position, prefix="") {
         _aimPointElement.classList.remove('hidden');
     }
     if (prefix != "") {
-        //CONSOLE_LOG_IGNORE(`setAimPoint:${prefix}`, targetPosition);
+        //window.CONSOLE_LOG_IGNORE(`setAimPoint:${prefix}`, targetPosition);
     }
 }
 
@@ -151,7 +151,7 @@ function handleScrollPassThrough(event) {
     if (event.type === 'wheel') {
         const delta = event.deltaY;
         sceneContainer.scrollTop += delta;
-        // CONSOLE_LOG_IGNORE('AimPoint passed wheel event to scene-container, delta:', delta);
+        // window.CONSOLE_LOG_IGNORE('AimPoint passed wheel event to scene-container, delta:', delta);
     }
 
     // For scroll events, create and dispatch a new event
@@ -161,7 +161,7 @@ function handleScrollPassThrough(event) {
             cancelable: true
         });
         sceneContainer.dispatchEvent(newEvent);
-        // CONSOLE_LOG_IGNORE('AimPoint passed scroll event to scene-container');
+        // window.CONSOLE_LOG_IGNORE('AimPoint passed scroll event to scene-container');
     }
 }
 

@@ -48,7 +48,7 @@ export function initialize(startYear, endYear) {
     const years = createYears(startYear, endYear);
     renderTimeline(years);
     _isInitialized = true;
-    CONSOLE_LOG_IGNORE('Timeline initialized');
+    window.CONSOLE_LOG_IGNORE('Timeline initialized');
 
     // After the timeline is fully rendered, set the explicit height of the scene plane
     // so that the bottom gradient can correctly position itself.

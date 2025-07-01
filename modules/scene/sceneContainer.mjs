@@ -17,7 +17,7 @@ export function initialize() {
     }
 
     _isInitialized = true;
-    console.log('Scene container initialized');
+    window.CONSOLE_LOG_IGNORE('Scene container initialized');
 }
 
 export function isInitialized() {
@@ -44,7 +44,7 @@ export function ensurePointerEvents() {
     
     // Ensure scene container has pointer events
     if (sceneContainer.style.pointerEvents !== 'auto') {
-        console.log("Fixing scene container pointer-events");
+        window.CONSOLE_LOG_IGNORE("Fixing scene container pointer-events");
         sceneContainer.style.pointerEvents = 'auto';
     }
     
@@ -52,12 +52,12 @@ export function ensurePointerEvents() {
     const bizCardDivs = sceneContainer.querySelectorAll('.biz-card-div');
     bizCardDivs.forEach(div => {
         if (div.style.pointerEvents !== 'auto') {
-            console.log(`Fixing pointer-events for ${div.id}`);
+            window.CONSOLE_LOG_IGNORE(`Fixing pointer-events for ${div.id}`);
             div.style.pointerEvents = 'auto';
         }
     });
     
-    console.log("Scene container and bizCardDivs pointer events fixed");
+    window.CONSOLE_LOG_IGNORE("Scene container and bizCardDivs pointer events fixed");
 }
 
 /**
