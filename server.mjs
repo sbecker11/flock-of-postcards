@@ -96,9 +96,9 @@ function startServer(port) {
 
     const server = app.listen(port, () => {
         // Success!
-        window.CONSOLE_LOG_IGNORE(`Server listening on http://localhost:${port}`);
-        window.CONSOLE_LOG_IGNORE(`Serving dynamic palette manifest at /api/palette-manifest`);
-        window.CONSOLE_LOG_IGNORE(`Palette directory path: ${PALETTE_DIR_PATH}`);
+        console.log(`Server listening on http://localhost:${port}`);
+        console.log(`Serving dynamic palette manifest at /api/palette-manifest`);
+        console.log(`Palette directory path: ${PALETTE_DIR_PATH}`);
     });
 
     server.on('error', (err) => {

@@ -2,8 +2,8 @@
  * Module: parallax
  * This module handles parallax effects for bizCardDivs based on the focal point position.
  */
-import { watchEffect } from 'vue';
-import { useFocalPoint } from '../composables/useFocalPoint.mjs';
+import { watchEffect, ref } from 'vue';
+import * as focalPointManager from './focalPointManager.mjs';
 import * as viewPort from './viewport.mjs';
 import * as zUtils from '../utils/zUtils.mjs';
 
@@ -13,97 +13,65 @@ export const PARALLAX_Y_EXAGGERATION_FACTOR = 1.0;
 
 let _isInitialized = false;
 
+// Create a reactive reference to the focal point position
+const focalPointPosition = ref(focalPointManager.getPosition());
+const sceneContainerRect = ref({ left: 0, top: 0, width: 0, height: 0 });
+
+function updateSceneContainerRect() {
+  const sceneContainer = document.getElementById('scene-container');
+  if (sceneContainer) {
+    const rect = sceneContainer.getBoundingClientRect();
+    sceneContainerRect.value = {
+      left: rect.left,
+      top: rect.top,
+      width: rect.width,
+      height: rect.height,
+    };
+  }
+}
+
 /**
  * Initializes the parallax effect.
  */
 export function initialize() {
+    window.CONSOLE_LOG_IGNORE('parallax.initialize called');
+    
     if (_isInitialized) {
-        console.warn("Parallax already initialized.");
+        window.CONSOLE_LOG_IGNORE('parallax already initialized, returning');
         return;
     }
 
     if (!viewPort.isInitialized()) {
-        console.error("Parallax initialization failed: viewPort not initialized.");
+        window.CONSOLE_LOG_IGNORE('viewport not initialized, returning');
         return;
     }
 
-    const { position: focalPointPosition } = useFocalPoint();
-    const sceneContainer = document.getElementById('scene-container');
+    window.CONSOLE_LOG_IGNORE('about to call focalPointManager.initialize()');
+    // Initialize the focal point manager
+    focalPointManager.initialize();
+    window.CONSOLE_LOG_IGNORE('focalPointManager.initialize() completed');
 
-    if (!sceneContainer) {
-        console.error("Parallax initialization failed: #scene-container not found.");
-        return;
-    }
-
+    // Listen for viewport-changed event to update the rect
+    window.addEventListener('viewport-changed', updateSceneContainerRect);
+    // Initial update
+    updateSceneContainerRect();
 
     watchEffect(() => {
-        const rect = sceneContainer.getBoundingClientRect();
+        const rect = sceneContainerRect.value;
         const sceneCenterX = rect.left + rect.width / 2;
         const sceneCenterY = rect.top + rect.height / 2;
-
-        const { x: fpX, y: fpY } = focalPointPosition.value;
-
+        const currentPosition = focalPointManager.getPosition();
+        const { x: fpX, y: fpY } = currentPosition;
         // Calculate focal point position relative to the scene's center
         const dh = (sceneCenterX - fpX) * PARALLAX_X_EXAGGERATION_FACTOR;
         const dv = (sceneCenterY - fpY) * PARALLAX_Y_EXAGGERATION_FACTOR;
-    
         const bizCardDivs = document.getElementsByClassName("biz-card-div");
-        for (const bizCardDiv of bizCardDivs) {
-            applyParallaxToBizCardDiv(bizCardDiv, dh, dv);
-        }
-    });
-
-    // Listen for viewport changes to ensure parallax updates
-    window.addEventListener('viewport-changed', () => {
-        console.log('Parallax: viewport-changed event received, triggering update');
-        // Force a re-evaluation of the watchEffect by accessing its dependencies
-        const rect = sceneContainer.getBoundingClientRect();
-        const { x: fpX, y: fpY } = focalPointPosition.value;
-        
-        const sceneCenterX = rect.left + rect.width / 2;
-        const sceneCenterY = rect.top + rect.height / 2;
-        const dh = (sceneCenterX - fpX) * PARALLAX_X_EXAGGERATION_FACTOR;
-        const dv = (sceneCenterY - fpY) * PARALLAX_Y_EXAGGERATION_FACTOR;
-    
-        const bizCardDivs = document.getElementsByClassName("biz-card-div");
-        
-        // Bundle values for debugging
-        const debugInfo = {
-            // Scene container rect
-            rectLeft: rect.left,
-            rectTop: rect.top,
-            rectWidth: rect.width,
-            rectHeight: rect.height,
-            
-            // Scene center
-            sceneCenterX: sceneCenterX,
-            sceneCenterY: sceneCenterY,
-            
-            // Focal point
-            focalPointX: fpX,
-            focalPointY: fpY,
-            
-            // Parallax displacement
-            dh: dh,
-            dv: dv,
-            
-            // Exaggeration factors
-            parallaxXFactor: PARALLAX_X_EXAGGERATION_FACTOR,
-            parallaxYFactor: PARALLAX_Y_EXAGGERATION_FACTOR,
-            
-            // Card count
-            cardCount: bizCardDivs.length
-        };
-        
-        console.log('Manual parallax debug info:', debugInfo);
-        
         for (const bizCardDiv of bizCardDivs) {
             applyParallaxToBizCardDiv(bizCardDiv, dh, dv);
         }
     });
 
     _isInitialized = true;
-    window.CONSOLE_LOG_IGNORE("Parallax initialized successfully");
 }
 
 export function isInitialized() {

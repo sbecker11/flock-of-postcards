@@ -24,7 +24,7 @@ export function initialize() {
         throw new Error("aimPoint.initialize: #aim-point element not found in DOM");
     }
 
-    const initialPosition = getSceneContainerCenter();
+    const initialPosition = getBullsEyePosition();
     if (initialPosition) {
         setAimPoint(initialPosition, "aimPoint.initialize");
         _isInitialized = true;
@@ -40,7 +40,7 @@ export function initialize() {
     // Listen for layout changes to update aimPoint position
     window.addEventListener('layout-changed', () => {
         if (_isInitialized) {
-            const newPosition = getSceneContainerCenter();
+            const newPosition = getBullsEyePosition();
             setAimPoint(newPosition, "aimPoint.layout-changed");
         }
     });
@@ -64,16 +64,17 @@ function getAimPointStatus() {
 }
 
 /**
- * Get the center position of the scene container
- * @returns {object} The center position {x, y}
+ * Get the bullsEye position (which is the target for the aim-point)
+ * @returns {object} The bullsEye position {x, y}
  */
-function getSceneContainerCenter() {
-    const sceneContainer = document.getElementById('scene-container');
-    if (sceneContainer) {
-        const sceneRect = sceneContainer.getBoundingClientRect();
+function getBullsEyePosition() {
+    // Import bullsEye dynamically to avoid circular dependencies
+    const bullsEye = document.getElementById('bulls-eye');
+    if (bullsEye) {
+        const rect = bullsEye.getBoundingClientRect();
         return {
-            x: sceneRect.left + sceneRect.width / 2,
-            y: sceneRect.top + sceneRect.height / 2
+            x: rect.left + rect.width / 2,
+            y: rect.top + rect.height / 2
         };
     }
     // Fallback to viewport center
@@ -88,10 +89,10 @@ function getSceneContainerCenter() {
 export function setAimPoint(position, prefix="") {
     if (position == null) throw new Error("setAimPoint: position is null");
 
-    // Use scene container center if position is the viewport center
+    // Use bullsEye position if position is the viewport center
     let targetPosition = position;
     if (position === viewPort.getViewPortOrigin()) {
-        targetPosition = getSceneContainerCenter();
+        targetPosition = getBullsEyePosition();
     }
 
     // skip move if move is too small

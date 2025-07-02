@@ -1,6 +1,6 @@
 <script setup>
 import { ref, computed } from 'vue';
-import { useFocalPoint } from '@/modules/composables/useFocalPoint.mjs';
+import { useFocalPoint } from '@/modules/composables/usefocalpoint.mjs';
 import { useResizeHandle } from '@/modules/composables/useResizeHandle.mjs';
 
 // --- Composables ---
@@ -39,6 +39,8 @@ const displayMode = computed(() => {
 function toggleFocalLock(event) {
   event.stopPropagation();
   cycleFocalPointMode();
+  // Reset hover state when mode changes to prevent immediate hover preview
+  isHovering.value = false;
 }
 </script>
 
@@ -153,6 +155,15 @@ function toggleFocalLock(event) {
 
 #stepping-indicator {
     font-size: 12px;
+}
+
+/* Hover effects for collapse and stepping buttons */
+#collapse-left:hover,
+#collapse-right:hover,
+#stepping-indicator:hover {
+    background-color: var(--button-text-color, white);
+    color: var(--button-bg-color, #555);
+    border-color: var(--button-text-color, white);
 }
 
 .percentage-display {

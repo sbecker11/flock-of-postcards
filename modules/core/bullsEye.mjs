@@ -49,6 +49,12 @@ export function isInitialized() {
     return _isInitialized;
 }
 
+export function reset() {
+    _isInitialized = false;
+    _bullsEyeElement = null;
+    _bullsEyeRad = 0;
+}
+
 // return the center of the viewPort in viewPort coordinates
 export function getBullsEye() {
     if ( !viewPort.isInitialized() ) {

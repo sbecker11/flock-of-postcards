@@ -1,4 +1,4 @@
-import { ref, computed } from 'vue';
+import { ref, computed, nextTick } from 'vue';
 import * as viewPort from '@/modules/core/viewPort.mjs';
 import * as bullsEye from '@/modules/core/bullsEye.mjs';
 import * as aimPoint from '@/modules/core/aimPoint.mjs';
@@ -93,6 +93,12 @@ export function useResizeHandle() {
         const initialPercentage = AppState?.layout?.panelSizePercentage || DEFAULT_WIDTH_PERCENT;
         steppingEnabled.value = AppState?.resizeHandle?.steppingEnabled || false;
         uiPercentage.value = initialPercentage;
+        
+        // Add window resize listener
+        window.addEventListener('resize', () => {
+            window.CONSOLE_LOG_IGNORE('Window resize detected, calling handleViewportResize...');
+            handleViewportResize();
+        });
     }
 
     function applyInitialLayout() {
@@ -150,7 +156,7 @@ export function useResizeHandle() {
         document.addEventListener('mouseup', stopDrag);
     }
 
-    function collapseLeft() {
+    async function collapseLeft() {
         const secondaryIncrementPercentage = 100 / 10;
         let newPercentage;
         if (incrementPercentage.value > 0) {
@@ -163,9 +169,13 @@ export function useResizeHandle() {
             newPercentage = Math.max(0, currentBlock - 1) * increment;
         }
         updateLayoutFromPercentage(newPercentage);
+        await nextTick();
+        if (viewPort.isInitialized()) {
+            viewPort.updateViewPort();
+        }
     }
 
-    function collapseRight() {
+    async function collapseRight() {
         const secondaryIncrementPercentage = 100 / 10;
         let newPercentage;
         if (incrementPercentage.value > 0) {
@@ -180,6 +190,10 @@ export function useResizeHandle() {
             newPercentage = Math.min(nBlocks, currentBlock + 1) * increment;
         }
         updateLayoutFromPercentage(newPercentage);
+        await nextTick();
+        if (viewPort.isInitialized()) {
+            viewPort.updateViewPort();
+        }
     }
     
     function toggleStepping() {

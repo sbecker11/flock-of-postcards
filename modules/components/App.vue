@@ -10,7 +10,7 @@ import { initializeState } from '@/modules/core/stateManager.mjs';
 import * as moduleManager from '@/modules/core/moduleManager.mjs';
 import { useColorPalette } from '@/modules/composables/useColorPalette.mjs';
 import { initialize as initializeTimeline } from '../composables/useTimeline.mjs';
-import { useFocalPoint } from '@/modules/composables/useFocalPoint.mjs';
+import { useFocalPoint } from '@/modules/composables/usefocalpoint.mjs';
 import { useResizeHandle } from '@/modules/composables/useResizeHandle.mjs';
 import { jobs as jobsData } from '@/static_content/jobs/jobs.mjs';
 import * as colorUtils from '../utils/colorUtils.mjs';
@@ -29,7 +29,7 @@ const focalPointStyle = computed(() => {
     left: `${focalPointPosition.value.x}px`,
     top: `${focalPointPosition.value.y}px`,
   };
-  window.CONSOLE_LOG_IGNORE('focalPointStyle computed:', style, 'focalPointPosition:', focalPointPosition.value);
+  console.log('focalPointStyle computed:', style, 'focalPointPosition:', focalPointPosition.value);
   return style;
 });
 

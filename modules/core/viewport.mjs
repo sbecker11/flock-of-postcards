@@ -47,6 +47,15 @@ export function initialize() {
     // Listen for resize events to recalculate properties
     window.addEventListener('resize', calculateViewPortProperties);
 
+    // Add ResizeObserver to detect scene container size changes
+    if (typeof ResizeObserver !== 'undefined') {
+        const resizeObserver = new ResizeObserver(() => {
+            window.CONSOLE_LOG_IGNORE('Scene container resized, updating viewport...');
+            updateViewPort();
+        });
+        resizeObserver.observe(_sceneContainer);
+    }
+
     _isInitialized = true;
     window.CONSOLE_LOG_IGNORE("ViewPort initialized successfully");
 }
