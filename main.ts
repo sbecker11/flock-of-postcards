@@ -8,7 +8,7 @@ import './modules/timeline/timeline.css';
 
 // @ts-nocheck
 import { createApp } from 'vue';
-import App from '@/modules/components/App.vue';
+import App from './App.vue';
 
 window.CONSOLE_LOG_IGNORE('main.ts: About to create Vue app');
 

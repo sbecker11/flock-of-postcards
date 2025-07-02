@@ -1,5 +1,5 @@
 import { ref, computed, nextTick } from 'vue';
-import * as viewPort from '@/modules/core/viewPort.mjs';
+import { useViewport } from './useViewport.mjs';
 import * as bullsEye from '@/modules/core/bullsEye.mjs';
 import * as aimPoint from '@/modules/core/aimPoint.mjs';
 import { AppState, saveState } from '@/modules/core/stateManager.mjs';
@@ -12,35 +12,36 @@ const uiPercentage = ref(DEFAULT_WIDTH_PERCENT);
 const sceneWidthInPixels = ref(0);
 const isDragging = ref(false);
 const steppingEnabled = ref(false);
+let _viewport = null;
 
 function clampToRange(val, min, max) {
     return Math.max(min, Math.min(max, val));
 }
 
 function handleViewportResize() {
-    window.CONSOLE_LOG_IGNORE('=== handleViewportResize START ===');
+    console.log('=== handleViewportResize START ===');
     
     // 1. Recenter the bullsEye
     if (bullsEye.isInitialized()) {
-        window.CONSOLE_LOG_IGNORE('Recentering bullsEye...');
+        console.log('Recentering bullsEye...');
         bullsEye.recenterBullsEye();
     } else {
-        window.CONSOLE_LOG_IGNORE('BullsEye not initialized, skipping recenter');
+        console.log('BullsEye not initialized, skipping recenter');
     }
     
     // 2. Update aimPoint position to bullsEye center
     if (aimPoint.isInitialized()) {
-        window.CONSOLE_LOG_IGNORE('Updating aimPoint to bullsEye center...');
+        console.log('Updating aimPoint to bullsEye center...');
         const bullsEyeCenter = bullsEye.getBullsEye();
         aimPoint.setAimPoint(bullsEyeCenter, 'viewportResize');
     } else {
-        window.CONSOLE_LOG_IGNORE('AimPoint not initialized, skipping update');
+        console.log('AimPoint not initialized, skipping update');
     }
     
     // 3. Update focal point to aimPoint position
     // The focal point should automatically follow the aimPoint in locked mode
     // We can trigger this by dispatching a custom event that the focal point listens to
-    window.CONSOLE_LOG_IGNORE('Dispatching focal-point-update event...');
+    console.log('Dispatching focal-point-update event...');
     const event = new CustomEvent('focal-point-update', { 
         detail: { 
             source: 'viewportResize',
@@ -49,13 +50,11 @@ function handleViewportResize() {
     });
     window.dispatchEvent(event);
     
-    window.CONSOLE_LOG_IGNORE('=== handleViewportResize END ===');
+    console.log('=== handleViewportResize END ===');
 }
 
 function updateLayout(newUiPercentage, shouldSave = true) {
-    window.CONSOLE_LOG_IGNORE("updateLayout called with:", newUiPercentage, "shouldSave:", shouldSave);
-    window.CONSOLE_LOG_IGNORE('=== updateLayout START ===');
-    window.CONSOLE_LOG_IGNORE('updateLayout called with percentage:', newUiPercentage, 'shouldSave:', shouldSave);
+    console.log('RESIZE: updateLayout:', newUiPercentage, shouldSave);
     const windowWidth = window.innerWidth;
     const maxSceneWidth = windowWidth - HANDLE_WIDTH;
     const clampedUiPercentage = clampToRange(newUiPercentage, 0, 100);
@@ -63,46 +62,48 @@ function updateLayout(newUiPercentage, shouldSave = true) {
     const newSceneWidth = Math.round((clampedUiPercentage / 100) * maxSceneWidth);
     sceneWidthInPixels.value = newSceneWidth;
     
-    window.CONSOLE_LOG_IGNORE('Calling viewPort.setViewPortWidth with:', newSceneWidth);
-    viewPort.setViewPortWidth(newSceneWidth);
+    if (_viewport) {
+        _viewport.setViewPortWidth(newSceneWidth);
+    } else {
+        console.log('RESIZE: ERROR - _viewport is null!');
+    }
     
     if (AppState) {
         AppState.layout.panelSizePercentage = clampedUiPercentage;
         if (shouldSave) {
-            window.CONSOLE_LOG_IGNORE('Saving state...');
+            console.log('Saving state...');
             saveState(AppState);
         }
     }
     
-    window.CONSOLE_LOG_IGNORE('About to dispatch layout-changed event with sceneWidth:', newSceneWidth);
     const event = new CustomEvent('layout-changed', { detail: { sceneWidth: newSceneWidth } });
     window.dispatchEvent(event);
-    window.CONSOLE_LOG_IGNORE('layout-changed event dispatched');
     
     // Call the viewport resize handler after layout change
     handleViewportResize();
     
-    window.CONSOLE_LOG_IGNORE('=== updateLayout END ===');
+
     
     return clampedUiPercentage;
 }
 
 export function useResizeHandle() {
 
-    function initializeResizeHandleState() {
+    function initializeResizeHandleState(viewport = null) {
+        _viewport = viewport;
         const initialPercentage = AppState?.layout?.panelSizePercentage || DEFAULT_WIDTH_PERCENT;
         steppingEnabled.value = AppState?.resizeHandle?.steppingEnabled || false;
         uiPercentage.value = initialPercentage;
         
         // Add window resize listener
         window.addEventListener('resize', () => {
-            window.CONSOLE_LOG_IGNORE('Window resize detected, calling handleViewportResize...');
+            console.log('Window resize detected, calling handleViewportResize...');
             handleViewportResize();
         });
     }
 
     function applyInitialLayout() {
-        window.CONSOLE_LOG_IGNORE("applyInitialLayout called");
+        console.log("applyInitialLayout called");
         updateLayout(uiPercentage.value, false);
     }
     
@@ -114,12 +115,13 @@ export function useResizeHandle() {
     });
 
     function updateLayoutFromPercentage(newPercentage, shouldSave = true) {
-        window.CONSOLE_LOG_IGNORE("updateLayoutFromPercentage called with:", newPercentage, "shouldSave:", shouldSave);
         uiPercentage.value = updateLayout(newPercentage, shouldSave);
     }
 
     function handleDrag(e) {
-        if (!isDragging.value) return;
+            if (!isDragging.value) {
+        return;
+    }
         const dx = e.clientX - startX;
         const newPixelWidth = startPixelWidth + dx;
         const maxSceneWidth = window.innerWidth - HANDLE_WIDTH;
@@ -147,7 +149,12 @@ export function useResizeHandle() {
     }
 
     function startDrag(e) {
-        if (e.target.closest('button')) return;
+        console.log('startDrag called, target:', e.target, 'closest button:', e.target.closest('button'));
+        if (e.target.closest('button')) {
+            console.log('startDrag: clicked on button, ignoring drag');
+            return;
+        }
+        console.log('startDrag: starting drag, isDragging set to true');
         isDragging.value = true;
         startX = e.clientX;
         startPixelWidth = sceneWidthInPixels.value;
@@ -170,8 +177,8 @@ export function useResizeHandle() {
         }
         updateLayoutFromPercentage(newPercentage);
         await nextTick();
-        if (viewPort.isInitialized()) {
-            viewPort.updateViewPort();
+        if (_viewport && _viewport.isInitialized()) {
+            _viewport.updateViewportProperties();
         }
     }
 
@@ -191,8 +198,8 @@ export function useResizeHandle() {
         }
         updateLayoutFromPercentage(newPercentage);
         await nextTick();
-        if (viewPort.isInitialized()) {
-            viewPort.updateViewPort();
+        if (_viewport && _viewport.isInitialized()) {
+            _viewport.updateViewportProperties();
         }
     }
     

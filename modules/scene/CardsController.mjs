@@ -1,16 +1,16 @@
 // scene/CardsController.mjs
 
 import { selectionManager } from '../core/selectionManager.mjs';
-import * as scenePlane from './scenePlane.mjs';
+import * as scenePlane from './scenePlaneModule.mjs';
 import * as utils from '../utils/utils.mjs';
-import * as viewPort from '../core/viewport.mjs';
+import * as viewPort from '../core/viewPortModule.mjs';
 import * as BizDetailsDivModule from './bizDetailsDivModule.mjs';
 import { useTimeline } from '../composables/useTimeline.mjs';
 import * as dateUtils from '../utils/dateUtils.mjs';
 import * as mathUtils from '../utils/mathUtils.mjs';
 import * as zUtils from '../utils/zUtils.mjs';
 import * as filters from '../core/filters.mjs';
-import { applyParallaxToBizCardDiv } from '../core/parallax.mjs';
+import { applyParallaxToBizCardDiv } from '../core/parallaxModule.mjs';
 import { jobs } from '../../static_content/jobs/jobs.mjs';
 import { applyPaletteToElement } from '../composables/useColorPalette.mjs';
 // import { resumeListController } from '../resume/ResumeListController.mjs'; // No longer needed
@@ -49,6 +49,14 @@ class CardsController {
             console.error("Scene plane element not found!");
             return divs;
         }
+
+        // Clear existing business card divs to prevent duplication
+        const existingCards = scenePlaneEl.querySelectorAll('.biz-card-div');
+        existingCards.forEach(card => {
+            if (!card.classList.contains('hasClone')) { // Don't remove clones
+                card.remove();
+            }
+        });
 
         for (let index = 0; index < jobsData.length; index++) {
             const job = jobsData[index];

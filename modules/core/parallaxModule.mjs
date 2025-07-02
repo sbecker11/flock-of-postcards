@@ -3,8 +3,7 @@
  * This module handles parallax effects for bizCardDivs based on the focal point position.
  */
 import { watchEffect, ref } from 'vue';
-import * as focalPointManager from './focalPointManager.mjs';
-import * as viewPort from './viewport.mjs';
+import * as viewPort from './viewPortModule.mjs';
 import * as zUtils from '../utils/zUtils.mjs';
 
 // Parallax constants
@@ -12,9 +11,9 @@ export const PARALLAX_X_EXAGGERATION_FACTOR = 0.9;
 export const PARALLAX_Y_EXAGGERATION_FACTOR = 1.0;
 
 let _isInitialized = false;
+let _focalPoint = null;
 
-// Create a reactive reference to the focal point position
-const focalPointPosition = ref(focalPointManager.getPosition());
+// Create a reactive reference to the scene container rect
 const sceneContainerRect = ref({ left: 0, top: 0, width: 0, height: 0 });
 
 function updateSceneContainerRect() {
@@ -32,46 +31,59 @@ function updateSceneContainerRect() {
 
 /**
  * Initializes the parallax effect.
+ * @param {Object} focalPoint - The focalPoint composable instance
  */
-export function initialize() {
-    window.CONSOLE_LOG_IGNORE('parallax.initialize called');
+export function initialize(focalPoint = null) {
+    console.log('parallax.initialize called');
     
     if (_isInitialized) {
-        window.CONSOLE_LOG_IGNORE('parallax already initialized, returning');
+        console.log('parallax already initialized, returning');
         return;
     }
 
     if (!viewPort.isInitialized()) {
-        window.CONSOLE_LOG_IGNORE('viewport not initialized, returning');
+        console.log('viewport not initialized, returning');
         return;
     }
 
-    window.CONSOLE_LOG_IGNORE('about to call focalPointManager.initialize()');
-    // Initialize the focal point manager
-    focalPointManager.initialize();
-    window.CONSOLE_LOG_IGNORE('focalPointManager.initialize() completed');
+    // Store the focal point reference
+    _focalPoint = focalPoint;
+    console.log('focalPoint reference stored:', !!_focalPoint);
 
     // Listen for viewport-changed event to update the rect
     window.addEventListener('viewport-changed', updateSceneContainerRect);
     // Initial update
     updateSceneContainerRect();
 
+    // Watch for focal point position changes and apply parallax
     watchEffect(() => {
+        if (!_focalPoint || !_focalPoint.position) {
+            console.log('focalPoint not available, skipping parallax');
+            return;
+        }
+
         const rect = sceneContainerRect.value;
         const sceneCenterX = rect.left + rect.width / 2;
         const sceneCenterY = rect.top + rect.height / 2;
-        const currentPosition = focalPointManager.getPosition();
+        const currentPosition = _focalPoint.position.value;
         const { x: fpX, y: fpY } = currentPosition;
+        
+        console.log('parallax: focalPoint position:', currentPosition, 'scene center:', { x: sceneCenterX, y: sceneCenterY });
+        
         // Calculate focal point position relative to the scene's center
         const dh = (sceneCenterX - fpX) * PARALLAX_X_EXAGGERATION_FACTOR;
         const dv = (sceneCenterY - fpY) * PARALLAX_Y_EXAGGERATION_FACTOR;
+        
         const bizCardDivs = document.getElementsByClassName("biz-card-div");
+        console.log('parallax: applying to', bizCardDivs.length, 'biz cards');
+        
         for (const bizCardDiv of bizCardDivs) {
             applyParallaxToBizCardDiv(bizCardDiv, dh, dv);
         }
     });
 
     _isInitialized = true;
+    console.log('parallax initialized successfully');
 }
 
 export function isInitialized() {
@@ -103,7 +115,7 @@ export function applyParallaxToBizCardDiv(bizCardDiv, dh, dv) {
     let translateX = viewPort.getViewPortOrigin().x;
     let translateY = 0;
     
-    // only original cDivs with zScale > 0are subject to parallax
+    // only original cDivs with zScale > 0 are subject to parallax
     translateX += dh * zScale;
     translateY += dv * zScale;
     

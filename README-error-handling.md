@@ -98,12 +98,12 @@ export async function fetchWithRetry(url, options = {}, retryConfig = {}) {
 **Examples:**
 - `sceneContainer.initialize()` - Throws if `#scene-container` not found
 - `ResumeListController.initialize()` - Throws if resume divs not found
-- `moduleManager.initialize()` - Throws if any critical module fails
+- `App.vue` initialization - Throws if any critical module fails during setup
 
 ```javascript
 // Example: Critical DOM element check
 if (!resumeContentDiv) {
-    throw new Error("moduleManager: #resume-content-div not found! This is a critical DOM element.");
+    throw new Error("App.vue: #resume-content-div not found! This is a critical DOM element.");
 }
 ```
 
@@ -231,7 +231,7 @@ Potential areas for additional development vs production patterns:
 
 - `modules/core/stateManager.mjs` - State persistence with dev/prod patterns
 - `modules/utils/apiUtils.mjs` - API operations with retry logic
-- `modules/core/moduleManager.mjs` - Critical initialization with fail-fast
+- `modules/components/AppContent.vue` - Critical initialization with fail-fast
 - `modules/utils/dateUtils.mjs` - Data validation with immediate errors
 - `modules/utils/colorUtils.mjs` - Color validation with immediate errors
 - `modules/utils/mathUtils.mjs` - Math validation with immediate errors

@@ -1,6 +1,6 @@
 <script setup>
 import { ref, computed } from 'vue';
-import { useFocalPoint } from '@/modules/composables/usefocalpoint.mjs';
+import { useFocalPoint } from '@/modules/composables/useFocalPoint.mjs';
 import { useResizeHandle } from '@/modules/composables/useResizeHandle.mjs';
 
 // --- Composables ---

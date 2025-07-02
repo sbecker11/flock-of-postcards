@@ -1,5 +1,5 @@
 import * as domUtils from '../utils/domUtils.mjs';
-import * as viewPort from './viewPort.mjs';
+import * as viewPort from './viewPortModule.mjs';
 
 let _sceneViewLabelElement = null;
 let _isInitialized = false;
@@ -34,12 +34,14 @@ export function initialize() {
 export function repositionLabel() {
     if (!_sceneViewLabelElement) return;
 
-    const visualRect = viewPort.getVisualRect();
+    // Position it at a fixed location in the viewport (bottom-right)
+    const viewportHeight = window.innerHeight;
+    const viewportWidth = window.innerWidth;
+    
+    const top = viewportHeight - 40;
+    const left = viewportWidth - 120;
 
-    const top = visualRect.bottom - 20;
-    const left = visualRect.right - 60;
-
-    window.CONSOLE_LOG_IGNORE(`Repositioning SceneViewLabel to: top=${top}px, left=${left}px`);
+    console.log(`Repositioning SceneViewLabel to: top=${top}px, left=${left}px, viewport: ${viewportWidth}x${viewportHeight}`);
 
     _sceneViewLabelElement.style.top = `${top}px`;
     _sceneViewLabelElement.style.left = `${left}px`;

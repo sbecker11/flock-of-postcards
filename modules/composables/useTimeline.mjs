@@ -26,7 +26,7 @@ function initialize(jobsData) {
     const yearCount = maxYear - minYear + 1;
     timelineHeight.value = (yearCount * YEAR_HEIGHT) + TIMELINE_PADDING_TOP;
     isInitialized.value = true;
-    window.CONSOLE_LOG_IGNORE(`Timeline initialized: ${startYear.value} - ${endYear.value}`);
+    console.log(`Timeline initialized: ${startYear.value} - ${endYear.value}`);
 }
 
 // --- Composable ---

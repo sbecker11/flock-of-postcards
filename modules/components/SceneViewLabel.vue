@@ -6,7 +6,7 @@
 
 <style scoped>
 #scene-view-label {
-  position: fixed;
+  position: absolute;
   color: white !important;
   font-family: sans-serif;
   font-size: 14px;

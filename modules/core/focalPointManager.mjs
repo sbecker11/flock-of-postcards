@@ -1,5 +1,5 @@
 import * as mathUtils from '../utils/mathUtils.mjs';
-import * as viewPort from './viewport.mjs';
+import * as viewPort from './viewPortModule.mjs';
 
 // --- Private State & Constants ---
 const EASE_FACTOR = 0.05;

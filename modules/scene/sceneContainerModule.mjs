@@ -1,4 +1,4 @@
-import * as viewPort from '../core/viewPort.mjs';
+import * as viewPort from '../core/viewPortModule.mjs';
 
 let _sceneContainer = null;
 let _isInitialized = false;

@@ -1,7 +1,7 @@
 ///modules/core/aimPoint.mjs
 
 import * as mathUtils from '../utils/mathUtils.mjs';
-import * as viewPort from './viewPort.mjs';
+import * as viewPort from './viewPortModule.mjs';
 
 let _aimPointElement = null;
 let _aimPointPosition = null;
@@ -28,7 +28,7 @@ export function initialize() {
     if (initialPosition) {
         setAimPoint(initialPosition, "aimPoint.initialize");
         _isInitialized = true;
-        window.CONSOLE_LOG_IGNORE("aimPoint initialized successfully");
+        console.log("aimPoint initialized successfully");
     } else {
         console.error("aimPoint.initialize: Could not get initial position from scene container.");
     }
@@ -57,7 +57,7 @@ let _aimPointStatus = "";
 
 function setAimPointStatus(new_status) {
     _aimPointStatus = new_status;
-    // window.CONSOLE_LOG_IGNORE(`setAimPointStatus: ${_aimPointStatus}`);
+    // console.log(`setAimPointStatus: ${_aimPointStatus}`);
 }
 function getAimPointStatus() {
     return _aimPointStatus;
@@ -113,7 +113,7 @@ export function setAimPoint(position, prefix="") {
         _aimPointElement.classList.remove('hidden');
     }
     if (prefix != "") {
-        //window.CONSOLE_LOG_IGNORE(`setAimPoint:${prefix}`, targetPosition);
+        //console.log(`setAimPoint:${prefix}`, targetPosition);
     }
 }
 
@@ -152,7 +152,7 @@ function handleScrollPassThrough(event) {
     if (event.type === 'wheel') {
         const delta = event.deltaY;
         sceneContainer.scrollTop += delta;
-        // window.CONSOLE_LOG_IGNORE('AimPoint passed wheel event to scene-container, delta:', delta);
+        // console.log('AimPoint passed wheel event to scene-container, delta:', delta);
     }
 
     // For scroll events, create and dispatch a new event
@@ -162,7 +162,7 @@ function handleScrollPassThrough(event) {
             cancelable: true
         });
         sceneContainer.dispatchEvent(newEvent);
-        // window.CONSOLE_LOG_IGNORE('AimPoint passed scroll event to scene-container');
+        // console.log('AimPoint passed scroll event to scene-container');
     }
 }
 

@@ -110,19 +110,50 @@ If the app is already running, it will re-load the `jobs.mjs` file.
 
 # Behold your own glorious flock of postcards
 
+## Naming Conventions
 
-Module Management
+This project follows consistent naming conventions to avoid conflicts and improve code clarity:
 
-see modules/core/moduleManager.mjs
+### File Naming
+- **Composables** (Vue reactive functions): `useXxx.mjs`
+  - Example: `useViewport.mjs`, `useBullsEye.mjs`, `useFocalPoint.mjs`
+- **Modules** (regular JavaScript modules): `xxxModule.mjs`
+  - Example: `sceneContainerModule.mjs`, `keyDownModule.mjs`, `parallaxModule.mjs`
+
+### Variable Naming
+- **DOM Elements**: `xxxElement`
+  - Example: `sceneContainerElement`, `resumeContentDivElement`
+- **Imported Modules**: `xxx` (no suffix)
+  - Example: `sceneContainer`, `keyDown`, `parallax`
+- **Vue Refs**: `xxx` (no suffix)
+  - Example: `viewport`, `bullsEye`, `focalPoint`
+- **Computed Properties**: `xxx` (no suffix)
+  - Example: `focalPointStyle`, `sceneContainerStyle`
+
+### Architecture
+The application uses a reactive architecture with Vue composables:
+```
+viewport → bullsEye → aimPoint → focalPoint
+```
+
+**Benefits:**
+- Clear distinction between different types of code
+- Prevents naming conflicts between DOM elements and imported modules
+- Consistent patterns throughout the codebase
+- Vue's reactivity system handles all dependency tracking automatically
+
+### Module Initialization
+
+Initialization is handled in `modules/components/AppContent.vue` using Vue's reactive architecture:
 
 Initialization Sequence:
-1. viewPort
-2. bullsEye
-3. resizeHandle
-4. resumeContainer
-5. sceneContainer
-6. focalPoint (depends on viewPort, bullsEye)
-7. parallax (depends on viewPort, focalPoint)
+1. Core services (keyDown, sceneContainer)
+2. Data controllers (cardsController, resumeItemsController, resumeListController)
+3. Assembly (scenePlane, parallax)
+4. Layout systems (resizeHandle, timeline)
+5. Template rendering (isLoading = false, nextTick)
+6. Reactive systems (viewport, bullsEye, aimPoint, focalPoint)
+7. Final services (sceneViewLabel, autoScroll)
 
 
 ### Future work
