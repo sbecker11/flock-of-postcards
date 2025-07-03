@@ -12,12 +12,14 @@ class SelectionManager extends EventTarget {
 
         window.CONSOLE_LOG_IGNORE(`SelectionManager: [${caller}] Selecting job index: ${jobIndex}`);
         this.selectedJobIndex = jobIndex;
-        this.dispatchEvent(new CustomEvent('selectionChanged', {
+        const event = new CustomEvent('selectionChanged', {
             detail: {
                 selectedJobIndex: this.selectedJobIndex,
                 caller: caller
             }
-        }));
+        });
+        console.log(`SelectionManager: Dispatching selectionChanged event:`, event.detail);
+        this.dispatchEvent(event);
     }
 
     clearSelection(caller = '') {

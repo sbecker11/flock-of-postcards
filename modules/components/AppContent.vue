@@ -60,6 +60,8 @@ import * as scenePlane from '@/modules/scene/scenePlaneModule.mjs';
 import * as parallax from '@/modules/core/parallaxModule.mjs';
 import * as autoScroll from '@/modules/animation/autoScrollModule.mjs';
 import { selectionManager } from '@/modules/core/selectionManager.mjs';
+import { skillCloudModule } from '@/modules/scene/skillCloudModule.mjs';
+console.log('AppContent: skillCloudModule imported:', skillCloudModule);
 import Timeline from '@/modules/components/Timeline.vue';
 import ResizeHandle from '@/modules/components/ResizeHandle.vue';
 import ResumeContainer from '@/modules/components/ResumeContainer.vue';
@@ -121,6 +123,17 @@ export default {
         // Initialize parallax after business cards are created
         parallax.initialize(focalPoint);
         console.log('AppContent: parallax completed');
+        
+        // Initialize skill cloud module
+        console.log('AppContent: About to initialize skillCloudModule');
+        console.log('AppContent: skillCloudModule object:', skillCloudModule);
+        console.log('AppContent: skillCloudModule.initialize:', skillCloudModule.initialize);
+        try {
+            skillCloudModule.initialize();
+            console.log('AppContent: skillCloudModule completed');
+        } catch (error) {
+            console.error('AppContent: Error initializing skillCloudModule:', error);
+        }
       
         // Initialize ResumeItemsController after cardsController is ready (sets up selectionManager event listeners)
         resumeItemsController.initialize();
@@ -241,10 +254,13 @@ export default {
       // Only clear selection if clicking directly on the scene container or its immediate children
       // Don't clear if clicking on interactive elements like cards
       if (event.target.id === 'scene-container' || 
+          event.target.id === 'scene-content' ||
           event.target.id === 'scene-plane' ||
           event.target.id === 'scene-plane-top-gradient' ||
           event.target.id === 'scene-plane-btm-gradient' ||
-          event.target.id === 'biz-details-div') {
+          event.target.id === 'biz-details-div' ||
+          event.target.id === 'scene-content-footer' ||
+          event.target.closest('#scene-content-footer')) {
         selectionManager.clearSelection('AppContent.sceneContainerClick');
       }
     };

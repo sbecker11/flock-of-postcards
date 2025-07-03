@@ -18,8 +18,8 @@
     position: absolute;
     font-family: "Roboto", sans-serif;
     font-weight: bold;
-    color: #444444;
-    border-bottom : 1px solid #444444;
+    color: rgba(68, 68, 68, 0.4); /* Much more transparent */
+    border-bottom : 1px solid rgba(68, 68, 68, 0.3); /* Much more transparent */
     pointer-events: none;
     /* The height will now be determined by content, not fixed. */
   }
@@ -40,8 +40,8 @@
     position: absolute;
     font-family: "Roboto", sans-serif;
     font-size: 10px;
-    color: #666666;
-    border-bottom: 1px solid #666666;
+    color: rgba(102, 102, 102, 0.3); /* Much more transparent */
+    border-bottom: 1px solid rgba(102, 102, 102, 0.2); /* Much more transparent */
     pointer-events: none;
     /* width: 40px; */
   }

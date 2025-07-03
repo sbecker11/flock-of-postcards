@@ -83,44 +83,52 @@ html[native-dark-active] #scene-container,
     text-align: right;
 }
 
-/* Ensure hover states are always visible with high specificity */
-.biz-card-div.hovered, 
-.biz-resume-div.hovered,
+/* cDiv hover states - white borders for scene cards */
+.biz-card-div.hovered,
 #scene-container .biz-card-div.hovered,
 body.focal-point-locked .biz-card-div.hovered,
 .biz-card-div[data-hovered="true"],
-.biz-resume-div[data-hovered="true"],
 #scene-container .biz-card-div[data-hovered="true"],
 body.focal-point-locked .biz-card-div[data-hovered="true"] {
+    filter: brightness(1.5) !important;
+    border: 3px solid rgba(255, 255, 255, 0.8) !important;
+    transition: none !important;
+    z-index: 10 !important; /* Ensure hovered elements are above others */
+}
+
+/* rDiv hover states - keep original blue borders for resume items */
+.biz-resume-div.hovered,
+.biz-resume-div[data-hovered="true"] {
     filter: brightness(1.25) !important;
     border: 3px solid blue !important;
     transition: none !important;
     z-index: 10 !important; /* Ensure hovered elements are above others */
 }
 
-.biz-card-div.hovered, 
-.biz-resume-div.hovered {
-    filter: brightness(1.5) !important;
-    border: 3px solid blue !important;
-    transition: none !important;
-    z-index: 10 !important; /* Ensure hovered elements are above others */
-}
-
-.biz-card-div.selected, 
-.biz-resume-div.selected,
+/* cDiv selected states - white borders for scene cards */
+.biz-card-div.selected,
 #scene-container .biz-card-div.selected,
 body.focal-point-locked .biz-card-div.selected {
+    filter: brightness(2.0) !important;
+    border: 4px solid rgba(255, 255, 255, 1.0) !important;
+    transition: none !important;
+}
+
+/* rDiv selected states - keep original purple borders for resume items */
+.biz-resume-div.selected {
     filter: brightness(1.75) !important;
     border: 10px solid purple !important;
     transition: none !important;
 }
 
 .biz-card-details-div {
-    padding: 10px;
+    padding: 12px;
     padding-bottom: 20px; /* Add padding to prevent text overlap */
     height: 100%;
     overflow-y: auto; /* Add scroll for overflowing content */
     box-sizing: border-box; /* Ensure padding is included in height */
+    text-align: left;
+    line-height: 1.3;
 }
 
 /* hide all biz-card-details-div fields by default */
@@ -131,18 +139,28 @@ body.focal-point-locked .biz-card-div.selected {
 
 /* display headers for both div-card-details and div-resume-details */
 .biz-details-role {
-    font-size: 20px;
+    font-size: 16px;
     display: block;
+    margin: 0 0 4px 0;
+    line-height: 1.2;
+    word-wrap: break-word;
+    overflow-wrap: break-word;
 }
 
 .biz-details-employer {
-    font-size: 18px;
+    font-size: 14px;
     display: block;
+    margin: 0 0 4px 0;
+    line-height: 1.2;
+    word-wrap: break-word;
+    overflow-wrap: break-word;
 }
 
 .biz-details-dates {
-    font-size: 16px;
+    font-size: 12px;
     display: block;
+    margin: 0 0 6px 0;
+    line-height: 1.2;
 }
 
 /* Show specific header elements in card view */
@@ -168,6 +186,32 @@ body.focal-point-locked .biz-card-div.selected {
 
 .biz-card-details-div ul {
     padding-left: 20px;
+}
+
+.job-description-item {
+    margin: 0 0 3px 0;
+    padding: 0;
+    line-height: 1.2;
+    word-wrap: break-word;
+    overflow-wrap: break-word;
+    font-size: 11px;
+}
+
+.biz-details-skills {
+    margin: 8px 0 0 0;
+    padding: 0;
+    line-height: 1.2;
+    word-wrap: break-word;
+    overflow-wrap: break-word;
+    font-size: 10px;
+}
+
+.biz-details-z-value {
+    font-size: 10px;
+    margin: 4px 0 0 0;
+    padding: 0;
+    text-align: right;
+    opacity: 0.7;
 }
 
 /* show all .biz-resume-details by default */
@@ -271,5 +315,36 @@ body.focal-point-locked .biz-card-div *,
 
 .biz-card-div.hovered {
     z-index: 9; /* Ensure hovered cards are above non-interacted ones */
+}
+
+/* Skill Cloud Styles */
+.skill-cloud-container {
+    position: absolute;
+    pointer-events: none;
+    z-index: 1000;
+}
+
+.skill-div {
+    position: absolute;
+    padding: 2px 6px;
+    background-color: rgba(255, 255, 255, 0.6);
+    color: #333;
+    border-radius: 8px;
+    font-size: 8px;
+    font-weight: bold;
+    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.2);
+    border: 1px solid rgba(0, 0, 0, 0.1);
+    white-space: nowrap;
+    opacity: 0;
+    transform: scale(0.8);
+    transition: opacity 0.3s ease, transform 0.3s ease;
+    backdrop-filter: blur(1px);
+    user-select: none;
+}
+
+.skill-div:hover {
+    background-color: rgba(255, 255, 255, 1);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+    transform: scale(1.1);
 }
 

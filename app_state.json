@@ -1,12 +1,12 @@
 {
   "version": "1.0",
-  "lastUpdated": "2025-07-03T00:49:55.151Z",
+  "lastUpdated": "2025-07-03T05:38:28.995Z",
   "layout": {
-    "panelSizePercentage": 50
+    "panelSizePercentage": 26.23574144486692
   },
   "resizeHandle": {
-    "steppingEnabled": true,
-    "stepCount": 2
+    "steppingEnabled": false,
+    "stepCount": 1
   },
   "focalPoint": {
     "mode": "following"
@@ -16,7 +16,7 @@
       "field": "startDate",
       "direction": "desc"
     },
-    "selectedJobIndex": 10
+    "selectedJobIndex": 17
   },
   "theme": {
     "colorPalette": "50_Dark_Grey_Monotone.json"

@@ -4,7 +4,7 @@ window.CONSOLE_LOG_IGNORE = () => {};
 // @ts-ignore
 window.CONSOLE_INFO_IGNORE = () => {};
 
-import './modules/timeline/timeline.css';
+// import './modules/timeline/timeline.css'; // Removed - now using Vue component
 
 // @ts-nocheck
 import { createApp } from 'vue';

@@ -157,11 +157,13 @@ watch(currentPaletteFilename, (newFilename) => {
     let hsv = colorUtils.get_HSV_from_RGB(rgb);
 
     let darkerHsv = {...hsv};
-    darkerHsv.v *= 0.75;
+    darkerHsv.v *= 0.45; // Much darker for more dramatic contrast
+    darkerHsv.s *= 0.3; // Much less saturated for less vibrant look
     const darkerRgb = colorUtils.get_RGB_from_HSV(darkerHsv);
 
     let darkestHsv = {...hsv};
-    darkestHsv.v *= 0.35;
+    darkestHsv.v *= 0.15; // Much darker for more dramatic atmospheric perspective
+    darkestHsv.s *= 0.2; // Much less saturated for less vibrant look
     const darkestRgb = colorUtils.get_RGB_from_HSV(darkestHsv);
 
     const darkerRgba = `rgba(${darkerRgb.r}, ${darkerRgb.g}, ${darkerRgb.b}, 1.0)`;

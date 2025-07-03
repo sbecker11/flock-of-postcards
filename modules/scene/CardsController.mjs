@@ -16,10 +16,10 @@ import { applyPaletteToElement } from '../composables/useColorPalette.mjs';
 // import { resumeListController } from '../resume/ResumeListController.mjs'; // No longer needed
 
 const BIZCARD_MAX_X_OFFSET = 100;
-const BIZCARD_MEAN_WIDTH = 200;
-const BIZCARD_MAX_WIDTH_OFFSET = 40;
+const BIZCARD_MEAN_WIDTH = 180; // Reduced from 200 for more square aspect
+const BIZCARD_MAX_WIDTH_OFFSET = 30; // Reduced from 40
 const BIZCARD_MIN_Z_DIFF = 2;
-const MIN_HEIGHT = 200;
+const MIN_HEIGHT = 180; // Reduced from 200 for more square aspect
 
 // Get the timeline functions once
 const { getPositionForDate } = useTimeline();
@@ -214,7 +214,16 @@ class CardsController {
     // called by handleBizCardDivClickEvent
     // handles creation of clone
     _selectBizCardDiv(bizCardDiv, caller='') {
+        console.log(`CardsController._selectBizCardDiv: called for ${bizCardDiv ? bizCardDiv.id : 'null'}, caller=${caller}`);
         if (!bizCardDiv) return;
+
+        // Check if this card already has a clone
+        const existingCloneId = bizCardDiv.id + '-clone';
+        const existingClone = document.getElementById(existingCloneId);
+        if (existingClone) {
+            console.warn(`CardsController._selectBizCardDiv: Clone already exists for ${bizCardDiv.id}, skipping creation`);
+            return;
+        }
 
         // --- Pre-calculate the centered geometry from the original card ---
         const originalSceneLeft = parseFloat(bizCardDiv.getAttribute("data-sceneLeft"));
@@ -241,6 +250,17 @@ class CardsController {
         clone.setAttribute("data-sceneCenterX", sceneCenterX.toString());
         clone.setAttribute("data-sceneLeft", newSceneLeft.toString());
         clone.setAttribute("data-sceneRight", sceneRight.toString());
+        
+        // Copy the vertical position from the original card
+        const originalSceneTop = bizCardDiv.getAttribute("data-sceneTop");
+        console.log(`CardsController._selectBizCardDiv: original card ${bizCardDiv.id} has data-sceneTop: ${originalSceneTop}`);
+        if (originalSceneTop) {
+            clone.setAttribute("data-sceneTop", originalSceneTop);
+            clone.style.top = `${originalSceneTop}px`; // Set the CSS top style for proper positioning
+            console.log(`CardsController._selectBizCardDiv: set clone ${clone.id} data-sceneTop to: ${originalSceneTop} and top style to ${originalSceneTop}px`);
+        } else {
+            console.error(`CardsController._selectBizCardDiv: original card ${bizCardDiv.id} has no data-sceneTop attribute`);
+        }
         
         clone.style.left = `${newSceneLeft}px`;
 
@@ -346,13 +366,32 @@ class CardsController {
     handleSelectionChanged(event) {
         const { selectedJobIndex, caller } = event.detail;
 
+        console.log(`CardsController.handleSelectionChanged: jobIndex=${selectedJobIndex}, caller=${caller}`);
+
         // Clear previous selections first
         this.handleSelectionCleared({ detail: { caller: 'handleSelectionChanged' } });
 
         const bizCardDiv = this.getBizCardDivByJobIndex(selectedJobIndex);
+        console.log(`CardsController.handleSelectionChanged: found bizCardDiv=${bizCardDiv ? bizCardDiv.id : 'null'}`);
+        
         if (bizCardDiv) {
+            // Check if we already have a clone for this card
+            const existingCloneId = bizCardDiv.id + '-clone';
+            const existingClone = document.getElementById(existingCloneId);
+            if (existingClone) {
+                console.warn(`CardsController.handleSelectionChanged: Clone already exists for ${bizCardDiv.id}, skipping creation`);
+                // Still scroll to the existing clone
+                this.scrollBizCardDivIntoView(existingClone, `CardsController.handleSelectionChanged from ${caller}`);
+                return;
+            }
+            
             this._selectBizCardDiv(bizCardDiv, `CardsController.handleSelectionChanged from ${caller}`);
-            this.scrollBizCardDivIntoView(bizCardDiv, `CardsController.handleSelectionChanged from ${caller}`);
+            // Scroll to the clone instead of the hidden original card
+            const clone = document.getElementById(bizCardDiv.id + '-clone');
+            console.log(`CardsController.handleSelectionChanged: found clone=${clone ? clone.id : 'null'}`);
+            if (clone) {
+                this.scrollBizCardDivIntoView(clone, `CardsController.handleSelectionChanged from ${caller}`);
+            }
         }
     }
 
@@ -386,17 +425,25 @@ class CardsController {
     }
     
     scrollBizCardDivIntoView(bizCardDiv, caller='') {
-        // window.CONSOLE_LOG_IGNORE(`CardsController.scrollBizCardDivIntoView: ${caller} scrolling ${bizCardDiv.id} into view`);
-        const sceneContainer = document.getElementById('scene-container');
-        if (!sceneContainer) throw new Error(`CardsController.scrollBizCardDivIntoView: ${caller} sceneContainer not found`);
+        console.log(`CardsController.scrollBizCardDivIntoView: ${caller} scrolling ${bizCardDiv.id} into view`);
+        const sceneContent = document.getElementById('scene-content');
+        if (!sceneContent) throw new Error(`CardsController.scrollBizCardDivIntoView: ${caller} scene-content not found`);
     
         const cardTop = parseFloat(bizCardDiv.getAttribute('data-sceneTop'));
-        // window.CONSOLE_LOG_IGNORE(`CardsController.scrollBizCardDivIntoView: ${caller} cardTop: ${cardTop}`);
+        console.log(`CardsController.scrollBizCardDivIntoView: ${caller} cardTop: ${cardTop}, isNaN: ${isNaN(cardTop)}`);
+        
+        if (isNaN(cardTop)) {
+            console.error(`CardsController.scrollBizCardDivIntoView: ${caller} cardTop is NaN for ${bizCardDiv.id}`);
+            return;
+        }
         
         // Use a manual scroll calculation with an offset
         const scrollOffset = 20; // pixels
-        sceneContainer.scrollTo({
-            top: cardTop - scrollOffset,
+        const scrollTarget = cardTop - scrollOffset;
+        console.log(`CardsController.scrollBizCardDivIntoView: ${caller} scrolling to: ${scrollTarget}`);
+        
+        sceneContent.scrollTo({
+            top: scrollTarget,
             behavior: 'smooth'
         });
     }
