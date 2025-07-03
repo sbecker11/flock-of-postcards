@@ -9,11 +9,21 @@ const {
   isLeftCollapsed, 
   isRightCollapsed, 
   steppingEnabled,
+  stepCount,
   startDrag, 
   collapseLeft, 
   collapseRight, 
   toggleStepping 
 } = useResizeHandle();
+
+// Computed properties for button states
+const isLeftDisabled = computed(() => {
+  return isLeftCollapsed.value || stepCount.value === 1;
+});
+
+const isRightDisabled = computed(() => {
+  return isRightCollapsed.value || stepCount.value === 1;
+});
 
 const { 
   mode: focalPointMode,
@@ -21,6 +31,7 @@ const {
 } = useFocalPoint();
 
 const isHovering = ref(false);
+const isSteppingHovering = ref(false);
 
 const nextMode = computed(() => {
   switch (focalPointMode.value) {
@@ -35,6 +46,15 @@ const displayMode = computed(() => {
     return isHovering.value ? nextMode.value : focalPointMode.value;
 });
 
+const nextStepCount = computed(() => {
+  return stepCount.value >= 10 ? 1 : stepCount.value + 1;
+});
+
+const displayStepCount = computed(() => {
+  const currentStep = isSteppingHovering.value ? nextStepCount.value : stepCount.value;
+  return currentStep === 1 ? '∞' : currentStep;
+});
+
 // --- Component Methods ---
 function toggleFocalLock(event) {
   event.stopPropagation();
@@ -42,12 +62,19 @@ function toggleFocalLock(event) {
   // Reset hover state when mode changes to prevent immediate hover preview
   isHovering.value = false;
 }
+
+function handleSteppingClick(event) {
+  event.stopPropagation();
+  toggleStepping();
+  // Reset hover state when step changes to prevent immediate hover preview
+  isSteppingHovering.value = false;
+}
 </script>
 
 <template>
     <div id="resize-handle" class="resize-handle" @mousedown="startDrag">
         <div class="button-container">
-            <button id="collapse-left" class="toggle-circle" @click.stop="collapseLeft" :disabled="isLeftCollapsed" title="Collapse Left">‹</button>
+            <button id="collapse-left" class="toggle-circle" @click.stop="collapseLeft" :disabled="isLeftDisabled" title="Collapse Left">‹</button>
             <button id="tri-state-toggle" 
                     class="toggle-circle" 
                     :class="[displayMode, { hovering: isHovering }]"
@@ -59,10 +86,15 @@ function toggleFocalLock(event) {
                 <span v-if="displayMode === 'following'">›</span>
                 <span v-if="displayMode === 'dragging'">⤮</span>
             </button>
-            <button id="stepping-indicator" class="toggle-circle" :class="{ 'inverted': steppingEnabled }" @click.stop="toggleStepping" title="Toggle Stepping (s)">S</button>
-            <button id="collapse-right" class="toggle-circle" @click.stop="collapseRight" :disabled="isRightCollapsed" title="Collapse Right">›</button>
+            <button id="stepping-indicator" 
+                    class="toggle-circle" 
+                    :class="{ 'inverted': steppingEnabled, 'hovering': isSteppingHovering, 'infinity-mode': stepCount === 1 }"
+                    @click.stop="handleSteppingClick" 
+                    @mouseenter="isSteppingHovering = true"
+                    @mouseleave="isSteppingHovering = false"
+                    :title="stepCount === 1 ? 'Free dragging (no steps)' : `Stepping: ${stepCount} steps`">{{ displayStepCount }}</button>
+            <button id="collapse-right" class="toggle-circle" @click.stop="collapseRight" :disabled="isRightDisabled" title="Collapse Right">›</button>
         </div>
-        <span id="scene-visible-percentage" class="percentage-display">{{ Math.round(scenePercentage) }}%</span>
     </div>
 </template>
 
@@ -83,6 +115,8 @@ function toggleFocalLock(event) {
     flex-shrink: 0;
 }
 
+
+
 .button-container {
     position: absolute;
     top: 50%;
@@ -98,7 +132,7 @@ function toggleFocalLock(event) {
     width: 24px;
     height: 24px;
     border-radius: 50%;
-    border: 1px solid var(--button-border-color, #888);
+    border: 2px solid white;
     background-color: var(--button-bg-color, #555);
     color: var(--button-text-color, white);
     cursor: pointer;
@@ -109,6 +143,7 @@ function toggleFocalLock(event) {
     font-weight: bold;
     padding: 0;
     flex-shrink: 0;
+    transition: all 0.2s ease;
 }
 
 #tri-state-toggle {
@@ -157,20 +192,33 @@ function toggleFocalLock(event) {
     font-size: 12px;
 }
 
-/* Hover effects for collapse and stepping buttons */
-#collapse-left:hover,
-#collapse-right:hover,
-#stepping-indicator:hover {
+#stepping-indicator.infinity-mode {
+    font-size: 16px;
+}
+
+#stepping-indicator.hovering {
+    background-color: white;
+    color: black;
+    border-color: black;
+}
+
+/* Hover effects for collapse buttons only */
+#collapse-left:hover:not(:disabled),
+#collapse-right:hover:not(:disabled) {
     background-color: var(--button-text-color, white);
     color: var(--button-bg-color, #555);
     border-color: var(--button-text-color, white);
 }
 
-.percentage-display {
-    margin-top: 12px;
-    font-family: monospace;
-    font-size: 12px;
-    color: var(--percentage-text-color, #ccc);
-    white-space: nowrap;
+/* Disabled state for collapse buttons */
+#collapse-left:disabled,
+#collapse-right:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+    background-color: #444;
+    color: #999;
+    border-color: #666;
+    transform: scale(0.95);
+    pointer-events: none;
 }
 </style> 

@@ -49,7 +49,7 @@ const { timelineHeight, years } = useTimeline();
 }
 
 .year-label {
-  fill: #fff; /* White text */
+  fill: rgba(128, 128, 128, 0.8); /* White text */
   font-size: 48px;
   font-family: 'Arial', sans-serif;
   font-weight: bold;
@@ -57,7 +57,7 @@ const { timelineHeight, years } = useTimeline();
 }
 
 .year-tick-line {
-  stroke: rgba(255, 255, 255, 0.2); /* Faint white line */
+  stroke: rgba(128, 128, 128, 0.8); /* Faint white line */
   stroke-width: 1;
 }
 </style> 

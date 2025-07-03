@@ -1,20 +1,32 @@
 <template>
   <div id="app-container">
     <div id="scene-container" :style="sceneContainerStyle" @click="handleSceneContainerClick">
-      <div id="scene-plane-top-gradient"></div>
-      <div id="scene-plane-btm-gradient"></div>
-      <div id="scene-plane">
-        <Timeline alignment="left" />
+      <div id="scene-content">
+        <div id="scene-plane-top-gradient"></div>
+        <div id="scene-plane-btm-gradient"></div>
+        <div id="scene-plane">
+          <Timeline alignment="left" />
+        </div>
+        <div id="biz-details-div"></div>
       </div>
-      <div id="biz-details-div"></div>
-      <SceneViewLabel />
+      <SceneContainerFooter />
     </div>
     <div id="resume-container">
-      <ResizeHandle />
-      <div class="resume-wrapper">
-        <ResumeContainer />
+      <div id="resume-container-left">
+        <ResizeHandle />
+      </div>
+      <div id="resume-container-right">
+        <div class="resume-wrapper">
+          <ResumeContainer />
+        </div>
+        <div id="resume-content-footer">
+          <div>
+            <span class="viewer-label">({{ resumePercentage }}%) Resume Viewer</span>
+          </div>
+        </div>
       </div>
     </div>
+    <SceneViewLabel />
     <div id="aim-point"></div>
     <div id="bulls-eye">+</div>
     <div 
@@ -46,13 +58,12 @@ import { resumeItemsController } from '@/modules/scene/ResumeItemsController.mjs
 import { resumeListController } from '@/modules/resume/ResumeListController.mjs';
 import * as scenePlane from '@/modules/scene/scenePlaneModule.mjs';
 import * as parallax from '@/modules/core/parallaxModule.mjs';
-import * as sceneViewLabel from '@/modules/core/sceneViewLabelModule.mjs';
 import * as autoScroll from '@/modules/animation/autoScrollModule.mjs';
 import { selectionManager } from '@/modules/core/selectionManager.mjs';
 import Timeline from '@/modules/components/Timeline.vue';
 import ResizeHandle from '@/modules/components/ResizeHandle.vue';
 import ResumeContainer from '@/modules/components/ResumeContainer.vue';
-import SceneViewLabel from '@/modules/components/SceneViewLabel.vue';
+import SceneContainerFooter from '@/modules/components/SceneContainerFooter.vue';
 
 export default {
   name: 'AppContent',
@@ -60,7 +71,7 @@ export default {
     Timeline,
     ResizeHandle,
     ResumeContainer,
-    SceneViewLabel
+    SceneContainerFooter
   },
   async setup() {
     console.log('AppContent: setup started');
@@ -90,10 +101,6 @@ export default {
         console.log('AppContent: initializeAimPoint completed');
         focalPoint.initialize();
         console.log('AppContent: initializeFocalPoint completed');
-        
-        // Initialize sceneViewLabel after viewport is available
-        sceneViewLabel.initialize();
-        console.log('AppContent: sceneViewLabel completed');
         
         // Initialize sceneContainer after viewport is available
         sceneContainer.initialize();
@@ -204,7 +211,7 @@ export default {
     
     // Set up event listener for scene width changes immediately
     const handleSceneWidthChanged = (event) => {
-      console.log('RESIZE: scene-width-changed:', event.detail.width);
+      // console.log('RESIZE: scene-width-changed:', event.detail.width);
       sceneWidth.value = event.detail.width;
     };
     
@@ -217,9 +224,17 @@ export default {
     });
     
     const sceneContainerStyle = computed(() => {
-      const width = sceneWidth.value ? `${sceneWidth.value}px` : '66.66666666666667%';
-      console.log('RESIZE: sceneContainerStyle:', width);
+      const width = `${sceneWidth.value}px`;
+      // console.log('RESIZE: sceneContainerStyle:', width);
       return { width };
+    });
+
+    const totalWidth = computed(() => {
+      return window.innerWidth;
+    });
+
+    const resumePercentage = computed(() => {
+      return 100 - Math.round(resizeHandle.percentage.value);
     });
 
     const handleSceneContainerClick = (event) => {
@@ -241,7 +256,10 @@ export default {
       viewport,
       focalPointStyle,
       sceneContainerStyle,
-      handleSceneContainerClick
+      handleSceneContainerClick,
+      totalWidth,
+      sceneWidth,
+      resumePercentage
     };
   }
 };
@@ -265,21 +283,80 @@ export default {
   min-width: 0;
   max-width: none;
   box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
   /* width will be set by computed style */
+}
+
+#scene-content {
+  flex-grow: 1;
+  position: relative;
+  overflow-y: scroll; 
+  overscroll-behavior: contain;
+  -ms-overflow-style: none; /* Hide scrollbar for IE and Edge */
+  scrollbar-width: none; /* Hide scrollbar for Firefox */
+  overflow-x: hidden; /* prevent horizontal scrolling */
+  isolation: isolate;
+  background-color: var(--background-dark);
+  z-index: 0;
+  margin: 0;
+  padding: 0;
+}
+
+#scene-content::-webkit-scrollbar {
+  display: none; /* Hide scrollbar for Chrome, Safari, and Opera */
 }
 
 #resume-container {
   display: flex;
-  position: relative;
-  flex: 1 1 0%;
-  min-width: 0;
   height: 100%;
+  flex-grow: 1; /* Take up remaining space after scene container */
+  z-index: 10;
 }
 
 .resume-wrapper {
   flex: 1;
   min-width: 0;
   position: relative; /* Required for child's absolute positioning */
+}
+
+#resume-container-right {
+  position: relative; /* Required for footer absolute positioning */
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+#resume-content-footer {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background-color: rgba(255, 255, 255, 0.2) !important;
+  padding: 10px;
+  flex-shrink: 0;
+  z-index: 10; /* Ensure it's above resume content */
+  pointer-events: none; /* Allow clicking through to resume content */
+  -webkit-mask-image: linear-gradient(to bottom, transparent 0%, black 20%);
+  mask-image: linear-gradient(to bottom, transparent 0%, black 20%);
+  height: 40px; /* Match scene footer height */
+}
+
+#resume-content-footer div,
+#resume-content-footer span {
+  background-color: transparent !important;
+}
+
+#resume-content-footer .viewer-label {
+  font-family: sans-serif;
+  font-size: 14px;
+  font-weight: 700;
+  color: black;
+  user-select: none;
+  text-shadow: 1px 1px 2px rgba(255, 255, 255, 0.5);
+  white-space: nowrap;
+  background-color: transparent !important;
+  pointer-events: auto; /* Allow interaction with the text */
 }
 
 #scene-plane {

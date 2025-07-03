@@ -37,10 +37,26 @@ export function createBizResumeDetailsDiv(bizResumeDiv, bizCardDiv) {
     if (!bizCardDetailsDiv) throw new Error('createBizResumeDetailsDiv: given null bizCardDetailsDiv');
     bizResumeDetailsDiv.innerHTML = bizCardDetailsDiv.innerHTML;
 
-    // Remove the Z-value element from the resume div clone
+    // Remove the original Z-value element from the resume div clone
     const zValueElement = bizResumeDetailsDiv.querySelector('.biz-details-z-value');
     if (zValueElement) {
         zValueElement.remove();
+    }
+    
+    // Add the resume div's own z-value element right after the dates
+    const resumeSceneZ = bizCardDiv.getAttribute('data-sceneZ') || 'N/A';
+    const resumeJobIndex = bizResumeDiv.getAttribute('data-job-index');
+    const resumeZValueElement = document.createElement('p');
+    resumeZValueElement.className = 'biz-details-z-value header-text';
+    resumeZValueElement.textContent = `(z: ${resumeSceneZ}, id: ${resumeJobIndex})`;
+    
+    // Insert the z-value element right after the dates element
+    const datesElement = bizResumeDetailsDiv.querySelector('.biz-details-dates');
+    if (datesElement) {
+        datesElement.insertAdjacentElement('afterend', resumeZValueElement);
+    } else {
+        // Fallback: append to the end if dates element not found
+        bizResumeDetailsDiv.appendChild(resumeZValueElement);
     }
     
     return bizResumeDetailsDiv;

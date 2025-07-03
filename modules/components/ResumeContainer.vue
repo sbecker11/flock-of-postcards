@@ -1,8 +1,17 @@
 <script setup>
-import { ref, onMounted, watch } from 'vue';
+import { ref, onMounted, watch, computed } from 'vue';
 import { jobs } from '@/static_content/jobs/jobs.mjs';
 import { selectionManager } from '@/modules/core/selectionManager.mjs';
 import { useColorPalette } from '@/modules/composables/useColorPalette.mjs';
+import { useResizeHandle } from '@/modules/composables/useResizeHandle.mjs';
+
+// Get the same percentage as the resize handle
+const { percentage: scenePercentage } = useResizeHandle();
+
+// Calculate resume percentage as 100 minus scene percentage
+const resumePercentage = computed(() => {
+  return 100 - Math.round(scenePercentage.value);
+});
 
 // Use the color palette composable
 const {
@@ -88,11 +97,6 @@ function selectPrevious() {
         <div id="resume-content-div-wrapper" class="scrollable-container">
             <!-- The content of this div is now entirely managed by the legacy InfiniteScrollingContainer -->
             <div id="resume-content-div"></div>
-        </div>
-        <div id="resume-content-footer">
-            <div>
-                <span class="viewer-label">Resume Viewer</span>
-            </div>
         </div>
     </div>
 </template>
@@ -270,5 +274,6 @@ function selectPrevious() {
     color: black;
     user-select: none;
     text-shadow: 1px 1px 2px rgba(255, 255, 255, 0.5);
+    white-space: nowrap;
 }
 </style> 

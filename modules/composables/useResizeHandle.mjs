@@ -12,6 +12,7 @@ const uiPercentage = ref(DEFAULT_WIDTH_PERCENT);
 const sceneWidthInPixels = ref(0);
 const isDragging = ref(false);
 const steppingEnabled = ref(false);
+const stepCount = ref(5); // Default to 5 steps, can be 1-10 (1 = free dragging)
 let _viewport = null;
 
 function clampToRange(val, min, max) {
@@ -19,29 +20,18 @@ function clampToRange(val, min, max) {
 }
 
 function handleViewportResize() {
-    console.log('=== handleViewportResize START ===');
-    
     // 1. Recenter the bullsEye
     if (bullsEye.isInitialized()) {
-        console.log('Recentering bullsEye...');
         bullsEye.recenterBullsEye();
-    } else {
-        console.log('BullsEye not initialized, skipping recenter');
     }
     
     // 2. Update aimPoint position to bullsEye center
     if (aimPoint.isInitialized()) {
-        console.log('Updating aimPoint to bullsEye center...');
         const bullsEyeCenter = bullsEye.getBullsEye();
         aimPoint.setAimPoint(bullsEyeCenter, 'viewportResize');
-    } else {
-        console.log('AimPoint not initialized, skipping update');
     }
     
     // 3. Update focal point to aimPoint position
-    // The focal point should automatically follow the aimPoint in locked mode
-    // We can trigger this by dispatching a custom event that the focal point listens to
-    console.log('Dispatching focal-point-update event...');
     const event = new CustomEvent('focal-point-update', { 
         detail: { 
             source: 'viewportResize',
@@ -49,42 +39,73 @@ function handleViewportResize() {
         } 
     });
     window.dispatchEvent(event);
-    
-    console.log('=== handleViewportResize END ===');
 }
 
 function updateLayout(newUiPercentage, shouldSave = true) {
-    console.log('RESIZE: updateLayout:', newUiPercentage, shouldSave);
+    // AGGRESSIVE DEBUGGING - Stack trace
+    console.log('=== UPDATE LAYOUT CALLED ===');
+    console.log('Caller stack:', new Error().stack);
+    console.log('Input percentage:', newUiPercentage);
+    
     const windowWidth = window.innerWidth;
-    const maxSceneWidth = windowWidth - HANDLE_WIDTH;
-    const clampedUiPercentage = clampToRange(newUiPercentage, 0, 100);
-
-    const newSceneWidth = Math.round((clampedUiPercentage / 100) * maxSceneWidth);
-    sceneWidthInPixels.value = newSceneWidth;
+    
+    // Core constraints:
+    // - resumeContainerWidth: 20px minimum, windowWidth maximum
+    // - sceneContainerWidth: 0px minimum, (windowWidth - 20px) maximum
+    
+    const resumeContainerWidth = 20; // Fixed at 20px
+    const maxSceneWidth = windowWidth - resumeContainerWidth;
+    
+    // Clamp input percentage to valid range
+    const clampedPercentage = Math.max(0, Math.min(100, newUiPercentage));
+    
+    // Calculate scene width based on percentage
+    const sceneWidth = Math.round((clampedPercentage / 100) * maxSceneWidth);
+    
+    // Ensure scene width is within bounds (0 to maxSceneWidth)
+    const finalSceneWidth = Math.max(0, Math.min(maxSceneWidth, sceneWidth));
+    
+    // Calculate actual percentage based on final scene width
+    const actualPercentage = maxSceneWidth > 0 ? (finalSceneWidth / maxSceneWidth) * 100 : 0;
+    
+    // AGGRESSIVE DEBUGGING
+    console.log('=== RESIZE DEBUG START ===');
+    console.log('Input percentage:', newUiPercentage);
+    console.log('Window width:', windowWidth);
+    console.log('Resume container width:', resumeContainerWidth);
+    console.log('Max scene width:', maxSceneWidth);
+    console.log('Clamped percentage:', clampedPercentage);
+    console.log('Calculated scene width:', sceneWidth);
+    console.log('Final scene width:', finalSceneWidth);
+    console.log('Actual percentage:', actualPercentage);
+    console.log('Current uiPercentage.value:', uiPercentage.value);
+    console.log('Current sceneWidthInPixels.value:', sceneWidthInPixels.value);
+    console.log('=== RESIZE DEBUG END ===');
+    
+    // Store the values
+    sceneWidthInPixels.value = finalSceneWidth;
+    uiPercentage.value = actualPercentage; // Force update the percentage
     
     if (_viewport) {
-        _viewport.setViewPortWidth(newSceneWidth);
+        _viewport.setViewPortWidth(finalSceneWidth);
     } else {
         console.log('RESIZE: ERROR - _viewport is null!');
     }
     
     if (AppState) {
-        AppState.layout.panelSizePercentage = clampedUiPercentage;
+        AppState.layout.panelSizePercentage = actualPercentage;
         if (shouldSave) {
-            console.log('Saving state...');
             saveState(AppState);
         }
     }
     
-    const event = new CustomEvent('layout-changed', { detail: { sceneWidth: newSceneWidth } });
+    const event = new CustomEvent('layout-changed', { detail: { sceneWidth: finalSceneWidth } });
     window.dispatchEvent(event);
     
     // Call the viewport resize handler after layout change
     handleViewportResize();
     
-
-    
-    return clampedUiPercentage;
+    return actualPercentage;
 }
 
 export function useResizeHandle() {
@@ -93,17 +114,16 @@ export function useResizeHandle() {
         _viewport = viewport;
         const initialPercentage = AppState?.layout?.panelSizePercentage || DEFAULT_WIDTH_PERCENT;
         steppingEnabled.value = AppState?.resizeHandle?.steppingEnabled || false;
+        stepCount.value = AppState?.resizeHandle?.stepCount || 5;
         uiPercentage.value = initialPercentage;
         
         // Add window resize listener
         window.addEventListener('resize', () => {
-            console.log('Window resize detected, calling handleViewportResize...');
             handleViewportResize();
         });
     }
 
     function applyInitialLayout() {
-        console.log("applyInitialLayout called");
         updateLayout(uiPercentage.value, false);
     }
     
@@ -111,23 +131,50 @@ export function useResizeHandle() {
     let startPixelWidth = 0;
 
     const incrementPercentage = computed(() => {
-        return steppingEnabled.value ? (100 / 3) : 0;
+        // Step count 1 means free dragging (no stepping)
+        if (!steppingEnabled.value || stepCount.value === 1) {
+            return 0;
+        }
+        return 100 / stepCount.value;
     });
 
     function updateLayoutFromPercentage(newPercentage, shouldSave = true) {
-        uiPercentage.value = updateLayout(newPercentage, shouldSave);
+        // Ensure the input percentage is valid before calling updateLayout
+        const validPercentage = Math.max(0, Math.min(100, newPercentage));
+        uiPercentage.value = updateLayout(validPercentage, shouldSave);
     }
 
     function handleDrag(e) {
-            if (!isDragging.value) {
-        return;
-    }
+        if (!isDragging.value) {
+            return;
+        }
+        
+        const windowWidth = window.innerWidth;
+        const resumeContainerWidth = 20; // Fixed at 20px
+        const maxSceneWidth = windowWidth - resumeContainerWidth;
+        
         const dx = e.clientX - startX;
         const newPixelWidth = startPixelWidth + dx;
-        const maxSceneWidth = window.innerWidth - HANDLE_WIDTH;
-        const newDragPercentage = (newPixelWidth / maxSceneWidth) * 100;
         
-        updateLayoutFromPercentage(newDragPercentage, false);
+        // Clamp pixel width to valid range (0 to maxSceneWidth)
+        const clampedPixelWidth = Math.max(0, Math.min(maxSceneWidth, newPixelWidth));
+        
+        // Calculate percentage based on clamped pixel width
+        const percentage = maxSceneWidth > 0 ? (clampedPixelWidth / maxSceneWidth) * 100 : 0;
+        
+        // AGGRESSIVE DRAG DEBUGGING
+        console.log('=== DRAG DEBUG START ===');
+        console.log('Mouse dx:', dx);
+        console.log('Start pixel width:', startPixelWidth);
+        console.log('New pixel width:', newPixelWidth);
+        console.log('Window width:', windowWidth);
+        console.log('Max scene width:', maxSceneWidth);
+        console.log('Clamped pixel width:', clampedPixelWidth);
+        console.log('Calculated percentage:', percentage);
+        console.log('Current uiPercentage.value:', uiPercentage.value);
+        console.log('=== DRAG DEBUG END ===');
+        
+        updateLayoutFromPercentage(percentage, false);
     }
 
     function stopDrag() {
@@ -149,12 +196,9 @@ export function useResizeHandle() {
     }
 
     function startDrag(e) {
-        console.log('startDrag called, target:', e.target, 'closest button:', e.target.closest('button'));
         if (e.target.closest('button')) {
-            console.log('startDrag: clicked on button, ignoring drag');
             return;
         }
-        console.log('startDrag: starting drag, isDragging set to true');
         isDragging.value = true;
         startX = e.clientX;
         startPixelWidth = sceneWidthInPixels.value;
@@ -189,12 +233,12 @@ export function useResizeHandle() {
             const snapPercentage = incrementPercentage.value;
             const nIncrements = 100 / snapPercentage;
             const currentSnapIndex = Math.round(uiPercentage.value / snapPercentage);
-            newPercentage = Math.min(nIncrements, currentSnapIndex + 1) * snapPercentage;
+            newPercentage = Math.min(100, currentSnapIndex + 1) * snapPercentage;
         } else {
             const increment = secondaryIncrementPercentage;
             const nBlocks = 100 / increment;
             const currentBlock = Math.floor(uiPercentage.value / increment);
-            newPercentage = Math.min(nBlocks, currentBlock + 1) * increment;
+            newPercentage = Math.min(100, currentBlock + 1) * increment;
         }
         updateLayoutFromPercentage(newPercentage);
         await nextTick();
@@ -204,9 +248,22 @@ export function useResizeHandle() {
     }
     
     function toggleStepping() {
-        steppingEnabled.value = !steppingEnabled.value;
+        // Cycle through step count: 1 -> 2 -> 3 -> ... -> 10 -> 1
+        stepCount.value = stepCount.value >= 10 ? 1 : stepCount.value + 1;
+        
+        // Enable stepping if it was disabled
+        if (!steppingEnabled.value) {
+            steppingEnabled.value = true;
+        }
+        
+        // Disable stepping when step count is 1 (free dragging)
+        if (stepCount.value === 1) {
+            steppingEnabled.value = false;
+        }
+        
         if (AppState) {
             AppState.resizeHandle.steppingEnabled = steppingEnabled.value;
+            AppState.resizeHandle.stepCount = stepCount.value;
             saveState(AppState);
         }
     }
@@ -216,8 +273,9 @@ export function useResizeHandle() {
         sceneWidth: sceneWidthInPixels,
         isDragging,
         steppingEnabled,
-        isLeftCollapsed: computed(() => uiPercentage.value <= 0),
-        isRightCollapsed: computed(() => uiPercentage.value >= 100),
+        stepCount,
+        isLeftCollapsed: computed(() => uiPercentage.value <= 0.1),
+        isRightCollapsed: computed(() => uiPercentage.value >= 99.9),
         initializeResizeHandleState,
         applyInitialLayout,
         startDrag,

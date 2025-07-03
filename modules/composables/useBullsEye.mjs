@@ -11,9 +11,9 @@ let _isInitialized = false;
 
 // --- Composable ---
 export function useBullsEye(viewport = null) {
-  console.log('RESIZE: useBullsEye called with viewport:', !!viewport);
-  console.log('RESIZE: useBullsEye viewport type:', typeof viewport);
-  console.log('RESIZE: useBullsEye viewport value:', viewport);
+  // console.log('RESIZE: useBullsEye called with viewport:', !!viewport);
+  // console.log('RESIZE: useBullsEye viewport type:', typeof viewport);
+  // console.log('RESIZE: useBullsEye viewport value:', viewport);
   
   // Use the passed viewport instance or get the singleton
   const viewportInstance = viewport || useViewport('useBullsEye-fallback');
@@ -32,20 +32,20 @@ export function useBullsEye(viewport = null) {
   function recenterBullsEye() {
     if (!_bullsEyeElement || !_isInitialized) return;
 
-    console.log(`Repositioning BullsEye to: top=${centerY.value}px, left=${centerX.value}px`);
+    // console.log(`Repositioning BullsEye to: top=${centerY.value}px, left=${centerX.value}px`);
 
     // Since CSS has transform: translate(-50%, -50%), set position to exact center
     // The transform will handle centering the element around this point
     _bullsEyeElement.style.left = `${centerX.value}px`;
     _bullsEyeElement.style.top = `${centerY.value}px`;
     
-    console.log(`BullsEye final position - left: ${centerX.value}px, top: ${centerY.value}px`);
+    // console.log(`BullsEye final position - left: ${centerX.value}px, top: ${centerY.value}px`);
     
     sceneViewLabel.repositionLabel();
   }
 
   function initialize() {
-    console.log('BullsEye.initialize() called, _isInitialized:', _isInitialized);
+    // console.log('BullsEye.initialize() called, _isInitialized:', _isInitialized);
     if (_isInitialized) {
       console.warn("bullsEye.initialize: already initialized, ignoring duplicate initialization request");
       return;
@@ -62,19 +62,19 @@ export function useBullsEye(viewport = null) {
       throw new Error("bullsEye requires viewport to be initialized.");
     }
     
-    console.log("Initializing bullsEye...");
+    // console.log("Initializing bullsEye...");
     recenterBullsEye();
     
     // Listen for viewport changes to reposition the bullsEye
     window.addEventListener('viewport-changed', () => {
-      console.log('BullsEye: viewport-changed event received, repositioning...');
+      // console.log('BullsEye: viewport-changed event received, repositioning...');
       if (_isInitialized) {
         recenterBullsEye();
       }
     });
     
     _isInitialized = true;
-    console.log("bullsEye initialized successfully");
+    // console.log("bullsEye initialized successfully");
   }
 
   function reset() {
@@ -88,7 +88,7 @@ export function useBullsEye(viewport = null) {
       throw new Error("viewport is not initialized");
     }
     const pos = position.value;
-    console.log('getBullsEye called, returning position:', pos);
+    // console.log('getBullsEye called, returning position:', pos);
     return pos;
   }
 

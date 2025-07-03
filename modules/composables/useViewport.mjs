@@ -146,7 +146,7 @@ export function useViewport(label = 'unnamed') {
       throw new Error(`Viewport.setViewPortWidth: ${newWidth} is not a Number`);
     }
 
-    console.log(`RESIZE: setViewPortWidth: ${newWidth}`);
+    // console.log(`RESIZE: setViewPortWidth: ${newWidth}`);
     
     // Update the entire reactive state object to trigger reactivity
     viewportState.value = {

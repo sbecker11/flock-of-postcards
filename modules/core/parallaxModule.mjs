@@ -34,21 +34,21 @@ function updateSceneContainerRect() {
  * @param {Object} focalPoint - The focalPoint composable instance
  */
 export function initialize(focalPoint = null) {
-    console.log('parallax.initialize called');
+    // console.log('parallax.initialize called');
     
     if (_isInitialized) {
-        console.log('parallax already initialized, returning');
+        // console.log('parallax already initialized, returning');
         return;
     }
 
     if (!viewPort.isInitialized()) {
-        console.log('viewport not initialized, returning');
+        // console.log('viewport not initialized, returning');
         return;
     }
 
     // Store the focal point reference
     _focalPoint = focalPoint;
-    console.log('focalPoint reference stored:', !!_focalPoint);
+    // console.log('focalPoint reference stored:', !!_focalPoint);
 
     // Listen for viewport-changed event to update the rect
     window.addEventListener('viewport-changed', updateSceneContainerRect);
@@ -58,7 +58,7 @@ export function initialize(focalPoint = null) {
     // Watch for focal point position changes and apply parallax
     watchEffect(() => {
         if (!_focalPoint || !_focalPoint.position) {
-            console.log('focalPoint not available, skipping parallax');
+            // console.log('focalPoint not available, skipping parallax');
             return;
         }
 
@@ -68,14 +68,14 @@ export function initialize(focalPoint = null) {
         const currentPosition = _focalPoint.position.value;
         const { x: fpX, y: fpY } = currentPosition;
         
-        console.log('parallax: focalPoint position:', currentPosition, 'scene center:', { x: sceneCenterX, y: sceneCenterY });
+        // console.log('parallax: focalPoint position:', currentPosition, 'scene center:', { x: sceneCenterX, y: sceneCenterY });
         
         // Calculate focal point position relative to the scene's center
         const dh = (sceneCenterX - fpX) * PARALLAX_X_EXAGGERATION_FACTOR;
         const dv = (sceneCenterY - fpY) * PARALLAX_Y_EXAGGERATION_FACTOR;
         
         const bizCardDivs = document.getElementsByClassName("biz-card-div");
-        console.log('parallax: applying to', bizCardDivs.length, 'biz cards');
+        // console.log('parallax: applying to', bizCardDivs.length, 'biz cards');
         
         for (const bizCardDiv of bizCardDivs) {
             applyParallaxToBizCardDiv(bizCardDiv, dh, dv);
@@ -83,7 +83,7 @@ export function initialize(focalPoint = null) {
     });
 
     _isInitialized = true;
-    console.log('parallax initialized successfully');
+    // console.log('parallax initialized successfully');
 }
 
 export function isInitialized() {
