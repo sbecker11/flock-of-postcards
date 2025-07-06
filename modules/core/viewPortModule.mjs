@@ -3,7 +3,6 @@
 import * as utils from '../utils/utils.mjs';    
 
 import * as domUtils from '../utils/domUtils.mjs';
-import * as bullsEye from './bullsEye.mjs';
 
 // Constants
 const VIEWPORT_PADDING = 100; // Padding around the viewPortProperties
@@ -32,7 +31,7 @@ const _resumeContainer = document.getElementById("resume-container");
  */
 export function initialize() {
     if (_isInitialized) {
-        console.warn("viewPort.initialize: already initialized, ignoring duplicate initialization request");
+    
         return;
     }
 
@@ -50,14 +49,14 @@ export function initialize() {
     // Add ResizeObserver to detect scene container size changes
     if (typeof ResizeObserver !== 'undefined') {
         const resizeObserver = new ResizeObserver(() => {
-            window.CONSOLE_LOG_IGNORE('Scene container resized, updating viewport...');
+    
             updateViewPort();
         });
         resizeObserver.observe(_sceneContainer);
     }
 
     _isInitialized = true;
-    window.CONSOLE_LOG_IGNORE("ViewPort initialized successfully");
+
 }
 
 export function isInitialized() {
@@ -71,7 +70,7 @@ export function isInitialized() {
  * tells the bullsEye to update the position of its HTML element
  */
 export function updateViewPort() {
-    // window.CONSOLE_LOG_IGNORE("updateViewPort");
+
     if ( !isInitialized() ) {
         throw new Error("viewPortProperties is not initialized");
     }
@@ -96,8 +95,8 @@ export function updateViewPort() {
     // If handle is at left edge (initial state), use window width / 2 as initial position
     // const handleLeft = resizeHandle.getResizeHandleRect.left || window.innerWidth / 2;
 
-    // tell the bullsEye to update the position of its HTML element (using getViewPortCenter()
-    bullsEye.updateBullsEye();
+    // BullsEye positioning is now handled by the composable-based useBullsEye
+    // which listens to viewport-changed events
     
     // Dispatch viewport-changed event for other components to listen to
     const event = new CustomEvent('viewport-changed', { 
@@ -159,7 +158,7 @@ export function isBizCardDivWithinViewPort(bizCardDiv) {
 }
 
 export function setViewPortWidth(width) {
-    // window.CONSOLE_LOG_IGNORE("viewPort.setViewPortWidth:", width );
+
     if ( !isInitialized() ) {
         throw new Error("viewPort not yet initialized");
     }
@@ -200,7 +199,7 @@ export function setViewPortWidth(width) {
 //     const viewHeight = sceneHeight;
 //     const viewZIndexStr = zUtils.get_zIndexStr_from_z(sceneZ, bizCardDiv.id);
 
-//     // window.CONSOLE_LOG_IGNORE(`sceneLeft:${sceneLeft} + bullsEyeX:${bullsEyeX} viewLeft:${viewLeft}`);
+//     window.CONSOLE_LOG_IGNORE(`sceneLeft:${sceneLeft} + bullsEyeX:${bullsEyeX} viewLeft:${viewLeft}`);
 
 //     // apply view-relative styling
 //     bizCardDiv.style.top =     `${viewTop}px`;
@@ -209,7 +208,7 @@ export function setViewPortWidth(width) {
 //     bizCardDiv.style.height =  `${viewHeight}px`;
 //     bizCardDiv.style.zIndex =   viewZIndexStr;
 
-//     // // window.CONSOLE_LOG_IGNORE(`bizCardDiv view-relativestyling for ${bizCardDiv.id}:`, {
+//     // window.CONSOLE_LOG_IGNORE(`bizCardDiv view-relativestyling for ${bizCardDiv.id}:`, {
 //     //     styleLeft: bizCardDiv.style.left,
 //     //     offsetLeft: bizCardDiv.offsetLeft,
 //     //     boundingLeft: bizCardDiv.getBoundingClientRect().left,
@@ -221,5 +220,10 @@ export function setViewPortWidth(width) {
 // }
 
 function calculateViewPortProperties() {
-    // ... existing code ...
+    if (!_isInitialized) {
+        return;
+    }
+    
+    // Call updateViewPort to recalculate all properties and dispatch viewport-changed event
+    updateViewPort();
 }

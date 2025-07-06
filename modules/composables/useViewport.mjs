@@ -39,7 +39,7 @@ function updateViewportProperties() {
   const newCenterX = viewPortWidth / 2;
   const newCenterY = viewPortHeight / 2;
   
-  console.log('updateViewportProperties: viewPortWidth:', viewPortWidth, 'viewPortHeight:', viewPortHeight, 'centerX:', newCenterX, 'centerY:', newCenterY);
+  window.CONSOLE_LOG_IGNORE('updateViewportProperties: viewPortWidth:', viewPortWidth, 'viewPortHeight:', viewPortHeight, 'centerX:', newCenterX, 'centerY:', newCenterY);
   
   viewportState.value = {
     padding: VIEWPORT_PADDING,
@@ -67,17 +67,22 @@ function updateViewportProperties() {
 
 // --- Composable ---
 export function useViewport(label = 'unnamed') {
-  // Singleton check
-  _instanceCount++;
-  const instanceId = `viewport-${_instanceCount}-${label}`;
-  
-  if (_instanceCount > 1) {
-    console.error(`RESIZE: Multiple viewport instances! Count: ${_instanceCount}, Current: ${instanceId}`);
-  }
-  
+  // Singleton check - if instance exists, return it immediately
   if (_instance) {
     return _instance;
   }
+
+  // Register cleanup on component unmount (only for the first instance)
+  // This must be done immediately to avoid Vue lifecycle warnings
+  onUnmounted(() => {
+    cleanup();
+  });
+
+  // Increment count only for the first (and only) instance
+  _instanceCount++;
+  const instanceId = `viewport-${_instanceCount}-${label}`;
+  
+  window.CONSOLE_LOG_IGNORE(`RESIZE: Creating viewport instance: ${instanceId}`);
   // Reactive properties
   const padding = computed(() => viewportState.value.padding);
   const top = computed(() => viewportState.value.top);
@@ -111,9 +116,9 @@ export function useViewport(label = 'unnamed') {
 
   // Public functions
   function initialize() {
-    console.log('Viewport initialize called, looking for scene-container...');
+    window.CONSOLE_LOG_IGNORE('Viewport initialize called, looking for scene-container...');
     _sceneContainer = document.getElementById('scene-container');
-    console.log('Scene container found:', _sceneContainer);
+    window.CONSOLE_LOG_IGNORE('Scene container found:', _sceneContainer);
     if (!_sceneContainer) {
       throw new Error("Viewport element #scene-container not found");
     }
@@ -127,7 +132,7 @@ export function useViewport(label = 'unnamed') {
     // Add ResizeObserver for scene container
     if (typeof ResizeObserver !== 'undefined') {
       _resizeObserver = new ResizeObserver(() => {
-        console.log('Scene container resized, updating viewport...');
+        window.CONSOLE_LOG_IGNORE('Scene container resized, updating viewport...');
         updateViewportProperties();
       });
       _resizeObserver.observe(_sceneContainer);
@@ -146,7 +151,7 @@ export function useViewport(label = 'unnamed') {
       throw new Error(`Viewport.setViewPortWidth: ${newWidth} is not a Number`);
     }
 
-    // console.log(`RESIZE: setViewPortWidth: ${newWidth}`);
+    window.CONSOLE_LOG_IGNORE(`RESIZE: setViewPortWidth: ${newWidth}`);
     
     // Update the entire reactive state object to trigger reactivity
     viewportState.value = {
@@ -195,13 +200,6 @@ export function useViewport(label = 'unnamed') {
     _sceneContainer = null;
   }
 
-  // Register cleanup on component unmount (only for the first instance)
-  if (_instanceCount === 1) {
-    onUnmounted(() => {
-      cleanup();
-    });
-  }
-
   const viewportInstance = {
     // Reactive properties
     padding,
@@ -236,7 +234,7 @@ export function useViewport(label = 'unnamed') {
     _instance = null;
     _instanceCount = 0;
     _instanceLabels.clear();
-    console.log('RESIZE: Viewport singleton reset');
+    window.CONSOLE_LOG_IGNORE('RESIZE: Viewport singleton reset');
   };
   
   return viewportInstance;

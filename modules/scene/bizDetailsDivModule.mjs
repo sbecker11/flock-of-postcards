@@ -24,10 +24,10 @@ export function createBizResumeDetailsDiv(bizResumeDiv, bizCardDiv) {
     if (!utils.isNumericString(colorIndex)) throw new Error('createBizResumeDetailsDiv: given non-numeric colorIndex string');
     
     const bizResumeDetailsDiv = document.createElement('div');
-    const jobIndex = bizResumeDiv.getAttribute('data-job-index');
-    if (!utils.isNumericString(jobIndex)) throw new Error('createBizResumeDetailsDiv: given non-numeric attriubute string jobIndex');
+    const jobNumber = bizResumeDiv.getAttribute('data-job-number');
+    if (!utils.isNumericString(jobNumber)) throw new Error('createBizResumeDetailsDiv: given non-numeric attriubute string jobNumber');
     bizResumeDetailsDiv.classList.add('biz-resume-details-div');
-    bizResumeDetailsDiv.id = `biz-resume-details-div-${jobIndex}`;
+    bizResumeDetailsDiv.id = `biz-resume-details-div-${jobNumber}`;
 
     // Set pointer-events to none so clicks pass through to the parent bizResumeDiv
     bizResumeDetailsDiv.style.pointerEvents = 'none';
@@ -45,10 +45,10 @@ export function createBizResumeDetailsDiv(bizResumeDiv, bizCardDiv) {
     
     // Add the resume div's own z-value element right after the dates
     const resumeSceneZ = bizCardDiv.getAttribute('data-sceneZ') || 'N/A';
-    const resumeJobIndex = bizResumeDiv.getAttribute('data-job-index');
+    const resumeJobNumber = bizResumeDiv.getAttribute('data-job-number');
     const resumeZValueElement = document.createElement('p');
     resumeZValueElement.className = 'biz-details-z-value header-text';
-    resumeZValueElement.textContent = `(z: ${resumeSceneZ}, id: ${resumeJobIndex})`;
+    resumeZValueElement.textContent = `(z: ${resumeSceneZ}, #: ${resumeJobNumber})`;
     
     // Insert the z-value element right after the dates element
     const datesElement = bizResumeDetailsDiv.querySelector('.biz-details-dates');
@@ -65,12 +65,12 @@ export function createBizResumeDetailsDiv(bizResumeDiv, bizCardDiv) {
 export function createBizCardDetailsDiv(bizCardDiv, job) {
     if (!bizCardDiv) throw new Error('createBizDetailsDiv: given null bizCardDiv');
     if (!job) throw new Error('createBizDetailsDiv: given null job');
-    // window.CONSOLE_LOG_IGNORE("createBizDetailsDiv: job:", job);
+    window.CONSOLE_LOG_IGNORE("createBizDetailsDiv: job:", job);
     const bizCardDetailsDiv = document.createElement('div');
-    const jobIndex = bizCardDiv.getAttribute('data-job-index');
-    if (!utils.isNumericString(jobIndex)) throw new Error(' createBizCardDetailsDiv: given non-numeric jobIndex attribute string');
+    const jobNumber = bizCardDiv.getAttribute('data-job-number');
+    if (!utils.isNumericString(jobNumber)) throw new Error(' createBizCardDetailsDiv: given non-numeric jobNumber attribute string');
     bizCardDetailsDiv.classList.add('biz-card-details-div');
-    bizCardDetailsDiv.id = `biz-card-details-div-${jobIndex}`;
+    bizCardDetailsDiv.id = `biz-card-details-div-${jobNumber}`;
     bizCardDetailsDiv.style.backgroundColor = 'transparent';
 
     // see createBizDetailsDiv::34  colorIndex format <number>
@@ -101,7 +101,7 @@ export function createBizCardDetailsDiv(bizCardDiv, job) {
     <h2 class="biz-details-employer header-text">${employer}</h2>
     <h3 class="biz-details-role header-text">${role}</h3>
     <p class="biz-details-dates header-text">${dates}</p>
-    <p class="biz-details-z-value header-text">(z: ${sceneZ}, id: ${jobIndex})</p>
+    <p class="biz-details-z-value header-text">(z: ${sceneZ}, #: ${jobNumber})</p>
 
     <div class="job-description-items-container">
         ${descriptions.map(item => `<p class="job-description-item">&bull;&nbsp;${item.trim()}</p>`).join('')}

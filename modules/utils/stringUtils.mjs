@@ -156,19 +156,19 @@ export function tryCircularTests() {
     try {
         testCircular1();
     } catch (error) {
-        console.error(error);
+        window.CONSOLE_LOG_IGNORE(error);
     }
 
     try {
         testCircular2();
     } catch (error) {
-        console.error(error);
+        window.CONSOLE_LOG_IGNORE(error);
     }
 
     try {
         testCircular3();
     } catch (error) {
-        console.error(error);
+        window.CONSOLE_LOG_IGNORE(error);
     }
 }
 

@@ -28,9 +28,9 @@ export function initialize() {
     if (initialPosition) {
         setAimPoint(initialPosition, "aimPoint.initialize");
         _isInitialized = true;
-        console.log("aimPoint initialized successfully");
+        window.CONSOLE_LOG_IGNORE("aimPoint initialized successfully");
     } else {
-        console.error("aimPoint.initialize: Could not get initial position from scene container.");
+        window.CONSOLE_LOG_IGNORE("aimPoint.initialize: Could not get initial position from scene container.");
     }
 
     // Add scroll/wheel pass-through handlers to aim-point
@@ -57,7 +57,7 @@ let _aimPointStatus = "";
 
 function setAimPointStatus(new_status) {
     _aimPointStatus = new_status;
-    // console.log(`setAimPointStatus: ${_aimPointStatus}`);
+    window.CONSOLE_LOG_IGNORE(`setAimPointStatus: ${_aimPointStatus}`);
 }
 function getAimPointStatus() {
     return _aimPointStatus;
@@ -113,7 +113,7 @@ export function setAimPoint(position, prefix="") {
         _aimPointElement.classList.remove('hidden');
     }
     if (prefix != "") {
-        //console.log(`setAimPoint:${prefix}`, targetPosition);
+        //window.CONSOLE_LOG_IGNORE(`setAimPoint:${prefix}`, targetPosition);
     }
 }
 
@@ -144,7 +144,7 @@ function handleScrollPassThrough(event) {
     // Get the scene-container element (the scrollable container)
     const sceneContainer = document.getElementById('scene-container');
     if (!sceneContainer) {
-        console.error('scene-container not found for scroll pass-through');
+        window.CONSOLE_LOG_IGNORE('scene-container not found for scroll pass-through');
         return;
     }
 
@@ -152,7 +152,7 @@ function handleScrollPassThrough(event) {
     if (event.type === 'wheel') {
         const delta = event.deltaY;
         sceneContainer.scrollTop += delta;
-        // console.log('AimPoint passed wheel event to scene-container, delta:', delta);
+        window.CONSOLE_LOG_IGNORE('AimPoint passed wheel event to scene-container, delta:', delta);
     }
 
     // For scroll events, create and dispatch a new event
@@ -162,7 +162,7 @@ function handleScrollPassThrough(event) {
             cancelable: true
         });
         sceneContainer.dispatchEvent(newEvent);
-        // console.log('AimPoint passed scroll event to scene-container');
+        window.CONSOLE_LOG_IGNORE('AimPoint passed scroll event to scene-container');
     }
 }
 

@@ -30,6 +30,13 @@ watch(currentSortRule, (newSortRule) => {
   }
 });
 
+// Watch for changes in the color palette selection and save them
+watch(currentPaletteFilename, (newFilename) => {
+  if (newFilename) {
+    setCurrentPalette(newFilename);
+  }
+});
+
 const sortOptions = ref([
   { value: { field: 'startDate', direction: 'desc' }, text: 'Start Date (Newest First)' },
   { value: { field: 'startDate', direction: 'asc' }, text: 'Start Date (Oldest First)' },
@@ -62,6 +69,8 @@ function selectPrevious() {
     window.resumeListController.goToPreviousResumeItem();
   }
 }
+
+
 
 </script>
 
@@ -221,14 +230,35 @@ function selectPrevious() {
 #biz-resume-div-sorting-selector:hover {
     background-color: #45a049;
 }
+/* rDiv styles moved to global styles section below */
+
+.viewer-label {
+    font-family: sans-serif;
+    font-size: 14px;
+    color: black;
+    user-select: none;
+    text-shadow: 1px 1px 2px rgba(255, 255, 255, 0.5);
+    white-space: nowrap;
+}
+</style>
+
+<style>
+/* Global styles for rDivs - not scoped to ensure they apply to dynamically created elements */
+
+/* Base rDiv styling with maximum specificity */
+#resume-content-div .biz-resume-div,
+#resume-content-div-wrapper .biz-resume-div,
+#resume-content .biz-resume-div,
+body #resume-content-div .biz-resume-div,
+body #resume-content-div-wrapper .biz-resume-div,
+body #resume-content .biz-resume-div,
 .biz-resume-div {
     position: relative !important; /* Force override of any absolute positioning */
     display: flex !important; /* Use flexbox to allow height adjustment */
     flex-direction: column; /* Stack children vertically */
     width: 100%;
-    padding: 10px;
+    /* Padding, border, and outline are handled by applyPaletteToElement function */
     border-bottom: 1px solid #eee;
-    transition: background-color 0.2s;
     box-sizing: border-box;
     color: #333;
     flex-shrink: 0; /* Prevent items from shrinking, force stacking */
@@ -240,6 +270,12 @@ function selectPrevious() {
   Force the biz-resume-details-div AND all of its children to have a transparent background.
   This is the definitive fix to ensure the parent's rounded corners and background are visible.
 */
+#resume-content-div .biz-resume-div .biz-resume-details-div,
+#resume-content-div-wrapper .biz-resume-div .biz-resume-details-div,
+#resume-content .biz-resume-div .biz-resume-details-div,
+body #resume-content-div .biz-resume-div .biz-resume-details-div,
+body #resume-content-div-wrapper .biz-resume-div .biz-resume-details-div,
+body #resume-content .biz-resume-div .biz-resume-details-div,
 .biz-resume-div .biz-resume-details-div,
 .biz-resume-div .biz-resume-details-div * {
     background-color: transparent !important;
@@ -258,22 +294,41 @@ function selectPrevious() {
     white-space: normal; /* Allow wrapping */
     overflow: visible; /* Show all content */
 }
-.biz-resume-div:hover {
-    background-color: #f0f0f0;
-}
-.biz-resume-div.selected {
-    background-color: #d8eaff;
-    border-left: 4px solid #007bff;
-    padding-left: 6px;
-    border-radius: 25px !important;
+
+/* Hovered state: colors only - padding/border/outline handled by applyPaletteToElement */
+#resume-content-div .biz-resume-div:hover,
+#resume-content-div-wrapper .biz-resume-div:hover,
+#resume-content .biz-resume-div:hover,
+body #resume-content-div .biz-resume-div:hover,
+body #resume-content-div-wrapper .biz-resume-div:hover,
+body #resume-content .biz-resume-div:hover,
+.biz-resume-div:hover,
+#resume-content-div .biz-resume-div.hovered,
+#resume-content-div-wrapper .biz-resume-div.hovered,
+#resume-content .biz-resume-div.hovered,
+body #resume-content-div .biz-resume-div.hovered,
+body #resume-content-div-wrapper .biz-resume-div.hovered,
+body #resume-content .biz-resume-div.hovered,
+.biz-resume-div.hovered {
+    background-color: var(--data-background-color-hovered, #e3f2fd) !important;
+    color: var(--data-foreground-color-hovered, #1976d2) !important;
+    /* Padding, border, and outline are handled by applyPaletteToElement function */
 }
 
-.viewer-label {
-    font-family: sans-serif;
-    font-size: 14px;
-    color: black;
-    user-select: none;
-    text-shadow: 1px 1px 2px rgba(255, 255, 255, 0.5);
-    white-space: nowrap;
+/* Selected state: colors only - padding/border/outline handled by applyPaletteToElement */
+#resume-content-div .biz-resume-div.selected,
+#resume-content-div-wrapper .biz-resume-div.selected,
+#resume-content .biz-resume-div.selected,
+body #resume-content-div .biz-resume-div.selected,
+body #resume-content-div-wrapper .biz-resume-div.selected,
+body #resume-content .biz-resume-div.selected,
+html body #resume-content-div .biz-resume-div.selected,
+html body #resume-content-div-wrapper .biz-resume-div.selected,
+html body #resume-content .biz-resume-div.selected,
+.biz-resume-div.selected {
+    background-color: var(--data-background-color-selected, #f3e5f5) !important;
+    color: var(--data-foreground-color-selected, #7b1fa2) !important;
+    /* Padding, border, and outline are handled by applyPaletteToElement function */
+    border-radius: 25px !important;
 }
 </style> 

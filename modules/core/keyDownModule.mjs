@@ -8,7 +8,7 @@
  */
 export function handleKeyDown(event) {
     if (event.ctrlKey && event.shiftKey && event.altKey && event.key === 'D') {
-        console.log("Ctrl+Shift+Alt+D detected: Dumping managers to console");
+        window.CONSOLE_LOG_IGNORE("Ctrl+Shift+Alt+D detected: Dumping managers to console");
         window.dumpManagersToConsole();
     }
 
@@ -24,21 +24,21 @@ export function handleKeyDown(event) {
 
         // Focal point mode controls
         case "b":
-            console.log("'b' key pressed for bullseye");
+            window.CONSOLE_LOG_IGNORE("'b' key pressed for bullseye");
             document.dispatchEvent(new CustomEvent('focalModeChange', { detail: { mode: 'locked' } }));
             break;
         case "f":
-            console.log("'f' key pressed for following");
+            window.CONSOLE_LOG_IGNORE("'f' key pressed for following");
             document.dispatchEvent(new CustomEvent('focalModeChange', { detail: { mode: 'following' } }));
             break;
         case "d":
-            console.log("'d' key pressed for dragging");
+            window.CONSOLE_LOG_IGNORE("'d' key pressed for dragging");
             document.dispatchEvent(new CustomEvent('focalModeChange', { detail: { mode: 'dragging' } }));
             break;
         
         // Other controls
         case "s":
-            console.log("'s' key pressed");
+            window.CONSOLE_LOG_IGNORE("'s' key pressed");
             // toggleStepping();
             break;
         
@@ -49,7 +49,7 @@ export function handleKeyDown(event) {
             break;
         
         default:
-            // console.log("Key pressed: " + event.key);
+            window.CONSOLE_LOG_IGNORE("Key pressed: " + event.key);
             break;
     }
 }
@@ -61,14 +61,14 @@ let _isInitialized = false;
  */
 export function initialize() {
     if (_isInitialized) {
-        console.log("Keydown handler already initialized.");
+        window.CONSOLE_LOG_IGNORE("Keydown handler already initialized.");
         return;
     }
 
     document.addEventListener('keydown', handleKeyDown);
 
     _isInitialized = true;
-    console.log("Keydown handler initialized.");
+    window.CONSOLE_LOG_IGNORE("Keydown handler initialized.");
 }
 
 export function isInitialized() {

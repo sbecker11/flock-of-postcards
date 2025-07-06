@@ -3,7 +3,7 @@ import * as dateUtils from '@/modules/utils/dateUtils.mjs';
 
 // --- Constants ---
 const YEAR_HEIGHT = 200; // The height in pixels for one year on the timeline
-const TIMELINE_PADDING_TOP = 50; // Top padding
+const TIMELINE_PADDING_TOP = 0; // No top padding - scene plane will handle alignment
 
 // --- Reactive State (Singleton) ---
 const isInitialized = ref(false);
@@ -15,7 +15,7 @@ const timelineHeight = ref(0);
 function initialize(jobsData) {
     if (isInitialized.value) return; // Already initialized
     if (!jobsData) {
-        console.error("Timeline initialization failed: jobsData not provided.");
+        window.CONSOLE_LOG_IGNORE("Timeline initialization failed: jobsData not provided.");
         return;
     }
 
@@ -26,7 +26,7 @@ function initialize(jobsData) {
     const yearCount = maxYear - minYear + 1;
     timelineHeight.value = (yearCount * YEAR_HEIGHT) + TIMELINE_PADDING_TOP;
     isInitialized.value = true;
-    console.log(`Timeline initialized: ${startYear.value} - ${endYear.value}`);
+    window.CONSOLE_LOG_IGNORE(`Timeline initialized: ${startYear.value} - ${endYear.value}`);
 }
 
 // --- Composable ---
@@ -37,7 +37,7 @@ function useTimeline() {
         for (let year = endYear.value; year >= startYear.value; year--) {
             yearArray.push({
                 year: year,
-                y: (endYear.value - year) * YEAR_HEIGHT + TIMELINE_PADDING_TOP
+                y: (endYear.value - year) * YEAR_HEIGHT + TIMELINE_PADDING_TOP + 50 // Add 50px to align with scene plane padding
             });
         }
         return yearArray;
@@ -45,7 +45,7 @@ function useTimeline() {
 
     function getPositionForDate(date) {
         if (!isInitialized.value) {
-            console.warn("getPositionForDate called before timeline was initialized.");
+            window.CONSOLE_LOG_IGNORE("getPositionForDate called before timeline was initialized.");
             return 0;
         }
         if (!date) return 0;
@@ -64,7 +64,7 @@ function useTimeline() {
         const totalTimelineYears = endYear.value - startYear.value;
         const yearsFromEnd = totalTimelineYears - totalYearsFromStart;
         
-        const yPosition = (yearsFromEnd * YEAR_HEIGHT) + TIMELINE_PADDING_TOP;
+        const yPosition = (yearsFromEnd * YEAR_HEIGHT) + TIMELINE_PADDING_TOP + 50; // Add 50px to align with scene plane padding
 
         return yPosition;
     }

@@ -15,7 +15,8 @@
     "baseUrl": ".",
     "paths": {
       "@/*": ["./*"]
-    }
+    },
+    "types": ["vite/client"]
   },
-  "include": ["modules/**/*.ts", "modules/**/*.d.ts", "modules/**/*.vue", "main.ts", "vite.config.js", "modules/**/*.mjs", "static_content/**/*.mjs"],
+  "include": ["modules/**/*.ts", "modules/**/*.d.ts", "modules/**/*.vue", "main.ts", "vite.config.js", "modules/**/*.mjs", "static_content/**/*.mjs", "env.d.ts", "shims-vue.d.ts"],
 } 

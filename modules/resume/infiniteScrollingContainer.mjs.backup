@@ -1,17 +1,15 @@
 // modules/resume/infiniteScrollingContainer.mjs
 
-import { applyPaletteToElement, applyStateStyling } from '../composables/useColorPalette.mjs';
-
 class InfiniteScrollingContainer {
   constructor(scrollportElement, contentElement, options = {}) {
     // Singleton pattern: return existing instance if one exists
     if (InfiniteScrollingContainer.instance) {
-      // window.CONSOLE_LOG_IGNORE('[DEBUG] InfiniteScrollingContainer: Returning existing singleton instance');
+      window.CONSOLE_LOG_IGNORE('[DEBUG] InfiniteScrollingContainer: Returning existing singleton instance');
       return InfiniteScrollingContainer.instance;
     }
 
     // Create new instance
-    // window.CONSOLE_LOG_IGNORE('[DEBUG] InfiniteScrollingContainer: Creating new singleton instance');
+    window.CONSOLE_LOG_IGNORE('[DEBUG] InfiniteScrollingContainer: Creating new singleton instance');
     
     this.scrollport = scrollportElement;
     this.contentHolder = contentElement;
@@ -44,7 +42,7 @@ class InfiniteScrollingContainer {
     // Store the singleton instance
     InfiniteScrollingContainer.instance = this;
     
-    // window.CONSOLE_LOG_IGNORE('[DEBUG] InfiniteScrollingContainer: Singleton instance created and stored');
+    window.CONSOLE_LOG_IGNORE('[DEBUG] InfiniteScrollingContainer: Singleton instance created and stored');
   }
 
   reinitialize() {
@@ -57,7 +55,7 @@ class InfiniteScrollingContainer {
     this.setupContainer();
     this.bindEvents();
     this.setupResizeObserver();
-    // window.CONSOLE_LOG_IGNORE('InfiniteScrollingContainer initialized');
+    window.CONSOLE_LOG_IGNORE('InfiniteScrollingContainer initialized');
   }
 
   setupContainer() {
@@ -69,13 +67,13 @@ class InfiniteScrollingContainer {
   }
 
   setItems(items, startingIndex = 0) {
-    // window.CONSOLE_LOG_IGNORE(`[DEBUG] InfiniteScroller.setItems: Setting ${items.length} items, startingIndex=${startingIndex}`);
+    window.CONSOLE_LOG_IGNORE(`[DEBUG] InfiniteScroller.setItems: Setting ${items.length} items, startingIndex=${startingIndex}`);
     
     // Store the original items array
     this.originalItems = [...items];
     
     // Debug: Check the order of items received
-    // window.CONSOLE_LOG_IGNORE(`[DEBUG] InfiniteScroller.setItems: Items order check:`);
+    window.CONSOLE_LOG_IGNORE(`[DEBUG] InfiniteScroller.setItems: Items order check:`);
     // for (let i = 0; i < Math.min(10, items.length); i++) {
     //   const item = items[i];
     //   if (item) {
@@ -84,20 +82,20 @@ class InfiniteScrollingContainer {
     //     const employerElement = item.querySelector('.biz-details-employer');
     //     const role = roleElement ? roleElement.textContent.trim() : 'N/A';
     //     const employer = employerElement ? employerElement.textContent.trim() : 'N/A';
-    //     // window.CONSOLE_LOG_IGNORE(`  Item ${i}: Job ${jobNumber} -> "${role}" at "${employer}"`);
+    //     window.CONSOLE_LOG_IGNORE(`  Item ${i}: Job ${jobNumber} -> "${role}" at "${employer}"`);
     //   }
     // }
     
     // Verify that the items array is in the correct order
-    // window.CONSOLE_LOG_IGNORE(`[DEBUG] InfiniteScroller.setItems: Verifying item order:`);
+    window.CONSOLE_LOG_IGNORE(`[DEBUG] InfiniteScroller.setItems: Verifying item order:`);
     // for (let i = 0; i < Math.min(10, items.length); i++) {
     //   const item = items[i];
     //   if (item) {
     //     const jobNumber = parseInt(item.getAttribute('data-job-number'));
     //     if (jobNumber !== i) {
-    //       // window.CONSOLE_LOG_IGNORE(`[DEBUG] InfiniteScroller.setItems: Item at index ${i} has jobNumber ${jobNumber} (expected ${i})`);
+    //       window.CONSOLE_LOG_IGNORE(`[DEBUG] InfiniteScroller.setItems: Item at index ${i} has jobNumber ${jobNumber} (expected ${i})`);
     //     } else {
-    //       // window.CONSOLE_LOG_IGNORE(`  Item ${i} -> Job ${jobNumber} ✓`);
+    //       window.CONSOLE_LOG_IGNORE(`  Item ${i} -> Job ${jobNumber} ✓`);
     //     }
     //   }
     // }
@@ -111,11 +109,11 @@ class InfiniteScrollingContainer {
     // Set the current index
     this.currentIndex = startingIndex;
     
-    // window.CONSOLE_LOG_IGNORE(`[DEBUG] InfiniteScroller.setItems: Setup complete, currentIndex=${this.currentIndex}`);
+    window.CONSOLE_LOG_IGNORE(`[DEBUG] InfiniteScroller.setItems: Setup complete, currentIndex=${this.currentIndex}`);
     
     // Force a recalculation of heights after setup to ensure all content is properly contained
     setTimeout(() => {
-      // window.CONSOLE_LOG_IGNORE('[DEBUG] InfiniteScroller.setItems: Forcing initial height recalculation');
+      window.CONSOLE_LOG_IGNORE('[DEBUG] InfiniteScroller.setItems: Forcing initial height recalculation');
       this.recalculateHeights();
     }, 50);
   }
@@ -129,17 +127,17 @@ class InfiniteScrollingContainer {
     const itemCount = this.originalItems.length;
     const cloneCount = Math.min(this.options.cloneCount, itemCount);
 
-    // window.CONSOLE_LOG_IGNORE(`[DEBUG] createClonedStructure: itemCount=${itemCount}, cloneCount=${cloneCount}`);
+    window.CONSOLE_LOG_IGNORE(`[DEBUG] createClonedStructure: itemCount=${itemCount}, cloneCount=${cloneCount}`);
 
     // Create structure: [tail clones] [original items] [head clones]
     
     // Add tail clones (last N items cloned at the beginning)
-    // window.CONSOLE_LOG_IGNORE(`[DEBUG] createClonedStructure: Creating tail clones (last ${cloneCount} items):`);
+    window.CONSOLE_LOG_IGNORE(`[DEBUG] createClonedStructure: Creating tail clones (last ${cloneCount} items):`);
     for (let i = 0; i < cloneCount; i++) {
       const originalIndex = itemCount - cloneCount + i;
       const clone = this.cloneItem(this.originalItems[originalIndex], originalIndex, 'tail');
       const jobNumber = clone.getAttribute('data-job-number');
-      // window.CONSOLE_LOG_IGNORE(`  Tail clone ${i}: originalIndex=${originalIndex}, jobNumber=${jobNumber}`);
+      window.CONSOLE_LOG_IGNORE(`  Tail clone ${i}: originalIndex=${originalIndex}, jobNumber=${jobNumber}`);
       this.allItems.push({
         element: clone,
         originalIndex: originalIndex,
@@ -149,10 +147,10 @@ class InfiniteScrollingContainer {
     }
 
     // Add original items
-    // window.CONSOLE_LOG_IGNORE(`[DEBUG] createClonedStructure: Adding original items:`);
+    window.CONSOLE_LOG_IGNORE(`[DEBUG] createClonedStructure: Adding original items:`);
     this.originalItems.forEach((item, index) => {
       const jobNumber = item.getAttribute('data-job-number');
-      // window.CONSOLE_LOG_IGNORE(`  Original item ${index}: jobNumber=${jobNumber}`);
+      window.CONSOLE_LOG_IGNORE(`  Original item ${index}: jobNumber=${jobNumber}`);
       this.allItems.push({
         element: item,
         originalIndex: index,
@@ -161,12 +159,12 @@ class InfiniteScrollingContainer {
     });
 
     // Add head clones (first N items cloned at the end)
-    // window.CONSOLE_LOG_IGNORE(`[DEBUG] createClonedStructure: Creating head clones (first ${cloneCount} items):`);
+    window.CONSOLE_LOG_IGNORE(`[DEBUG] createClonedStructure: Creating head clones (first ${cloneCount} items):`);
     for (let i = 0; i < cloneCount; i++) {
       const originalIndex = i;
       const clone = this.cloneItem(this.originalItems[originalIndex], originalIndex, 'head');
       const jobNumber = clone.getAttribute('data-job-number');
-      // window.CONSOLE_LOG_IGNORE(`  Head clone ${i}: originalIndex=${originalIndex}, jobNumber=${jobNumber}`);
+      window.CONSOLE_LOG_IGNORE(`  Head clone ${i}: originalIndex=${originalIndex}, jobNumber=${jobNumber}`);
       this.allItems.push({
         element: clone,
         originalIndex: originalIndex,
@@ -175,29 +173,29 @@ class InfiniteScrollingContainer {
       });
     }
 
-    // window.CONSOLE_LOG_IGNORE(`[DEBUG] createClonedStructure: Final structure has ${this.allItems.length} total items`);
-    // window.CONSOLE_LOG_IGNORE(`[DEBUG] createClonedStructure: Structure breakdown:`);
-    // window.CONSOLE_LOG_IGNORE(`  Tail clones: ${cloneCount} items (indices 0-${cloneCount-1})`);
-    // window.CONSOLE_LOG_IGNORE(`  Original items: ${itemCount} items (indices ${cloneCount}-${cloneCount+itemCount-1})`);
-    // window.CONSOLE_LOG_IGNORE(`  Head clones: ${cloneCount} items (indices ${cloneCount+itemCount}-${cloneCount+itemCount+cloneCount-1})`);
+    window.CONSOLE_LOG_IGNORE(`[DEBUG] createClonedStructure: Final structure has ${this.allItems.length} total items`);
+    window.CONSOLE_LOG_IGNORE(`[DEBUG] createClonedStructure: Structure breakdown:`);
+    window.CONSOLE_LOG_IGNORE(`  Tail clones: ${cloneCount} items (indices 0-${cloneCount-1})`);
+    window.CONSOLE_LOG_IGNORE(`  Original items: ${itemCount} items (indices ${cloneCount}-${cloneCount+itemCount-1})`);
+    window.CONSOLE_LOG_IGNORE(`  Head clones: ${cloneCount} items (indices ${cloneCount+itemCount}-${cloneCount+itemCount+cloneCount-1})`);
     
     // Debug: Check the actual job numbers in the structure
-    // window.CONSOLE_LOG_IGNORE(`[DEBUG] createClonedStructure: Job numbers in structure (first 10 items):`);
+    window.CONSOLE_LOG_IGNORE(`[DEBUG] createClonedStructure: Job numbers in structure (first 10 items):`);
     // for (let i = 0; i < Math.min(10, this.allItems.length); i++) {
     //   const item = this.allItems[i];
     //   if (item && item.element) {
     //     const jobNumber = item.element.getAttribute('data-job-number');
-    //     // window.CONSOLE_LOG_IGNORE(`  Item ${i} (${item.type}) -> Job ${jobNumber}`);
+    //     window.CONSOLE_LOG_IGNORE(`  Item ${i} (${item.type}) -> Job ${jobNumber}`);
     //   }
     // }
     
     // Debug: Check what job numbers are in the original items array
-    // window.CONSOLE_LOG_IGNORE(`[DEBUG] createClonedStructure: Original items job numbers (first 10):`);
+    window.CONSOLE_LOG_IGNORE(`[DEBUG] createClonedStructure: Original items job numbers (first 10):`);
     // for (let i = 0; i < Math.min(10, this.originalItems.length); i++) {
     //   const item = this.originalItems[i];
     //   if (item) {
     //     const jobNumber = item.getAttribute('data-job-number');
-    //     // window.CONSOLE_LOG_IGNORE(`  Original item ${i} -> Job ${jobNumber}`);
+    //     window.CONSOLE_LOG_IGNORE(`  Original item ${i} -> Job ${jobNumber}`);
     //   }
     // }
     
@@ -216,16 +214,6 @@ class InfiniteScrollingContainer {
     
     // Remove any IDs to avoid duplicates
     this.removeIds(clone);
-    
-    // Apply palette styling to the clone if it has a data-color-index
-    if (clone.hasAttribute('data-color-index')) {
-      try {
-        applyPaletteToElement(clone);
-        applyStateStyling(clone, 'normal');
-      } catch (error) {
-        window.CONSOLE_LOG_IGNORE('Failed to apply palette to infinite scroll clone:', error);
-      }
-    }
     
     return clone;
   }
@@ -248,8 +236,8 @@ class InfiniteScrollingContainer {
     let currentTop = 0;
     
     if (measureHeights) {
-      // window.CONSOLE_LOG_IGNORE(`[DEBUG] calculateItemPositions: Measuring and positioning ${this.allItems.length} items`);
-      // window.CONSOLE_LOG_IGNORE(`[DEBUG] calculateItemPositions: Starting currentTop=${currentTop}`);
+      window.CONSOLE_LOG_IGNORE(`[DEBUG] calculateItemPositions: Measuring and positioning ${this.allItems.length} items`);
+      window.CONSOLE_LOG_IGNORE(`[DEBUG] calculateItemPositions: Starting currentTop=${currentTop}`);
     }
     
     this.allItems.forEach((item, index) => {
@@ -276,13 +264,13 @@ class InfiniteScrollingContainer {
         
         // Sanity check: if height is unreasonably large, use a fallback
         if (contentHeight > 10000) {
-          // window.CONSOLE_LOG_IGNORE(`[DEBUG] Unreasonably large height detected for item ${index}: ${contentHeight}px, using fallback`);
+          window.CONSOLE_LOG_IGNORE(`[DEBUG] Unreasonably large height detected for item ${index}: ${contentHeight}px, using fallback`);
           contentHeight = Math.min(scrollHeight || 300, offsetHeight || 300, clientHeight || 300, 300);
         }
         
         // Debug logging for height measurement
         // if (index < 3) {
-        //   // window.CONSOLE_LOG_IGNORE(`[DEBUG] Height measurement for item ${index}:`, {
+        //   window.CONSOLE_LOG_IGNORE(`[DEBUG] Height measurement for item ${index}:`, {
         //     rectHeight: rect.height,
         //     scrollHeight: scrollHeight,
         //     offsetHeight: offsetHeight,
@@ -309,7 +297,7 @@ class InfiniteScrollingContainer {
       //   const prevItem = index > 0 ? this.allItems[index - 1] : null;
       //   const actualGap = prevItem ? currentTop - (prevItem.top + prevItem.height) : 0;
       //   const rect = item.element.getBoundingClientRect();
-      //   // window.CONSOLE_LOG_IGNORE(`[DEBUG] calculateItemPositions: Item ${index} (${item.type}) - top=${currentTop}, height=${contentHeight}, rect.height=${rect.height}, actualGap=${actualGap}px`);
+      //   window.CONSOLE_LOG_IGNORE(`[DEBUG] calculateItemPositions: Item ${index} (${item.type}) - top=${currentTop}, height=${contentHeight}, rect.height=${rect.height}, actualGap=${actualGap}px`);
       // }
 
       // Calculate next position: current item bottom + spacing gap
@@ -318,7 +306,7 @@ class InfiniteScrollingContainer {
       
       // Debug logging for positioning
       // if (index < 3) {
-      //   // window.CONSOLE_LOG_IGNORE(`[DEBUG] Positioning for item ${index}: previousTop=${previousTop}, contentHeight=${contentHeight}, spacing=${spacing}, new currentTop=${currentTop}`);
+      //   window.CONSOLE_LOG_IGNORE(`[DEBUG] Positioning for item ${index}: previousTop=${previousTop}, contentHeight=${contentHeight}, spacing=${spacing}, new currentTop=${currentTop}`);
       // }
     });
     
@@ -437,14 +425,14 @@ class InfiniteScrollingContainer {
     // Use centralized positioning logic
     const currentTop = this.calculateItemPositions(true);
     
-    // window.CONSOLE_LOG_IGNORE(`[DEBUG] positionItems: Final currentTop=${currentTop}`);
+    window.CONSOLE_LOG_IGNORE(`[DEBUG] positionItems: Final currentTop=${currentTop}`);
     
     // Debug: Check actual positioning after layout
     setTimeout(() => {
-      // window.CONSOLE_LOG_IGNORE(`[DEBUG] Post-layout positioning check:`);
+      window.CONSOLE_LOG_IGNORE(`[DEBUG] Post-layout positioning check:`);
       this.allItems.slice(0, 3).forEach((item, index) => {
         const rect = item.element.getBoundingClientRect();
-        // window.CONSOLE_LOG_IGNORE(`  Item ${index}: top=${rect.top}, height=${rect.height}, computed top=${item.top}`);
+        window.CONSOLE_LOG_IGNORE(`  Item ${index}: top=${rect.top}, height=${rect.height}, computed top=${item.top}`);
       });
     }, 100);
     
@@ -459,13 +447,13 @@ class InfiniteScrollingContainer {
     const calculatedHeight = (buffer + numDivs + gap) * averageHeight;
     const actualHeight = Math.max(calculatedHeight, totalOriginalHeight + 1000); // Ensure minimum height for scrolling
     
-    // window.CONSOLE_LOG_IGNORE(`[DEBUG] positionItems: Height calculation:`);
-    // window.CONSOLE_LOG_IGNORE(`  - Original items: ${originalItems.length}`);
-    // window.CONSOLE_LOG_IGNORE(`  - Total original height: ${totalOriginalHeight}`);
-    // window.CONSOLE_LOG_IGNORE(`  - Average height: ${averageHeight}`);
-    // window.CONSOLE_LOG_IGNORE(`  - Calculated height: ${calculatedHeight}`);
-    // window.CONSOLE_LOG_IGNORE(`  - Actual height: ${actualHeight}`);
-    // window.CONSOLE_LOG_IGNORE(`  - Current positioning height: ${currentTop}`);
+    window.CONSOLE_LOG_IGNORE(`[DEBUG] positionItems: Height calculation:`);
+    window.CONSOLE_LOG_IGNORE(`  - Original items: ${originalItems.length}`);
+    window.CONSOLE_LOG_IGNORE(`  - Total original height: ${totalOriginalHeight}`);
+    window.CONSOLE_LOG_IGNORE(`  - Average height: ${averageHeight}`);
+    window.CONSOLE_LOG_IGNORE(`  - Calculated height: ${calculatedHeight}`);
+    window.CONSOLE_LOG_IGNORE(`  - Actual height: ${actualHeight}`);
+    window.CONSOLE_LOG_IGNORE(`  - Current positioning height: ${currentTop}`);
     
     // Set the total height of the content holder for proper scrolling
     this.contentHolder.style.height = `${actualHeight}px`;
@@ -478,28 +466,28 @@ class InfiniteScrollingContainer {
     const cloneCount = Math.min(this.options.cloneCount, this.originalItems.length);
     const targetItemIndex = cloneCount + originalIndex; // Account for tail clones
     
-    // window.CONSOLE_LOG_IGNORE(`[DEBUG] SCROLL_TO_INDEX: originalIndex=${originalIndex}, targetItemIndex=${targetItemIndex}`);
-    // window.CONSOLE_LOG_IGNORE(`[DEBUG] SCROLL_TO_INDEX: allItems.length=${this.allItems.length}`);
+    window.CONSOLE_LOG_IGNORE(`[DEBUG] SCROLL_TO_INDEX: originalIndex=${originalIndex}, targetItemIndex=${targetItemIndex}`);
+    window.CONSOLE_LOG_IGNORE(`[DEBUG] SCROLL_TO_INDEX: allItems.length=${this.allItems.length}`);
     
     // Debug: Check what items are at each position
-    // window.CONSOLE_LOG_IGNORE(`[DEBUG] InfiniteScroller.scrollToIndex: Item mapping (first 10 items):`);
+    window.CONSOLE_LOG_IGNORE(`[DEBUG] InfiniteScroller.scrollToIndex: Item mapping (first 10 items):`);
     // for (let i = 0; i < Math.min(10, this.allItems.length); i++) {
     //   const item = this.allItems[i];
     //   if (item && item.element) {
     //     const jobNumber = item.element.getAttribute('data-job-number');
-    //     // window.CONSOLE_LOG_IGNORE(`  Item ${i} -> Job ${jobNumber} (${item.element.tagName})`);
+    //     window.CONSOLE_LOG_IGNORE(`  Item ${i} -> Job ${jobNumber} (${item.element.tagName})`);
     //   } else {
-    //     // window.CONSOLE_LOG_IGNORE(`  Item ${i} -> No element or job number`);
+    //     window.CONSOLE_LOG_IGNORE(`  Item ${i} -> No element or job number`);
     //   }
     // }
     
     // Debug: Check what job numbers are in the originalItems array
-    // window.CONSOLE_LOG_IGNORE(`[DEBUG] InfiniteScroller.scrollToIndex: Original items job numbers (first 10):`);
+    window.CONSOLE_LOG_IGNORE(`[DEBUG] InfiniteScroller.scrollToIndex: Original items job numbers (first 10):`);
     // for (let i = 0; i < Math.min(10, this.originalItems.length); i++) {
     //   const item = this.originalItems[i];
     //   if (item) {
     //     const jobNumber = item.getAttribute('data-job-number');
-    //     // window.CONSOLE_LOG_IGNORE(`  Original item ${i} -> Job ${jobNumber}`);
+    //     window.CONSOLE_LOG_IGNORE(`  Original item ${i} -> Job ${jobNumber}`);
     //   }
     // }
     
@@ -508,25 +496,25 @@ class InfiniteScrollingContainer {
     //   const expectedItem = this.originalItems[originalIndex];
     //   if (expectedItem) {
     //     const expectedJobNumber = expectedItem.getAttribute('data-job-number');
-    //     // window.CONSOLE_LOG_IGNORE(`[DEBUG] InfiniteScroller.scrollToIndex: Expected job number at index ${originalIndex}: ${expectedJobNumber}`);
+    //     window.CONSOLE_LOG_IGNORE(`[DEBUG] InfiniteScroller.scrollToIndex: Expected job number at index ${originalIndex}: ${expectedJobNumber}`);
     //   }
     // }
     
     if (targetItemIndex >= this.allItems.length) {
-      // window.CONSOLE_LOG_IGNORE(`[DEBUG] InfiniteScroller.scrollToIndex: targetItemIndex ${targetItemIndex} >= allItems.length ${this.allItems.length}`);
+      window.CONSOLE_LOG_IGNORE(`[DEBUG] InfiniteScroller.scrollToIndex: targetItemIndex ${targetItemIndex} >= allItems.length ${this.allItems.length}`);
       return;
     }
     
     const targetItem = this.allItems[targetItemIndex];
     if (!targetItem) {
-      // window.CONSOLE_LOG_IGNORE(`[DEBUG] InfiniteScroller.scrollToIndex: targetItem is null for index ${targetItemIndex}`);
+      window.CONSOLE_LOG_IGNORE(`[DEBUG] InfiniteScroller.scrollToIndex: targetItem is null for index ${targetItemIndex}`);
       return;
     }
     
     // Debug: Check what job number the target item represents
     // if (targetItem.element) {
     //   const targetJobNumber = targetItem.element.getAttribute('data-job-number');
-    //   // window.CONSOLE_LOG_IGNORE(`[DEBUG] InfiniteScroller.scrollToIndex: Target item job number: ${targetJobNumber}`);
+    //   window.CONSOLE_LOG_IGNORE(`[DEBUG] InfiniteScroller.scrollToIndex: Target item job number: ${targetJobNumber}`);
     // }
     
     // Find the header elements within the resume div
@@ -554,7 +542,6 @@ class InfiniteScrollingContainer {
     const topMargin = 50; // Larger margin from the top to make target job more prominent
     const targetScrollTop = Math.max(0, itemTop + headerOffset - topMargin);
     
-    /*
     window.CONSOLE_LOG_IGNORE('InfiniteScroller.scrollToIndex:', { 
       originalIndex, 
       targetItemIndex, 
@@ -567,25 +554,24 @@ class InfiniteScrollingContainer {
       scrollHeight: this.scrollport.scrollHeight,
       targetItemExists: !!targetItem
     });
-    */
     
     if (animate) {
-      // window.CONSOLE_LOG_IGNORE(`[DEBUG] InfiniteScroller.scrollToIndex: Starting smooth scroll to ${targetScrollTop}`);
+      window.CONSOLE_LOG_IGNORE(`[DEBUG] InfiniteScroller.scrollToIndex: Starting smooth scroll to ${targetScrollTop}`);
       this.smoothScrollTo(targetScrollTop);
     } else {
-      // window.CONSOLE_LOG_IGNORE(`[DEBUG] InfiniteScroller.scrollToIndex: Setting scrollTop to ${targetScrollTop}`);
+      window.CONSOLE_LOG_IGNORE(`[DEBUG] InfiniteScroller.scrollToIndex: Setting scrollTop to ${targetScrollTop}`);
       this.scrollport.scrollTop = targetScrollTop;
     }
     
     // Log the actual scroll position after setting it
     // setTimeout(() => {
-    //   // window.CONSOLE_LOG_IGNORE(`[DEBUG] InfiniteScroller.scrollToIndex: Actual scrollTop after setting: ${this.scrollport.scrollTop}`);
-    //   // window.CONSOLE_LOG_IGNORE(`[DEBUG] InfiniteScroller.scrollToIndex: Container height: ${this.scrollport.offsetHeight}`);
-    //   // window.CONSOLE_LOG_IGNORE(`[DEBUG] InfiniteScroller.scrollToIndex: Content height: ${this.scrollport.scrollHeight}`);
-    //   // window.CONSOLE_LOG_IGNORE(`[DEBUG] InfiniteScroller.scrollToIndex: Scrollport element:`, this.scrollport);
-    //   // window.CONSOLE_LOG_IGNORE(`[DEBUG] InfiniteScroller.scrollToIndex: Scrollport parent:`, this.scrollport.parentElement);
-    //   // window.CONSOLE_LOG_IGNORE(`[DEBUG] InfiniteScroller.scrollToIndex: Window height: ${window.innerHeight}`);
-    //   // window.CONSOLE_LOG_IGNORE(`[DEBUG] InfiniteScroller.scrollToIndex: Document height: ${document.documentElement.clientHeight}`);
+    //   window.CONSOLE_LOG_IGNORE(`[DEBUG] InfiniteScroller.scrollToIndex: Actual scrollTop after setting: ${this.scrollport.scrollTop}`);
+    //   window.CONSOLE_LOG_IGNORE(`[DEBUG] InfiniteScroller.scrollToIndex: Container height: ${this.scrollport.offsetHeight}`);
+    //   window.CONSOLE_LOG_IGNORE(`[DEBUG] InfiniteScroller.scrollToIndex: Content height: ${this.scrollport.scrollHeight}`);
+    //   window.CONSOLE_LOG_IGNORE(`[DEBUG] InfiniteScroller.scrollToIndex: Scrollport element:`, this.scrollport);
+    //   window.CONSOLE_LOG_IGNORE(`[DEBUG] InfiniteScroller.scrollToIndex: Scrollport parent:`, this.scrollport.parentElement);
+    //   window.CONSOLE_LOG_IGNORE(`[DEBUG] InfiniteScroller.scrollToIndex: Window height: ${window.innerHeight}`);
+    //   window.CONSOLE_LOG_IGNORE(`[DEBUG] InfiniteScroller.scrollToIndex: Document height: ${document.documentElement.clientHeight}`);
     // }, 100);
 
     this.currentIndex = originalIndex;
@@ -633,25 +619,25 @@ class InfiniteScrollingContainer {
     const tailCloneHeight = this.getTotalCloneHeight('tail');
     const originalItemsHeight = this.getTotalOriginalItemsHeight();
 
-    // window.CONSOLE_LOG_IGNORE(`[DEBUG] checkForSeamlessTransition: scrollTop=${scrollTop}, tailCloneHeight=${tailCloneHeight}, originalItemsHeight=${originalItemsHeight}, containerHeight=${containerHeight}`);
-    // window.CONSOLE_LOG_IGNORE(`[DEBUG] checkForSeamlessTransition: tail boundary=${tailCloneHeight - containerHeight / 2}, head boundary=${tailCloneHeight + originalItemsHeight - containerHeight / 2}`);
+    window.CONSOLE_LOG_IGNORE(`[DEBUG] checkForSeamlessTransition: scrollTop=${scrollTop}, tailCloneHeight=${tailCloneHeight}, originalItemsHeight=${originalItemsHeight}, containerHeight=${containerHeight}`);
+    window.CONSOLE_LOG_IGNORE(`[DEBUG] checkForSeamlessTransition: tail boundary=${tailCloneHeight - containerHeight / 2}, head boundary=${tailCloneHeight + originalItemsHeight - containerHeight / 2}`);
 
     // If we're in the tail clone area, jump to the end of original items
     if (scrollTop < tailCloneHeight - containerHeight / 2) {
       const jumpToPosition = tailCloneHeight + originalItemsHeight - containerHeight;
-      // window.CONSOLE_LOG_IGNORE(`[DEBUG] checkForSeamlessTransition: JUMPING from tail clone area: ${scrollTop} -> ${jumpToPosition}`);
+      window.CONSOLE_LOG_IGNORE(`[DEBUG] checkForSeamlessTransition: JUMPING from tail clone area: ${scrollTop} -> ${jumpToPosition}`);
       this.scrollport.scrollTop = jumpToPosition;
       return true; // Jumped
     }
     // If we're in the head clone area, jump to the beginning of original items
     else if (scrollTop > tailCloneHeight + originalItemsHeight - containerHeight / 2) {
       const jumpToPosition = tailCloneHeight;
-      // window.CONSOLE_LOG_IGNORE(`[DEBUG] checkForSeamlessTransition: JUMPING from head clone area: ${scrollTop} -> ${jumpToPosition}`);
+      window.CONSOLE_LOG_IGNORE(`[DEBUG] checkForSeamlessTransition: JUMPING from head clone area: ${scrollTop} -> ${jumpToPosition}`);
       this.scrollport.scrollTop = jumpToPosition;
       return true; // Jumped
     }
     else {
-      // window.CONSOLE_LOG_IGNORE(`[DEBUG] checkForSeamlessTransition: No transition needed, staying at ${scrollTop}`);
+      window.CONSOLE_LOG_IGNORE(`[DEBUG] checkForSeamlessTransition: No transition needed, staying at ${scrollTop}`);
     }
     return false; // No jump
   }
@@ -661,7 +647,7 @@ class InfiniteScrollingContainer {
       .filter(item => item.type === `${type}-clone`)
       .reduce((total, item) => total + item.height, 0);
     
-    // window.CONSOLE_LOG_IGNORE(`[DEBUG] getTotalCloneHeight(${type}): ${height}px`);
+    window.CONSOLE_LOG_IGNORE(`[DEBUG] getTotalCloneHeight(${type}): ${height}px`);
     return height;
   }
 
@@ -849,7 +835,7 @@ class InfiniteScrollingContainer {
     if (this.originalItems.length === 0) return;
     
     if (index < 0 || index >= this.originalItems.length) {
-      // window.CONSOLE_LOG_IGNORE(`InfiniteScrollingContainer: Invalid index: ${index}`);
+      window.CONSOLE_LOG_IGNORE(`InfiniteScrollingContainer: Invalid index: ${index}`);
       return;
     }
     
@@ -861,7 +847,7 @@ class InfiniteScrollingContainer {
     );
     
     if (!item || !item.element) {
-      // window.CONSOLE_LOG_IGNORE(`InfiniteScrollingContainer: Item not found for index: ${index}`);
+      window.CONSOLE_LOG_IGNORE(`InfiniteScrollingContainer: Item not found for index: ${index}`);
       return;
     }
     
@@ -902,7 +888,7 @@ class InfiniteScrollingContainer {
   }
 
   destroy() {
-    // window.CONSOLE_LOG_IGNORE('[DEBUG] InfiniteScrollingContainer: Destroying singleton instance');
+    window.CONSOLE_LOG_IGNORE('[DEBUG] InfiniteScrollingContainer: Destroying singleton instance');
     
     // Remove event listeners
     this.scrollport.removeEventListener('mousedown', this.handleStart.bind(this));
@@ -940,12 +926,12 @@ class InfiniteScrollingContainer {
     // Clear the singleton instance
     InfiniteScrollingContainer.instance = null;
 
-    // window.CONSOLE_LOG_IGNORE('InfiniteScrollingContainer destroyed');
+    window.CONSOLE_LOG_IGNORE('InfiniteScrollingContainer destroyed');
   }
 
   // Static method to reset the singleton instance
   static reset() {
-    // window.CONSOLE_LOG_IGNORE('[DEBUG] InfiniteScrollingContainer: Resetting singleton instance');
+    window.CONSOLE_LOG_IGNORE('[DEBUG] InfiniteScrollingContainer: Resetting singleton instance');
     if (InfiniteScrollingContainer.instance) {
       InfiniteScrollingContainer.instance.destroy();
       InfiniteScrollingContainer.instance._isInitialized = false;
@@ -989,7 +975,7 @@ class InfiniteScrollingContainer {
     const item = this.allItems[index];
     
     if (!item || !item.element) {
-      // window.CONSOLE_LOG_IGNORE(`InfiniteScrollingContainer: Item not found for index: ${index}`);
+      window.CONSOLE_LOG_IGNORE(`InfiniteScrollingContainer: Item not found for index: ${index}`);
       return false;
     }
     
@@ -1018,7 +1004,7 @@ class InfiniteScrollingContainer {
     const topMargin = 50; // Larger margin from the top to make target job more prominent
     const targetScrollTop = Math.max(0, itemTop + headerOffset - topMargin);
     
-    // window.CONSOLE_LOG_IGNORE(`[DEBUG] InfiniteScroller.scrollToItem: ${caller} - index=${index}, itemTop=${itemTop}, headerOffset=${headerOffset}, targetScrollTop=${targetScrollTop}, force=${force}`);
+    window.CONSOLE_LOG_IGNORE(`[DEBUG] InfiniteScroller.scrollToItem: ${caller} - index=${index}, itemTop=${itemTop}, headerOffset=${headerOffset}, targetScrollTop=${targetScrollTop}, force=${force}`);
 
     // Apply scroll immediately or smoothly
     if (force) {
@@ -1062,7 +1048,7 @@ class InfiniteScrollingContainer {
    * @returns {boolean} - Whether the scroll was successful
    */
   scrollToJobNumber(jobNumber, animate = true) {
-    // window.CONSOLE_LOG_IGNORE(`[DEBUG] InfiniteScroller.scrollToJobNumber: jobNumber=${jobNumber}, animate=${animate}`);
+    window.CONSOLE_LOG_IGNORE(`[DEBUG] InfiniteScroller.scrollToJobNumber: jobNumber=${jobNumber}, animate=${animate}`);
     
     // Find the item with the specified job number
     const index = this.originalItems.findIndex(item => {
@@ -1071,11 +1057,11 @@ class InfiniteScrollingContainer {
     });
     
     if (index === -1) {
-      // window.CONSOLE_LOG_IGNORE(`[DEBUG] InfiniteScroller.scrollToJobNumber: Job number ${jobNumber} not found in originalItems`);
+      window.CONSOLE_LOG_IGNORE(`[DEBUG] InfiniteScroller.scrollToJobNumber: Job number ${jobNumber} not found in originalItems`);
       return false;
     }
     
-    // window.CONSOLE_LOG_IGNORE(`[DEBUG] InfiniteScroller.scrollToJobNumber: Found job ${jobNumber} at index ${index}`);
+    window.CONSOLE_LOG_IGNORE(`[DEBUG] InfiniteScroller.scrollToJobNumber: Found job ${jobNumber} at index ${index}`);
     
     // Use scrollToIndex instead of scrollToItem to properly handle the cloned structure
     this.scrollToIndex(index, animate);
@@ -1106,7 +1092,7 @@ class InfiniteScrollingContainer {
 
   // Method to recalculate heights when content changes
   recalculateHeights() {
-    // window.CONSOLE_LOG_IGNORE('[DEBUG] InfiniteScroller.recalculateHeights: Recalculating all item heights');
+    window.CONSOLE_LOG_IGNORE('[DEBUG] InfiniteScroller.recalculateHeights: Recalculating all item heights');
     
     // Reset heights for measurement
     this.allItems.forEach(item => {
@@ -1123,7 +1109,7 @@ class InfiniteScrollingContainer {
     // Update total content height
     this.contentHolder.style.height = `${currentTop}px`;
     
-    // window.CONSOLE_LOG_IGNORE(`[DEBUG] InfiniteScroller.recalculateHeights: Recalculation complete, total height: ${currentTop}px`);
+    window.CONSOLE_LOG_IGNORE(`[DEBUG] InfiniteScroller.recalculateHeights: Recalculation complete, total height: ${currentTop}px`);
   }
 
   // Method to recalculate heights after palette application
@@ -1193,7 +1179,7 @@ class InfiniteScrollingContainer {
 
   // Method to trigger debounced resize handling
   handleResize() {
-    // window.CONSOLE_LOG_IGNORE('[DEBUG] InfiniteScroller.handleResize: Container size changed, recalculating layout');
+    window.CONSOLE_LOG_IGNORE('[DEBUG] InfiniteScroller.handleResize: Container size changed, recalculating layout');
     
     // Clear any existing timeout
     if (this.resizeTimeoutId) {
@@ -1202,11 +1188,11 @@ class InfiniteScrollingContainer {
     
     // Set a new timeout to recalculate after resize stops
     this.resizeTimeoutId = setTimeout(() => {
-      // window.CONSOLE_LOG_IGNORE('[DEBUG] InfiniteScroller.handleResize: Recalculating heights and positions');
+      window.CONSOLE_LOG_IGNORE('[DEBUG] InfiniteScroller.handleResize: Recalculating heights and positions');
       
       // CAPTURE CURRENT VISIBLE JOB BEFORE RESIZE
       const visibleJobBeforeResize = this.getCurrentlyVisibleJob();
-      // window.CONSOLE_LOG_IGNORE(`[DEBUG] RESIZE: Job visible before resize: ${visibleJobBeforeResize}`);
+      window.CONSOLE_LOG_IGNORE(`[DEBUG] RESIZE: Job visible before resize: ${visibleJobBeforeResize}`);
       
       // First, reset all items to auto height to measure their natural content height
       this.allItems.forEach(item => {
@@ -1225,27 +1211,27 @@ class InfiniteScrollingContainer {
       
       // VERIFY WHAT JOB IS VISIBLE AFTER POSITIONING
       const visibleJobAfterPositioning = this.getCurrentlyVisibleJob();
-      // window.CONSOLE_LOG_IGNORE(`[DEBUG] RESIZE: Job visible after positioning: ${visibleJobAfterPositioning}`);
+      window.CONSOLE_LOG_IGNORE(`[DEBUG] RESIZE: Job visible after positioning: ${visibleJobAfterPositioning}`);
       
       // If the visible job changed, try to restore the original job
       if (visibleJobBeforeResize && visibleJobAfterPositioning !== visibleJobBeforeResize) {
-        // window.CONSOLE_LOG_IGNORE(`[DEBUG] RESIZE: Visible job changed from ${visibleJobBeforeResize} to ${visibleJobAfterPositioning}! Attempting to restore...`);
+        window.CONSOLE_LOG_IGNORE(`[DEBUG] RESIZE: Visible job changed from ${visibleJobBeforeResize} to ${visibleJobAfterPositioning}! Attempting to restore...`);
         
         // Try to scroll back to the original job
         const success = this.scrollToJobNumber(visibleJobBeforeResize, false);
         if (success) {
-          // window.CONSOLE_LOG_IGNORE(`[DEBUG] RESIZE: Successfully restored visibility to job ${visibleJobBeforeResize}`);
+          window.CONSOLE_LOG_IGNORE(`[DEBUG] RESIZE: Successfully restored visibility to job ${visibleJobBeforeResize}`);
         } else {
-          // window.CONSOLE_LOG_IGNORE(`[DEBUG] RESIZE: Failed to restore visibility to job ${visibleJobBeforeResize}`);
+          window.CONSOLE_LOG_IGNORE(`[DEBUG] RESIZE: Failed to restore visibility to job ${visibleJobBeforeResize}`);
         }
         
         // Verify the final result
         setTimeout(() => {
           const finalVisibleJob = this.getCurrentlyVisibleJob();
-          // window.CONSOLE_LOG_IGNORE(`[DEBUG] RESIZE: Final visible job after restoration attempt: ${finalVisibleJob}`);
+          window.CONSOLE_LOG_IGNORE(`[DEBUG] RESIZE: Final visible job after restoration attempt: ${finalVisibleJob}`);
         }, 50);
       } else {
-        // window.CONSOLE_LOG_IGNORE(`[DEBUG] RESIZE: Job visibility maintained correctly`);
+        window.CONSOLE_LOG_IGNORE(`[DEBUG] RESIZE: Job visibility maintained correctly`);
       }
       
       this.resizeTimeoutId = null;
@@ -1289,13 +1275,13 @@ class InfiniteScrollingContainer {
   async initializeWithElements(scrollportElement, contentElement, options = {}) {
     // If already initialized, return immediately
     if (this._isInitialized) {
-      // window.CONSOLE_LOG_IGNORE('[DEBUG] InfiniteScrollingContainer.initializeWithElements: Already initialized, ignoring duplicate call');
+      window.CONSOLE_LOG_IGNORE('[DEBUG] InfiniteScrollingContainer.initializeWithElements: Already initialized, ignoring duplicate call');
       return;
     }
     
     // If initialization is in progress, wait for it to complete
     if (this._initializationPromise) {
-      // window.CONSOLE_LOG_IGNORE('[DEBUG] InfiniteScrollingContainer.initializeWithElements: Initialization in progress, waiting...');
+      window.CONSOLE_LOG_IGNORE('[DEBUG] InfiniteScrollingContainer.initializeWithElements: Initialization in progress, waiting...');
       await this._initializationPromise;
       return;
     }
@@ -1313,7 +1299,7 @@ class InfiniteScrollingContainer {
 
   // Private method to perform the actual initialization
   async _performInitialization(scrollportElement, contentElement, options = {}) {
-    // window.CONSOLE_LOG_IGNORE('[DEBUG] InfiniteScrollingContainer._performInitialization: Starting initialization');
+    window.CONSOLE_LOG_IGNORE('[DEBUG] InfiniteScrollingContainer._performInitialization: Starting initialization');
     
     this.scrollport = scrollportElement;
     this.contentHolder = contentElement;
@@ -1329,7 +1315,7 @@ class InfiniteScrollingContainer {
     this.init();
     this._isInitialized = true;
     
-    // window.CONSOLE_LOG_IGNORE('[DEBUG] InfiniteScrollingContainer._performInitialization: Initialization complete');
+    window.CONSOLE_LOG_IGNORE('[DEBUG] InfiniteScrollingContainer._performInitialization: Initialization complete');
   }
 }
 

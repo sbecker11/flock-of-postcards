@@ -28,9 +28,12 @@ app.get('/api/state', async (req, res) => {
     try {
         await fs.access(STATE_FILE_PATH);
         const stateData = await fs.readFile(STATE_FILE_PATH, 'utf-8');
-        res.json(JSON.parse(stateData));
+        const parsedState = JSON.parse(stateData);
+        console.log('📖 Loading app state from disk - colorPalette:', parsedState.colorPalette);
+        res.json(parsedState);
     } catch (error) {
         if (error.code === 'ENOENT') {
+            console.log('📖 State file not found, client will use defaults');
             res.status(404).json({ error: 'State file not found.' });
         } else {
             console.error('Error reading state file:', error);
@@ -44,6 +47,7 @@ app.post('/api/state', async (req, res) => {
     try {
         const stateData = JSON.stringify(req.body, null, 2);
         await fs.writeFile(STATE_FILE_PATH, stateData, 'utf-8');
+        console.log('💾 Saving app state to disk - colorPalette:', req.body.colorPalette);
         res.json({ success: true });
     } catch (error) {
         console.error('Error writing state file:', error);

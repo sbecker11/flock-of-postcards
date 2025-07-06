@@ -8,7 +8,7 @@ export class CustomDropdownManager {
     createDropdown(containerId, options, initialValue = null) {
         const container = document.getElementById(containerId);
         if (!container) {
-            console.error(`Container with id "${containerId}" not found`);
+            window.CONSOLE_LOG_IGNORE(`Container with id "${containerId}" not found`);
             return null;
         }
         

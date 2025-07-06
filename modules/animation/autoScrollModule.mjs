@@ -12,17 +12,59 @@ const SCROLL_ZONE_PERCENTAGE = 0.20;  // Top and bottom 20% of the container
 let animationFrameId = null;
 let currentVelocity = 0;
 let sceneContainerElement = null;
+let _isInitialized = false;
+let _initializationPromise = null;
 
 /**
  * Initializes the mouse-based auto-scrolling functionality.
  */
-export function initialize() {
+export async function initialize() {
+    // If already initialized, return immediately
+    if (_isInitialized) {
+        window.CONSOLE_LOG_IGNORE("autoScroll: Already initialized, ignoring duplicate call");
+        return;
+    }
+    
+    // If initialization is in progress, wait for it to complete
+    if (_initializationPromise) {
+        window.CONSOLE_LOG_IGNORE("autoScroll: Initialization in progress, waiting...");
+        await _initializationPromise;
+        return;
+    }
+    
+    // Start initialization and store the promise
+    _initializationPromise = _performInitialization();
+    
+    try {
+        await _initializationPromise;
+    } finally {
+        // Clear the promise after completion (success or failure)
+        _initializationPromise = null;
+    }
+}
+
+/**
+ * Private function to perform the actual initialization
+ */
+async function _performInitialization() {
+    window.CONSOLE_LOG_IGNORE("autoScroll: Starting initialization");
+    
     const container = document.getElementById('scene-container');
     if (!container) {
-        console.error("autoScroll: Could not find 'scene-container' element. Scrolling will not be enabled.");
+        window.CONSOLE_LOG_IGNORE("autoScroll: Could not find 'scene-container' element. Scrolling will not be enabled.");
         return;
     }
     enableMouseBasedScrolling(container);
+    _isInitialized = true;
+    
+    window.CONSOLE_LOG_IGNORE("autoScroll: Initialization complete");
+}
+
+/**
+ * Checks if the auto-scroll module is initialized.
+ */
+export function isInitialized() {
+    return _isInitialized;
 }
 
 /**

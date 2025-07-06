@@ -5,12 +5,12 @@
   "main": "main.mjs",
   "type": "module",
   "scripts": {
-    "dev": "npm run kill-listeners && concurrently \"npm:node-server\" \"vite\"",
+    "dev": "npm run kill-listeners && concurrently \"npm:node-server\" \"vite\" \"npm:open-chrome\"",
     "build": "vite build",
     "start": "npm run kill-listeners &&concurrently \"npm run node-server\" \"npm run open-chrome\"",
     "node-server": "nodemon server.mjs",
-    "open-chrome": "open-cli http://localhost:3009 --incognito",
-    "kill-listeners": "lsof -i :3009 | awk 'NR>1 && $2 != $$ {print $2}' | xargs -r kill -9 || true"
+    "open-chrome": "open-cli http://localhost:5173 --incognito",
+    "kill-listeners": "pkill -f 'node server.mjs' && pkill -f 'nodemon' && pkill -f 'vite' || true"
   },
   "repository": {
     "type": "git",

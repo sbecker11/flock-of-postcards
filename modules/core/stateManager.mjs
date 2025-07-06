@@ -20,11 +20,53 @@ function getDefaultState() {
             mode: 'locked' // Default to locked mode
         },
         resume: {
-            sortRule: { field: 'startDate', direction: 'desc' }, // Default to newest first
-            selectedJobIndex: 0 // Default to the first item
+            sortRule: { field: 'startDate', direction: 'asc' }, // Default to oldest first
+            selectedJobNumber: 22 // Default to the last item (newest job when sorted oldest first)
         },
         theme: {
-            colorPalette: '50_Dark_Grey_Monotone.json' // Default palette
+            colorPalette: '50_Dark_Grey_Monotone.json', // Default palette
+            brightnessFactorSelected: 2.0,  // Brightness factor for selected elements (scene cards)
+            brightnessFactorHovered: 1.75,   // Brightness factor for hovered elements (scene cards)
+            borderSettings: {
+                normal: {
+                    padding: '8px',
+                    innerBorderWidth: '1px',
+                    innerBorderColor: 'white',
+                    outerBorderWidth: '0px',
+                    outerBorderColor: 'transparent',
+                    borderRadius: '25px'
+                },
+                hovered: {
+                    padding: '7px',
+                    innerBorderWidth: '2px',
+                    innerBorderColor: 'blue',
+                    outerBorderWidth: '0px',
+                    outerBorderColor: 'transparent',
+                    borderRadius: '25px'
+                },
+                selected: {
+                    padding: '6px',
+                    innerBorderWidth: '3px',
+                    innerBorderColor: 'purple',
+                    outerBorderWidth: '0px',
+                    outerBorderColor: 'transparent',
+                    borderRadius: '25px'
+                }
+            },
+            rDivBorderOverrideSettings: {
+                normal: {
+                    padding: '15px',
+                    innerBorderWidth: '1px'
+                },
+                hovered: {
+                    padding: '14px',
+                    innerBorderWidth: '2px'
+                },
+                selected: {
+                    padding: '13px',
+                    innerBorderWidth: '3px'
+                }
+            }
         }
     };
 }
@@ -41,7 +83,7 @@ async function loadState() {
             if (response.status === 404) {
                 window.CONSOLE_LOG_IGNORE("No saved state found on server, using default state.");
             } else {
-                console.error(`Failed to load state, server responded with status: ${response.status}`);
+                window.CONSOLE_LOG_IGNORE(`Failed to load state, server responded with status: ${response.status}`);
             }
             return getDefaultState();
         }
@@ -50,7 +92,7 @@ async function loadState() {
         // Merge the loaded state into the default state to ensure all keys exist
         return deepMerge(getDefaultState(), state);
     } catch (e) {
-        console.error('Error fetching state from server, using default state.', e);
+        window.CONSOLE_LOG_IGNORE('Error fetching state from server, using default state.', e);
         return getDefaultState();
     }
 }
@@ -69,9 +111,9 @@ export async function saveState(state) {
             },
             body: JSON.stringify(state),
         });
-        // window.CONSOLE_LOG_IGNORE("Saved state to server:", state); // This can be noisy
+        window.CONSOLE_LOG_IGNORE("Saved state to server:", state); // This can be noisy
     } catch (e) {
-        console.error('Failed to save state to server.', e);
+        window.CONSOLE_LOG_IGNORE('Failed to save state to server.', e);
     }
 }
 

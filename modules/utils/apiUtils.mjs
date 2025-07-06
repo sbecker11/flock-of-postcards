@@ -41,7 +41,7 @@ export async function fetchWithRetry(url, options = {}, retryOptions = {}) {
             return response;
             
         } catch (error) {
-            console.error(`API request error (attempt ${attempt + 1}/${maxRetries}):`, error);
+            window.CONSOLE_LOG_IGNORE(`API request error (attempt ${attempt + 1}/${maxRetries}):`, error);
             
             if (attempt < maxRetries - 1) {
                 const delay = baseDelay * Math.pow(2, attempt);

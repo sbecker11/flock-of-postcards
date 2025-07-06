@@ -4,7 +4,8 @@ import * as utils from '../utils/utils.mjs';
 import * as BizDetailsDivModule from './bizDetailsDivModule.mjs';
 import { selectionManager } from '../core/selectionManager.mjs';
 import { cardsController } from './CardsController.mjs';
-import { applyPaletteToElement } from '../composables/useColorPalette.mjs';
+import { applyPaletteToElement, applyStateStyling } from '../composables/useColorPalette.mjs';
+import { initializationManager } from '../core/initializationManager.mjs';
 // No longer directly manipulating other managers
 // import { bizCardDivManager } from './bizCardDivManager.mjs';
 // import * as scenePlane from './scenePlane.mjs';
@@ -12,9 +13,40 @@ import { applyPaletteToElement } from '../composables/useColorPalette.mjs';
 
 class ResumeItemsController {
     constructor() {
+        // Singleton pattern: return existing instance if one exists
+        if (ResumeItemsController.instance) {
+            window.CONSOLE_LOG_IGNORE('[DEBUG] ResumeItemsController: Returning existing singleton instance');
+            return ResumeItemsController.instance;
+        }
+
+        // Create new instance
+        window.CONSOLE_LOG_IGNORE('[DEBUG] ResumeItemsController: Creating new singleton instance');
+        
         this.bizResumeDivs = [];
         this.isInitialized = false;
         this._setupSelectionListeners();
+        
+        // Store the singleton instance
+        ResumeItemsController.instance = this;
+        
+        window.CONSOLE_LOG_IGNORE('[DEBUG] ResumeItemsController: Singleton instance created and stored');
+    }
+
+    /**
+     * Register this controller with the initialization manager
+     * This allows other components to wait for ResumeItemsController to be ready
+     */
+    registerForInitialization() {
+        initializationManager.register(
+            'ResumeItemsController',
+            async () => {
+                // Wait for CardsController to be ready
+                await initializationManager.waitForComponent('CardsController');
+                this.initialize();
+            },
+            ['CardsController'], // Depends on CardsController being ready
+            { priority: 'medium' }
+        );
     }
 
     // This is now a separate function for the module manager to check.
@@ -27,18 +59,18 @@ class ResumeItemsController {
             throw new Error("ResumeItemsController requires cardsController to be initialized.");
         }
         if (this.isInitialized) {
-            console.warn("ResumeItemsController already initialized.");
+            window.CONSOLE_LOG_IGNORE("ResumeItemsController already initialized.");
             return;
         }
         // This controller's main job is done in the moduleManager now,
         // so we just set the flag.
         this.isInitialized = true;
-        window.CONSOLE_LOG_IGNORE("ResumeItemsController initialized.");
+
     }
 
     async createAllBizResumeDivs(bizCardDivs) {
         if (!bizCardDivs || bizCardDivs.length === 0) {
-            console.error("ResumeItemsController: Cannot create resume divs, no card divs provided.");
+            window.CONSOLE_LOG_IGNORE("ResumeItemsController: Cannot create resume divs, no card divs provided.");
             return [];
         }
         this.bizResumeDivs = [];
@@ -52,16 +84,16 @@ class ResumeItemsController {
     async createBizResumeDiv(bizCardDiv) {
         if (!bizCardDiv) throw new Error('createBizResumeDiv: bizCardDiv not found');
 
-        const jobIndexStr = bizCardDiv.getAttribute('data-job-index');
-        if (!utils.isNumericString(jobIndexStr)) {
-            throw new Error('createBizResumeDiv: jobIndex is not a numeric string');
+        const jobNumberStr = bizCardDiv.getAttribute('data-job-number');
+        if (!utils.isNumericString(jobNumberStr)) {
+            throw new Error('createBizResumeDiv: jobNumber is not a numeric string');
         }
-        const jobIndex = parseInt(jobIndexStr, 10);
+        const jobNumber = parseInt(jobNumberStr, 10);
         
         const bizResumeDiv = document.createElement('div');
-        bizResumeDiv.id = this.createBizResumeDivId(jobIndex);
+        bizResumeDiv.id = this.createBizResumeDivId(jobNumber);
         bizResumeDiv.className = 'biz-resume-div';
-        bizResumeDiv.setAttribute('data-job-index', jobIndex);
+        bizResumeDiv.setAttribute('data-job-number', jobNumber);
         bizResumeDiv.setAttribute('data-color-index', bizCardDiv.getAttribute('data-color-index'));
 
         bizResumeDiv.style.pointerEvents = 'auto';
@@ -72,17 +104,20 @@ class ResumeItemsController {
         // Apply the current color palette
         await applyPaletteToElement(bizResumeDiv);
 
+        // Apply normal state styling after palette application
+        applyStateStyling(bizResumeDiv, 'normal');
+
         this._setupMouseListeners(bizResumeDiv);
 
         return bizResumeDiv;
     }
 
-    createBizResumeDivId(jobIndex) {
-        return `resume-${jobIndex}`;
+    createBizResumeDivId(jobNumber) {
+        return `resume-${jobNumber}`;
     }
 
-    getBizResumeDivByJobIndex(jobIndex) {
-        return this.bizResumeDivs.find(div => parseInt(div.getAttribute('data-job-index'), 10) === jobIndex) || null;
+    getBizResumeDivByJobNumber(jobNumber) {
+        return this.bizResumeDivs.find(div => parseInt(div.getAttribute('data-job-number'), 10) === jobNumber) || null;
     }
 
     _setupSelectionListeners() {
@@ -101,21 +136,21 @@ class ResumeItemsController {
 
     handleBizResumeDivClickEvent(bizResumeDiv) {
         if (!bizResumeDiv) return;
-        const jobIndex = parseInt(bizResumeDiv.getAttribute('data-job-index'), 10);
-        const isSelected = selectionManager.getSelectedJobIndex() === jobIndex;
+        const jobNumber = parseInt(bizResumeDiv.getAttribute('data-job-number'), 10);
+        const isSelected = selectionManager.getSelectedJobNumber() === jobNumber;
 
         if (isSelected) {
             selectionManager.clearSelection('ResumeItemsController.handleBizResumeDivClickEvent');
         } else {
-            selectionManager.selectJobIndex(jobIndex, 'ResumeItemsController.handleBizResumeDivClickEvent');
+            selectionManager.selectJobNumber(jobNumber, 'ResumeItemsController.handleBizResumeDivClickEvent');
         }
     }
 
     handleMouseEnterEvent(bizResumeDiv) {
         if (!bizResumeDiv) return;
-        const jobIndex = parseInt(bizResumeDiv.getAttribute('data-job-index'), 10);
-        if (selectionManager.getSelectedJobIndex() === jobIndex) return; // Ignore hover on selected item
-        selectionManager.hoverJobIndex(jobIndex, 'ResumeItemsController.handleMouseEnterEvent');
+        const jobNumber = parseInt(bizResumeDiv.getAttribute('data-job-number'), 10);
+        if (selectionManager.getSelectedJobNumber() === jobNumber) return; // Ignore hover on selected item
+        selectionManager.hoverJobNumber(jobNumber, 'ResumeItemsController.handleMouseEnterEvent');
     }
 
     handleMouseLeaveEvent(bizResumeDiv) {
@@ -123,40 +158,82 @@ class ResumeItemsController {
         selectionManager.clearHover('ResumeItemsController.handleMouseLeaveEvent');
     }
 
-    handleSelectionChanged(event) {
-        const { selectedJobIndex, caller } = event.detail;
-        
-        // Clear previous selections first
-        this.handleSelectionCleared({ detail: { caller: 'handleSelectionChanged' } });
-
-        const bizResumeDiv = this.getBizResumeDivByJobIndex(selectedJobIndex);
-        if (bizResumeDiv) {
-            bizResumeDiv.classList.add('selected');
-        }
-    }
-
-    handleSelectionCleared(event) {
-        const { caller } = event.detail;
-        this.bizResumeDivs.forEach(div => div.classList.remove('selected'));
-    }
-
     handleHoverChanged(event) {
-        const { hoveredJobIndex, caller } = event.detail;
+        const { hoveredJobNumber, caller } = event.detail;
 
-        if (selectionManager.getSelectedJobIndex() === hoveredJobIndex) return;
+        if (selectionManager.getSelectedJobNumber() === hoveredJobNumber) return;
 
         // Clear previous hovers first
         this.handleHoverCleared({ detail: { caller: 'handleHoverChanged' } });
 
-        const bizResumeDiv = this.getBizResumeDivByJobIndex(hoveredJobIndex);
+        const bizResumeDiv = this.getBizResumeDivByJobNumber(hoveredJobNumber);
         if (bizResumeDiv) {
             bizResumeDiv.classList.add('hovered');
+            
+            // Apply hover state styling using the new system
+            applyStateStyling(bizResumeDiv, 'hovered');
+            
+
         }
     }
 
     handleHoverCleared(event) {
         const { caller } = event.detail;
-        this.bizResumeDivs.forEach(div => div.classList.remove('hovered'));
+        this.bizResumeDivs.forEach(div => {
+            div.classList.remove('hovered');
+            // Reset to normal state (only if not selected)
+            if (!div.classList.contains('selected')) {
+                applyStateStyling(div, 'normal');
+            }
+        });
+    }
+
+    handleSelectionChanged(event) {
+        const { selectedJobNumber, caller } = event.detail;
+        
+        window.CONSOLE_LOG_IGNORE(`[DEBUG] ResumeItemsController.handleSelectionChanged: selectedJobNumber=${selectedJobNumber}, caller=${caller}`);
+        
+        // Clear previous selections first
+        this.handleSelectionCleared({ detail: { caller: 'handleSelectionChanged' } });
+
+        const bizResumeDiv = this.getBizResumeDivByJobNumber(selectedJobNumber);
+        
+        if (bizResumeDiv) {
+            window.CONSOLE_LOG_IGNORE(`[DEBUG] ResumeItemsController.handleSelectionChanged: Found resume div for job ${selectedJobNumber}`);
+            bizResumeDiv.classList.add('selected');
+            
+            // Apply selected state styling using the new system
+            applyStateStyling(bizResumeDiv, 'selected');
+            
+            window.CONSOLE_LOG_IGNORE(`[DEBUG] ResumeItemsController.handleSelectionChanged: Applied 'selected' class to resume div`);
+        } else {
+            window.CONSOLE_LOG_IGNORE(`ResumeItemsController: No resume div found for job number ${selectedJobNumber}`);
+        }
+    }
+
+    handleSelectionCleared(event) {
+        const { caller } = event.detail;
+        this.bizResumeDivs.forEach(div => {
+            div.classList.remove('selected');
+            // Reset to normal state
+            applyStateStyling(div, 'normal');
+        });
+    }
+
+    // Static method to reset the singleton instance
+    static reset() {
+        window.CONSOLE_LOG_IGNORE('[DEBUG] ResumeItemsController: Resetting singleton instance');
+        if (ResumeItemsController.instance) {
+            // Clean up any resources if needed
+            ResumeItemsController.instance.bizResumeDivs = [];
+            ResumeItemsController.instance.isInitialized = false;
+        }
+        ResumeItemsController.instance = null;
+    }
+
+    // Static method to get the current instance
+    static getInstance() {
+        return ResumeItemsController.instance;
     }
 
 } // end class ResumeItemsController

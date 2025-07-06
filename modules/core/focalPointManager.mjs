@@ -1,5 +1,6 @@
 import * as mathUtils from '../utils/mathUtils.mjs';
 import * as viewPort from './viewPortModule.mjs';
+import * as bullsEyeModule from './bullsEye.mjs';
 
 // --- Private State & Constants ---
 const EASE_FACTOR = 0.05;
@@ -17,55 +18,34 @@ const focalPoint = {
 let mode = MODES.LOCKED;
 const bullsEyePosition = { x: 0, y: 0 };
 let animationFrameId = null;
+let _isInitialized = false;
+let _initializationPromise = null;
 
 // --- Private Logic ---
 
 function updateBullsEyePosition() {
-    if (!viewPort.isInitialized()) {
-        // If viewport is not initialized yet, set default position to window center temporarily
-        bullsEyePosition.x = window.innerWidth / 2;
-        bullsEyePosition.y = window.innerHeight / 2;
-        return;
-    }
-    
-    // Get the scene container to calculate the correct position
-    const sceneContainer = document.getElementById('scene-container');
-    if (sceneContainer) {
-        const sceneRect = sceneContainer.getBoundingClientRect();
-        const sceneCenterX = sceneRect.left + sceneRect.width / 2;
-        const sceneCenterY = sceneRect.top + sceneRect.height / 2;
-        
-        bullsEyePosition.x = sceneCenterX;
-        bullsEyePosition.y = sceneCenterY;
-        
-        // Also recenter the bullsEye element directly
-        const bullsEyeElement = document.getElementById('bulls-eye');
-        if (bullsEyeElement) {
-            bullsEyeElement.style.left = `${sceneCenterX}px`;
-            bullsEyeElement.style.top = `${sceneCenterY}px`;
-        }
-        
-        // Also recenter the aimPoint element directly to bullsEye position
-        const aimPointElement = document.getElementById('aim-point');
-        if (aimPointElement) {
-            aimPointElement.style.left = `${sceneCenterX}px`;
-            aimPointElement.style.top = `${sceneCenterY}px`;
-        }
+    // Use the centralized bullsEye module to handle positioning
+    if (bullsEyeModule.isInitialized()) {
+        bullsEyeModule.recenterBullsEye();
+        const position = bullsEyeModule.getBullsEye();
+        bullsEyePosition.x = position.x;
+        bullsEyePosition.y = position.y;
     } else {
         // Fallback to viewport center
-        const centerPosition = viewPort.getViewPortOrigin();
-        if (centerPosition) {
-            bullsEyePosition.x = centerPosition.x;
-            bullsEyePosition.y = centerPosition.y;
-        } else {
-            bullsEyePosition.x = window.innerWidth / 2;
-            bullsEyePosition.y = window.innerHeight / 2;
-        }
+        bullsEyePosition.x = window.innerWidth / 2;
+        bullsEyePosition.y = window.innerHeight / 2;
+    }
+    
+    // Also recenter the aimPoint element directly to bullsEye position
+    const aimPointElement = document.getElementById('aim-point');
+    if (aimPointElement) {
+        aimPointElement.style.left = `${bullsEyePosition.x}px`;
+        aimPointElement.style.top = `${bullsEyePosition.y}px`;
     }
 }
 
 function animate() {
-    console.log('animate called, mode:', mode, 'current:', focalPoint.current, 'target:', focalPoint.target);
+    window.CONSOLE_LOG_IGNORE('animate called, mode:', mode, 'current:', focalPoint.current, 'target:', focalPoint.target);
     if (mode === MODES.DRAGGING) {
         animationFrameId = null;
         return;
@@ -124,8 +104,35 @@ function handleFocalModeChange(event) {
 
 // --- Public API ---
 
-export function initialize() {
-    console.log("focalPointManager.initialize");
+export async function initialize() {
+    // If already initialized, return immediately
+    if (_isInitialized) {
+        window.CONSOLE_LOG_IGNORE("focalPointManager: Already initialized, ignoring duplicate call");
+        return;
+    }
+    
+    // If initialization is in progress, wait for it to complete
+    if (_initializationPromise) {
+        window.CONSOLE_LOG_IGNORE("focalPointManager: Initialization in progress, waiting...");
+        await _initializationPromise;
+        return;
+    }
+    
+    // Start initialization and store the promise
+    _initializationPromise = _performInitialization();
+    
+    try {
+        await _initializationPromise;
+    } finally {
+        // Clear the promise after completion (success or failure)
+        _initializationPromise = null;
+    }
+}
+
+async function _performInitialization() {
+    window.CONSOLE_LOG_IGNORE("focalPointManager: Starting initialization");
+    
+    window.CONSOLE_LOG_IGNORE("focalPointManager.initialize");
     // Set up event listeners
     window.addEventListener('mousemove', handleMouseMove);
     window.addEventListener('resize', updateBullsEyePosition);
@@ -167,39 +174,35 @@ export function initialize() {
         }
     });
 
+    // Initialize bullsEye module if not already initialized
+    if (!bullsEyeModule.isInitialized()) {
+        bullsEyeModule.initialize();
+    }
+    
     // Initialize to locked state at center
     updateBullsEyePosition();
     
-    // Use bullsEye position if viewport is available, otherwise use window center
-    if (viewPort.isInitialized()) {
-        focalPoint.target.x = bullsEyePosition.x;
-        focalPoint.current.x = bullsEyePosition.x;
-        focalPoint.target.y = bullsEyePosition.y;
-        focalPoint.current.y = bullsEyePosition.y;
-    } else {
-        focalPoint.target.x = window.innerWidth / 2;
-        focalPoint.current.x = window.innerWidth / 2;
-        focalPoint.target.y = window.innerHeight / 2;
-        focalPoint.current.y = window.innerHeight / 2;
-        
-        // Set up a check to update position when viewport becomes available
-        const checkViewportInterval = setInterval(() => {
-            if (viewPort.isInitialized()) {
-                updateBullsEyePosition();
-                focalPoint.target.x = bullsEyePosition.x;
-                focalPoint.current.x = bullsEyePosition.x;
-                focalPoint.target.y = bullsEyePosition.y;
-                focalPoint.current.y = bullsEyePosition.y;
-                clearInterval(checkViewportInterval);
-            }
-        }, 100);
-    }
+    // Always use viewport center for focal point
+    focalPoint.target.x = window.innerWidth / 2;
+    focalPoint.current.x = window.innerWidth / 2;
+    focalPoint.target.y = window.innerHeight / 2;
+    focalPoint.current.y = window.innerHeight / 2;
     
     startAnimation();
+    _isInitialized = true;
+    
+    window.CONSOLE_LOG_IGNORE("focalPointManager: Initialization complete");
+}
+
+/**
+ * Checks if the focal point manager is initialized.
+ */
+export function isInitialized() {
+    return _isInitialized;
 }
 
 function handleMouseMove(event) {
-    // console.log('handleMouseMove', event.clientX, event.clientY, mode);
+    window.CONSOLE_LOG_IGNORE('handleMouseMove', event.clientX, event.clientY, mode);
     if (mode === MODES.LOCKED) return;
 
     const newTarget = { x: event.clientX, y: event.clientY };
@@ -218,7 +221,7 @@ function handleMouseMove(event) {
 }
 
 export function getPosition() {
-    console.log('getPosition called, returning:', focalPoint.current);
+    window.CONSOLE_LOG_IGNORE('getPosition called, returning:', focalPoint.current);
     return focalPoint.current;
 }
 
@@ -227,7 +230,7 @@ export function getMode() {
 }
 
 export function setMode(newMode) {
-    console.log('focalPointManager.setMode called with:', newMode, 'current mode was:', mode);
+    window.CONSOLE_LOG_IGNORE('focalPointManager.setMode called with:', newMode, 'current mode was:', mode);
     mode = newMode;
     
     // Dispatch an event to notify listeners that the mode changed
@@ -245,7 +248,7 @@ export function cycleMode() {
     const modes = Object.values(MODES);
     const currentIndex = modes.indexOf(mode);
     const nextIndex = (currentIndex + 1) % modes.length;
-    console.log('focalPointManager.cycleMode: current mode:', mode, 'next mode:', modes[nextIndex]);
+    window.CONSOLE_LOG_IGNORE('focalPointManager.cycleMode: current mode:', mode, 'next mode:', modes[nextIndex]);
     setMode(modes[nextIndex]);
 }
 
@@ -258,4 +261,7 @@ export function cleanup() {
     window.removeEventListener('resize', updateBullsEyePosition);
     window.removeEventListener('layout-changed', updateBullsEyePosition);
     window.removeEventListener('focalModeChange', handleFocalModeChange);
+    
+    // Clean up bullsEye module
+    bullsEyeModule.cleanup();
 } 

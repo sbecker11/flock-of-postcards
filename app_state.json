@@ -1,12 +1,12 @@
 {
   "version": "1.0",
-  "lastUpdated": "2025-07-03T05:38:28.995Z",
+  "lastUpdated": "2025-07-06T05:19:28.241Z",
   "layout": {
-    "panelSizePercentage": 26.23574144486692
+    "panelSizePercentage": 33.33333333333333
   },
   "resizeHandle": {
-    "steppingEnabled": false,
-    "stepCount": 1
+    "steppingEnabled": true,
+    "stepCount": 3
   },
   "focalPoint": {
     "mode": "following"
@@ -16,12 +16,54 @@
       "field": "startDate",
       "direction": "desc"
     },
-    "selectedJobIndex": 17
+    "selectedJobNumber": 2
   },
   "theme": {
-    "colorPalette": "50_Dark_Grey_Monotone.json"
+    "colorPalette": "50_Dark_Grey_Monotone.json",
+    "brightnessFactorSelected": 2,
+    "brightnessFactorHovered": 1.75,
+    "borderSettings": {
+      "normal": {
+        "padding": "15px",
+        "innerBorderWidth": "0px",
+        "innerBorderColor": "transparent",
+        "outerBorderWidth": "1px",
+        "outerBorderColor": "white",
+        "borderRadius": "25px"
+      },
+      "hovered": {
+        "padding": "15px",
+        "innerBorderWidth": "0px",
+        "innerBorderColor": "blue",
+        "outerBorderWidth": "0px",
+        "outerBorderColor": "blue",
+        "borderRadius": "25px"
+      },
+      "selected": {
+        "padding": "15px",
+        "innerBorderWidth": "0px",
+        "innerBorderColor": "purple",
+        "outerBorderWidth": "7px",
+        "outerBorderColor": "purple",
+        "borderRadius": "25px"
+      }
+    },
+    "rDivBorderOverrideSettings": {
+      "normal": {
+        "padding": "15px",
+        "innerBorderWidth": "0px"
+      },
+      "hovered": {
+        "padding": "15px",
+        "innerBorderWidth": "0px"
+      },
+      "selected": {
+        "padding": "15px",
+        "innerBorderWidth": "0px"
+      }
+    }
   },
-  "colorPalette": "40 Cosmic.json",
+  "colorPalette": "sweeps.json",
   "color": {
     "palettes": {
       "Oceanic": [

@@ -4,7 +4,7 @@ import { linearInterp } from '../utils/mathUtils.mjs';
 
 // Filter constants
 export const MIN_BRIGHTNESS_PERCENT = 15; // Very dark for dramatic effect
-export const BLUR_Z_SCALE_FACTOR = 1.5; // More dramatic blur
+export const BLUR_Z_SCALE_FACTOR = 2.0; // More dramatic blur
 export const CARD_MIN_Z = 10;
 export const CARD_MAX_Z = 20-1;
 

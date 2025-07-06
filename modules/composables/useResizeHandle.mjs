@@ -1,8 +1,10 @@
 import { ref, computed, nextTick } from 'vue';
 import { useViewport } from './useViewport.mjs';
-import * as bullsEye from '@/modules/core/bullsEye.mjs';
+import { useBullsEye } from './useBullsEye.mjs';
 import * as aimPoint from '@/modules/core/aimPoint.mjs';
 import { AppState, saveState } from '@/modules/core/stateManager.mjs';
+import { performanceMonitor } from '@/modules/utils/performanceMonitor.mjs';
+import { errorBoundary } from '@/modules/core/errorBoundary.mjs';
 
 const HANDLE_WIDTH = 20;
 const DEFAULT_WIDTH_PERCENT = 50;
@@ -14,20 +16,22 @@ const isDragging = ref(false);
 const steppingEnabled = ref(false);
 const stepCount = ref(5); // Default to 5 steps, can be 1-10 (1 = free dragging)
 let _viewport = null;
+let _bullsEyeInstance = null;
+let _resizeTimeoutId = null; // For debounced resize handling
 
 function clampToRange(val, min, max) {
     return Math.max(min, Math.min(max, val));
 }
 
-function handleViewportResize() {
+function handleViewportResize(bullsEyeInstance) {
     // 1. Recenter the bullsEye
-    if (bullsEye.isInitialized()) {
-        bullsEye.recenterBullsEye();
+    if (bullsEyeInstance && bullsEyeInstance.isInitialized.value) {
+        bullsEyeInstance.recenterBullsEye();
     }
     
     // 2. Update aimPoint position to bullsEye center
     if (aimPoint.isInitialized()) {
-        const bullsEyeCenter = bullsEye.getBullsEye();
+        const bullsEyeCenter = bullsEyeInstance ? bullsEyeInstance.getBullsEye() : { x: window.innerWidth / 2, y: window.innerHeight / 2 };
         aimPoint.setAimPoint(bullsEyeCenter, 'viewportResize');
     }
     
@@ -35,17 +39,20 @@ function handleViewportResize() {
     const event = new CustomEvent('focal-point-update', { 
         detail: { 
             source: 'viewportResize',
-            position: bullsEye.getBullsEye()
+            position: bullsEyeInstance ? bullsEyeInstance.getBullsEye() : { x: window.innerWidth / 2, y: window.innerHeight / 2 }
         } 
     });
     window.dispatchEvent(event);
 }
 
 function updateLayout(newUiPercentage, shouldSave = true) {
+    // Performance monitoring
+    const perfId = performanceMonitor.startTiming('resize_layout');
+    
     // AGGRESSIVE DEBUGGING - Stack trace
-    console.log('=== UPDATE LAYOUT CALLED ===');
-    console.log('Caller stack:', new Error().stack);
-    console.log('Input percentage:', newUiPercentage);
+    window.CONSOLE_LOG_IGNORE('=== UPDATE LAYOUT CALLED ===');
+    window.CONSOLE_LOG_IGNORE('Caller stack:', new Error().stack);
+    window.CONSOLE_LOG_IGNORE('Input percentage:', newUiPercentage);
     
     const windowWidth = window.innerWidth;
     
@@ -69,18 +76,18 @@ function updateLayout(newUiPercentage, shouldSave = true) {
     const actualPercentage = maxSceneWidth > 0 ? (finalSceneWidth / maxSceneWidth) * 100 : 0;
     
     // AGGRESSIVE DEBUGGING
-    console.log('=== RESIZE DEBUG START ===');
-    console.log('Input percentage:', newUiPercentage);
-    console.log('Window width:', windowWidth);
-    console.log('Resume container width:', resumeContainerWidth);
-    console.log('Max scene width:', maxSceneWidth);
-    console.log('Clamped percentage:', clampedPercentage);
-    console.log('Calculated scene width:', sceneWidth);
-    console.log('Final scene width:', finalSceneWidth);
-    console.log('Actual percentage:', actualPercentage);
-    console.log('Current uiPercentage.value:', uiPercentage.value);
-    console.log('Current sceneWidthInPixels.value:', sceneWidthInPixels.value);
-    console.log('=== RESIZE DEBUG END ===');
+    window.CONSOLE_LOG_IGNORE('=== RESIZE DEBUG START ===');
+    window.CONSOLE_LOG_IGNORE('Input percentage:', newUiPercentage);
+    window.CONSOLE_LOG_IGNORE('Window width:', windowWidth);
+    window.CONSOLE_LOG_IGNORE('Resume container width:', resumeContainerWidth);
+    window.CONSOLE_LOG_IGNORE('Max scene width:', maxSceneWidth);
+    window.CONSOLE_LOG_IGNORE('Clamped percentage:', clampedPercentage);
+    window.CONSOLE_LOG_IGNORE('Calculated scene width:', sceneWidth);
+    window.CONSOLE_LOG_IGNORE('Final scene width:', finalSceneWidth);
+    window.CONSOLE_LOG_IGNORE('Actual percentage:', actualPercentage);
+    window.CONSOLE_LOG_IGNORE('Current uiPercentage.value:', uiPercentage.value);
+    window.CONSOLE_LOG_IGNORE('Current sceneWidthInPixels.value:', sceneWidthInPixels.value);
+    window.CONSOLE_LOG_IGNORE('=== RESIZE DEBUG END ===');
     
     // Store the values
     sceneWidthInPixels.value = finalSceneWidth;
@@ -89,7 +96,7 @@ function updateLayout(newUiPercentage, shouldSave = true) {
     if (_viewport) {
         _viewport.setViewPortWidth(finalSceneWidth);
     } else {
-        console.log('RESIZE: ERROR - _viewport is null!');
+        window.CONSOLE_LOG_IGNORE('RESIZE: ERROR - _viewport is null!');
     }
     
     if (AppState) {
@@ -103,24 +110,43 @@ function updateLayout(newUiPercentage, shouldSave = true) {
     window.dispatchEvent(event);
     
     // Call the viewport resize handler after layout change
-    handleViewportResize();
+    handleViewportResize(_bullsEyeInstance);
+    
+    // End performance monitoring
+    if (perfId) {
+        performanceMonitor.endTiming(perfId, { 
+            percentage: actualPercentage, 
+            sceneWidth: finalSceneWidth 
+        });
+    }
     
     return actualPercentage;
 }
 
+// --- Debounced Resize Handler ---
+function debouncedResizeHandler() {
+    if (_resizeTimeoutId) {
+        clearTimeout(_resizeTimeoutId);
+    }
+    
+    _resizeTimeoutId = setTimeout(() => {
+        handleViewportResize(_bullsEyeInstance);
+        _resizeTimeoutId = null;
+    }, 100); // 100ms debounce
+}
+
 export function useResizeHandle() {
 
-    function initializeResizeHandleState(viewport = null) {
+    function initializeResizeHandleState(viewport = null, bullsEyeInstance = null) {
         _viewport = viewport;
+        _bullsEyeInstance = bullsEyeInstance;
         const initialPercentage = AppState?.layout?.panelSizePercentage || DEFAULT_WIDTH_PERCENT;
         steppingEnabled.value = AppState?.resizeHandle?.steppingEnabled || false;
         stepCount.value = AppState?.resizeHandle?.stepCount || 5;
         uiPercentage.value = initialPercentage;
         
-        // Add window resize listener
-        window.addEventListener('resize', () => {
-            handleViewportResize();
-        });
+        // Add debounced window resize listener
+        window.addEventListener('resize', debouncedResizeHandler);
     }
 
     function applyInitialLayout() {
@@ -163,16 +189,16 @@ export function useResizeHandle() {
         const percentage = maxSceneWidth > 0 ? (clampedPixelWidth / maxSceneWidth) * 100 : 0;
         
         // AGGRESSIVE DRAG DEBUGGING
-        console.log('=== DRAG DEBUG START ===');
-        console.log('Mouse dx:', dx);
-        console.log('Start pixel width:', startPixelWidth);
-        console.log('New pixel width:', newPixelWidth);
-        console.log('Window width:', windowWidth);
-        console.log('Max scene width:', maxSceneWidth);
-        console.log('Clamped pixel width:', clampedPixelWidth);
-        console.log('Calculated percentage:', percentage);
-        console.log('Current uiPercentage.value:', uiPercentage.value);
-        console.log('=== DRAG DEBUG END ===');
+        window.CONSOLE_LOG_IGNORE('=== DRAG DEBUG START ===');
+        window.CONSOLE_LOG_IGNORE('Mouse dx:', dx);
+        window.CONSOLE_LOG_IGNORE('Start pixel width:', startPixelWidth);
+        window.CONSOLE_LOG_IGNORE('New pixel width:', newPixelWidth);
+        window.CONSOLE_LOG_IGNORE('Window width:', windowWidth);
+        window.CONSOLE_LOG_IGNORE('Max scene width:', maxSceneWidth);
+        window.CONSOLE_LOG_IGNORE('Clamped pixel width:', clampedPixelWidth);
+        window.CONSOLE_LOG_IGNORE('Calculated percentage:', percentage);
+        window.CONSOLE_LOG_IGNORE('Current uiPercentage.value:', uiPercentage.value);
+        window.CONSOLE_LOG_IGNORE('=== DRAG DEBUG END ===');
         
         updateLayoutFromPercentage(percentage, false);
     }

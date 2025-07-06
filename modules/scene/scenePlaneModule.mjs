@@ -49,6 +49,6 @@ function handleScenePlaneClick(event) {
  * @deprecated
  */
 export function clearAllSelected(caller='') {
-    console.warn(`[DEPRECATED] clearAllSelected was called by ${caller}. This function is deprecated. Use selectionManager.clearSelection() instead.`);
+    window.CONSOLE_LOG_IGNORE(`[DEPRECATED] clearAllSelected was called by ${caller}. This function is deprecated. Use selectionManager.clearSelection() instead.`);
     selectionManager.clearSelection(`clearAllSelected from ${caller}`);
 }

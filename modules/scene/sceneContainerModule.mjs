@@ -8,7 +8,7 @@ let _isInitialized = false;
  */
 export function initialize() {
     if (_isInitialized) {
-        console.warn("sceneContainer.initialize: already initialized");
+        window.CONSOLE_LOG_IGNORE("sceneContainer.initialize: already initialized");
         return;
     }
     _sceneContainer = document.getElementById('scene-container');
@@ -38,7 +38,7 @@ export function updateSceneContainer() {
 export function ensurePointerEvents() {
     const sceneContainer = document.getElementById('scene-container');
     if (!sceneContainer) {
-        console.error("Scene container not found");
+        window.CONSOLE_LOG_IGNORE("Scene container not found");
         return;
     }
     
@@ -66,7 +66,7 @@ export function ensurePointerEvents() {
 export function setupGradientOverlays() {
     const scenePlaneEl = document.getElementById('scene-plane');
     if (!scenePlaneEl) {
-        console.error("setupGradientOverlays: scene-plane element not found");
+        window.CONSOLE_LOG_IGNORE("setupGradientOverlays: scene-plane element not found");
         return;
     }
 

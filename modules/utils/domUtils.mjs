@@ -102,15 +102,15 @@ export function showElement(element, prefix="", logLevel=LogLevel.LOG) {
     prefix = "showElement" + prefix + ":";
 
     if (element == null) {
-        console.warn(`${prefix} given null element`);
+        window.CONSOLE_LOG_IGNORE(`${prefix} given null element`);
         return;
     }
     if (!isHTMLElement(element)) {
-        console.warn(`${prefix} given non-element object:${element}`);
+        window.CONSOLE_LOG_IGNORE(`${prefix} given non-element object:${element}`);
         return;
     }
     if (element.id == null) {
-        console.warn(`${prefix} given element with no id:${element}`);
+        window.CONSOLE_LOG_IGNORE(`${prefix} given element with no id:${element}`);
         return;
     }
     // now construct the elementInfo object
@@ -155,7 +155,7 @@ export function showElement(element, prefix="", logLevel=LogLevel.LOG) {
  */
 export function findNextSiblingWithClass(element, className) {
     if (!element || !className) {
-      console.error("findNextSiblingWithClass: Invalid element or className provided.");
+      window.CONSOLE_LOG_IGNORE("findNextSiblingWithClass: Invalid element or className provided.");
       return null;
     }
   
@@ -189,7 +189,7 @@ export function matchPositions(pos1, pos2) {
  */
 export function updateEventListener(element, eventType, listener, options = {}) {
     if (!element || !eventType || !listener) {
-        console.error('updateEventListener: Missing required parameters');
+        window.CONSOLE_LOG_IGNORE('updateEventListener: Missing required parameters');
         return;
     }
 

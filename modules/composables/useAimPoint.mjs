@@ -50,6 +50,12 @@ function handleViewportChanged() {
 
 // --- Composable ---
 export function useAimPoint(viewport = null) {
+  // Register cleanup on component unmount
+  // This must be done immediately to avoid Vue lifecycle warnings
+  onUnmounted(() => {
+    cleanup();
+  });
+
   const bullsEye = useBullsEye(viewport);
 
   // Reactive properties
@@ -73,7 +79,7 @@ export function useAimPoint(viewport = null) {
   _updatePositionFromBullsEye = updatePositionFromBullsEye;
 
   function setMode(newMode) {
-    console.log('aimPoint.setMode called with:', newMode, 'current mode was:', _mode);
+    window.CONSOLE_LOG_IGNORE('aimPoint.setMode called with:', newMode, 'current mode was:', _mode);
     _mode = newMode;
     
     // Update position based on new mode
@@ -95,9 +101,9 @@ export function useAimPoint(viewport = null) {
   }
 
   function initialize() {
-    console.log('aimPoint.initialize() called');
+    window.CONSOLE_LOG_IGNORE('aimPoint.initialize() called');
     if (_isInitialized) {
-      console.warn("aimPoint.initialize: already initialized, ignoring duplicate initialization request");
+      window.CONSOLE_LOG_IGNORE("aimPoint.initialize: already initialized, ignoring duplicate initialization request");
       return;
     }
     
@@ -113,7 +119,7 @@ export function useAimPoint(viewport = null) {
     window.addEventListener('viewport-changed', handleViewportChanged);
     
     _isInitialized = true;
-    console.log("aimPoint initialized successfully");
+    window.CONSOLE_LOG_IGNORE("aimPoint initialized successfully");
     
     // Initial position update
     updatePositionFromBullsEye();
@@ -131,11 +137,6 @@ export function useAimPoint(viewport = null) {
       _isInitialized = false;
     }
   }
-
-  // Register cleanup on component unmount
-  onUnmounted(() => {
-    cleanup();
-  });
 
   return {
     // Reactive properties

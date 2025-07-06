@@ -25,10 +25,14 @@ function updateFocalPointPosition() {
   _focalPointElement.style.top = `${focalPointState.value.current.y}px`;
 }
 
-
-
 // --- Composable ---
 export function useFocalPoint() {
+  // Register cleanup on component unmount
+  // This must be done immediately to avoid Vue lifecycle warnings
+  onUnmounted(() => {
+    cleanup();
+  });
+
   const aimPoint = useAimPoint();
   const { position: aimPointPosition, mode: aimPointMode } = aimPoint;
 
@@ -46,7 +50,7 @@ export function useFocalPoint() {
     
     if (_mode === MODES.DRAGGING) {
       // In dragging mode, move immediately without easing
-      console.log('focalPoint dragging: updating position to', focalPointState.value.target);
+      window.CONSOLE_LOG_IGNORE('focalPoint dragging: updating position to', focalPointState.value.target);
       focalPointState.value.current.x = focalPointState.value.target.x;
       focalPointState.value.current.y = focalPointState.value.target.y;
       updateFocalPointPosition();
@@ -87,13 +91,13 @@ export function useFocalPoint() {
 
   // Watch aimPoint position and update target accordingly
   const updateTargetFromAimPoint = computed(() => {
-    console.log('RESIZE: focalPoint aimPoint watcher triggered, position:', aimPointPosition.value);
+    window.CONSOLE_LOG_IGNORE('RESIZE: focalPoint aimPoint watcher triggered, position:', aimPointPosition.value);
     focalPointState.value.target.x = aimPointPosition.value.x;
     focalPointState.value.target.y = aimPointPosition.value.y;
     
     // Start animation if not in dragging mode and initialized
     if (_mode !== MODES.DRAGGING && _isInitialized) {
-      console.log('RESIZE: focalPoint starting animation, target:', focalPointState.value.target);
+      window.CONSOLE_LOG_IGNORE('RESIZE: focalPoint starting animation, target:', focalPointState.value.target);
       startAnimation();
     }
     return aimPointPosition.value;
@@ -103,7 +107,7 @@ export function useFocalPoint() {
   const _ = updateTargetFromAimPoint.value;
 
   function setMode(newMode) {
-    console.log('focalPoint.setMode called with:', newMode, 'current mode was:', _mode);
+    window.CONSOLE_LOG_IGNORE('focalPoint.setMode called with:', newMode, 'current mode was:', _mode);
     _mode = newMode;
     
     // Update aimPoint mode to match
@@ -112,11 +116,11 @@ export function useFocalPoint() {
     // Immediately update target to current aimPoint position
     focalPointState.value.target.x = aimPointPosition.value.x;
     focalPointState.value.target.y = aimPointPosition.value.y;
-    console.log('focalPoint.setMode: updated target to:', focalPointState.value.target);
+    window.CONSOLE_LOG_IGNORE('focalPoint.setMode: updated target to:', focalPointState.value.target);
     
     // Start animation for all modes (including dragging)
     if (_isInitialized) {
-      console.log('focalPoint.setMode: starting animation for mode:', _mode);
+      window.CONSOLE_LOG_IGNORE('focalPoint.setMode: starting animation for mode:', _mode);
       startAnimation();
     }
   }
@@ -125,14 +129,14 @@ export function useFocalPoint() {
     const modes = Object.values(MODES);
     const currentIndex = modes.indexOf(_mode);
     const nextIndex = (currentIndex + 1) % modes.length;
-    console.log('focalPoint.cycleMode: current mode:', _mode, 'next mode:', modes[nextIndex]);
+    window.CONSOLE_LOG_IGNORE('focalPoint.cycleMode: current mode:', _mode, 'next mode:', modes[nextIndex]);
     setMode(modes[nextIndex]);
   }
 
   function initialize() {
-    console.log('focalPoint.initialize() called');
+    window.CONSOLE_LOG_IGNORE('focalPoint.initialize() called');
     if (_isInitialized) {
-      console.warn("focalPoint.initialize: already initialized, ignoring duplicate initialization request");
+      window.CONSOLE_LOG_IGNORE("focalPoint.initialize: already initialized, ignoring duplicate initialization request");
       return;
     }
     
@@ -142,18 +146,18 @@ export function useFocalPoint() {
     }
     
     // Initialize position to aimPoint position
-    console.log('focalPoint.initialize: aimPoint position:', aimPointPosition.value);
+    window.CONSOLE_LOG_IGNORE('focalPoint.initialize: aimPoint position:', aimPointPosition.value);
     focalPointState.value.current.x = aimPointPosition.value.x;
     focalPointState.value.current.y = aimPointPosition.value.y;
     focalPointState.value.target.x = aimPointPosition.value.x;
     focalPointState.value.target.y = aimPointPosition.value.y;
     
-    console.log('focalPoint.initialize: setting position to:', focalPointState.value.current);
+    window.CONSOLE_LOG_IGNORE('focalPoint.initialize: setting position to:', focalPointState.value.current);
     updateFocalPointPosition();
     startAnimation();
     
     _isInitialized = true;
-    console.log("focalPoint initialized successfully");
+    window.CONSOLE_LOG_IGNORE("focalPoint initialized successfully");
   }
 
   function isInitialized() {
@@ -168,11 +172,6 @@ export function useFocalPoint() {
     _focalPointElement = null;
     _isInitialized = false;
   }
-
-  // Register cleanup on component unmount
-  onUnmounted(() => {
-    cleanup();
-  });
 
   return {
     // Reactive properties

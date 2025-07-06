@@ -35,7 +35,7 @@ export function initialize() {
     _isInitialized = true;
 }
 export function updateResumeContainer() {
-    // window.CONSOLE_LOG_IGNORE("updateResumeContainer");   
+    window.CONSOLE_LOG_IGNORE("updateResumeContainer");   
     sceneContainer.updateSceneContainer();
     resizeHandle.updateResizeHandle();
 }

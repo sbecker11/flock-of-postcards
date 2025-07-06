@@ -110,6 +110,25 @@ export function get_RGB_from_HSV(hsv) {
  */
 export function adjustBrightness(hex, factor) {
     validateHexColor(hex, 'adjustBrightness');
+    
+    // For very bright colors (factor > 1.5), use a different approach
+    if (factor > 1.5) {
+        const rgb = get_RGB_from_Hex(hex);
+        const currentBrightness = getPerceivedBrightness(hex);
+        
+        // If the color is already very bright (> 200), use a more conservative approach
+        if (currentBrightness > 200) {
+            // Instead of multiplying HSV value, adjust RGB components more conservatively
+            const newRgb = {
+                r: Math.min(255, rgb.r + (255 - rgb.r) * 0.3),
+                g: Math.min(255, rgb.g + (255 - rgb.g) * 0.3),
+                b: Math.min(255, rgb.b + (255 - rgb.b) * 0.3)
+            };
+            return get_Hex_from_RGB(newRgb);
+        }
+    }
+    
+    // Use the original HSV approach for normal cases
     const rgb = get_RGB_from_Hex(hex);
     const hsv = get_HSV_from_RGB(rgb);
     hsv.v = Math.min(100, hsv.v * factor); // Adjust value and cap at 100

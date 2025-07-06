@@ -567,9 +567,9 @@ export function validateIs_YYYY_MM_DD_DateString(dateStr) {
 function assertEqual(actual, expected, message) {
     // Use a loose equality for Date objects which are often tricky
     if (String(actual) != String(expected)) {
-        console.error(`Assertion Failed: ${message}`);
-        console.error(`  Expected: ${expected} (type: ${typeof expected})`);
-        console.error(`  Actual:   ${actual} (type: ${typeof actual})`);
+        window.CONSOLE_LOG_IGNORE(`Assertion Failed: ${message}`);
+        window.CONSOLE_LOG_IGNORE(`  Expected: ${expected} (type: ${typeof expected})`);
+        window.CONSOLE_LOG_IGNORE(`  Actual:   ${actual} (type: ${typeof actual})`);
     }
 }
 

@@ -36,21 +36,21 @@ class NavigationAPI {
      * Navigate to a specific job index
      * This is the main entry point for all navigation
      */
-    navigateToJobIndex(jobIndex, caller = 'unknown') {
+    navigateToJobNumber(jobNumber, caller = 'unknown') {
         if (!this.isInitialized) {
-            console.error('NavigationAPI not initialized');
+            window.CONSOLE_LOG_IGNORE('NavigationAPI not initialized');
             return false;
         }
 
-        if (jobIndex === null || jobIndex === undefined) {
-            console.error('NavigationAPI: Invalid job index:', jobIndex);
+        if (jobNumber === null || jobNumber === undefined) {
+            window.CONSOLE_LOG_IGNORE('NavigationAPI: Invalid job index:', jobNumber);
             return false;
         }
 
-        window.CONSOLE_LOG_IGNORE(`NavigationAPI: Navigating to job index ${jobIndex} from ${caller}`);
+        window.CONSOLE_LOG_IGNORE(`NavigationAPI: Navigating to job index ${jobNumber} from ${caller}`);
 
         // Use selection manager as the single source of truth
-        selectionManager.selectJobIndex(jobIndex, `NavigationAPI.${caller}`);
+        selectionManager.selectJobNumber(jobNumber, `NavigationAPI.${caller}`);
         return true;
     }
 
@@ -60,17 +60,17 @@ class NavigationAPI {
     navigateToNext(caller = 'unknown') {
         if (!this.isInitialized) return false;
 
-        const currentIndex = selectionManager.getSelectedJobIndex();
+        const currentIndex = selectionManager.getSelectedJobNumber();
         if (currentIndex === null) {
             // If nothing selected, start with first job
-            return this.navigateToJobIndex(0, caller);
+            return this.navigateToJobNumber(0, caller);
         }
 
         const nextIndex = currentIndex + 1;
         const maxIndex = this.cardsController?.bizCardDivs?.length - 1 || 0;
         
         if (nextIndex <= maxIndex) {
-            return this.navigateToJobIndex(nextIndex, caller);
+            return this.navigateToJobNumber(nextIndex, caller);
         }
         
         return false; // Already at end
@@ -82,16 +82,16 @@ class NavigationAPI {
     navigateToPrevious(caller = 'unknown') {
         if (!this.isInitialized) return false;
 
-        const currentIndex = selectionManager.getSelectedJobIndex();
+        const currentIndex = selectionManager.getSelectedJobNumber();
         if (currentIndex === null) {
             // If nothing selected, start with last job
             const maxIndex = this.cardsController?.bizCardDivs?.length - 1 || 0;
-            return this.navigateToJobIndex(maxIndex, caller);
+            return this.navigateToJobNumber(maxIndex, caller);
         }
 
         const prevIndex = currentIndex - 1;
         if (prevIndex >= 0) {
-            return this.navigateToJobIndex(prevIndex, caller);
+            return this.navigateToJobNumber(prevIndex, caller);
         }
         
         return false; // Already at beginning
@@ -100,8 +100,8 @@ class NavigationAPI {
     /**
      * Get current job index
      */
-    getCurrentJobIndex() {
-        return selectionManager.getSelectedJobIndex();
+    getCurrentJobNumber() {
+        return selectionManager.getSelectedJobNumber();
     }
 
     /**
@@ -115,7 +115,7 @@ class NavigationAPI {
      * Check if we can navigate to next
      */
     canNavigateToNext() {
-        const currentIndex = this.getCurrentJobIndex();
+        const currentIndex = this.getCurrentJobNumber();
         const totalCount = this.getTotalJobCount();
         return currentIndex !== null && currentIndex < totalCount - 1;
     }
@@ -124,29 +124,29 @@ class NavigationAPI {
      * Check if we can navigate to previous
      */
     canNavigateToPrevious() {
-        const currentIndex = this.getCurrentJobIndex();
+        const currentIndex = this.getCurrentJobNumber();
         return currentIndex !== null && currentIndex > 0;
     }
 
     /**
      * Get card div by job index
      */
-    getCardDivByJobIndex(jobIndex) {
-        return this.cardsController?.bizCardDivs?.[jobIndex] || null;
+    getCardDivByJobNumber(jobNumber) {
+        return this.cardsController?.bizCardDivs?.[jobNumber] || null;
     }
 
     /**
      * Get resume div by job index
      */
-    getResumeDivByJobIndex(jobIndex) {
-        return this.resumeItemsController?.getBizResumeDivByJobIndex(jobIndex) || null;
+    getResumeDivByJobNumber(jobNumber) {
+        return this.resumeItemsController?.getBizResumeDivByJobNumber(jobNumber) || null;
     }
 
     /**
      * Scroll card into view
      */
-    scrollCardIntoView(jobIndex, animate = true) {
-        const cardDiv = this.getCardDivByJobIndex(jobIndex);
+    scrollCardIntoView(jobNumber, animate = true) {
+        const cardDiv = this.getCardDivByJobNumber(jobNumber);
         if (cardDiv && this.cardsController) {
             return this.cardsController.scrollBizCardDivIntoView(cardDiv, animate);
         }
@@ -156,8 +156,8 @@ class NavigationAPI {
     /**
      * Scroll resume into view
      */
-    scrollResumeIntoView(jobIndex, animate = true) {
-        const resumeDiv = this.getResumeDivByJobIndex(jobIndex);
+    scrollResumeIntoView(jobNumber, animate = true) {
+        const resumeDiv = this.getResumeDivByJobNumber(jobNumber);
         if (resumeDiv && this.resumeListController) {
             return this.resumeListController.scrollToBizResumeDiv(resumeDiv, animate);
         }
@@ -167,17 +167,17 @@ class NavigationAPI {
     /**
      * Scroll both card and resume into view
      */
-    scrollBothIntoView(jobIndex, animate = true) {
-        const cardSuccess = this.scrollCardIntoView(jobIndex, animate);
-        const resumeSuccess = this.scrollResumeIntoView(jobIndex, animate);
+    scrollBothIntoView(jobNumber, animate = true) {
+        const cardSuccess = this.scrollCardIntoView(jobNumber, animate);
+        const resumeSuccess = this.scrollResumeIntoView(jobNumber, animate);
         return cardSuccess && resumeSuccess;
     }
 
     /**
      * Get job data by index
      */
-    getJobDataByIndex(jobIndex) {
-        return this.cardsController?.jobsData?.[jobIndex] || null;
+    getJobDataByIndex(jobNumber) {
+        return this.cardsController?.jobsData?.[jobNumber] || null;
     }
 
     /**
@@ -197,8 +197,8 @@ class NavigationAPI {
     /**
      * Set hover state
      */
-    setHover(jobIndex, caller = 'unknown') {
-        selectionManager.setHover(jobIndex, `NavigationAPI.${caller}`);
+    setHover(jobNumber, caller = 'unknown') {
+        selectionManager.setHover(jobNumber, `NavigationAPI.${caller}`);
     }
 
     /**

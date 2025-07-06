@@ -1,108 +1,140 @@
-import { computed, onMounted, onUnmounted } from 'vue';
-import { useViewport } from './useViewport.mjs';
-import * as sceneViewLabel from '@/modules/core/sceneViewLabelModule.mjs';
+import { ref, computed, onMounted, onUnmounted } from 'vue';
+import * as bullsEyeModule from '../core/bullsEye.mjs';
+
+// --- Constants ---
+export const MODES = {
+  LOCKED: 'locked',
+  FOLLOWING: 'following',
+  DRAGGING: 'dragging'
+};
 
 // --- Private State ---
-let _bullsEyeElement = null;
-let _bullsEyeRad = 0;
-let _isInitialized = false;
+let _mode = MODES.LOCKED;
+let _mousePosition = { x: 0, y: 0 };
 
+// --- Reactive State ---
+const bullsEyeState = ref({
+  x: 0,
+  y: 0
+});
 
+// --- Private Functions ---
+function updateBullsEyePosition() {
+  if (bullsEyeModule.isInitialized()) {
+    const position = bullsEyeModule.getBullsEye();
+    bullsEyeState.value.x = position.x;
+    bullsEyeState.value.y = position.y;
+  }
+}
+
+function handleMouseMove(event) {
+  _mousePosition.x = event.clientX;
+  _mousePosition.y = event.clientY;
+  
+  if (_mode === MODES.FOLLOWING || _mode === MODES.DRAGGING) {
+    bullsEyeState.value.x = _mousePosition.x;
+    bullsEyeState.value.y = _mousePosition.y;
+  }
+}
+
+function handleViewportChanged() {
+  if (_mode === MODES.LOCKED && bullsEyeModule.isInitialized()) {
+    // Recenter the bullsEye element to stay centered in the scene container
+    bullsEyeModule.recenterBullsEye();
+    // Update the reactive state to match the new position
+    updateBullsEyePosition();
+  }
+}
 
 // --- Composable ---
 export function useBullsEye(viewport = null) {
-  // console.log('RESIZE: useBullsEye called with viewport:', !!viewport);
-  // console.log('RESIZE: useBullsEye viewport type:', typeof viewport);
-  // console.log('RESIZE: useBullsEye viewport value:', viewport);
-  
-  // Use the passed viewport instance or get the singleton
-  const viewportInstance = viewport || useViewport('useBullsEye-fallback');
-  
-  const { centerX, centerY, isInitialized: viewportInitialized } = viewportInstance;
+  // Register cleanup on component unmount
+  onUnmounted(() => {
+    cleanup();
+  });
 
-  // Computed properties that automatically update when viewport changes
-  const position = computed(() => ({
-    x: centerX.value,
-    y: centerY.value
-  }));
+  // Reactive properties
+  const position = computed(() => bullsEyeState.value);
+  const x = computed(() => bullsEyeState.value.x);
+  const y = computed(() => bullsEyeState.value.y);
 
-  const isInitialized = computed(() => _isInitialized && viewportInitialized());
+  // Mode management
+  const mode = computed(() => _mode);
 
-  // Updated recenterBullsEye function that uses the composable's viewport values
-  function recenterBullsEye() {
-    if (!_bullsEyeElement || !_isInitialized) return;
+  function getBullsEye() {
+    if (_mode === MODES.LOCKED) {
+      return bullsEyeModule.getBullsEye();
+    } else {
+      return bullsEyeState.value;
+    }
+  }
 
-    // console.log(`Repositioning BullsEye to: top=${centerY.value}px, left=${centerX.value}px`);
-
-    // Since CSS has transform: translate(-50%, -50%), set position to exact center
-    // The transform will handle centering the element around this point
-    _bullsEyeElement.style.left = `${centerX.value}px`;
-    _bullsEyeElement.style.top = `${centerY.value}px`;
+  function setMode(newMode) {
+    window.CONSOLE_LOG_IGNORE('bullsEye.setMode called with:', newMode, 'current mode was:', _mode);
+    _mode = newMode;
     
-    // console.log(`BullsEye final position - left: ${centerX.value}px, top: ${centerY.value}px`);
-    
-    sceneViewLabel.repositionLabel();
+    // Update position based on new mode
+    if (_mode === MODES.LOCKED) {
+      updateBullsEyePosition();
+    } else if (_mode === MODES.FOLLOWING || _mode === MODES.DRAGGING) {
+      // Use current mouse position
+      bullsEyeState.value.x = _mousePosition.x;
+      bullsEyeState.value.y = _mousePosition.y;
+    }
+  }
+
+  function cycleMode() {
+    const modes = Object.values(MODES);
+    const currentIndex = modes.indexOf(_mode);
+    const nextIndex = (currentIndex + 1) % modes.length;
+    setMode(modes[nextIndex]);
   }
 
   function initialize() {
-    // console.log('BullsEye.initialize() called, _isInitialized:', _isInitialized);
-    if (_isInitialized) {
-      console.warn("bullsEye.initialize: already initialized, ignoring duplicate initialization request");
-      return;
-    }
+    window.CONSOLE_LOG_IGNORE('bullsEye.initialize() called');
     
-    _bullsEyeElement = document.getElementById("bulls-eye");
-    if (!_bullsEyeElement) {
-      throw new Error("bullsEye.initialize: #bulls-eye element not found in DOM");
-    }
-    _bullsEyeRad = _bullsEyeElement.offsetWidth / 2;
+    // Initialize the centralized bullsEye module
+    bullsEyeModule.initialize();
     
-    // Check dependency on viewport
-    if (!viewportInitialized()) {
-      throw new Error("bullsEye requires viewport to be initialized.");
-    }
+    // Set up mouse move listener
+    window.addEventListener('mousemove', handleMouseMove);
     
-    // console.log("Initializing bullsEye...");
-    recenterBullsEye();
+    // Listen for viewport changes to update position
+    window.addEventListener('viewport-changed', handleViewportChanged);
     
-    // Listen for viewport changes to reposition the bullsEye
-    window.addEventListener('viewport-changed', () => {
-      // console.log('BullsEye: viewport-changed event received, repositioning...');
-      if (_isInitialized) {
-        recenterBullsEye();
-      }
-    });
+    window.CONSOLE_LOG_IGNORE("bullsEye initialized successfully");
     
-    _isInitialized = true;
-    // console.log("bullsEye initialized successfully");
+    // Initial position update
+    updateBullsEyePosition();
   }
 
-  function reset() {
-    _isInitialized = false;
-    _bullsEyeElement = null;
-    _bullsEyeRad = 0;
+  function isInitialized() {
+    return bullsEyeModule.isInitialized();
   }
 
-  function getBullsEye() {
-    if (!viewportInitialized()) {
-      throw new Error("viewport is not initialized");
-    }
-    const pos = position.value;
-    // console.log('getBullsEye called, returning position:', pos);
-    return pos;
+  function recenterBullsEye() {
+    bullsEyeModule.recenterBullsEye();
+    updateBullsEyePosition();
   }
 
-
-
-  // Register cleanup on component unmount
-  onUnmounted(() => {
-    reset();
-  });
+  function cleanup() {
+    window.removeEventListener('mousemove', handleMouseMove);
+    window.removeEventListener('viewport-changed', handleViewportChanged);
+    bullsEyeModule.cleanup();
+  }
 
   return {
+    // Reactive properties
     position,
-    isInitialized,
+    x,
+    y,
+    mode,
+    
+    // Functions
     initialize,
+    setMode,
+    cycleMode,
+    isInitialized,
     getBullsEye,
     recenterBullsEye
   };

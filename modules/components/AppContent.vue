@@ -26,7 +26,7 @@
         </div>
       </div>
     </div>
-    <SceneViewLabel />
+
     <div id="aim-point"></div>
     <div id="bulls-eye">+</div>
     <div 
@@ -39,7 +39,7 @@
 
 <script>
 import { ref, computed, onMounted, onUnmounted } from 'vue';
-import { useColorPalette, readyPromise as palettesReady } from '@/modules/composables/useColorPalette.mjs';
+import { useColorPalette } from '@/modules/composables/useColorPalette.mjs';
 import { useViewport } from '@/modules/composables/useViewport.mjs';
 import { useBullsEye } from '@/modules/composables/useBullsEye.mjs';
 import { useAimPoint } from '@/modules/composables/useAimPoint.mjs';
@@ -56,16 +56,18 @@ import * as viewPort from '@/modules/core/viewPortModule.mjs';
 import { cardsController } from '@/modules/scene/CardsController.mjs';
 import { resumeItemsController } from '@/modules/scene/ResumeItemsController.mjs';
 import { resumeListController } from '@/modules/resume/ResumeListController.mjs';
+import { initializationManager } from '@/modules/core/initializationManager.mjs';
 import * as scenePlane from '@/modules/scene/scenePlaneModule.mjs';
 import * as parallax from '@/modules/core/parallaxModule.mjs';
 import * as autoScroll from '@/modules/animation/autoScrollModule.mjs';
 import { selectionManager } from '@/modules/core/selectionManager.mjs';
-import { skillCloudModule } from '@/modules/scene/skillCloudModule.mjs';
-console.log('AppContent: skillCloudModule imported:', skillCloudModule);
+
+
 import Timeline from '@/modules/components/Timeline.vue';
 import ResizeHandle from '@/modules/components/ResizeHandle.vue';
 import ResumeContainer from '@/modules/components/ResumeContainer.vue';
 import SceneContainerFooter from '@/modules/components/SceneContainerFooter.vue';
+
 
 export default {
   name: 'AppContent',
@@ -73,137 +75,174 @@ export default {
     Timeline,
     ResizeHandle,
     ResumeContainer,
-    SceneContainerFooter
+    SceneContainerFooter,
+
   },
   async setup() {
-    console.log('AppContent: setup started');
+
     
-    // Register lifecycle hooks before any await statements
-    onMounted(async () => {
-      console.log('AppContent: onMounted - DOM is now available');
-      
-      try {
-        // Initialize viewport systems after DOM is available
-        viewport.initialize();
-        console.log('AppContent: initializeViewport completed');
-        
-        // Initialize legacy viewPortModule for backward compatibility
-        viewPort.initialize();
-        console.log('AppContent: legacy viewPortModule initialized');
-        
-        // Apply initial layout (after viewPortModule is initialized)
-        const { applyInitialLayout } = resizeHandle;
-        applyInitialLayout();
-        console.log('AppContent: applyInitialLayout completed');
-        
-        // Initialize reactive systems that depend on viewport
-        bullsEye.initialize();
-        console.log('AppContent: initializeBullsEye completed');
-        aimPoint.initialize();
-        console.log('AppContent: initializeAimPoint completed');
-        focalPoint.initialize();
-        console.log('AppContent: initializeFocalPoint completed');
-        
-        // Initialize sceneContainer after viewport is available
-        sceneContainer.initialize();
-        console.log('AppContent: sceneContainer completed');
-        
-        // Initialize autoScroll after sceneContainer is available
-        autoScroll.initialize();
-        console.log('AppContent: autoScroll completed');
-        
-        // Initialize scenePlane after DOM is rendered
-        scenePlane.initialize();
-        console.log('AppContent: scenePlane completed');
-        
-        // Initialize CardsController after DOM is rendered (sets up selectionManager event listeners)
-        await cardsController.initialize(jobsData);
-        console.log('AppContent: cardsController completed');
-        
-        // Initialize parallax after business cards are created
-        parallax.initialize(focalPoint);
-        console.log('AppContent: parallax completed');
-        
-        // Initialize skill cloud module
-        console.log('AppContent: About to initialize skillCloudModule');
-        console.log('AppContent: skillCloudModule object:', skillCloudModule);
-        console.log('AppContent: skillCloudModule.initialize:', skillCloudModule.initialize);
-        try {
-            skillCloudModule.initialize();
-            console.log('AppContent: skillCloudModule completed');
-        } catch (error) {
-            console.error('AppContent: Error initializing skillCloudModule:', error);
-        }
-      
-        // Initialize ResumeItemsController after cardsController is ready (sets up selectionManager event listeners)
-        resumeItemsController.initialize();
-        console.log('AppContent: resumeItemsController completed');
-        
-        // Create resume divs after cards are initialized
-        const bizResumeDivs = await resumeItemsController.createAllBizResumeDivs(cardsController.bizCardDivs);
-        
-        // Initialize ResumeListController after DOM is rendered
-        resumeListController.initialize(jobsData, bizResumeDivs);
-        window.resumeListController = resumeListController; // Expose for legacy access
-        console.log('AppContent: resumeListController completed');
-        
-        // Add resume divs to the DOM after ResumeListController is initialized
-        const resumeContentDivElement = document.getElementById('resume-content-div');
-        if (resumeContentDivElement) {
-          bizResumeDivs.forEach(div => resumeContentDivElement.appendChild(div));
-        } else {
-          console.error("AppContent: #resume-content-div not found!");
-        }
-        
-        console.log("AppContent: DOM-dependent initialization completed successfully.");
-      } catch (error) {
-        console.error("AppContent: Error in DOM-dependent initialization:", error);
+    // Register lifecycle hooks immediately (before any await statements)
+    let handleSceneWidthChanged = null;
+    onUnmounted(() => {
+      if (handleSceneWidthChanged) {
+        window.removeEventListener('scene-width-changed', handleSceneWidthChanged);
       }
     });
     
-    // Wait for everything to be ready before any initialization
-    console.log('AppContent: Waiting for color palettes to load...');
-    
-    // Initialize color palette composable and load palettes
-    const colorPalette = useColorPalette();
-    await colorPalette.loadPalettes();
-    
-    console.log('AppContent: Color palettes loaded');
-    
-    await initializeState();
-    console.log('AppContent: initializeState completed');
-    
-    // Initialize reactive composables
+    // Initialize reactive composables immediately (before any await statements)
+    // This ensures Vue lifecycle hooks are registered in the correct component context
     const viewport = useViewport('AppContent');
     const bullsEye = useBullsEye(viewport);
     const aimPoint = useAimPoint(viewport);
     const focalPoint = useFocalPoint();
     const resizeHandle = useResizeHandle();
-    const timeline = useTimeline();
+    useTimeline();
+    
+    // Initialize color palette composable immediately (before any await statements)
+    const colorPalette = useColorPalette();
+    
+    // Register lifecycle hooks before any await statements
+    onMounted(async () => {
+      try {
+        window.CONSOLE_LOG_IGNORE('[INIT] AppContent: Starting event-driven initialization');
+        
+        // Register Timeline as the first component (no dependencies)
+        initializationManager.register(
+          'Timeline',
+          async () => {
+            window.CONSOLE_LOG_IGNORE('[INIT] Initializing Timeline');
+            initializeTimeline(jobsData);
+          },
+          [], // No dependencies
+          { priority: 'high' }
+        );
+        
+        // Register all controllers with their dependencies
+        cardsController.registerForInitialization();
+        resumeItemsController.registerForInitialization();
+        resumeListController.registerForInitialization();
+        
+        // Register other components that depend on controllers
+        initializationManager.register(
+          'Viewport',
+          async () => {
+            window.CONSOLE_LOG_IGNORE('[INIT] Initializing Viewport systems');
+            await initializationManager.waitForComponents(['CardsController', 'ResumeListController']);
+            viewport.initialize();
+            viewPort.initialize();
+          },
+          ['CardsController', 'ResumeListController'],
+          { priority: 'medium' }
+        );
+        
+        initializationManager.register(
+          'Layout',
+          async () => {
+            window.CONSOLE_LOG_IGNORE('[INIT] Initializing Layout systems');
+            await initializationManager.waitForComponent('Viewport');
+            resizeHandle.initializeResizeHandleState(viewport, bullsEye);
+            const { applyInitialLayout } = resizeHandle;
+            applyInitialLayout();
+          },
+          ['Viewport'],
+          { priority: 'medium' }
+        );
+        
+        initializationManager.register(
+          'ReactiveSystems',
+          async () => {
+            window.CONSOLE_LOG_IGNORE('[INIT] Initializing Reactive systems');
+            await initializationManager.waitForComponent('Viewport');
+            bullsEye.initialize();
+            aimPoint.initialize();
+            focalPoint.initialize();
+          },
+          ['Viewport'],
+          { priority: 'medium' }
+        );
+        
+        initializationManager.register(
+          'SceneSystems',
+          async () => {
+            window.CONSOLE_LOG_IGNORE('[INIT] Initializing Scene systems');
+            await initializationManager.waitForComponents(['Viewport', 'Layout']);
+            sceneContainer.initialize();
+            autoScroll.initialize();
+            scenePlane.initialize();
+            parallax.initialize(focalPoint);
+          },
+          ['Viewport', 'Layout'],
+          { priority: 'low' }
+        );
+        
+        // Wait for all components to be ready
+        await initializationManager.waitForComponents([
+          'Timeline',
+          'CardsController', 
+          'ResumeItemsController', 
+          'ResumeListController',
+          'Viewport',
+          'Layout',
+          'ReactiveSystems',
+          'SceneSystems'
+        ]);
+        
+        window.CONSOLE_LOG_IGNORE('[INIT] AppContent: All components initialized successfully');
+        
+        // Expose controllers for testing
+        window.cardsController = cardsController;
+        window.resumeListController = resumeListController;
+        
+        // Add global functions for debugging initialization
+        window.checkInitializationStatus = () => {
+          window.CONSOLE_LOG_IGNORE('[INIT] Current initialization status:');
+          console.table(initializationManager.getStatus());
+        };
+        
+        window.showDependencyGraph = () => {
+          window.CONSOLE_LOG_IGNORE('[INIT] Dependency graph:');
+          window.CONSOLE_LOG_IGNORE(initializationManager.getDependencyGraph());
+        };
+        
+        window.validateDependencies = () => {
+          const result = initializationManager.validateDependencies();
+          window.CONSOLE_LOG_IGNORE('[INIT] Dependency validation:');
+          if (result.isValid) {
+            window.CONSOLE_LOG_IGNORE('✅ Dependency graph is valid');
+          } else {
+            console.error('❌ Dependency graph has errors:', result.errors);
+          }
+          if (result.warnings.length > 0) {
+            console.warn('⚠️ Warnings:', result.warnings);
+          }
+          return result;
+        };
+        
+        window.CONSOLE_LOG_IGNORE('[INIT] Added window.checkInitializationStatus(), window.showDependencyGraph(), and window.validateDependencies() for debugging');
+        
+      } catch (error) {
+        console.error("AppContent: Error in event-driven initialization:", error);
+      }
+    });
+    
+    // Wait for everything to be ready before any initialization
+    
+    // Load color palettes
+    await colorPalette.loadPalettes();
+    
+    await initializeState();
     
     // Initialize core services (event system first)
     keyDown.initialize();
-    console.log('AppContent: keyDown completed');
     
-    // Ensure selectionManager is ready (it's a singleton, but let's be explicit)
-    console.log('AppContent: selectionManager ready');
-    
-            // Initialize data controllers (non-DOM dependent)
-        console.log('AppContent: Data controllers will be initialized after DOM is available');
-        
-        // Initialize assembly (non-DOM dependent)
-        console.log('AppContent: parallax will be initialized after focalPoint is ready');
-    
-    // Initialize layout systems
-    resizeHandle.initializeResizeHandleState(viewport);
-    console.log('AppContent: initializeResizeHandleState completed');
-    initializeTimeline(jobsData);
-    console.log('AppContent: initializeTimeline completed');
+                  // Initialize data controllers (non-DOM dependent)
+      
+      // Initialize assembly (non-DOM dependent)
+  
+    // Initialize layout systems (will be done after viewport is ready)
     
     // Initialize final services (non-DOM dependent)
     // Note: autoScroll will be initialized in onMounted after DOM is available
-    
-    console.log("AppContent: Setup completed, template will now render.");
     
     // Return the setup data - this allows Vue to render the template
     // DOM-dependent initialization will happen in onMounted
@@ -215,30 +254,24 @@ export default {
         left: `${focalPoint.value.position.value.x}px`,
         top: `${focalPoint.value.position.value.y}px`,
       };
-      console.log('focalPointStyle computed:', style, 'focalPointPosition:', focalPoint.value.position.value);
+
       return style;
     });
 
     // Create a reactive reference to scene width that updates via events
-    const sceneWidth = ref(viewport.value?.width.value || 0);
+    // Start with a reasonable default width (50% of window width)
+    const sceneWidth = ref(viewport.value?.width.value || Math.round(window.innerWidth * 0.5));
     
     // Set up event listener for scene width changes immediately
-    const handleSceneWidthChanged = (event) => {
-      // console.log('RESIZE: scene-width-changed:', event.detail.width);
+    handleSceneWidthChanged = (event) => {
       sceneWidth.value = event.detail.width;
     };
     
     // Add event listener immediately (will be cleaned up in onUnmounted)
     window.addEventListener('scene-width-changed', handleSceneWidthChanged);
     
-    // Clean up event listener on unmount
-    onUnmounted(() => {
-      window.removeEventListener('scene-width-changed', handleSceneWidthChanged);
-    });
-    
     const sceneContainerStyle = computed(() => {
       const width = `${sceneWidth.value}px`;
-      // console.log('RESIZE: sceneContainerStyle:', width);
       return { width };
     });
 
