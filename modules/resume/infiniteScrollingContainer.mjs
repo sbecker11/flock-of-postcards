@@ -1,6 +1,7 @@
 // modules/resume/infiniteScrollingContainer.mjs
 
 import { applyPaletteToElement, applyStateStyling } from '../composables/useColorPalette.mjs';
+import { selectionManager } from '../core/selectionManager.mjs';
 
 class InfiniteScrollingContainer {
   constructor(scrollportElement, contentElement, options = {}) {
@@ -529,7 +530,7 @@ class InfiniteScrollingContainer {
     //   // window.CONSOLE_LOG_IGNORE(`[DEBUG] InfiniteScroller.scrollToIndex: Target item job number: ${targetJobNumber}`);
     // }
     
-    // Find the header elements within the resume div
+    // Find the header elements within the resume div and calculate scroll position
     const detailsDiv = targetItem.element.querySelector('.biz-resume-details-div');
     let headerOffset = 0;
     
@@ -545,37 +546,14 @@ class InfiniteScrollingContainer {
     }
     
     // Calculate scroll position to ensure the header is visible at the top of the container
-    const containerHeight = this.scrollport.offsetHeight;
-    const itemTop = targetItem.top;
-    const itemHeight = targetItem.height;
+    const topMargin = 50; // Margin from the top to make target job more prominent
+    const targetScrollTop = Math.max(0, targetItem.top + headerOffset - topMargin);
     
-    // Scroll to position the header at the top of the container with a larger margin
-    // This ensures the target job is more prominently visible and other jobs above it are less visible
-    const topMargin = 50; // Larger margin from the top to make target job more prominent
-    const targetScrollTop = Math.max(0, itemTop + headerOffset - topMargin);
-    
-    /*
-    window.CONSOLE_LOG_IGNORE('InfiniteScroller.scrollToIndex:', { 
-      originalIndex, 
-      targetItemIndex, 
-      itemTop,
-      itemHeight,
-      headerOffset,
-      targetScrollTop, 
-      animate,
-      containerHeight: this.scrollport.offsetHeight,
-      scrollHeight: this.scrollport.scrollHeight,
-      targetItemExists: !!targetItem
+    // Always use smooth scrolling behavior
+    this.scrollport.scrollTo({
+      top: targetScrollTop,
+      behavior: 'smooth'
     });
-    */
-    
-    if (animate) {
-      // window.CONSOLE_LOG_IGNORE(`[DEBUG] InfiniteScroller.scrollToIndex: Starting smooth scroll to ${targetScrollTop}`);
-      this.smoothScrollTo(targetScrollTop);
-    } else {
-      // window.CONSOLE_LOG_IGNORE(`[DEBUG] InfiniteScroller.scrollToIndex: Setting scrollTop to ${targetScrollTop}`);
-      this.scrollport.scrollTop = targetScrollTop;
-    }
     
     // Log the actual scroll position after setting it
     // setTimeout(() => {
@@ -868,12 +846,11 @@ class InfiniteScrollingContainer {
     // Calculate the scroll position
     const scrollTop = item.top;
     
-    // Scroll to the item
-    if (smooth) {
-      this.smoothScrollTo(scrollTop);
-    } else {
-      this.scrollport.scrollTop = scrollTop;
-    }
+    // Always use smooth scrolling
+    this.scrollport.scrollTo({
+      top: scrollTop,
+      behavior: 'smooth'
+    });
     
     // Update the current index
     this.currentIndex = index;
@@ -1020,12 +997,11 @@ class InfiniteScrollingContainer {
     
     // window.CONSOLE_LOG_IGNORE(`[DEBUG] InfiniteScroller.scrollToItem: ${caller} - index=${index}, itemTop=${itemTop}, headerOffset=${headerOffset}, targetScrollTop=${targetScrollTop}, force=${force}`);
 
-    // Apply scroll immediately or smoothly
-    if (force) {
-      this.scrollport.scrollTop = targetScrollTop;
-    } else {
-      this.smoothScrollTo(targetScrollTop);
-    }
+    // Always use smooth scrolling
+    this.scrollport.scrollTo({
+      top: targetScrollTop,
+      behavior: 'smooth'
+    });
     
     // Update the current index after the scroll starts
     this.currentIndex = index;

@@ -457,17 +457,16 @@ class CardsController {
         
         if (bizCardDiv) {
             // Check if we already have a clone for this card
-            const existingCloneId = bizCardDiv.id + '-clone';
-            const existingClone = document.getElementById(existingCloneId);
-            if (existingClone) {
-                // Still scroll to the existing clone
-                this.scrollBizCardDivIntoView(existingClone, `CardsController.handleSelectionChanged from ${caller}`);
-                return;
+            const cloneId = bizCardDiv.id + '-clone';
+            let clone = document.getElementById(cloneId);
+            
+            if (!clone) {
+                // Create new clone if it doesn't exist
+                this._selectBizCardDiv(bizCardDiv, `CardsController.handleSelectionChanged from ${caller}`);
+                clone = document.getElementById(cloneId);
             }
             
-            this._selectBizCardDiv(bizCardDiv, `CardsController.handleSelectionChanged from ${caller}`);
-            // Scroll to the clone instead of the hidden original card
-            const clone = document.getElementById(bizCardDiv.id + '-clone');
+            // Scroll to the clone (existing or newly created)
             if (clone) {
                 this.scrollBizCardDivIntoView(clone, `CardsController.handleSelectionChanged from ${caller}`);
             }
@@ -522,39 +521,9 @@ class CardsController {
         const sceneContent = document.getElementById('scene-content');
         if (!sceneContent) throw new Error(`CardsController.scrollBizCardDivIntoView: ${caller} scene-content not found`);
     
-        const cardTop = parseFloat(bizCardDiv.getAttribute('data-sceneTop'));
-        
-        if (isNaN(cardTop)) {
-            window.CONSOLE_LOG_IGNORE(`CardsController.scrollBizCardDivIntoView: ${caller} cardTop is NaN for ${bizCardDiv.id}`);
-            return;
-        }
-        
-        // Use a manual scroll calculation with an offset
-        const scrollOffset = 100; // Increased offset to ensure card is visible
-        const scrollTarget = cardTop - scrollOffset;
-        
-        window.CONSOLE_LOG_IGNORE(`[DEBUG] CardsController.scrollBizCardDivIntoView: ${caller} - Current scroll position: ${sceneContent.scrollTop}, Target: ${scrollTarget}, Card top: ${cardTop}`);
-        
-        // Check if we're already at the correct position (within 10px tolerance)
-        const currentScrollTop = sceneContent.scrollTop;
-        const scrollDifference = Math.abs(currentScrollTop - scrollTarget);
-        if (scrollDifference < 10) {
-            window.CONSOLE_LOG_IGNORE(`[DEBUG] CardsController.scrollBizCardDivIntoView: ${caller} - Already at correct position (difference: ${scrollDifference}px), skipping scroll`);
-            return;
-        }
-        
-        // Use instant scrolling during initialization to avoid the delay
-        const isInitializing = caller.includes('initialize') || caller.includes('ResumeListController');
-        const scrollBehavior = isInitializing ? 'auto' : 'smooth';
-        
-        window.CONSOLE_LOG_IGNORE(`[DEBUG] CardsController.scrollBizCardDivIntoView: ${caller} - Using scroll behavior: ${scrollBehavior}`);
-        
-        sceneContent.scrollTo({
-            top: scrollTarget,
-            behavior: scrollBehavior
-        });
-        
-        window.CONSOLE_LOG_IGNORE(`[DEBUG] CardsController.scrollBizCardDivIntoView: ${caller} - Scroll command sent`);
+        // Use centralized smooth scrolling with header positioning
+        const headerSelector = '.biz-details-employer, .biz-details-role, .biz-details-dates, .biz-details-z-value, .biz-details-start-date, .biz-details-end-date';
+        selectionManager.smoothScrollElementIntoView(bizCardDiv, sceneContent, headerSelector, `CardsController.${caller}`);
     }
 
     setupPointerEventsObserver() {
@@ -775,8 +744,13 @@ class CardsController {
         window.CONSOLE_LOG_IGNORE(`[DEBUG] CardsController.scrollToJobNumber: Scrolling to job ${jobNumber}`);
         const card = this.getBizCardDivByJobNumber(jobNumber);
         if (card) {
-            window.CONSOLE_LOG_IGNORE(`[DEBUG] CardsController.scrollToJobNumber: Found card for job ${jobNumber}, scrolling to timeline position`);
-            this.scrollBizCardDivIntoView(card, 'CardsController.scrollToJobNumber');
+            // Check if there's a clone (selected card) - if so, scroll to the clone instead of the original
+            const cloneId = card.id + '-clone';
+            const clone = document.getElementById(cloneId);
+            const targetCard = clone || card; // Use clone if it exists, otherwise original card
+            
+            window.CONSOLE_LOG_IGNORE(`[DEBUG] CardsController.scrollToJobNumber: Found card for job ${jobNumber}, scrolling to ${clone ? 'clone' : 'original'}`);
+            this.scrollBizCardDivIntoView(targetCard, 'CardsController.scrollToJobNumber');
         } else {
             window.CONSOLE_LOG_IGNORE(`[DEBUG] CardsController.scrollToJobNumber: Could not find card for job ${jobNumber}`);
         }

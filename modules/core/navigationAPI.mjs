@@ -143,33 +143,33 @@ class NavigationAPI {
     }
 
     /**
-     * Scroll card into view
+     * Scroll card into view with smooth animation
      */
-    scrollCardIntoView(jobNumber, animate = true) {
+    scrollCardIntoView(jobNumber, smooth = true) {
         const cardDiv = this.getCardDivByJobNumber(jobNumber);
         if (cardDiv && this.cardsController) {
-            return this.cardsController.scrollBizCardDivIntoView(cardDiv, animate);
+            return this.cardsController.scrollBizCardDivIntoView(cardDiv, `NavigationAPI.scrollCardIntoView`);
         }
         return false;
     }
 
     /**
-     * Scroll resume into view
+     * Scroll resume into view with smooth animation
      */
-    scrollResumeIntoView(jobNumber, animate = true) {
+    scrollResumeIntoView(jobNumber, smooth = true) {
         const resumeDiv = this.getResumeDivByJobNumber(jobNumber);
         if (resumeDiv && this.resumeListController) {
-            return this.resumeListController.scrollToBizResumeDiv(resumeDiv, animate);
+            return this.resumeListController.scrollBizResumeDivIntoView(resumeDiv);
         }
         return false;
     }
 
     /**
-     * Scroll both card and resume into view
+     * Scroll both card and resume into view with smooth animation
      */
-    scrollBothIntoView(jobNumber, animate = true) {
-        const cardSuccess = this.scrollCardIntoView(jobNumber, animate);
-        const resumeSuccess = this.scrollResumeIntoView(jobNumber, animate);
+    scrollBothIntoView(jobNumber, smooth = true) {
+        const cardSuccess = this.scrollCardIntoView(jobNumber, smooth);
+        const resumeSuccess = this.scrollResumeIntoView(jobNumber, smooth);
         return cardSuccess && resumeSuccess;
     }
 

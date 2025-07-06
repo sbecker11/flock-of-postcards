@@ -1287,11 +1287,19 @@ class ResumeListController {
       return this.infiniteScroller.scrollToBizResumeDiv(bizResumeDiv, true);
     }
     
-    // If we don't have an infinite scroller, use direct scrollIntoView
-    window.CONSOLE_LOG_IGNORE(`ResumeListController: No infiniteScroller available, using direct scrollIntoView for ${bizResumeDiv.id}`);
+    // If we don't have an infinite scroller, use centralized smooth scrolling
+    window.CONSOLE_LOG_IGNORE(`ResumeListController: No infiniteScroller available, using centralized smooth scrolling for ${bizResumeDiv.id}`);
     try {
-      bizResumeDiv.scrollIntoView({ behavior: 'smooth', block: 'center' });
-      return true;
+      const container = document.getElementById('resume-content-div-wrapper');
+      if (container) {
+        const headerSelector = '.biz-details-employer, .biz-details-role, .biz-details-dates, .biz-details-z-value';
+        selectionManager.smoothScrollElementIntoView(bizResumeDiv, container, headerSelector, `ResumeListController.scrollBizResumeDivIntoView`);
+        return true;
+      } else {
+        // Fallback to basic smooth scroll
+        bizResumeDiv.scrollIntoView({ behavior: 'smooth', block: 'start', inline: 'nearest' });
+        return true;
+      }
     } catch (error) {
       window.CONSOLE_LOG_IGNORE(`ResumeListController: Error scrolling bizResumeDiv ${bizResumeDiv.id} into view:`, error);
       return false;

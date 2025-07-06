@@ -1,8 +1,8 @@
 {
   "version": "1.0",
-  "lastUpdated": "2025-07-06T05:22:22.026Z",
+  "lastUpdated": "2025-07-06T22:49:56.174Z",
   "layout": {
-    "panelSizePercentage": 66.66666666666666
+    "panelSizePercentage": 66.63007683863886
   },
   "resizeHandle": {
     "steppingEnabled": true,
@@ -16,7 +16,7 @@
       "field": "startDate",
       "direction": "desc"
     },
-    "selectedJobNumber": 3
+    "selectedJobNumber": 0
   },
   "theme": {
     "colorPalette": "50_Dark_Grey_Monotone.json",
