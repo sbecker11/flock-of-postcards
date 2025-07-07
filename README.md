@@ -318,6 +318,7 @@ if (originalNextSiblingJobNumber === 'null') {
 - **No More Flickering**: Overlapping elements no longer compete for hover state
 - **Smooth Transitions**: Moving between overlapping elements works seamlessly
 - **Preserved Functionality**: All hover behaviors maintained while eliminating flickering
+- **Paired Selection/Hover**: Both cDiv and rDiv elements now display simultaneous selection and hover states through centralized SelectionManager coordination
 - **Reversible Implementation**: Changes can be easily reverted if needed
 
 This solution demonstrates how event management and DOM manipulation can solve visual interaction issues in complex overlapping UI scenarios.

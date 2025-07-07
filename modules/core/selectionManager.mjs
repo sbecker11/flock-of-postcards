@@ -23,7 +23,8 @@ class SelectionManager extends EventTarget {
         const event = new CustomEvent('selectionChanged', {
             detail: {
                 selectedJobNumber: this.selectedJobNumber,
-                caller: caller
+                caller: caller,
+                isPaired: true // Flag to indicate both cDiv and rDiv should be selected
             }
         });
         // console.log(`[DEBUG] SelectionManager: Dispatching selectionChanged event:`, event.detail);
@@ -37,7 +38,8 @@ class SelectionManager extends EventTarget {
         this.selectedJobNumber = null;
         this.dispatchEvent(new CustomEvent('selectionCleared', {
             detail: {
-                caller: caller
+                caller: caller,
+                isPaired: true // Flag to indicate both cDiv and rDiv should be cleared
             }
         }));
     }
@@ -50,7 +52,8 @@ class SelectionManager extends EventTarget {
         this.dispatchEvent(new CustomEvent('hoverChanged', {
             detail: {
                 hoveredJobNumber: this.hoveredJobNumber,
-                caller: caller
+                caller: caller,
+                isPaired: true // Flag to indicate both cDiv and rDiv should be hovered
             }
         }));
     }
@@ -62,7 +65,8 @@ class SelectionManager extends EventTarget {
         this.hoveredJobNumber = null;
         this.dispatchEvent(new CustomEvent('hoverCleared', {
             detail: {
-                caller: caller
+                caller: caller,
+                isPaired: true // Flag to indicate both cDiv and rDiv should clear hover
             }
         }));
     }
