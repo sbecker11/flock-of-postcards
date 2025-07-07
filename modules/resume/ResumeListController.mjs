@@ -740,6 +740,7 @@ class ResumeListController {
   goToLastResumeItem() {
     if (!this.sortedIndices || this.sortedIndices.length === 0) return;
     const lastJobNumber = this.sortedIndices[this.sortedIndices.length - 1];
+    // console.log(`[DEBUG] goToLastResumeItem: Going to lastJobNumber=${lastJobNumber}, sortedIndices.length=${this.sortedIndices.length}`);
     selectionManager.selectJobNumber(lastJobNumber, 'ResumeListController.goToLastResumeItem');
   }
 
@@ -911,17 +912,18 @@ class ResumeListController {
   }
 
   scrollToJobNumber(jobNumber, caller = '') {
-    window.CONSOLE_LOG_IGNORE(`[DEBUG] scrollToJobNumber: jobNumber=${jobNumber}, caller=${caller}`);
-    window.CONSOLE_LOG_IGNORE(`[DEBUG] scrollToJobNumber: infiniteScroller exists=${!!this.infiniteScroller}`);
+    // console.log(`[DEBUG] ResumeListController: scrollToJobNumber=${jobNumber}, caller=${caller}`);
+    // console.log(`[DEBUG] ResumeListController: infiniteScroller exists=${!!this.infiniteScroller}`);
     
     if (!this.infiniteScroller) {
-      window.CONSOLE_LOG_IGNORE(`[DEBUG] scrollToJobNumber: infiniteScroller is null!`);
+      // console.log(`[DEBUG] ResumeListController: infiniteScroller is null!`);
       return;
     }
 
     // Find the sortedIndex for this jobNumber
     const sortedIndex = this.sortedIndices.indexOf(jobNumber);
-    window.CONSOLE_LOG_IGNORE(`[DEBUG] scrollToJobNumber: jobNumber=${jobNumber} -> sortedIndex=${sortedIndex}`);
+    // console.log(`[DEBUG] ResumeListController: jobNumber=${jobNumber} -> sortedIndex=${sortedIndex}`);
+    // console.log(`[DEBUG] ResumeListController: sortedIndices first 10:`, this.sortedIndices.slice(0, 10));
     
     if (sortedIndex === -1) {
       window.CONSOLE_LOG_IGNORE(`[DEBUG] scrollToJobNumber: jobNumber ${jobNumber} not found in sortedIndices!`);
@@ -965,12 +967,15 @@ class ResumeListController {
       const currentScrollTop = this.infiniteScroller.scrollport.scrollTop;
       window.CONSOLE_LOG_IGNORE(`[DEBUG] scrollToJobNumber: Scroll verification - scrollTop: ${currentScrollTop}`);
       
-      // Force a recalculation of heights to ensure proper content containment
-      window.CONSOLE_LOG_IGNORE('[DEBUG] scrollToJobNumber: Forcing height recalculation after scroll');
-      this.infiniteScroller.recalculateHeights();
+      // Heights are already properly calculated by new positioning logic
+      // Removed: this.infiniteScroller.recalculateHeights(); - was causing repositioning after scroll
       
       // Check if the target item is visible
-      const targetItem = this.infiniteScroller.allItems[sortedIndex + this.infiniteScroller.options.cloneCount];
+      // Find the original item (not a clone) that matches the sortedIndex
+      const targetItem = this.infiniteScroller.allItems.find(item => 
+        item.type === 'original' && item.originalIndex === sortedIndex
+      );
+      
       if (targetItem) {
         const itemTop = targetItem.top;
         const itemBottom = itemTop + targetItem.height;
@@ -978,13 +983,29 @@ class ResumeListController {
         const visibleTop = currentScrollTop;
         const visibleBottom = currentScrollTop + containerHeight;
         
-        const isVisible = itemTop >= visibleTop && itemBottom <= visibleBottom;
-        window.CONSOLE_LOG_IGNORE(`[DEBUG] scrollToJobNumber: Item visibility - visible: ${isVisible}`);
+        // Check if we're still scrolling (smooth scroll in progress)
+        const targetScrollTop = Math.max(0, itemTop - 50); // Same calculation as scrollToIndex
+        const scrollDistance = Math.abs(currentScrollTop - targetScrollTop);
+        const stillScrolling = scrollDistance > 10; // Allow 10px tolerance
         
-        if (!isVisible) {
-          window.CONSOLE_LOG_IGNORE(`[DEBUG] scrollToJobNumber: Item not visible, attempting to scroll again`);
-          this.infiniteScroller.scrollToIndex(sortedIndex, false);
+        // console.log(`[DEBUG] scrollToJobNumber visibility check: targetScrollTop=${targetScrollTop}, currentScrollTop=${currentScrollTop}, scrollDistance=${scrollDistance}, stillScrolling=${stillScrolling}`);
+        
+        if (stillScrolling) {
+          // console.log(`[DEBUG] scrollToJobNumber: Scroll still in progress, skipping visibility check`);
+          return; // Skip visibility check if scroll is still in progress
         }
+        
+        // For now, skip the visibility recheck to prevent double scrolling
+        // The scroll positioning has been fixed in InfiniteScrollingContainer
+        // const isVisible = itemTop >= visibleTop && itemBottom <= visibleBottom;
+        // console.log(`[DEBUG] scrollToJobNumber final visibility: itemTop=${itemTop}, itemBottom=${itemBottom}, visibleTop=${visibleTop}, visibleBottom=${visibleBottom}, isVisible=${isVisible}`);
+        
+        // if (!isVisible) {
+        //   console.log(`[DEBUG] scrollToJobNumber: Item not visible after scroll completed, attempting to scroll again`);
+        //   this.infiniteScroller.scrollToIndex(sortedIndex, false);
+        // } else {
+        //   console.log(`[DEBUG] scrollToJobNumber: Item is visible, no retry needed`);
+        // }
       }
     }, 100);
   }
@@ -1367,6 +1388,30 @@ class ResumeListController {
         window.CONSOLE_LOG_IGNORE(`  Item visible: ${itemTop >= visibleTop && itemBottom <= visibleBottom}`);
       }
     }, 100);
+  }
+
+  /**
+   * Configure the vertical spacing between rDivs
+   * @param {number} spacing - Vertical gap in pixels between adjacent rDivs
+   */
+  configureRDivSpacing(spacing) {
+    if (this.infiniteScroller) {
+      this.infiniteScroller.configureItemSpacing(spacing);
+      window.CONSOLE_LOG_IGNORE(`[DEBUG] ResumeListController: rDiv spacing configured to ${spacing}px`);
+    } else {
+      window.CONSOLE_LOG_IGNORE(`[DEBUG] ResumeListController: Cannot configure spacing - infinite scroller not available`);
+    }
+  }
+
+  /**
+   * Get current rDiv spacing configuration
+   * @returns {number} Current spacing in pixels
+   */
+  getRDivSpacing() {
+    if (this.infiniteScroller) {
+      return this.infiniteScroller.getItemSpacing();
+    }
+    return 5; // Default spacing
   }
 
   /**

@@ -2,6 +2,7 @@
 
 import { applyPaletteToElement, applyStateStyling } from '../composables/useColorPalette.mjs';
 import { selectionManager } from '../core/selectionManager.mjs';
+import { AppState } from '../core/stateManager.mjs';
 
 class InfiniteScrollingContainer {
   constructor(scrollportElement, contentElement, options = {}) {
@@ -22,6 +23,7 @@ class InfiniteScrollingContainer {
       transitionDuration: options.transitionDuration || 300, // ms for smooth transitions
       enableTouch: options.enableTouch !== false, // Enable touch events
       onItemChange: options.onItemChange || null, // Callback when active item changes
+      itemSpacing: options.itemSpacing || 5, // Vertical gap/margin between adjacent rDivs
       ...options
     };
 
@@ -39,6 +41,7 @@ class InfiniteScrollingContainer {
     this.lastContentHeight = 0;
     this._isInitialized = false;
     this._initializationPromise = null;
+    this._lastTransitionTime = 0; // To prevent rapid transitions
 
     this.init();
     
@@ -218,6 +221,11 @@ class InfiniteScrollingContainer {
     // Remove any IDs to avoid duplicates
     this.removeIds(clone);
     
+    // Ensure clones don't intercept mouse events - set pointer-events: none from creation
+    clone.style.pointerEvents = 'none';
+    
+    // Event handlers will be managed by the selectionManager system
+    
     // Apply palette styling to the clone if it has a data-color-index
     if (clone.hasAttribute('data-color-index')) {
       try {
@@ -240,104 +248,242 @@ class InfiniteScrollingContainer {
     });
   }
 
-  // Centralized positioning logic - single source of truth
-  calculateItemPositions(measureHeights = true) {
-    // Simple 5px spacing between positioned elements
-    const spacing = 5;
-    
-    // Reset currentTop to 0 to ensure clean positioning
-    let currentTop = 0;
-    
-    if (measureHeights) {
-      // window.CONSOLE_LOG_IGNORE(`[DEBUG] calculateItemPositions: Measuring and positioning ${this.allItems.length} items`);
-      // window.CONSOLE_LOG_IGNORE(`[DEBUG] calculateItemPositions: Starting currentTop=${currentTop}`);
+  /**
+   * Get the current marginTop value for rDivs from the styling system
+   * @returns {number} marginTop value in pixels
+   */
+  getRDivMarginTop() {
+    try {
+      const marginTopStr = AppState?.theme?.rDivBorderOverrideSettings?.normal?.marginTop || '0px';
+      // console.log('[DEBUG] getRDivMarginTop: marginTopStr =', marginTopStr);
+      return parseInt(marginTopStr) || 0;
+    } catch (error) {
+      // console.log('[DEBUG] InfiniteScrollingContainer.getRDivMarginTop: Error getting marginTop, using 0:', error);
+      return 0;
     }
-    
-    this.allItems.forEach((item, index) => {
-      // Position item at currentTop with explicit positioning using !important
-      item.element.style.setProperty('position', 'absolute', 'important');
-      item.element.style.setProperty('top', `${currentTop}px`, 'important');
-      item.element.style.setProperty('left', '10px', 'important');
-      item.element.style.setProperty('right', '10px', 'important');
-      item.element.style.setProperty('width', 'calc(100% - 20px)', 'important');
-      
-      let contentHeight;
-      if (measureHeights) {
-        // Force a layout recalculation before measuring
-        void item.element.offsetHeight;
-        
-        // Measure content height using multiple methods for reliability
-        const rect = item.element.getBoundingClientRect();
-        const scrollHeight = item.element.scrollHeight;
-        const offsetHeight = item.element.offsetHeight;
-        const clientHeight = item.element.clientHeight;
-        
-        // Use the largest non-zero value, prioritizing getBoundingClientRect
-        contentHeight = rect.height || scrollHeight || offsetHeight || clientHeight || 0;
-        
-        // Sanity check: if height is unreasonably large, use a fallback
-        if (contentHeight > 10000) {
-          // window.CONSOLE_LOG_IGNORE(`[DEBUG] Unreasonably large height detected for item ${index}: ${contentHeight}px, using fallback`);
-          contentHeight = Math.min(scrollHeight || 300, offsetHeight || 300, clientHeight || 300, 300);
-        }
-        
-        // Debug logging for height measurement
-        // if (index < 3) {
-        //   // window.CONSOLE_LOG_IGNORE(`[DEBUG] Height measurement for item ${index}:`, {
-        //     rectHeight: rect.height,
-        //     scrollHeight: scrollHeight,
-        //     offsetHeight: offsetHeight,
-        //     clientHeight: clientHeight,
-        //     finalHeight: contentHeight,
-        //     currentTop: currentTop
-        //   });
-        // }
-        
-        // Set height based on actual content
-        item.element.style.height = `${contentHeight}px`;
-        item.element.style.minHeight = `${contentHeight}px`;
-      } else {
-        // Use existing height data
-        contentHeight = item.height;
-      }
-      
-      // Update item data
-      item.top = currentTop;
-      item.height = contentHeight;
-
-      // Debug logging for first few items
-      // if (index < 5 && measureHeights) {
-      //   const prevItem = index > 0 ? this.allItems[index - 1] : null;
-      //   const actualGap = prevItem ? currentTop - (prevItem.top + prevItem.height) : 0;
-      //   const rect = item.element.getBoundingClientRect();
-      //   // window.CONSOLE_LOG_IGNORE(`[DEBUG] calculateItemPositions: Item ${index} (${item.type}) - top=${currentTop}, height=${contentHeight}, rect.height=${rect.height}, actualGap=${actualGap}px`);
-      // }
-
-      // Calculate next position: current item bottom + spacing gap
-      const previousTop = currentTop;
-      currentTop += contentHeight + spacing;
-      
-      // Debug logging for positioning
-      // if (index < 3) {
-      //   // window.CONSOLE_LOG_IGNORE(`[DEBUG] Positioning for item ${index}: previousTop=${previousTop}, contentHeight=${contentHeight}, spacing=${spacing}, new currentTop=${currentTop}`);
-      // }
-    });
-    
-    return currentTop;
   }
 
-  positionItems() {
-    // Minimal spacing between items (5px as requested)
+  /**
+   * Get the current outerBorderWidth value for rDivs from the styling system
+   * @returns {number} outerBorderWidth value in pixels
+   */
+  getRDivOuterBorderWidth() {
+    try {
+      // Check rDivBorderOverrideSettings first, fallback to default borderSettings
+      const rDivSettings = AppState?.theme?.rDivBorderOverrideSettings?.normal;
+      const defaultSettings = AppState?.theme?.borderSettings?.normal;
+      
+      const outerBorderWidthStr = rDivSettings?.outerBorderWidth || defaultSettings?.outerBorderWidth || '0px';
+      return parseInt(outerBorderWidthStr) || 0;
+    } catch (error) {
+      window.CONSOLE_LOG_IGNORE('[DEBUG] InfiniteScrollingContainer.getRDivOuterBorderWidth: Error getting outerBorderWidth, using 0:', error);
+      return 0;
+    }
+  }
+
+  // Centralized positioning logic - single source of truth
+  calculateItemPositions(measureHeights = true) {
+    // Get spacing values from styling system for rDivs
+    const rDivMarginTop = this.getRDivMarginTop();
+    const rDivOuterBorderWidth = this.getRDivOuterBorderWidth();
     
-    // First pass: reset styling for proper measurement
-    this.allItems.forEach(item => {
-      // Set explicit width and positioning with proper gaps
-      item.element.style.position = 'absolute';
+    // Total spacing = marginTop + outerBorderWidth (top and bottom borders)
+    const totalSpacing = rDivMarginTop + (rDivOuterBorderWidth * 2);
+    
+    // Always show debug for spacing coordination (regardless of measureHeights)
+    // console.log(`[DEBUG] InfiniteScrollingContainer: Using marginTop=${rDivMarginTop}px + outerBorderWidth=${rDivOuterBorderWidth}px (x2) = totalSpacing=${totalSpacing}px`);
+    // console.trace('[DEBUG] calculateItemPositions called from:');
+    
+    // Calculate tail clone heights first
+    let tailClonesHeight = 0;
+    const tailClones = this.allItems.filter(item => item.type === 'tail-clone');
+    
+    // Position items in three phases: tail clones (negative), originals (0+), head clones (after originals)
+    let currentTop = 0;
+    let minTop = 0; // Track the most negative position for content height calculation
+    
+    // Phase 1: Calculate and position tail clones at negative offsets
+    for (let i = tailClones.length - 1; i >= 0; i--) {
+      const item = tailClones[i];
+      const itemIndex = this.allItems.indexOf(item);
+      
+      let contentHeight = this.measureItemHeight(item, measureHeights);
+      
+      // Position tail clones at negative offsets (they appear above original items)
+      currentTop -= (contentHeight + totalSpacing);
+      const topPosition = currentTop;
+      minTop = Math.min(minTop, topPosition); // Track most negative position
+      
+      this.positionItem(item, topPosition, contentHeight);
+      // console.log(`[DEBUG] Tail clone positioning: index=${itemIndex} originalIndex=${item.originalIndex} top=${topPosition}px height=${contentHeight}px`);
+    }
+    
+    // Phase 2: Position original items starting from 0
+    currentTop = 0;
+    const originalItems = this.allItems.filter(item => item.type === 'original');
+    originalItems.forEach((item, originalIndex) => {
+      const itemIndex = this.allItems.indexOf(item);
+      
+      // Add spacing before all original items except the first
+      if (originalIndex > 0) currentTop += totalSpacing;
+      
+      let contentHeight = this.measureItemHeight(item, measureHeights);
+      this.positionItem(item, currentTop, contentHeight);
+      
+      // console.log(`[DEBUG] Original item positioning: index=${itemIndex} originalIndex=${originalIndex} top=${currentTop}px height=${contentHeight}px`);
+      currentTop += contentHeight;
+    });
+    
+    // Phase 3: Position head clones after original items
+    const headClones = this.allItems.filter(item => item.type === 'head-clone');
+    headClones.forEach((item) => {
+      const itemIndex = this.allItems.indexOf(item);
+      
+      currentTop += totalSpacing;
+      let contentHeight = this.measureItemHeight(item, measureHeights);
+      this.positionItem(item, currentTop, contentHeight);
+      
+      // console.log(`[DEBUG] Head clone positioning: index=${itemIndex} top=${currentTop}px height=${contentHeight}px`);
+      currentTop += contentHeight;
+    });
+    
+    // Store the positioning info for content height calculation
+    this._minTop = minTop;
+    this._maxTop = currentTop;
+    
+    return { minTop, maxTop: currentTop };
+  }
+
+  // Helper method to measure item height
+  measureItemHeight(item, measureHeights) {
+    if (measureHeights) {
+      // Temporarily reset all constraints to allow natural content measurement
       item.element.style.height = 'auto';
       item.element.style.minHeight = 'auto';
       item.element.style.overflow = 'visible';
-      item.element.style.boxSizing = 'border-box';
+      
+      // Apply text formatting fixes FIRST before any measurements
+      this.ensureProperTextFormatting(item.element);
+      
+      // Force a layout recalculation after formatting
+      void item.element.offsetHeight;
+      
+      // Measure content height using multiple methods for reliability
+      const rect = item.element.getBoundingClientRect();
+      const scrollHeight = item.element.scrollHeight;
+      const offsetHeight = item.element.offsetHeight;
+      const clientHeight = item.element.clientHeight;
+      
+      // Use the largest value to ensure all content fits
+      let contentHeight = Math.max(rect.height || 0, scrollHeight || 0, offsetHeight || 0, clientHeight || 0);
+      
+      // Sanity check: if height is unreasonably large, use a fallback
+      if (contentHeight > 10000 || contentHeight === 0) {
+        contentHeight = Math.max(scrollHeight || 300, offsetHeight || 300, clientHeight || 300, 300);
+      }
+      
+      // Add padding to ensure content doesn't overflow
+      contentHeight += 20; // Increased padding for better text spacing
+      
+      // Update item data
+      item.height = contentHeight;
+      return contentHeight;
+    } else {
+      // For existing height, still ensure formatting is applied
+      this.ensureProperTextFormatting(item.element);
+      return item.height || 0;
+    }
+  }
+  
+  // Helper method to ensure proper text formatting
+  ensureProperTextFormatting(element) {
+    // Ensure the main container has proper box model
+    element.style.setProperty('box-sizing', 'border-box', 'important');
+    
+    // Fix skills list formatting
+    const skillsList = element.querySelector('.bulleted-job-skills-ul');
+    if (skillsList) {
+      skillsList.style.setProperty('display', 'flex', 'important');
+      skillsList.style.setProperty('flex-wrap', 'wrap', 'important');
+      skillsList.style.setProperty('gap', '0.1rem', 'important');
+      skillsList.style.setProperty('list-style', 'none', 'important');
+      skillsList.style.setProperty('padding', '0', 'important');
+      skillsList.style.setProperty('margin', '0', 'important');
+      skillsList.style.setProperty('line-height', '1.2', 'important');
+      skillsList.style.setProperty('width', '100%', 'important');
+      
+      // Fix each skill item
+      const skillItems = skillsList.querySelectorAll('.bulleted-job-skills-li');
+      skillItems.forEach(skill => {
+        skill.style.setProperty('display', 'inline-block', 'important');
+        skill.style.setProperty('margin', '0.1rem', 'important');
+        skill.style.setProperty('white-space', 'nowrap', 'important');
+      });
+    }
+    
+    // Ensure all text containers have proper word wrapping and spacing
+    const textContainers = element.querySelectorAll('.biz-details-employer, .biz-details-role, .biz-details-dates, .biz-details-description');
+    textContainers.forEach(container => {
+      container.style.setProperty('word-wrap', 'break-word', 'important');
+      container.style.setProperty('overflow-wrap', 'break-word', 'important');
+      container.style.setProperty('white-space', 'normal', 'important');
+      container.style.setProperty('line-height', '1.4', 'important');
+      container.style.setProperty('margin-bottom', '0.5rem', 'important');
+    });
+    
+    // Ensure the details container has proper spacing
+    const detailsDiv = element.querySelector('.biz-card-details-div, .biz-resume-details-div');
+    if (detailsDiv) {
+      detailsDiv.style.setProperty('padding', '10px', 'important');
+      detailsDiv.style.setProperty('box-sizing', 'border-box', 'important');
+    }
+  }
 
+  // Helper method to position an item
+  positionItem(item, topPosition, contentHeight) {
+    // Set positioning first
+    item.element.style.setProperty('position', 'absolute', 'important');
+    item.element.style.setProperty('top', `${topPosition}px`, 'important');
+    item.element.style.setProperty('left', '10px', 'important');
+    item.element.style.setProperty('right', '10px', 'important');
+    item.element.style.setProperty('width', 'calc(100% - 20px)', 'important');
+    
+    // Apply text formatting before setting height constraints
+    this.ensureProperTextFormatting(item.element);
+    
+    // Force layout after formatting
+    void item.element.offsetHeight;
+    
+    // Now set height constraints AFTER formatting is applied
+    item.element.style.setProperty('height', `${contentHeight}px`, 'important');
+    item.element.style.setProperty('min-height', `${contentHeight}px`, 'important');
+    item.element.style.setProperty('overflow', 'hidden', 'important');
+    
+    // Mouse event handlers are attached at creation for originals, and at cloning for clones
+    
+    // Update item data
+    item.top = topPosition;
+    item.height = contentHeight;
+  }
+  
+
+  positionItems() {
+    // Use the new calculateItemPositions method which handles proper clone positioning
+    const { minTop, maxTop } = this.calculateItemPositions(true);
+    
+    // Set content holder height to span from most negative position to highest position
+    // Add the absolute minTop to maxTop to get total height, then set transform to show negative content
+    const totalHeight = maxTop - minTop;
+    this.contentHolder.style.height = `${totalHeight}px`;
+    // Temporarily disable transform to test positioning
+    // this.contentHolder.style.transform = `translateY(${Math.abs(minTop)}px)`;
+    
+    // Apply additional styling for proper measurement and layout
+    this.allItems.forEach(item => {
+      // Set explicit width and positioning with proper gaps
+      item.element.style.setProperty('position', 'absolute', 'important');
+      item.element.style.setProperty('box-sizing', 'border-box', 'important');
+      
       // Use left and right positioning to create gaps - force with setProperty
       item.element.style.setProperty('left', '10px', 'important');
       item.element.style.setProperty('width', 'calc(100% - 20px)', 'important');
@@ -345,20 +491,20 @@ class InfiniteScrollingContainer {
       item.element.style.setProperty('max-width', 'none', 'important'); // Remove any max-width constraints
       
       // Set controlled margins only - let color palette system handle padding
-      item.element.style.margin = '0';
+      item.element.style.setProperty('margin', '0', 'important');
       // Don't override padding/border - let the color palette system handle it
       
       // Fix the skills display
       const skillsList = item.element.querySelector('.bulleted-job-skills-ul');
       if (skillsList) {
-        skillsList.style.display = 'flex';
-        skillsList.style.flexWrap = 'wrap';
-        skillsList.style.gap = '0.1rem';
-        skillsList.style.listStyle = 'none';
-        skillsList.style.padding = '0';
-        skillsList.style.margin = '0';
-        skillsList.style.lineHeight = '1.2';
-        skillsList.style.width = '100%';
+        skillsList.style.setProperty('display', 'flex', 'important');
+        skillsList.style.setProperty('flex-wrap', 'wrap', 'important');
+        skillsList.style.setProperty('gap', '0.1rem', 'important');
+        skillsList.style.setProperty('list-style', 'none', 'important');
+        skillsList.style.setProperty('padding', '0', 'important');
+        skillsList.style.setProperty('margin', '0', 'important');
+        skillsList.style.setProperty('line-height', '1.2', 'important');
+        skillsList.style.setProperty('width', '100%', 'important');
         
         // Fix each skill item
         const skillItems = skillsList.querySelectorAll('.bulleted-job-skills-li');
@@ -397,7 +543,7 @@ class InfiniteScrollingContainer {
         });
       }
       
-      // Ensure all margins and padding are controlled by positioning, not CSS
+      // Reset all margins since we're using absolute positioning with calculated spacing
       item.element.style.margin = '0';
       item.element.style.marginTop = '0';
       item.element.style.marginBottom = '0';
@@ -435,8 +581,7 @@ class InfiniteScrollingContainer {
     // Force layout calculation
     void this.contentHolder.offsetHeight;
     
-    // Use centralized positioning logic
-    const currentTop = this.calculateItemPositions(true);
+    // Positioning already done by calculateItemPositions at top of method
     
     // window.CONSOLE_LOG_IGNORE(`[DEBUG] positionItems: Final currentTop=${currentTop}`);
     
@@ -454,7 +599,7 @@ class InfiniteScrollingContainer {
     const totalOriginalHeight = originalItems.reduce((sum, item) => sum + item.height, 0);
     const averageHeight = totalOriginalHeight / originalItems.length;
     const numDivs = originalItems.length;
-    const gap = 5;
+    const gap = this.options.itemSpacing;
     const buffer = 6; // Buffer for smooth scrolling
     
     const calculatedHeight = (buffer + numDivs + gap) * averageHeight;
@@ -479,8 +624,11 @@ class InfiniteScrollingContainer {
     const cloneCount = Math.min(this.options.cloneCount, this.originalItems.length);
     const targetItemIndex = cloneCount + originalIndex; // Account for tail clones
     
-    // window.CONSOLE_LOG_IGNORE(`[DEBUG] SCROLL_TO_INDEX: originalIndex=${originalIndex}, targetItemIndex=${targetItemIndex}`);
-    // window.CONSOLE_LOG_IGNORE(`[DEBUG] SCROLL_TO_INDEX: allItems.length=${this.allItems.length}`);
+    // console.log(`[DEBUG] scrollToIndex: originalIndex=${originalIndex}, cloneCount=${cloneCount}, targetItemIndex=${targetItemIndex}`);
+    // console.log(`[DEBUG] scrollToIndex: allItems.length=${this.allItems.length}`);
+    
+    // Disable seamless transitions during targeted scrolling
+    this._isTargetScrolling = true;
     
     // Debug: Check what items are at each position
     // window.CONSOLE_LOG_IGNORE(`[DEBUG] InfiniteScroller.scrollToIndex: Item mapping (first 10 items):`);
@@ -514,15 +662,18 @@ class InfiniteScrollingContainer {
     // }
     
     if (targetItemIndex >= this.allItems.length) {
-      // window.CONSOLE_LOG_IGNORE(`[DEBUG] InfiniteScroller.scrollToIndex: targetItemIndex ${targetItemIndex} >= allItems.length ${this.allItems.length}`);
+      // console.log(`[DEBUG] scrollToIndex: Invalid target index ${targetItemIndex}, max is ${this.allItems.length - 1}`);
       return;
     }
     
     const targetItem = this.allItems[targetItemIndex];
     if (!targetItem) {
-      // window.CONSOLE_LOG_IGNORE(`[DEBUG] InfiniteScroller.scrollToIndex: targetItem is null for index ${targetItemIndex}`);
+      // console.log(`[DEBUG] scrollToIndex: targetItem is null for index ${targetItemIndex}`);
       return;
     }
+    
+    // const actualJobNumber = targetItem.element.getAttribute('data-job-number');
+    // console.log(`[DEBUG] scrollToIndex: targetItem has jobNumber=${actualJobNumber}, type=${targetItem.type}`);
     
     // Debug: Check what job number the target item represents
     // if (targetItem.element) {
@@ -545,15 +696,47 @@ class InfiniteScrollingContainer {
       }
     }
     
-    // Calculate scroll position to ensure the header is visible at the top of the container
-    const topMargin = 50; // Margin from the top to make target job more prominent
-    const targetScrollTop = Math.max(0, targetItem.top + headerOffset - topMargin);
+    // Calculate scroll position to ensure the target item is visible without clone overlap
+    const topMargin = 10; // Small margin from the top for optimal positioning
+    const tailCloneHeight = this.getTotalCloneHeight('tail');
+    
+    let targetScrollTop;
+    
+    // Account for negative tail clone positioning
+    const tailCloneOffset = Math.abs(this._minTop || 0);
+    
+    if (targetItem.type === 'original') {
+      // For original items, ensure we show them clearly without clone interference
+      if (originalIndex === 0) {
+        // Special case for first original item: scroll to show original content
+        // Add tail clone offset to account for negative positioning
+        targetScrollTop = Math.max(0, targetItem.top + tailCloneOffset - topMargin);
+      } else {
+        // For other original items, use normal positioning with offset
+        const idealScrollTop = Math.max(0, targetItem.top + headerOffset + tailCloneOffset - topMargin);
+        targetScrollTop = idealScrollTop;
+      }
+    } else {
+      // For clones, use the standard calculation with offset
+      targetScrollTop = Math.max(0, targetItem.top + headerOffset + tailCloneOffset - topMargin);
+    }
+    
+    // if (originalIndex >= this.originalItems.length - 3) {
+    //   console.log(`[DEBUG] scrollToIndex: LAST ITEMS - originalIndex=${originalIndex}, itemType=${targetItem.type}, targetItem.top=${targetItem.top}, final targetScrollTop=${targetScrollTop}, _minTop=${this._minTop}, _maxTop=${this._maxTop}`);
+    // }
+    
+    // Positioning calculations completed
     
     // Always use smooth scrolling behavior
     this.scrollport.scrollTo({
       top: targetScrollTop,
       behavior: 'smooth'
     });
+    
+    // Re-enable seamless transitions after scroll completes
+    setTimeout(() => {
+      this._isTargetScrolling = false;
+    }, 2000); // Allow more time for smooth scroll to complete and prevent interference
     
     // Log the actual scroll position after setting it
     // setTimeout(() => {
@@ -568,7 +751,9 @@ class InfiniteScrollingContainer {
 
     this.currentIndex = originalIndex;
     const jumped = this.checkForSeamlessTransition();
+    // Seamless transition check completed
     if (jumped && !_retry) {
+      // Retrying scroll due to seamless transition
       setTimeout(() => {
         this.scrollToIndex(originalIndex, animate, true);
       }, 0);
@@ -603,34 +788,76 @@ class InfiniteScrollingContainer {
   }
 
   checkForSeamlessTransition() {
+    // Skip seamless transitions during targeted scrolling
+    if (this._isTargetScrolling) {
+      // Skipping seamless transitions during targeted scrolling
+      return false;
+    }
+    
+    // Prevent rapid transitions (cooldown period)
+    const now = Date.now();
+    if (now - this._lastTransitionTime < 1000) {
+      return false; // Skip if less than 1 second since last transition
+    }
+    
     const scrollTop = this.scrollport.scrollTop;
     const cloneCount = Math.min(this.options.cloneCount, this.originalItems.length);
     const containerHeight = this.scrollport.offsetHeight;
 
-    // Calculate boundaries
-    const tailCloneHeight = this.getTotalCloneHeight('tail');
+    // Calculate boundaries accounting for tail clone offset
+    const tailCloneOffset = Math.abs(this._minTop || 0);
     const originalItemsHeight = this.getTotalOriginalItemsHeight();
-
-    // window.CONSOLE_LOG_IGNORE(`[DEBUG] checkForSeamlessTransition: scrollTop=${scrollTop}, tailCloneHeight=${tailCloneHeight}, originalItemsHeight=${originalItemsHeight}, containerHeight=${containerHeight}`);
-    // window.CONSOLE_LOG_IGNORE(`[DEBUG] checkForSeamlessTransition: tail boundary=${tailCloneHeight - containerHeight / 2}, head boundary=${tailCloneHeight + originalItemsHeight - containerHeight / 2}`);
-
+    const headCloneHeight = this.getTotalCloneHeight('head');
+    
+    // Adjusted boundaries to account for the offset
+    const originalContentStart = tailCloneOffset; // Original content starts after tail clone offset
+    const originalContentEnd = originalContentStart + originalItemsHeight;
+    const headCloneStart = originalContentEnd;
+    const headCloneEnd = headCloneStart + headCloneHeight;
+    
+    // Calculate boundaries for smoother transitions
+    const tailBoundary = originalContentStart - containerHeight * 0.7; // Allow some tail clone viewing
+    const headBoundary = originalContentEnd + containerHeight * 0.5; // Allow some head clone viewing
+    
     // If we're in the tail clone area, jump to the end of original items
-    if (scrollTop < tailCloneHeight - containerHeight / 2) {
-      const jumpToPosition = tailCloneHeight + originalItemsHeight - containerHeight;
-      // window.CONSOLE_LOG_IGNORE(`[DEBUG] checkForSeamlessTransition: JUMPING from tail clone area: ${scrollTop} -> ${jumpToPosition}`);
+    if (scrollTop < tailBoundary) {
+      const jumpToPosition = originalContentEnd - containerHeight;
       this.scrollport.scrollTop = jumpToPosition;
+      this._lastTransitionTime = now; // Record transition time
+      
+      // Trigger a re-selection to ensure CSS classes are reapplied after transition
+      setTimeout(() => {
+        const selectedJobNumber = selectionManager.getSelectedJobNumber();
+        if (selectedJobNumber !== null) {
+          // This will trigger selectionChanged event and reapply CSS classes
+          selectionManager.selectJobNumber(selectedJobNumber, 'InfiniteScroller.seamlessTransition');
+        }
+      }, 50);
+      
       return true; // Jumped
     }
-    // If we're in the head clone area, jump to the beginning of original items
-    else if (scrollTop > tailCloneHeight + originalItemsHeight - containerHeight / 2) {
-      const jumpToPosition = tailCloneHeight;
-      // window.CONSOLE_LOG_IGNORE(`[DEBUG] checkForSeamlessTransition: JUMPING from head clone area: ${scrollTop} -> ${jumpToPosition}`);
-      this.scrollport.scrollTop = jumpToPosition;
+    // If we're in the head clone area, jump seamlessly to the beginning
+    else if (scrollTop > headBoundary) {
+      // Calculate the seamless position: where rDiv 0 appears in the same visual position
+      // Find how far into the head clone area we are
+      const distanceIntoHeadClones = scrollTop - originalContentEnd;
+      // Position rDiv 0 to appear at the same relative position
+      const jumpToPosition = originalContentStart - distanceIntoHeadClones;
+      this.scrollport.scrollTop = Math.max(originalContentStart, jumpToPosition);
+      this._lastTransitionTime = now; // Record transition time
+      
+      // Trigger a re-selection to ensure CSS classes are reapplied after transition
+      setTimeout(() => {
+        const selectedJobNumber = selectionManager.getSelectedJobNumber();
+        if (selectedJobNumber !== null) {
+          // This will trigger selectionChanged event and reapply CSS classes
+          selectionManager.selectJobNumber(selectedJobNumber, 'InfiniteScroller.seamlessTransition');
+        }
+      }, 50);
+      
       return true; // Jumped
     }
-    else {
-      // window.CONSOLE_LOG_IGNORE(`[DEBUG] checkForSeamlessTransition: No transition needed, staying at ${scrollTop}`);
-    }
+    
     return false; // No jump
   }
 
@@ -787,13 +1014,44 @@ class InfiniteScrollingContainer {
   }
 
   handleScroll() {
-    if (!this.isDragging) {
-      // Debounce the seamless transition check
+    if (!this.isDragging && !this._isTargetScrolling) {
+      // Debounce the seamless transition check and only when not doing targeted scrolling
       clearTimeout(this.scrollTimeout);
       this.scrollTimeout = setTimeout(() => {
         this.checkForSeamlessTransition();
-      }, 50);
+        // Mouse events should handle styling, but ensure visible selected items have correct classes
+        this.ensureVisibleItemStyling();
+      }, 100); // Increased debounce to reduce transition frequency
     }
+  }
+  
+  // Ensure selected styling is applied to visible selected items during scroll
+  ensureVisibleItemStyling() {
+    const selectedJobNumber = selectionManager.getSelectedJobNumber();
+    if (selectedJobNumber === null) return;
+    
+    const scrollTop = this.scrollport.scrollTop;
+    const containerHeight = this.scrollport.offsetHeight;
+    const visibleTop = scrollTop;
+    const visibleBottom = scrollTop + containerHeight;
+    
+    // Find all items (originals and clones) that match the selected job number
+    this.allItems.forEach(item => {
+      const jobNumber = parseInt(item.element.getAttribute('data-job-number'));
+      if (jobNumber === selectedJobNumber) {
+        const itemTop = item.top + Math.abs(this._minTop || 0); // Account for tail clone offset
+        const itemBottom = itemTop + item.height;
+        
+        // If this selected item is visible, ensure it has the selected class
+        if (itemBottom > visibleTop && itemTop < visibleBottom) {
+          if (!item.element.classList.contains('selected')) {
+            item.element.classList.add('selected');
+            item.element.classList.remove('hovered');
+            console.log(`[DEBUG] Applied selected class to visible jobNumber=${jobNumber}, type=${item.type}`);
+          }
+        }
+      }
+    });
   }
 
   getEventY(e) {
@@ -942,10 +1200,16 @@ class InfiniteScrollingContainer {
 
   addDirectClickHandlers() {
     this.allItems.forEach(item => {
-      // Add direct click handlers to all items
-      item.element.addEventListener('click', () => {
-        // THIS IS INTENTIONALLY LEFT BLANK TO PREVENT A DEAD IMPORT
-      });
+      // Ensure clones don't intercept mouse events - let them pass through to originals
+      if (item.type === 'tail-clone' || item.type === 'head-clone') {
+        item.element.style.pointerEvents = 'none';
+      }
+      // Only add click handlers to original items
+      if (item.type === 'original') {
+        item.element.addEventListener('click', () => {
+          // THIS IS INTENTIONALLY LEFT BLANK TO PREVENT A DEAD IMPORT
+        });
+      }
     });
   }
 
@@ -1038,7 +1302,7 @@ class InfiniteScrollingContainer {
    * @returns {boolean} - Whether the scroll was successful
    */
   scrollToJobNumber(jobNumber, animate = true) {
-    // window.CONSOLE_LOG_IGNORE(`[DEBUG] InfiniteScroller.scrollToJobNumber: jobNumber=${jobNumber}, animate=${animate}`);
+    // console.log(`[DEBUG] InfiniteScroller.scrollToJobNumber: jobNumber=${jobNumber}, animate=${animate}`);
     
     // Find the item with the specified job number
     const index = this.originalItems.findIndex(item => {
@@ -1051,7 +1315,7 @@ class InfiniteScrollingContainer {
       return false;
     }
     
-    // window.CONSOLE_LOG_IGNORE(`[DEBUG] InfiniteScroller.scrollToJobNumber: Found job ${jobNumber} at index ${index}`);
+    // console.log(`[DEBUG] InfiniteScroller.scrollToJobNumber: Found job ${jobNumber} at index ${index}`);
     
     // Use scrollToIndex instead of scrollToItem to properly handle the cloned structure
     this.scrollToIndex(index, animate);
@@ -1094,10 +1358,13 @@ class InfiniteScrollingContainer {
     void this.contentHolder.offsetHeight;
     
     // Use centralized positioning logic
-    const currentTop = this.calculateItemPositions(true);
+    const { minTop, maxTop } = this.calculateItemPositions(true);
     
-    // Update total content height
-    this.contentHolder.style.height = `${currentTop}px`;
+    // Set content holder height to span full range including negative positions
+    const totalHeight = maxTop - minTop;
+    this.contentHolder.style.height = `${totalHeight}px`;
+    // Temporarily disable transform to test positioning
+    // this.contentHolder.style.transform = `translateY(${Math.abs(minTop)}px)`;
     
     // window.CONSOLE_LOG_IGNORE(`[DEBUG] InfiniteScroller.recalculateHeights: Recalculation complete, total height: ${currentTop}px`);
   }
@@ -1147,7 +1414,7 @@ class InfiniteScrollingContainer {
   // Helper method to recalculate positions starting from a specific index
   recalculatePositionsFromIndex(startIndex) {
     // Use centralized positioning logic, but only reposition from startIndex onwards
-    const spacing = 5;
+    const spacing = this.options.itemSpacing;
     let currentTop = startIndex > 0 ? this.allItems[startIndex - 1].top + this.allItems[startIndex - 1].height + spacing : 0;
     
     for (let i = startIndex; i < this.allItems.length; i++) {
@@ -1161,15 +1428,17 @@ class InfiniteScrollingContainer {
       currentTop += item.height + spacing;
     }
     
-    // Update total content height
-    this.contentHolder.style.height = `${currentTop}px`;
+    // Set content holder height to span full range including negative positions
+    const totalHeight = currentTop - (this._minTop || 0);
+    this.contentHolder.style.height = `${totalHeight}px`;
+    this.contentHolder.style.transform = `translateY(${Math.abs(this._minTop || 0)}px)`;
   }
 
 
 
   // Method to trigger debounced resize handling
   handleResize() {
-    // window.CONSOLE_LOG_IGNORE('[DEBUG] InfiniteScroller.handleResize: Container size changed, recalculating layout');
+    // console.log('[DEBUG] handleResize: Container size changed, triggering recalculation');
     
     // Clear any existing timeout
     if (this.resizeTimeoutId) {
@@ -1196,8 +1465,11 @@ class InfiniteScrollingContainer {
       void this.contentHolder.offsetHeight;
       
       // Now recalculate heights and positions using centralized logic
-      const currentTop = this.calculateItemPositions(true);
-      this.contentHolder.style.height = `${currentTop}px`;
+      // console.log('[DEBUG] handleResize: About to call calculateItemPositions from resize handler');
+      const { minTop, maxTop } = this.calculateItemPositions(true);
+      const totalHeight = maxTop - minTop;
+      this.contentHolder.style.height = `${totalHeight}px`;
+      this.contentHolder.style.transform = `translateY(${Math.abs(minTop)}px)`;
       
       // VERIFY WHAT JOB IS VISIBLE AFTER POSITIONING
       const visibleJobAfterPositioning = this.getCurrentlyVisibleJob();
@@ -1259,6 +1531,28 @@ class InfiniteScrollingContainer {
     });
     
     return closestJob;
+  }
+
+  /**
+   * Configure the vertical spacing between rDivs
+   * @param {number} spacing - Vertical gap in pixels between adjacent rDivs
+   */
+  configureItemSpacing(spacing) {
+    this.options.itemSpacing = spacing;
+    window.CONSOLE_LOG_IGNORE(`[DEBUG] InfiniteScrollingContainer: Item spacing configured to ${spacing}px`);
+    
+    // Recalculate positions with new spacing
+    if (this.allItems && this.allItems.length > 0) {
+      this.positionItems();
+    }
+  }
+
+  /**
+   * Get current item spacing configuration
+   * @returns {number} Current spacing in pixels
+   */
+  getItemSpacing() {
+    return this.options.itemSpacing;
   }
 
   // Method to initialize the infinite scroller with DOM elements after creation

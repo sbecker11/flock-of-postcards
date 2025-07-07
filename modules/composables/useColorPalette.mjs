@@ -189,14 +189,16 @@ export async function applyPaletteToElement(element) {
             innerBorderColor: 'transparent',
             outerBorderWidth: '1px',
             outerBorderColor: 'white',
+            marginTop: '0px', // Top margin for vertical separation
             borderRadius: '25px'
         },
         hovered: {
-            padding: '7px', // 5px padding + 1px for border = 6px to match 7px total
+            padding: '5px', // 5px padding + 2px inner border = 7px total (consistent with normal)
             innerBorderWidth: '2px',
             innerBorderColor: 'blue',
             outerBorderWidth: '0px',
             outerBorderColor: 'blue',
+            marginTop: '0px', // Top margin for vertical separation
             borderRadius: '25px'
         },
         selected: {
@@ -205,6 +207,7 @@ export async function applyPaletteToElement(element) {
             innerBorderColor: 'purple',
             outerBorderWidth: '7',
             outerBorderColor: 'purple',
+            marginTop: '0px', // Top margin for vertical separation
             borderRadius: '25px'
         }
     };
@@ -212,12 +215,17 @@ export async function applyPaletteToElement(element) {
     // apply resume div border override settings if the element is a resume div
     if ( element.classList.contains('biz-resume-div') ) {
         const rDivBorderOverrideSettings = AppState.theme?.rDivBorderOverrideSettings;
-        borderSettings.normal.padding = rDivBorderOverrideSettings.normal.padding;
-        borderSettings.normal.innerBorderWidth = rDivBorderOverrideSettings.normal.innerBorderWidth;
-        borderSettings.hovered.padding = rDivBorderOverrideSettings.hovered.padding;
-        borderSettings.hovered.innerBorderWidth = rDivBorderOverrideSettings.hovered.innerBorderWidth;
-        borderSettings.selected.padding = rDivBorderOverrideSettings.selected.padding;
-        borderSettings.selected.innerBorderWidth = rDivBorderOverrideSettings.selected.innerBorderWidth;
+        if (rDivBorderOverrideSettings) {
+            borderSettings.normal.padding = rDivBorderOverrideSettings.normal.padding;
+            borderSettings.normal.innerBorderWidth = rDivBorderOverrideSettings.normal.innerBorderWidth;
+            borderSettings.normal.marginTop = rDivBorderOverrideSettings.normal.marginTop;
+            borderSettings.hovered.padding = rDivBorderOverrideSettings.hovered.padding;
+            borderSettings.hovered.innerBorderWidth = rDivBorderOverrideSettings.hovered.innerBorderWidth;
+            borderSettings.hovered.marginTop = rDivBorderOverrideSettings.hovered.marginTop;
+            borderSettings.selected.padding = rDivBorderOverrideSettings.selected.padding;
+            borderSettings.selected.innerBorderWidth = rDivBorderOverrideSettings.selected.innerBorderWidth;
+            borderSettings.selected.marginTop = rDivBorderOverrideSettings.selected.marginTop;
+        }
     }
 
     // Set data attributes for all color states
@@ -265,6 +273,7 @@ export async function applyPaletteToElement(element) {
     element.style.setProperty('--data-normal-inner-border-color', borderSettings.normal.innerBorderColor);
     element.style.setProperty('--data-normal-outer-border-width', borderSettings.normal.outerBorderWidth);
     element.style.setProperty('--data-normal-outer-border-color', borderSettings.normal.outerBorderColor);
+    element.style.setProperty('--data-normal-margin-top', borderSettings.normal.marginTop);
     element.style.setProperty('--data-normal-border-radius', borderSettings.normal.borderRadius);
 
     element.style.setProperty('--data-hovered-padding', borderSettings.hovered.padding);
@@ -272,6 +281,7 @@ export async function applyPaletteToElement(element) {
     element.style.setProperty('--data-hovered-inner-border-color', borderSettings.hovered.innerBorderColor);
     element.style.setProperty('--data-hovered-outer-border-width', borderSettings.hovered.outerBorderWidth);
     element.style.setProperty('--data-hovered-outer-border-color', borderSettings.hovered.outerBorderColor);
+    element.style.setProperty('--data-hovered-margin-top', borderSettings.hovered.marginTop);
     element.style.setProperty('--data-hovered-border-radius', borderSettings.hovered.borderRadius);
 
     element.style.setProperty('--data-selected-padding', borderSettings.selected.padding);
@@ -279,6 +289,7 @@ export async function applyPaletteToElement(element) {
     element.style.setProperty('--data-selected-inner-border-color', borderSettings.selected.innerBorderColor);
     element.style.setProperty('--data-selected-outer-border-width', borderSettings.selected.outerBorderWidth);
     element.style.setProperty('--data-selected-outer-border-color', borderSettings.selected.outerBorderColor);
+    element.style.setProperty('--data-selected-margin-top', borderSettings.selected.marginTop);
     element.style.setProperty('--data-selected-border-radius', borderSettings.selected.borderRadius);
 
     // Don't apply inline styles - let CSS variables handle the styling
@@ -299,6 +310,7 @@ export function applyStateStyling(element, state) {
     const innerBorderColor = element.getAttribute(`data-${state}-inner-border-color`);
     const outerBorderWidth = element.getAttribute(`data-${state}-outer-border-width`);
     const outerBorderColor = element.getAttribute(`data-${state}-outer-border-color`);
+    const marginTop = element.style.getPropertyValue(`--data-${state}-margin-top`);
     const borderRadius = element.getAttribute(`data-${state}-border-radius`);
     
     // Apply the styling with !important to override CSS rules
@@ -312,6 +324,11 @@ export function applyStateStyling(element, state) {
         element.style.setProperty('outline', `${outerBorderWidth} solid ${outerBorderColor}`, 'important');
     } else if (outerBorderWidth === '0px' || outerBorderColor === 'transparent') {
         element.style.setProperty('outline', '0px solid transparent', 'important');
+    }
+    
+    // Apply margin-top for vertical separation (only for rDivs)
+    if (marginTop && element.classList.contains('biz-resume-div')) {
+        element.style.setProperty('margin-top', marginTop, 'important');
     }
     
     // Apply state-specific border radius from border settings
@@ -334,10 +351,10 @@ export function applyStateStyling(element, state) {
         if (sceneZ) {
             // Apply the parallax depth effect based on z-value
             const zValue = parseInt(sceneZ);
-            const brightness = Math.max(0.1, 1 - (zValue * 0.1));
-            const blur = Math.max(0, zValue * 0.5);
-            const contrast = Math.max(0.5, 1 - (zValue * 0.05));
-            const saturate = Math.max(0.5, 1 - (zValue * 0.05));
+            const brightness = Math.max(0.4, 1 - (zValue * 0.10));
+            const blur = Math.max(0, zValue * 0.10);
+            const contrast = Math.max(0.75, 1 - (zValue * 0.010));
+            const saturate = Math.max(0.75, 1 - (zValue * 0.010));
             element.style.setProperty('filter', `brightness(${brightness}) blur(${blur}px) contrast(${contrast}) saturate(${saturate})`, 'important');
         }
     } else if (state === 'hovered') {
@@ -365,37 +382,38 @@ export function applyStateStyling(element, state) {
     }
     
     // Only log styling for biz-card-div elements that are clones (have "-clone" in their ID)
-    if (element.classList.contains('biz-card-div') && element.id && element.id.includes('-clone')) {
-        // Get computed styles to see what's actually being applied
-        const computedStyle = window.getComputedStyle(element);
-        console.log(`[DEBUG] applyStateStyling: Applied ${state} state to ${element.id || element.className}`, {
-            padding,
-            innerBorderWidth,
-            innerBorderColor,
-            outerBorderWidth,
-            outerBorderColor,
-            borderRadius: element.style.borderRadius,
-            filter: element.style.filter,
-            backgroundColor: element.style.backgroundColor,
-            color: element.style.color
-        });
-        console.log(`[DEBUG] applyStateStyling: Computed styles for ${element.id}:`, {
-            padding: computedStyle.padding,
-            border: computedStyle.border,
-            borderRadius: computedStyle.borderRadius,
-            backgroundColor: computedStyle.backgroundColor,
-            color: computedStyle.color,
-            filter: computedStyle.filter
-        });
-        console.log(`[DEBUG] applyStateStyling: Inline styles for ${element.id}:`, {
-            padding: element.style.padding,
-            border: element.style.border,
-            borderRadius: element.style.borderRadius,
-            backgroundColor: element.style.backgroundColor,
-            color: element.style.color,
-            filter: element.style.filter
-        });
-    }
+    // COMMENTED OUT: Not needed for current rDiv spacing debug
+    // if (element.classList.contains('biz-card-div') && element.id && element.id.includes('-clone')) {
+    //     // Get computed styles to see what's actually being applied
+    //     const computedStyle = window.getComputedStyle(element);
+    //     console.log(`[DEBUG] applyStateStyling: Applied ${state} state to ${element.id || element.className}`, {
+    //         padding,
+    //         innerBorderWidth,
+    //         innerBorderColor,
+    //         outerBorderWidth,
+    //         outerBorderColor,
+    //         borderRadius: element.style.borderRadius,
+    //         filter: element.style.filter,
+    //         backgroundColor: element.style.backgroundColor,
+    //         color: element.style.color
+    //     });
+    //     console.log(`[DEBUG] applyStateStyling: Computed styles for ${element.id}:`, {
+    //         padding: computedStyle.padding,
+    //         border: computedStyle.border,
+    //         borderRadius: computedStyle.borderRadius,
+    //         backgroundColor: computedStyle.backgroundColor,
+    //         color: computedStyle.color,
+    //         filter: computedStyle.filter
+    //     });
+    //     console.log(`[DEBUG] applyStateStyling: Inline styles for ${element.id}:`, {
+    //         padding: element.style.padding,
+    //         border: element.style.border,
+    //         borderRadius: element.style.borderRadius,
+    //         backgroundColor: element.style.backgroundColor,
+    //         color: element.style.color,
+    //         filter: element.style.filter
+    //     });
+    // }
 }
 
 // --- Global Watcher ---

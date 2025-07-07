@@ -60,17 +60,21 @@ class NavigationAPI {
     navigateToNext(caller = 'unknown') {
         if (!this.isInitialized) return false;
 
-        const currentIndex = selectionManager.getSelectedJobNumber();
-        if (currentIndex === null) {
+        const currentJobNumber = selectionManager.getSelectedJobNumber();
+        console.log(`[DEBUG] NavigationAPI.navigateToNext: currentJobNumber=${currentJobNumber}`);
+        
+        if (currentJobNumber === null) {
             // If nothing selected, start with first job
             return this.navigateToJobNumber(0, caller);
         }
 
-        const nextIndex = currentIndex + 1;
-        const maxIndex = this.cardsController?.bizCardDivs?.length - 1 || 0;
+        const nextJobNumber = currentJobNumber + 1;
+        const maxJobNumber = this.cardsController?.bizCardDivs?.length - 1 || 0;
         
-        if (nextIndex <= maxIndex) {
-            return this.navigateToJobNumber(nextIndex, caller);
+        console.log(`[DEBUG] NavigationAPI.navigateToNext: nextJobNumber=${nextJobNumber}, maxJobNumber=${maxJobNumber}`);
+        
+        if (nextJobNumber <= maxJobNumber) {
+            return this.navigateToJobNumber(nextJobNumber, caller);
         }
         
         return false; // Already at end

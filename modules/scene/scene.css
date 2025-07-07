@@ -269,15 +269,19 @@ body.focal-point-locked .biz-card-div.selected {
 
 /* Ensure bizCardDivs always have pointer events enabled with maximum specificity */
 .biz-card-div,
-.biz-card-div *,
 body .biz-card-div,
-body .biz-card-div *,
 body.focal-point-locked .biz-card-div,
-body.focal-point-locked .biz-card-div *,
 #scene-container .biz-card-div,
-#scene-container .biz-card-div *,
-#scene-container.focal-point-locked .biz-card-div,
-#scene-container.focal-point-locked .biz-card-div * {
+#scene-container.focal-point-locked .biz-card-div {
+    pointer-events: auto !important;
+}
+
+/* Allow content divs to have pointer-events: none while keeping interactive elements enabled */
+.biz-card-div .scroll-caret,
+body .biz-card-div .scroll-caret,
+body.focal-point-locked .biz-card-div .scroll-caret,
+#scene-container .biz-card-div .scroll-caret,
+#scene-container.focal-point-locked .biz-card-div .scroll-caret {
     pointer-events: auto !important;
 }
 

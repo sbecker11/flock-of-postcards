@@ -8,7 +8,7 @@ const STORAGE_KEY = 'flockOfPostcards_appState';
  */
 function getDefaultState() {
     return {
-        version: "1.0",
+        version: "1.1", // Updated for marginTop changes
         lastUpdated: new Date().toISOString(),
         layout: {
             panelSizePercentage: 50 // Default to a 50/50 split
@@ -56,19 +56,70 @@ function getDefaultState() {
             rDivBorderOverrideSettings: {
                 normal: {
                     padding: '15px',
-                    innerBorderWidth: '1px'
+                    innerBorderWidth: '1px',
+                    marginTop: '11px'
                 },
                 hovered: {
                     padding: '14px',
-                    innerBorderWidth: '2px'
+                    innerBorderWidth: '2px',
+                    marginTop: '11px'
                 },
                 selected: {
                     padding: '13px',
-                    innerBorderWidth: '3px'
+                    innerBorderWidth: '3px',
+                    marginTop: '11px'
                 }
             }
         }
     };
+}
+
+/**
+ * Migrates old state versions to current version
+ * @param {object} state The state to migrate
+ * @returns {object} The migrated state
+ */
+function migrateState(state) {
+    if (!state.version) {
+        state.version = "1.0"; // Assume version 1.0 if no version present
+    }
+
+    // Migration from 1.0 to 1.1: Update marginTop values
+    if (state.version === "1.0") {
+        console.log('[MIGRATION] Migrating state from v1.0 to v1.1: Updating marginTop values');
+        
+        // Ensure rDivBorderOverrideSettings exists
+        if (!state.theme) state.theme = {};
+        if (!state.theme.rDivBorderOverrideSettings) {
+            state.theme.rDivBorderOverrideSettings = {
+                normal: { padding: '15px', innerBorderWidth: '1px', marginTop: '11px' },
+                hovered: { padding: '14px', innerBorderWidth: '2px', marginTop: '11px' },
+                selected: { padding: '13px', innerBorderWidth: '3px', marginTop: '11px' }
+            };
+        } else {
+            // Update existing marginTop values
+            if (state.theme.rDivBorderOverrideSettings.normal) {
+                state.theme.rDivBorderOverrideSettings.normal.marginTop = '11px';
+            }
+            if (state.theme.rDivBorderOverrideSettings.hovered) {
+                state.theme.rDivBorderOverrideSettings.hovered.marginTop = '11px';
+            }
+            if (state.theme.rDivBorderOverrideSettings.selected) {
+                state.theme.rDivBorderOverrideSettings.selected.marginTop = '11px';
+            }
+        }
+        
+        state.version = "1.1";
+        console.log('[MIGRATION] Successfully migrated to v1.1');
+    }
+
+    // Future migrations can be added here:
+    // if (state.version === "1.1") {
+    //     // Migration logic for 1.1 → 1.2
+    //     state.version = "1.2";
+    // }
+
+    return state;
 }
 
 /**
@@ -87,10 +138,17 @@ async function loadState() {
             }
             return getDefaultState();
         }
-        const state = await response.json();
-        window.CONSOLE_LOG_IGNORE("Loaded state from server:", state);
-        // Merge the loaded state into the default state to ensure all keys exist
-        return deepMerge(getDefaultState(), state);
+        const rawState = await response.json();
+        window.CONSOLE_LOG_IGNORE("Loaded raw state from server:", rawState);
+        
+        // Migrate the state to current version
+        const migratedState = migrateState(rawState);
+        
+        // Merge the migrated state into the default state to ensure all keys exist
+        const finalState = deepMerge(getDefaultState(), migratedState);
+        
+        window.CONSOLE_LOG_IGNORE("Final state after migration and merge:", finalState);
+        return finalState;
     } catch (e) {
         window.CONSOLE_LOG_IGNORE('Error fetching state from server, using default state.', e);
         return getDefaultState();

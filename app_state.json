@@ -1,12 +1,12 @@
 {
-  "version": "1.0",
-  "lastUpdated": "2025-07-06T22:49:56.174Z",
+  "version": "1.1",
+  "lastUpdated": "2025-07-07T04:57:40.082Z",
   "layout": {
-    "panelSizePercentage": 66.63007683863886
+    "panelSizePercentage": 50
   },
   "resizeHandle": {
     "steppingEnabled": true,
-    "stepCount": 3
+    "stepCount": 4
   },
   "focalPoint": {
     "mode": "following"
@@ -16,7 +16,7 @@
       "field": "startDate",
       "direction": "desc"
     },
-    "selectedJobNumber": 0
+    "selectedJobNumber": 9
   },
   "theme": {
     "colorPalette": "50_Dark_Grey_Monotone.json",
@@ -29,7 +29,9 @@
         "innerBorderColor": "transparent",
         "outerBorderWidth": "1px",
         "outerBorderColor": "white",
-        "borderRadius": "25px"
+        "borderRadius": "25px",
+        "verticalGap": "0px",
+        "marginTop": "11px"
       },
       "hovered": {
         "padding": "15px",
@@ -37,7 +39,9 @@
         "innerBorderColor": "blue",
         "outerBorderWidth": "0px",
         "outerBorderColor": "blue",
-        "borderRadius": "25px"
+        "borderRadius": "25px",
+        "verticalGap": "0px",
+        "marginTop": "11px"
       },
       "selected": {
         "padding": "15px",
@@ -45,21 +49,35 @@
         "innerBorderColor": "purple",
         "outerBorderWidth": "7px",
         "outerBorderColor": "purple",
-        "borderRadius": "25px"
+        "borderRadius": "25px",
+        "verticalGap": "0px",
+        "marginTop": "11px"
       }
     },
     "rDivBorderOverrideSettings": {
       "normal": {
         "padding": "15px",
-        "innerBorderWidth": "0px"
+        "innerBorderWidth": "0px",
+        "marginTop": "11px",
+        "outerBorderWidth": "0px",
+        "outerBorderColor": "transparent",
+        "verticalGap": "10px"
       },
       "hovered": {
         "padding": "15px",
-        "innerBorderWidth": "0px"
+        "innerBorderWidth": "0px",
+        "marginTop": "11px",
+        "outerBorderWidth": "0px",
+        "outerBorderColor": "transparent",
+        "verticalGap": "10px"
       },
       "selected": {
         "padding": "15px",
-        "innerBorderWidth": "0px"
+        "innerBorderWidth": "0px",
+        "marginTop": "11px",
+        "outerBorderWidth": "5px",
+        "outerBorderColor": "purple",
+        "verticalGap": "5px"
       }
     }
   },

@@ -71,6 +71,9 @@ export function createBizCardDetailsDiv(bizCardDiv, job) {
     if (!utils.isNumericString(jobNumber)) throw new Error(' createBizCardDetailsDiv: given non-numeric jobNumber attribute string');
     bizCardDetailsDiv.classList.add('biz-card-details-div');
     bizCardDetailsDiv.id = `biz-card-details-div-${jobNumber}`;
+    
+    // Set pointer-events to none so clicks pass through to the parent bizCardDiv
+    bizCardDetailsDiv.style.pointerEvents = 'none';
     bizCardDetailsDiv.style.backgroundColor = 'transparent';
 
     // see createBizDetailsDiv::34  colorIndex format <number>

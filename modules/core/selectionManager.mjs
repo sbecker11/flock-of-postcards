@@ -14,11 +14,11 @@ class SelectionManager extends EventTarget {
 
     selectJobNumber(jobNumber, caller = '') {
         if (this.selectedJobNumber === jobNumber) {
-            window.CONSOLE_LOG_IGNORE(`[DEBUG] SelectionManager: Early return - same job already selected: ${jobNumber} from ${caller}`);
+            // console.log(`[DEBUG] SelectionManager: Early return - same job already selected: ${jobNumber} from ${caller}`);
             return;
         }
 
-        window.CONSOLE_LOG_IGNORE(`[DEBUG] SelectionManager: [${caller}] Selecting job number: ${jobNumber} (was: ${this.selectedJobNumber})`);
+        // console.log(`[DEBUG] SelectionManager: [${caller}] Selecting job number: ${jobNumber} (was: ${this.selectedJobNumber})`);
         this.selectedJobNumber = jobNumber;
         const event = new CustomEvent('selectionChanged', {
             detail: {
@@ -26,7 +26,7 @@ class SelectionManager extends EventTarget {
                 caller: caller
             }
         });
-        window.CONSOLE_LOG_IGNORE(`[DEBUG] SelectionManager: Dispatching selectionChanged event:`, event.detail);
+        // console.log(`[DEBUG] SelectionManager: Dispatching selectionChanged event:`, event.detail);
         this.dispatchEvent(event);
     }
 

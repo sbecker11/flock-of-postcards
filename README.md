@@ -244,6 +244,84 @@ initializationManager.register(
 
 This architecture ensures that the complex web of dependencies in this visual application remains manageable and doesn't create circular reference issues that could cause runtime errors or infinite loops.
 
+## Hover Flickering Fix for Overlapping Elements
+
+The application contains business card elements (cDivs) that can visually overlap due to their absolute positioning and parallax effects. When multiple cDivs overlap under the mouse cursor, rapid mouseenter/mouseleave events can cause flickering as the elements compete for hover state.
+
+### Problem Analysis
+- **Root Cause**: Overlapping absolutely positioned elements receive rapid mouse events
+- **Z-index Ineffective**: Unique z-index values don't prevent event conflicts between overlapping elements
+- **CSS Transitions Avoided**: Project eschews transitions for immediate state changes
+- **Event Competition**: Multiple elements simultaneously trigger hover state changes
+
+### Solution Implementation
+
+The fix uses a **tracked hover state** approach with **DOM reordering** and **event capture**:
+
+#### 1. Tracked Hover State
+```javascript
+// CardsController.mjs
+this.currentlyHoveredElement = null; // Track currently hovered element
+
+// Only process if this is a different element than currently hovered
+if (this.currentlyHoveredElement === element) return;
+```
+
+#### 2. DOM Reordering Strategy
+- **Hovered Element Positioning**: Move hovered cDiv to position N-1 in DOM (just before selected clone at position N)
+- **Original Position Tracking**: Store reference to `nextElementSibling` for restoration
+- **Atomic Operations**: Use `insertBefore()` for seamless DOM manipulation
+
+```javascript
+// Save original position before moving
+const originalNextSibling = element.nextElementSibling;
+element.setAttribute('data-original-next-sibling', 
+  originalNextSibling ? originalNextSibling.getAttribute('data-job-number') : 'null');
+
+// Move to position N-1 (before selected clone)
+const lastChild = parent.lastElementChild;
+if (lastChild && lastChild !== element) {
+  parent.insertBefore(element, lastChild);
+}
+```
+
+#### 3. Event Capture and Propagation Control
+```javascript
+// Use capture phase to prevent event conflicts
+bizCardDiv.addEventListener('mouseenter', (e) => {
+  e.stopPropagation();
+  this.handleMouseEnterEvent(bizCardDiv);
+}, true); // Capture phase
+```
+
+#### 4. Position Restoration
+```javascript
+// Restore original position on mouseleave
+const originalNextSiblingJobNumber = element.getAttribute('data-original-next-sibling');
+if (originalNextSiblingJobNumber === 'null') {
+  parent.appendChild(element); // Was last child
+} else {
+  const originalNextSibling = parent.querySelector(`[data-job-number="${originalNextSiblingJobNumber}"]`);
+  if (originalNextSibling) {
+    parent.insertBefore(element, originalNextSibling);
+  }
+}
+```
+
+### Key Insights
+- **DOM Order vs Visual Layer**: DOM reordering doesn't affect visual stacking for absolutely positioned elements (z-index controls visual layer)
+- **Event Conflict Prevention**: The fix prevents rapid event switching rather than visual layering conflicts
+- **Single Hover Constraint**: Only one element can be hovered at a time, eliminating competition
+- **Atomic Operations**: `insertBefore()` automatically removes and repositions elements without changing total child count
+
+### Result
+- **No More Flickering**: Overlapping elements no longer compete for hover state
+- **Smooth Transitions**: Moving between overlapping elements works seamlessly
+- **Preserved Functionality**: All hover behaviors maintained while eliminating flickering
+- **Reversible Implementation**: Changes can be easily reverted if needed
+
+This solution demonstrates how event management and DOM manipulation can solve visual interaction issues in complex overlapping UI scenarios.
+
 ## Separation of Concerns: Modules, Components, and Composables
 
 This project implements a clear **separation of concerns** across different architectural layers to maintain clean, maintainable code:

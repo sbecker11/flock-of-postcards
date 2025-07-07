@@ -53,6 +53,7 @@ class CardsController {
         this.originalJobsData = null;
         this.currentSortRule = null;
         this.sortedIndices = []; // Maps sorted position to original index
+        this.currentlyHoveredElement = null; // Track currently hovered element
         this._setupSelectionListeners();
         // The pointer events observer is set up in initialize now
         
@@ -267,8 +268,14 @@ class CardsController {
             e.stopPropagation(); 
             this.handleBizCardDivClickEvent(bizCardDiv);
         });
-        bizCardDiv.addEventListener('mouseenter', () => this.handleMouseEnterEvent(bizCardDiv));
-        bizCardDiv.addEventListener('mouseleave', () => this.handleMouseLeaveEvent(bizCardDiv));
+        bizCardDiv.addEventListener('mouseenter', (e) => {
+            e.stopPropagation();
+            this.handleMouseEnterEvent(bizCardDiv);
+        }, true); // Use capture phase
+        bizCardDiv.addEventListener('mouseleave', (e) => {
+            e.stopPropagation();
+            this.handleMouseLeaveEvent(bizCardDiv);
+        }, true); // Use capture phase
     }
 
     // called by handleBizCardDivClickEvent
@@ -427,6 +434,8 @@ class CardsController {
         if (!bizCardDiv) return;
         const jobNumber = parseInt(bizCardDiv.getAttribute('data-job-number'), 10);
         const isAlreadySelected = selectionManager.getSelectedJobNumber() === jobNumber;
+        
+        // console.log(`[DEBUG] CardsController: Clicked cDiv with jobNumber=${jobNumber}`);
 
         if (isAlreadySelected) {
             selectionManager.clearSelection('CardsController.handleBizCardDivClickEvent');
@@ -439,11 +448,89 @@ class CardsController {
         if (!element) return;
         const jobNumber = parseInt(element.getAttribute('data-job-number'), 10);
         if (selectionManager.getSelectedJobNumber() === jobNumber) return; // Ignore hover on selected item
+        
+        // FLICKER FIX: Only process if this is a different element than currently hovered
+        if (this.currentlyHoveredElement === element) return;
+        
+        // Apply single-hover constraint and move to definitive rendering position
+        // Clear all existing hovers first and restore their original positions
+        this.bizCardDivs.forEach(div => {
+            if (div.classList.contains('hovered')) {
+                div.classList.remove('hovered');
+                const isSelected = div.classList.contains('selected');
+                if (!isSelected) {
+                    applyStateStyling(div, 'normal');
+                }
+                // Restore original position if it was moved
+                const originalNextSiblingJobNumber = div.getAttribute('data-original-next-sibling');
+                if (originalNextSiblingJobNumber) {
+                    const parent = div.parentElement;
+                    if (originalNextSiblingJobNumber === 'null') {
+                        // Was last child, append to end
+                        parent.appendChild(div);
+                    } else {
+                        // Find the original next sibling and insert before it
+                        const originalNextSibling = parent.querySelector(`[data-job-number="${originalNextSiblingJobNumber}"]`);
+                        if (originalNextSibling) {
+                            parent.insertBefore(div, originalNextSibling);
+                        }
+                    }
+                }
+            }
+        });
+        
+        // Save original position before moving (store reference to next sibling)
+        const parent = element.parentElement;
+        const originalNextSibling = element.nextElementSibling;
+        element.setAttribute('data-original-next-sibling', originalNextSibling ? originalNextSibling.getAttribute('data-job-number') : 'null');
+        
+        // Move hovered element to position N-1 (just before selected clone at position N)
+        const lastChild = parent.lastElementChild;
+        if (lastChild && lastChild !== element) {
+            parent.insertBefore(element, lastChild);
+        }
+        
+        element.classList.add('hovered');
+        applyStateStyling(element, 'hovered');
+        
+        // Track the currently hovered element
+        this.currentlyHoveredElement = element;
+        
+        // Still notify SelectionManager for coordination with other components
         selectionManager.hoverJobNumber(jobNumber, 'CardsController.handleMouseEnterEvent');
     }
 
     handleMouseLeaveEvent(element) {
         if (!element) return;
+        // Clear hover state and restore original position
+        if (element.classList.contains('hovered')) {
+            element.classList.remove('hovered');
+            const isSelected = element.classList.contains('selected');
+            if (!isSelected) {
+                applyStateStyling(element, 'normal');
+            }
+            
+            // Restore original position
+            const originalNextSiblingJobNumber = element.getAttribute('data-original-next-sibling');
+            if (originalNextSiblingJobNumber) {
+                const parent = element.parentElement;
+                if (originalNextSiblingJobNumber === 'null') {
+                    // Was last child, append to end
+                    parent.appendChild(element);
+                } else {
+                    // Find the original next sibling and insert before it
+                    const originalNextSibling = parent.querySelector(`[data-job-number="${originalNextSiblingJobNumber}"]`);
+                    if (originalNextSibling) {
+                        parent.insertBefore(element, originalNextSibling);
+                    }
+                }
+                element.removeAttribute('data-original-next-sibling');
+            }
+        }
+        
+        // Clear tracked hovered element
+        this.currentlyHoveredElement = null;
+        
         selectionManager.clearHover('CardsController.handleMouseLeaveEvent');
     }
 
@@ -485,8 +572,17 @@ class CardsController {
 
         if (selectionManager.getSelectedJobNumber() === hoveredJobNumber) return;
 
-        // Clear previous hovers first
-        this.handleHoverCleared({ detail: { caller: 'handleHoverChanged' } });
+        // FLICKER FIX: Ensure only one cDiv can be hovered at a time
+        // Clear all hovers first, then apply new hover atomically
+        this.bizCardDivs.forEach(div => {
+            if (div.classList.contains('hovered')) {
+                div.classList.remove('hovered');
+                const isSelected = div.classList.contains('selected');
+                if (!isSelected) {
+                    applyStateStyling(div, 'normal');
+                }
+            }
+        });
 
         const bizCardDiv = this.getBizCardDivByJobNumber(hoveredJobNumber);
         if (bizCardDiv) {
