@@ -32,6 +32,7 @@ const {
 
 const isHovering = ref(false);
 const isSteppingHovering = ref(false);
+const hasJustClicked = ref(false); // Track if we just clicked (to maintain hover state)
 
 const nextMode = computed(() => {
   switch (focalPointMode.value) {
@@ -42,8 +43,35 @@ const nextMode = computed(() => {
   }
 });
 
-const displayMode = computed(() => {
+// The mode whose icon we're currently displaying (for CSS class styling)
+const displayedIconMode = computed(() => {
     return isHovering.value ? nextMode.value : focalPointMode.value;
+});
+
+// The actual icon to show
+const displayIcon = computed(() => {
+    const modeToShow = isHovering.value ? nextMode.value : focalPointMode.value;
+    console.log('displayIcon computed:', {
+        isHovering: isHovering.value,
+        currentMode: focalPointMode.value,
+        nextMode: nextMode.value,
+        modeToShow,
+        hasJustClicked: hasJustClicked.value
+    });
+    switch (modeToShow) {
+        case 'locked': return '⦻';
+        case 'following': return '›';
+        case 'dragging': return '⤮';
+        default: return '⦻';
+    }
+});
+
+// CSS classes for the button
+const buttonClasses = computed(() => {
+    return [
+        displayedIconMode.value, // for mode-specific styling (font size, etc.)
+        { hovering: isHovering.value } // for hover styling (colors)
+    ];
 });
 
 const nextStepCount = computed(() => {
@@ -59,8 +87,15 @@ const displayStepCount = computed(() => {
 function toggleFocalLock(event) {
   event.stopPropagation();
   cycleFocalPointMode();
-  // Reset hover state when mode changes to prevent immediate hover preview
-  isHovering.value = false;
+  // Mark that we just clicked (don't reset hover state yet)
+  hasJustClicked.value = true;
+  
+  // Force a small delay to ensure the mode change has been processed
+  // This allows the nextMode computed to recalculate with the new current mode
+  setTimeout(() => {
+    // This setTimeout ensures the DOM and computeds have updated
+    // The isHovering state remains true, so we'll show the next mode of the NEW current mode
+  }, 0);
 }
 
 function handleSteppingClick(event) {
@@ -77,14 +112,12 @@ function handleSteppingClick(event) {
             <button id="collapse-left" class="toggle-circle" @click.stop="collapseLeft" :disabled="isLeftDisabled" title="Collapse Left">‹</button>
             <button id="tri-state-toggle" 
                     class="toggle-circle" 
-                    :class="[displayMode, { hovering: isHovering }]"
+                    :class="buttonClasses"
                     @click.stop="toggleFocalLock" 
-                    @mouseenter="isHovering = true"
-                    @mouseleave="isHovering = false"
-                    :title="'Focal Point: ' + focalPointMode">
-                <span v-if="displayMode === 'locked'">⦻</span>
-                <span v-if="displayMode === 'following'">›</span>
-                <span v-if="displayMode === 'dragging'">⤮</span>
+                    @mouseenter="isHovering = true; hasJustClicked = false"
+                    @mouseleave="isHovering = false; hasJustClicked = false"
+                    :title="isHovering ? 'Next: ' + nextMode + ' (click to switch)' : 'Current: ' + focalPointMode + ' (hover to preview next)'">
+                <span>{{ displayIcon }}</span>
             </button>
             <button id="stepping-indicator" 
                     class="toggle-circle" 
@@ -154,17 +187,20 @@ function handleSteppingClick(event) {
     background-color: rgba(0,0,0,0.5);
     background-image: none;
     cursor: pointer;
-    transition: background-color 0.2s;
+    transition: all 0.2s ease;
     font-size: 16px;
     line-height: 1;
     text-align: center;
     position: relative;
 }
 
+/* Default state: current mode with white icon on black background */
 #tri-state-toggle span {
     color: white;
+    transition: color 0.2s ease;
 }
 
+/* Hover state: next mode with black icon on white background */
 #tri-state-toggle.hovering {
     background-color: white;
     color: black;
@@ -175,12 +211,10 @@ function handleSteppingClick(event) {
     color: black;
 }
 
-#tri-state-toggle.following {
-    font-size: 24px;
-}
-
-#tri-state-toggle.dragging {
-    font-size: 24px;
+/* Mode-specific font sizing adjustments */
+#tri-state-toggle.following span,
+#tri-state-toggle.dragging span {
+    font-size: 20px;
 }
 
 #tri-state-toggle.following span {

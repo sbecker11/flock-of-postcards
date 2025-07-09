@@ -484,10 +484,16 @@ class CardsController {
         const originalNextSibling = element.nextElementSibling;
         element.setAttribute('data-original-next-sibling', originalNextSibling ? originalNextSibling.getAttribute('data-job-number') : 'null');
         
-        // Move hovered element to position N-1 (just before selected clone at position N)
+        // Move hovered element to correct position based on whether there's a selected clone
         const lastChild = parent.lastElementChild;
-        if (lastChild && lastChild !== element) {
+        const hasSelectedClone = lastChild && lastChild.classList.contains('selected');
+        
+        if (hasSelectedClone) {
+            // If there's a selected clone at the end, move hovered element to position N-1 (just before clone)
             parent.insertBefore(element, lastChild);
+        } else {
+            // If no selected clone, move hovered element to the very end (position N)
+            parent.appendChild(element);
         }
         
         element.classList.add('hovered');

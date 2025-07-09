@@ -8,13 +8,14 @@ const STORAGE_KEY = 'flockOfPostcards_appState';
  */
 function getDefaultState() {
     return {
-        version: "1.1", // Updated for marginTop changes
+        version: "1.2", // Updated for constants system
         lastUpdated: new Date().toISOString(),
         layout: {
             panelSizePercentage: 50 // Default to a 50/50 split
         },
         resizeHandle: {
-            steppingEnabled: true // Default to stepping/snapping enabled
+            steppingEnabled: true, // Default to stepping/snapping enabled
+            stepCount: 4
         },
         focalPoint: {
             mode: 'locked' // Default to locked mode
@@ -70,6 +71,101 @@ function getDefaultState() {
                     marginTop: '11px'
                 }
             }
+        },
+        color: {
+            palettes: {}
+        },
+        // NEW: Constants system for centralized configuration
+        constants: {
+            // Z-Index System
+            zIndex: {
+                root: 0,
+                scene: 1,
+                sceneGradients: 2,
+                timeline: 3,
+                backgroundMax: 4,
+                cardsMin: 10,
+                cardsMax: 19,
+                bullsEye: 98,
+                selectedCard: 99,
+                focalPoint: 100,
+                aimPoint: 101
+            },
+            // Card Layout
+            cards: {
+                meanWidth: 180,
+                minHeight: 180,
+                maxXOffset: 100,
+                maxWidthOffset: 30,
+                minZDiff: 2
+            },
+            // Timeline Configuration
+            timeline: {
+                pixelsPerYear: 200,
+                paddingTop: 0,
+                gradientLength: "50vh"
+            },
+            // Resize Handle
+            resizeHandle: {
+                width: 20,
+                shadowWidth: 8,
+                shadowBlur: 5,
+                defaultWidthPercent: 50
+            },
+            // Animation & Timing
+            animation: {
+                durations: {
+                    fast: "0.2s",
+                    medium: "0.3s",
+                    slow: "0.5s",
+                    spinner: "1s"
+                },
+                autoScroll: {
+                    repeatMillis: 10,
+                    maxVelocity: 3.0,
+                    minVelocity: 2.0,
+                    changeThreshold: 2.0,
+                    scrollZonePercentage: 0.20
+                }
+            },
+            // Performance
+            performance: {
+                thresholds: {
+                    resizeTime: 16,
+                    scrollTime: 8,
+                    memoryUsage: 52428800
+                },
+                debounceTimeout: 100
+            },
+            // Typography
+            typography: {
+                fontSizes: {
+                    small: "10px",
+                    medium: "12px",
+                    large: "14px",
+                    xlarge: "16px",
+                    xxlarge: "20px",
+                    timeline: "48px"
+                },
+                fontFamily: "'Inter', sans-serif"
+            },
+            // Visual Effects
+            visualEffects: {
+                parallax: {
+                    xExaggerationFactor: 0.9,
+                    yExaggerationFactor: 1.0
+                },
+                depthEffects: {
+                    minBrightnessPercent: 15,
+                    blurScaleFactor: 2.0,
+                    filterMultipliers: {
+                        brightness: { min: 0.4, factor: 0.10 },
+                        blur: { min: 0, factor: 0.10 },
+                        contrast: { min: 0.75, factor: 0.010 },
+                        saturate: { min: 0.75, factor: 0.010 }
+                    }
+                }
+            }
         }
     };
 }
@@ -113,11 +209,31 @@ function migrateState(state) {
         console.log('[MIGRATION] Successfully migrated to v1.1');
     }
 
-    // Future migrations can be added here:
-    // if (state.version === "1.1") {
-    //     // Migration logic for 1.1 → 1.2
-    //     state.version = "1.2";
-    // }
+    // Migration from 1.1 to 1.2: Add constants system while preserving user preferences
+    if (state.version === "1.1") {
+        console.log('[MIGRATION] Migrating state from v1.1 to v1.2: Adding constants system');
+        
+        // Preserve existing focal point mode (don't reset to locked)
+        // The user's saved preference should be maintained
+        
+        // Ensure resizeHandle has stepCount
+        if (!state.resizeHandle) {
+            state.resizeHandle = {};
+        }
+        if (!state.resizeHandle.stepCount) {
+            state.resizeHandle.stepCount = 4;
+        }
+        
+        // Ensure color section exists
+        if (!state.color) {
+            state.color = { palettes: {} };
+        }
+        
+        // Constants will be added via deepMerge with default state
+        
+        state.version = "1.2";
+        console.log('[MIGRATION] Successfully migrated to v1.2 - preserved user preferences');
+    }
 
     return state;
 }
@@ -144,7 +260,8 @@ async function loadState() {
         // Migrate the state to current version
         const migratedState = migrateState(rawState);
         
-        // Merge the migrated state into the default state to ensure all keys exist
+        // Merge the default state into migrated state to ensure all keys exist
+        // This way, default values (like locked focal point mode) take precedence for new fields
         const finalState = deepMerge(getDefaultState(), migratedState);
         
         window.CONSOLE_LOG_IGNORE("Final state after migration and merge:", finalState);

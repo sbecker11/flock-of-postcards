@@ -10,7 +10,10 @@
     "start": "npm run kill-listeners &&concurrently \"npm run node-server\" \"npm run open-chrome\"",
     "node-server": "nodemon server.mjs",
     "open-chrome": "open-cli http://localhost:5173 --incognito",
-    "kill-listeners": "pkill -f 'node server.mjs' && pkill -f 'nodemon' && pkill -f 'vite' || true"
+    "kill-listeners": "pkill -f 'node server.mjs' && pkill -f 'nodemon' && pkill -f 'vite' || true",
+    "extract-tokens": "node scripts/extract-design-tokens.mjs",
+    "figma-sync": "node scripts/figma-sync.mjs",
+    "watch-figma": "node scripts/watch-and-sync.mjs"
   },
   "repository": {
     "type": "git",

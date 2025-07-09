@@ -1,0 +1,10 @@
+{
+  "name": "Flock of Postcards Design System",
+  "id": "flock-postcards-design-system",
+  "api": "1.0.0",
+  "main": "code.js",
+  "ui": "ui.html",
+  "editorType": ["figma"],
+  "capabilities": [],
+  "enableProposedApi": false
+}

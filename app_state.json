@@ -1,22 +1,22 @@
 {
-  "version": "1.1",
-  "lastUpdated": "2025-07-07T05:21:39.679Z",
+  "version": "1.2",
+  "lastUpdated": "2025-07-09T03:12:08.192Z",
   "layout": {
-    "panelSizePercentage": 75
+    "panelSizePercentage": 50.05246589716684
   },
   "resizeHandle": {
     "steppingEnabled": true,
     "stepCount": 4
   },
   "focalPoint": {
-    "mode": "following"
+    "mode": "locked"
   },
   "resume": {
     "sortRule": {
       "field": "startDate",
       "direction": "desc"
     },
-    "selectedJobNumber": 1
+    "selectedJobNumber": 19
   },
   "theme": {
     "colorPalette": "50_Dark_Grey_Monotone.json",
@@ -81,7 +81,6 @@
       }
     }
   },
-  "colorPalette": "sweeps.json",
   "color": {
     "palettes": {
       "Oceanic": [
@@ -302,5 +301,101 @@
         "#657785"
       ]
     }
-  }
+  },
+  "constants": {
+    "zIndex": {
+      "root": 0,
+      "scene": 1,
+      "sceneGradients": 2,
+      "timeline": 3,
+      "backgroundMax": 4,
+      "cardsMin": 10,
+      "cardsMax": 19,
+      "bullsEye": 98,
+      "selectedCard": 99,
+      "focalPoint": 100,
+      "aimPoint": 101
+    },
+    "cards": {
+      "meanWidth": 180,
+      "minHeight": 180,
+      "maxXOffset": 100,
+      "maxWidthOffset": 30,
+      "minZDiff": 2
+    },
+    "timeline": {
+      "pixelsPerYear": 200,
+      "paddingTop": 0,
+      "gradientLength": "50vh"
+    },
+    "resizeHandle": {
+      "width": 20,
+      "shadowWidth": 8,
+      "shadowBlur": 5,
+      "defaultWidthPercent": 50
+    },
+    "animation": {
+      "durations": {
+        "fast": "0.2s",
+        "medium": "0.3s",
+        "slow": "0.5s",
+        "spinner": "1s"
+      },
+      "autoScroll": {
+        "repeatMillis": 10,
+        "maxVelocity": 3,
+        "minVelocity": 2,
+        "changeThreshold": 2,
+        "scrollZonePercentage": 0.2
+      }
+    },
+    "performance": {
+      "thresholds": {
+        "resizeTime": 16,
+        "scrollTime": 8,
+        "memoryUsage": 52428800
+      },
+      "debounceTimeout": 100
+    },
+    "typography": {
+      "fontSizes": {
+        "small": "10px",
+        "medium": "12px",
+        "large": "14px",
+        "xlarge": "16px",
+        "xxlarge": "20px",
+        "timeline": "48px"
+      },
+      "fontFamily": "'Inter', sans-serif"
+    },
+    "visualEffects": {
+      "parallax": {
+        "xExaggerationFactor": 0.9,
+        "yExaggerationFactor": 1
+      },
+      "depthEffects": {
+        "minBrightnessPercent": 15,
+        "blurScaleFactor": 2,
+        "filterMultipliers": {
+          "brightness": {
+            "min": 0.4,
+            "factor": 0.1
+          },
+          "blur": {
+            "min": 0,
+            "factor": 0.1
+          },
+          "contrast": {
+            "min": 0.75,
+            "factor": 0.01
+          },
+          "saturate": {
+            "min": 0.75,
+            "factor": 0.01
+          }
+        }
+      }
+    }
+  },
+  "colorPalette": "sweeps.json"
 }

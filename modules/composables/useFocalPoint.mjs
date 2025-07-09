@@ -1,6 +1,7 @@
 import { ref, computed, onMounted, onUnmounted } from 'vue';
 import { useAimPoint, MODES } from './useAimPoint.mjs';
 import * as mathUtils from '@/modules/utils/mathUtils.mjs';
+import { AppState, saveState } from '@/modules/core/stateManager.mjs';
 
 // --- Constants ---
 const EASE_FACTOR = 0.05;
@@ -8,7 +9,7 @@ const EASE_FACTOR = 0.05;
 // --- Private State ---
 let _focalPointElement = null;
 let _isInitialized = false;
-let _mode = MODES.LOCKED;
+let _mode = ref(MODES.LOCKED); // Make mode reactive
 let _animationFrameId = null;
 
 // --- Reactive State ---
@@ -39,16 +40,16 @@ export function useFocalPoint() {
   // Reactive properties
   const position = computed(() => focalPointState.value.current);
   const target = computed(() => focalPointState.value.target);
-  const mode = computed(() => _mode);
-  const isLocked = computed(() => _mode === MODES.LOCKED);
-  const isDragging = computed(() => _mode === MODES.DRAGGING);
+  const mode = computed(() => _mode.value);
+  const isLocked = computed(() => _mode.value === MODES.LOCKED);
+  const isDragging = computed(() => _mode.value === MODES.DRAGGING);
 
   function animate() {
     // Always update target from aimPoint position during animation
     focalPointState.value.target.x = aimPointPosition.value.x;
     focalPointState.value.target.y = aimPointPosition.value.y;
     
-    if (_mode === MODES.DRAGGING) {
+    if (_mode.value === MODES.DRAGGING) {
       // In dragging mode, move immediately without easing
       window.CONSOLE_LOG_IGNORE('focalPoint dragging: updating position to', focalPointState.value.target);
       focalPointState.value.current.x = focalPointState.value.target.x;
@@ -70,7 +71,7 @@ export function useFocalPoint() {
       updateFocalPointPosition();
       
       // Keep animating if locked or following to always track the target
-      if (_mode === MODES.LOCKED || _mode === MODES.FOLLOWING) {
+      if (_mode.value === MODES.LOCKED || _mode.value === MODES.FOLLOWING) {
         _animationFrameId = requestAnimationFrame(animate);
       } else {
         _animationFrameId = null;
@@ -96,7 +97,7 @@ export function useFocalPoint() {
     focalPointState.value.target.y = aimPointPosition.value.y;
     
     // Start animation if not in dragging mode and initialized
-    if (_mode !== MODES.DRAGGING && _isInitialized) {
+    if (_mode.value !== MODES.DRAGGING && _isInitialized) {
       window.CONSOLE_LOG_IGNORE('RESIZE: focalPoint starting animation, target:', focalPointState.value.target);
       startAnimation();
     }
@@ -107,8 +108,14 @@ export function useFocalPoint() {
   const _ = updateTargetFromAimPoint.value;
 
   function setMode(newMode) {
-    window.CONSOLE_LOG_IGNORE('focalPoint.setMode called with:', newMode, 'current mode was:', _mode);
-    _mode = newMode;
+    window.CONSOLE_LOG_IGNORE('focalPoint.setMode called with:', newMode, 'current mode was:', _mode.value);
+    _mode.value = newMode;
+    
+    // Save to AppState
+    if (AppState) {
+      AppState.focalPoint.mode = newMode;
+      saveState(AppState);
+    }
     
     // Update aimPoint mode to match
     aimPoint.setMode(newMode);
@@ -120,16 +127,16 @@ export function useFocalPoint() {
     
     // Start animation for all modes (including dragging)
     if (_isInitialized) {
-      window.CONSOLE_LOG_IGNORE('focalPoint.setMode: starting animation for mode:', _mode);
+      window.CONSOLE_LOG_IGNORE('focalPoint.setMode: starting animation for mode:', _mode.value);
       startAnimation();
     }
   }
 
   function cycleMode() {
     const modes = Object.values(MODES);
-    const currentIndex = modes.indexOf(_mode);
+    const currentIndex = modes.indexOf(_mode.value);
     const nextIndex = (currentIndex + 1) % modes.length;
-    window.CONSOLE_LOG_IGNORE('focalPoint.cycleMode: current mode:', _mode, 'next mode:', modes[nextIndex]);
+    window.CONSOLE_LOG_IGNORE('focalPoint.cycleMode: current mode:', _mode.value, 'next mode:', modes[nextIndex]);
     setMode(modes[nextIndex]);
   }
 
@@ -138,6 +145,16 @@ export function useFocalPoint() {
     if (_isInitialized) {
       window.CONSOLE_LOG_IGNORE("focalPoint.initialize: already initialized, ignoring duplicate initialization request");
       return;
+    }
+    
+    // Load mode from AppState
+    if (AppState?.focalPoint?.mode) {
+      _mode.value = AppState.focalPoint.mode;
+      window.CONSOLE_LOG_IGNORE('focalPoint.initialize: loaded mode from AppState:', _mode.value);
+      
+      // Immediately sync the aimPoint mode to match
+      aimPoint.setMode(_mode.value);
+      window.CONSOLE_LOG_IGNORE('focalPoint.initialize: synced aimPoint mode to:', _mode.value);
     }
     
     _focalPointElement = document.getElementById("focal-point");
@@ -157,7 +174,7 @@ export function useFocalPoint() {
     startAnimation();
     
     _isInitialized = true;
-    window.CONSOLE_LOG_IGNORE("focalPoint initialized successfully");
+    window.CONSOLE_LOG_IGNORE("focalPoint initialized successfully with mode:", _mode.value);
   }
 
   function isInitialized() {

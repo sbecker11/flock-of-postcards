@@ -1,0 +1,84 @@
+[
+  {
+    "name": "Button/Primary",
+    "description": "Primary button with standard styling",
+    "width": 120,
+    "height": 40,
+    "backgroundColor": {
+      "r": 0.2980392156862745,
+      "g": 0.6862745098039216,
+      "b": 0.3137254901960784,
+      "a": 1
+    },
+    "borderRadius": 4,
+    "textColor": {
+      "r": 1,
+      "g": 1,
+      "b": 1,
+      "a": 1
+    }
+  },
+  {
+    "name": "Button/Secondary",
+    "description": "Secondary button with outline styling",
+    "width": 120,
+    "height": 40,
+    "backgroundColor": {
+      "r": 0,
+      "g": 0,
+      "b": 0,
+      "a": 1
+    },
+    "borderRadius": 4,
+    "borderColor": {
+      "r": 0.2980392156862745,
+      "g": 0.6862745098039216,
+      "b": 0.3137254901960784,
+      "a": 1
+    },
+    "textColor": {
+      "r": 0.2980392156862745,
+      "g": 0.6862745098039216,
+      "b": 0.3137254901960784,
+      "a": 1
+    }
+  },
+  {
+    "name": "Card/Business",
+    "description": "Business card component",
+    "width": 300,
+    "height": 200,
+    "backgroundColor": {
+      "r": 0.2,
+      "g": 0.2,
+      "b": 0.2,
+      "a": 1
+    },
+    "borderRadius": 25,
+    "textColor": {
+      "r": 1,
+      "g": 1,
+      "b": 1,
+      "a": 1
+    }
+  },
+  {
+    "name": "Timeline/Marker",
+    "description": "Timeline marker component",
+    "width": 60,
+    "height": 60,
+    "backgroundColor": {
+      "r": 1,
+      "g": 1,
+      "b": 1,
+      "a": 1
+    },
+    "borderRadius": 30,
+    "borderColor": {
+      "r": 0.2,
+      "g": 0.2,
+      "b": 0.2,
+      "a": 1
+    }
+  }
+]
