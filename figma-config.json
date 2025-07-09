@@ -1,5 +1,5 @@
 {
-  "figmaToken": "figd_OdraJ0elWgdFTqJLEYFe4bl6r9GfO6ds2yJZYlmy",
+  "_note": "figmaToken is loaded from FIGMA_TOKEN environment variable in .env file",
   "fileId": "4NVVnaVgYOVhowPFP01Ea6",
   "teamId": "1302956558365322389",
   "libraryName": "Flock of Postcards Design System",

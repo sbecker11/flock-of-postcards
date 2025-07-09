@@ -9,9 +9,13 @@ import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import { extractDesignTokens } from './extract-design-tokens.mjs';
+import dotenv from 'dotenv';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const projectRoot = path.join(__dirname, '..');
+
+// Load environment variables
+dotenv.config({ path: path.join(projectRoot, '.env') });
 
 // Figma API configuration
 const FIGMA_API_URL = 'https://api.figma.com/v1';
@@ -21,7 +25,6 @@ const CONFIG_FILE = path.join(projectRoot, 'figma-config.json');
  * Configuration template for Figma integration
  */
 const defaultConfig = {
-  figmaToken: '', // Personal access token from Figma
   fileId: '', // Figma file ID where components will be created
   teamId: '', // Team ID for creating shared libraries
   libraryName: 'Flock of Postcards Design System',
@@ -44,7 +47,7 @@ function loadConfig() {
     fs.writeFileSync(CONFIG_FILE, JSON.stringify(defaultConfig, null, 2));
     console.log('📋 Created figma-config.json - please fill in your Figma credentials');
     console.log('   Required fields:');
-    console.log('   - figmaToken: Your personal access token from Figma');
+    console.log('   - FIGMA_TOKEN: Add your personal access token to .env file');
     console.log('   - fileId: The Figma file ID where components will be created');
     console.log('   - teamId: Your team ID (optional, for shared libraries)');
     return null;
@@ -52,11 +55,17 @@ function loadConfig() {
   
   const config = JSON.parse(fs.readFileSync(CONFIG_FILE, 'utf8'));
   
-  if (!config.figmaToken || !config.fileId) {
-    console.error('❌ Missing required Figma credentials in figma-config.json');
-    console.log('   Please add your figmaToken and fileId');
+  // Get token from environment variable
+  const figmaToken = process.env.FIGMA_TOKEN;
+  
+  if (!figmaToken || !config.fileId) {
+    console.error('❌ Missing required Figma credentials');
+    console.log('   Please add FIGMA_TOKEN to .env file and fileId to figma-config.json');
     return null;
   }
+  
+  // Add token to config
+  config.figmaToken = figmaToken;
   
   return config;
 }
