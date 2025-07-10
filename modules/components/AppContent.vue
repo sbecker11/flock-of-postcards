@@ -8,6 +8,11 @@
           <Timeline alignment="left" />
         </div>
         <div id="biz-details-div"></div>
+        <!-- <ConnectionLines /> -->
+        <SkillBadges />
+        <!-- <BadgeLines /> -->
+        <!-- <SingleLCurveTest /> -->
+        <NewConnectionLines />
       </div>
       <SceneContainerFooter />
     </div>
@@ -67,6 +72,8 @@ import Timeline from '@/modules/components/Timeline.vue';
 import ResizeHandle from '@/modules/components/ResizeHandle.vue';
 import ResumeContainer from '@/modules/components/ResumeContainer.vue';
 import SceneContainerFooter from '@/modules/components/SceneContainerFooter.vue';
+import SkillBadges from '@/modules/components/SkillBadges.vue';
+import NewConnectionLines from '@/modules/components/NewConnectionLines.vue';
 
 
 export default {
@@ -76,7 +83,8 @@ export default {
     ResizeHandle,
     ResumeContainer,
     SceneContainerFooter,
-
+    SkillBadges,
+    NewConnectionLines,
   },
   async setup() {
 
@@ -175,6 +183,36 @@ export default {
           { priority: 'low' }
         );
         
+        // Register SkillBadges component - needs CardsController and ColorPalette ready
+        initializationManager.register(
+          'SkillBadges',
+          async () => {
+            window.CONSOLE_LOG_IGNORE('[INIT] Initializing SkillBadges');
+            // Wait for both CardsController and color palette to be ready
+            await initializationManager.waitForComponents(['CardsController']);
+            await colorPalette.readyPromise; // Wait for color palette to load
+            
+            // Dispatch event to trigger SkillBadges initialization
+            window.dispatchEvent(new CustomEvent('skill-badges-init-ready'));
+          },
+          ['CardsController'],
+          { priority: 'low' }
+        );
+        
+        // Register ConnectionLines component - needs CardsController and SkillBadges
+        initializationManager.register(
+          'ConnectionLines',
+          async () => {
+            window.CONSOLE_LOG_IGNORE('[INIT] Initializing ConnectionLines');
+            await initializationManager.waitForComponents(['CardsController', 'SkillBadges']);
+            
+            // Dispatch event to trigger ConnectionLines initialization
+            window.dispatchEvent(new CustomEvent('connection-lines-init-ready'));
+          },
+          ['CardsController', 'SkillBadges'],
+          { priority: 'low' }
+        );
+        
         // Wait for all components to be ready
         await initializationManager.waitForComponents([
           'Timeline',
@@ -184,7 +222,9 @@ export default {
           'Viewport',
           'Layout',
           'ReactiveSystems',
-          'SceneSystems'
+          'SceneSystems',
+          'SkillBadges',
+          'ConnectionLines'
         ]);
         
         window.CONSOLE_LOG_IGNORE('[INIT] AppContent: All components initialized successfully');

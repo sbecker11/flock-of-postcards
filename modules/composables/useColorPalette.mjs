@@ -154,9 +154,15 @@ export async function applyPaletteToElement(element) {
     const paletteColorIndex = parseInt(paletteColorIndexAttr, 10);
 
     // Get the palette name from the filename
+    if (!currentPaletteFilename.value) {
+        console.warn('No palette filename set, skipping palette application');
+        return;
+    }
+    
     const paletteName = filenameToNameMap.value[currentPaletteFilename.value];
     if (!paletteName) {
-        throw new Error(`Palette name not found for filename: ${currentPaletteFilename.value}`);
+        console.warn(`Palette name not found for filename: ${currentPaletteFilename.value}`);
+        return;
     }
 
     // If the palette is not found or is empty, throw an Error

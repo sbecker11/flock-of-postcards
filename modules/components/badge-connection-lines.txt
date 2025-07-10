@@ -1,0 +1,152 @@
+
+
+ 
+A "skill badge" B is a horizontal rect that contains text about a "skill". B's width is wide enough to fit the entire text of the skill.
+
+A "cDiv" C is a tall rect that contains text about a job. One cDiv typically refrences several B badges.
+
+Let the center of badge B be defined as (B.center.x, B.center.y)
+
+Let the center of cDIv C be defined as (C.center.x, Ca.center.y)
+
+Since B and C are rectangles, they each have top, left, right, and bottom edges.
+
+Let P represent the parent div that contains both B and C.
+
+Relative positioning:
+
+The right edge of badge B abutts the inner right edge of its parent P so B.right.x == P.right.x
+
+B can have any vertical positions between P.top and P.bottom
+
+The cDiv C is positioned near parent hz center so C.center.x is near P.center.x
+
+C can have any vertical position between P.top and P.bottom.
+
+Since B is on the right and C in at center we can say B.center.x > C.center.x
+
+Badges are stacked as a single column so they all have B.right.x = P.right.x 
+
+Badges do not overlap vertically, but they are packed vertially so B1.bottom can touche the top of an adjacent B2. 
+
+The horizontal length of each B depends upon the length of the text that it wraps.
+
+The connection line from B to C has one three cases:
+case 1. B.center.y is above C.top.y top edge, 
+case 2: B.center.y is below C.bottom.y, or
+case 3: B.center.y is vertically between the cDiv's top 
+and bottom edges cDiv.top.y and cDiv.bottom.y so 
+B.center.y is between C.top.y and C.bottom.y
+
+The steps for drawing an SVG curve for a connection line
+uses only horizontal and vertical line segments, 
+and possibly one 90 degree elbow corner E with radius R.
+
+case 1.
+The steps for drawing the curve for case 1 are:
+
+draw start point at (B.left.x, B.center.y), 
+
+then draw an hz line to the left from (B.left.x, B.center.y) to corner E at (C.center.x, B.center.y),
+
+then at corner E turn downwards towards the end point at (C.center.x, C.top.y), 
+
+then draw vt line down to the end point (C.center.x, C.top.y) 
+
+case 2.
+The steps for drawing the curve for case 2 is almost identical to case 1:
+
+draw start point at (B.left.x, B.center.y):
+
+then draw an hz line to the left from (B.left.x, B.center.y) to corner E at (C.center.x, B.center.y),
+
+then at corner E turn upwards towards the end point at (C.center.x, C.bottom.y), 
+
+then draw vt line up to the end point (C.center.x, C.bottom.y)   
+
+case 3.
+The curve for case 3 is simply 1 hz line segment from (B.left.x, B.center.y) to (C.right.x, B.center.y)
+
+Use functions createLShapedCurve and createHorizontalLine are used to create function createConnectionLine which creates an SVG curve to be added to parent P, to badge B.
+
+The function drawConnectionLines uses drawConnectionLine to draw connection lines from many B badges to a single cDiv C. 
+
+The logic for this function is: for case 1 and 2 curves, each curve is given a unique termination point on the top or botttom edge of C. All curves must maintain a fixed gap G pixels from each other without touching any other curve or badge/
+
+    *##########################################################  
+    ######################+========================= B case 1 #   
+    *##        ###########+####################################      
+    *##  P     ###########+##+====================== B case 1 #      
+    *##        ###########+##+#################################      
+    *#####################+##+#################################      
+    *#####################+##+#################################      
+    *###***************+************########################### C.top.y     
+    *###****       +****************@##########################      
+    *###****   C   *****************================ B case 3 #      
+    *###****       *****************@########################## 
+    *###****************************@########################## 
+    *###****************************@=============== B case 3 # 
+    *###****************************@########################## 
+    *###****************************@########################## 
+    *###****************************@########################## C.bottom.y
+    *#################+########+############################### 
+    *#################+########+############################### 
+    *#################+########+############################### 
+    *#################+########+############################### 
+    *#################+########+############################### 
+    *#################+########+===================  B case 2 # 
+    *#################+######################################## 
+    ##################+########################################
+    ##################+########################################
+    ##################+########################################
+    *#################+============================= B case 2 # 
+    *########################################################## 
+    
+    function createLShapedCurve(
+  pointA: { x: number; y: number },
+  pointB: { x: number; y: number },
+  pointC: { x: number; y: number },
+  radius: number = 30
+): string {
+  // Validate input constraints
+  if (pointB.y !== pointA.y || pointC.x !== pointB.x) {
+    throw new Error('Point B must have same y as Point A, and Point C must have same x as Point B');
+  }
+
+  // Determine direction of curve based on relative positions
+  const isMovingRight = pointB.x > pointA.x;
+  const isMovingDown = pointC.y > pointB.y;
+
+  // Calculate control points for the arc
+  const arcStartX = isMovingRight ? pointB.x - radius : pointB.x + radius;
+  const arcStartY = pointB.y;
+  const arcEndX = pointB.x;
+  const arcEndY = isMovingDown ? pointB.y + radius : pointB.y - radius;
+
+  // Build SVG path
+  const path = [
+    `M ${pointA.x} ${pointA.y}`, // Start at point A
+    `H ${arcStartX}`, // Horizontal line to arc start
+    `A ${radius} ${radius} 0 0 ${isMovingRight && isMovingDown || !isMovingRight && !isMovingDown ? 1 : 0} ${arcEndX} ${arcEndY}`, // 90-degree arc
+    `V ${pointC.y}` // Vertical line to point C
+  ];
+
+  return path.join(' ');
+}
+
+function createHorizontalLine(
+  pointA: { x: number; y: number },
+  pointB: { x: number; y: number }
+): string {
+  // Validate that points share the same y-coordinate
+  if (pointA.y !== pointB.y) {
+    throw new Error('Points A and B must have the same y-coordinate');
+  }
+
+  // Build SVG path
+  return `M ${pointA.x} ${pointA.y} H ${pointB.x}`;
+}
+
+functon createConnectionLines(parentDiv_P, cDiv_C, badgesB[]) {
+    Not yet implemented
+}

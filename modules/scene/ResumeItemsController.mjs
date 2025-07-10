@@ -69,14 +69,30 @@ class ResumeItemsController {
     }
 
     async createAllBizResumeDivs(bizCardDivs) {
+        console.log('[ResumeItemsController] createAllBizResumeDivs called with:', bizCardDivs?.length || 0, 'cards');
+        
         if (!bizCardDivs || bizCardDivs.length === 0) {
-            window.CONSOLE_LOG_IGNORE("ResumeItemsController: Cannot create resume divs, no card divs provided.");
+            console.warn("ResumeItemsController: Cannot create resume divs, no card divs provided.");
             return [];
         }
+        
         this.bizResumeDivs = [];
-        for (const cardDiv of bizCardDivs) {
-            const resumeDiv = await this.createBizResumeDiv(cardDiv);
-            this.bizResumeDivs.push(resumeDiv);
+        for (let i = 0; i < bizCardDivs.length; i++) {
+            const cardDiv = bizCardDivs[i];
+            console.log(`[ResumeItemsController] Processing card ${i}:`, cardDiv);
+            
+            if (!cardDiv) {
+                console.warn(`[ResumeItemsController] Card at index ${i} is null/undefined, skipping`);
+                continue;
+            }
+            
+            try {
+                const resumeDiv = await this.createBizResumeDiv(cardDiv);
+                this.bizResumeDivs.push(resumeDiv);
+            } catch (error) {
+                console.error(`[ResumeItemsController] Failed to create resume div for card ${i}:`, error);
+                // Continue with other cards instead of failing completely
+            }
         }
         return this.bizResumeDivs;
     }

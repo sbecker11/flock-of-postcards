@@ -60,10 +60,29 @@ class CardsController {
         // Listen for sort rule changes from ResumeListController
         this._setupSortListener();
         
+        // Update existing cDivs to have scene-left and scene-top attributes
+        this._updateExistingCDivs();
+        
         // Store the singleton instance
         CardsController.instance = this;
         
 
+    }
+    
+    _updateExistingCDivs() {
+        // Update existing cDivs to have scene-left and scene-top attributes
+        const scenePlaneEl = document.getElementById('scene-plane');
+        if (scenePlaneEl) {
+            const existingCards = scenePlaneEl.querySelectorAll('.biz-card-div');
+            existingCards.forEach(card => {
+                const dataSceneLeft = card.getAttribute('data-sceneLeft');
+                const dataSceneTop = card.getAttribute('data-sceneTop');
+                if (dataSceneLeft && dataSceneTop && !card.getAttribute('scene-left')) {
+                    card.setAttribute('scene-left', dataSceneLeft);
+                    card.setAttribute('scene-top', dataSceneTop);
+                }
+            });
+        }
     }
 
     async initialize(jobsData) {
@@ -74,6 +93,7 @@ class CardsController {
         
         this.originalJobsData = jobsData;
         this.bizCardDivs = await this._createAllBizCardDivs(jobsData);
+        console.log('[CardsController] Created', this.bizCardDivs.length, 'bizCardDivs');
         
         // Apply the same sort rule as ResumeListController
         const initialSortRule = AppState.resume.sortRule || { field: 'startDate', direction: 'desc' };
@@ -114,6 +134,17 @@ class CardsController {
         existingCards.forEach(card => {
             if (!card.classList.contains('hasClone')) { // Don't remove clones
                 card.remove();
+            }
+        });
+        
+        // Update existing clones to have scene-left and scene-top attributes
+        const existingClones = scenePlaneEl.querySelectorAll('.biz-card-div.hasClone');
+        existingClones.forEach(clone => {
+            const dataSceneLeft = clone.getAttribute('data-sceneLeft');
+            const dataSceneTop = clone.getAttribute('data-sceneTop');
+            if (dataSceneLeft && dataSceneTop && !clone.getAttribute('scene-left')) {
+                clone.setAttribute('scene-left', dataSceneLeft);
+                clone.setAttribute('scene-top', dataSceneTop);
             }
         });
 
@@ -163,11 +194,21 @@ class CardsController {
             const bizCardDetailsDiv = BizDetailsDivModule.createBizCardDetailsDiv(bizCardDiv, job, colorIndex);
             bizCardDiv.appendChild(bizCardDetailsDiv);
 
-            // Apply the current color palette
-            await applyPaletteToElement(bizCardDiv);
+                    // Apply the current color palette
+        await applyPaletteToElement(bizCardDiv);
+        
+        // Check if attributes were removed by palette
+        const afterPaletteSceneLeft = bizCardDiv.getAttribute('scene-left');
+        const afterPaletteSceneTop = bizCardDiv.getAttribute('scene-top');
+        console.log(`[SIMPLE TEST] After palette: cDiv ${bizCardDiv.id} scene-left="${afterPaletteSceneLeft}", scene-top="${afterPaletteSceneTop}"`);
 
-            // Apply normal state styling after palette application
-            applyStateStyling(bizCardDiv, 'normal');
+        // Apply normal state styling after palette application
+        applyStateStyling(bizCardDiv, 'normal');
+        
+        // Check if attributes were removed by styling
+        const afterStylingSceneLeft = bizCardDiv.getAttribute('scene-left');
+        const afterStylingSceneTop = bizCardDiv.getAttribute('scene-top');
+        console.log(`[SIMPLE TEST] After styling: cDiv ${bizCardDiv.id} scene-left="${afterStylingSceneLeft}", scene-top="${afterStylingSceneTop}"`);
 
             this._setupMouseListeners(bizCardDiv);
 
@@ -235,6 +276,15 @@ class CardsController {
         bizCardDiv.setAttribute("data-sceneWidth", sceneWidth);
         bizCardDiv.setAttribute("data-sceneCenterX", sceneCenterX);
         
+        // Add scene-left and scene-top attributes for components that expect them
+        bizCardDiv.setAttribute("scene-left", sceneLeft.toString());
+        bizCardDiv.setAttribute("scene-top", sceneTop.toString());
+        
+        // Simple test: verify the attributes were set
+        const verifySceneLeft = bizCardDiv.getAttribute('scene-left');
+        const verifySceneTop = bizCardDiv.getAttribute('scene-top');
+        console.log(`[SIMPLE TEST] cDiv ${bizCardDiv.id} scene-left="${verifySceneLeft}", scene-top="${verifySceneTop}"`);
+        
         let sceneZ = 0;
         let lastSceneZ = -1;
         while (true) {
@@ -297,6 +347,11 @@ class CardsController {
         const sceneCenterX = 0;
         const newSceneLeft = sceneCenterX - (sceneWidth / 2);
         const sceneRight = sceneCenterX + (sceneWidth / 2);
+        
+        // Check if original cDiv has scene-left and scene-top attributes
+        const originalSceneLeftAttr = bizCardDiv.getAttribute("scene-left");
+        const originalSceneTopAttr = bizCardDiv.getAttribute("scene-top");
+        console.log(`[SIMPLE TEST] Original cDiv ${bizCardDiv.id} has scene-left="${originalSceneLeftAttr}", scene-top="${originalSceneTopAttr}"`);
 
 
 
@@ -309,6 +364,26 @@ class CardsController {
         clone.classList.add('selected' );
         clone.setAttribute("data-sceneZ", zUtils.SELECTED_CARD_Z_VALUE); // marker for parallax to use SELECTED_CARD_Z_INDEX
         clone.style.zIndex = zUtils.SELECTED_CARD_Z_INDEX;
+        
+        // Debug: Check what attributes the original has
+        window.CONSOLE_LOG_IGNORE(`[DEBUG] CardsController._selectBizCardDiv: Original ${bizCardDiv.id} attributes:`, {
+            'scene-left': bizCardDiv.getAttribute('scene-left'),
+            'scene-top': bizCardDiv.getAttribute('scene-top'),
+            'data-sceneLeft': bizCardDiv.getAttribute('data-sceneLeft'),
+            'data-sceneTop': bizCardDiv.getAttribute('data-sceneTop'),
+            'data-sceneCenterX': bizCardDiv.getAttribute('data-sceneCenterX'),
+            'data-sceneZ': bizCardDiv.getAttribute('data-sceneZ')
+        });
+        
+        // Debug: Check what attributes the clone inherited
+        window.CONSOLE_LOG_IGNORE(`[DEBUG] CardsController._selectBizCardDiv: Clone ${clone.id} inherited attributes:`, {
+            'scene-left': clone.getAttribute('scene-left'),
+            'scene-top': clone.getAttribute('scene-top'),
+            'data-sceneLeft': clone.getAttribute('data-sceneLeft'),
+            'data-sceneTop': clone.getAttribute('data-sceneTop'),
+            'data-sceneCenterX': clone.getAttribute('data-sceneCenterX'),
+            'data-sceneZ': clone.getAttribute('data-sceneZ')
+        });
 
         // Debug: Check if data-color-index is properly copied
         const originalColorIndex = bizCardDiv.getAttribute('data-color-index');
@@ -336,6 +411,33 @@ class CardsController {
             clone.style.top = `${originalSceneTop}px`; // Set the CSS top style for proper positioning
         } else {
             window.CONSOLE_LOG_IGNORE(`CardsController._selectBizCardDiv: original card ${bizCardDiv.id} has no data-sceneTop attribute`);
+        }
+        
+        // Add scene-left and scene-top attributes for components that expect them
+        console.log(`[SIMPLE TEST] Setting scene-left="${newSceneLeft.toString()}", scene-top="${originalSceneTop || "0"}" on clone ${clone.id}`);
+        clone.setAttribute("scene-left", newSceneLeft.toString());
+        clone.setAttribute("scene-top", originalSceneTop || "0");
+        
+        // Simple test: immediately check if they were set
+        console.log(`[SIMPLE TEST] Clone ${clone.id} scene-left="${clone.getAttribute('scene-left')}", scene-top="${clone.getAttribute('scene-top')}"`);
+        
+        // Debug: Verify clone scene coordinates immediately after setting
+        window.CONSOLE_LOG_IGNORE(`[DEBUG] CardsController._selectBizCardDiv: Clone ${clone.id} scene coordinates immediately after setting:`, {
+            'scene-left': clone.getAttribute('scene-left'),
+            'scene-top': clone.getAttribute('scene-top'),
+            'data-sceneLeft': clone.getAttribute('data-sceneLeft'),
+            'data-sceneTop': clone.getAttribute('data-sceneTop'),
+            'data-sceneCenterX': clone.getAttribute('data-sceneCenterX'),
+            'sceneWidth': sceneWidth,
+            'newSceneLeft': newSceneLeft,
+            'originalSceneTop': originalSceneTop
+        });
+        
+        // Verify the attributes were set correctly
+        const verifySceneLeft = clone.getAttribute('scene-left');
+        const verifySceneTop = clone.getAttribute('scene-top');
+        if (verifySceneLeft !== newSceneLeft.toString() || verifySceneTop !== (originalSceneTop || "0")) {
+            throw new Error(`Failed to set scene coordinates on clone: expected scene-left="${newSceneLeft}", scene-top="${originalSceneTop || "0"}", got scene-left="${verifySceneLeft}", scene-top="${verifySceneTop}"`);
         }
         
         clone.style.left = `${newSceneLeft}px`;
@@ -387,18 +489,50 @@ class CardsController {
 
         
         scenePlaneEl.appendChild(clone);
+        
+        // Debug: Check attributes after adding to DOM
+        window.CONSOLE_LOG_IGNORE(`[DEBUG] CardsController._selectBizCardDiv: Clone ${clone.id} attributes after adding to DOM:`, {
+            'scene-left': clone.getAttribute('scene-left'),
+            'scene-top': clone.getAttribute('scene-top'),
+            'data-sceneLeft': clone.getAttribute('data-sceneLeft'),
+            'data-sceneTop': clone.getAttribute('data-sceneTop')
+        });
 
         // Apply palette colors to the clone after it's in the DOM
         applyPaletteToElement(clone);
+        
+        // Debug: Check attributes after applying palette
+        window.CONSOLE_LOG_IGNORE(`[DEBUG] CardsController._selectBizCardDiv: Clone ${clone.id} attributes after applying palette:`, {
+            'scene-left': clone.getAttribute('scene-left'),
+            'scene-top': clone.getAttribute('scene-top'),
+            'data-sceneLeft': clone.getAttribute('data-sceneLeft'),
+            'data-sceneTop': clone.getAttribute('data-sceneTop')
+        });
 
         // Apply selected state styling to the clone
         applyStateStyling(clone, 'selected');
+        
+        // Debug: Check attributes after applying styling
+        window.CONSOLE_LOG_IGNORE(`[DEBUG] CardsController._selectBizCardDiv: Clone ${clone.id} attributes after applying styling:`, {
+            'scene-left': clone.getAttribute('scene-left'),
+            'scene-top': clone.getAttribute('scene-top'),
+            'data-sceneLeft': clone.getAttribute('data-sceneLeft'),
+            'data-sceneTop': clone.getAttribute('data-sceneTop')
+        });
 
         // Hide the original card now that the clone is in the DOM
         bizCardDiv.style.display = 'none';
 
         // --- Explicitly update the clone's parallax to its centered state ---
         applyParallaxToBizCardDiv(clone, 0, 0);
+        
+        // Dispatch event to notify components that clone is ready
+        window.dispatchEvent(new CustomEvent('clone-created', {
+          detail: { 
+            cloneId: clone.id,
+            jobNumber: bizCardDiv.getAttribute('data-job-number')
+          }
+        }));
 
         // --- Final check after adding to DOM ---
         const originalLeft = window.getComputedStyle(bizCardDiv).left;
@@ -407,6 +541,27 @@ class CardsController {
 
         if (originalCenterX !== 0 && originalLeft === cloneLeft) {
             throw new Error(`Error: cDiv for job number ${bizCardDiv.dataset.jobNumber} has centerX of ${originalCenterX} but its left (${originalLeft}) is the same as its clone's left (${cloneLeft}).`);
+        }
+        
+        // Verify clone scene coordinates are correctly set
+        const finalSceneLeft = clone.getAttribute('scene-left');
+        const finalSceneTop = clone.getAttribute('scene-top');
+        const finalDataSceneLeft = clone.getAttribute('data-sceneLeft');
+        const finalDataSceneTop = clone.getAttribute('data-sceneTop');
+        
+        window.CONSOLE_LOG_IGNORE(`[DEBUG] CardsController._selectBizCardDiv: Final clone ${clone.id} scene coordinates:`, {
+            'scene-left': finalSceneLeft,
+            'scene-top': finalSceneTop,
+            'data-sceneLeft': finalDataSceneLeft,
+            'data-sceneTop': finalDataSceneTop,
+            'expected-scene-left': newSceneLeft.toString(),
+            'expected-scene-top': originalSceneTop || "0"
+        });
+        
+        // Verify the clone is centered (scene-centerX = 0)
+        const cloneSceneCenterX = parseFloat(clone.getAttribute('data-sceneCenterX'));
+        if (cloneSceneCenterX !== 0) {
+            throw new Error(`Clone ${clone.id} is not centered: scene-centerX = ${cloneSceneCenterX}, expected 0`);
         }
         
 
@@ -504,6 +659,11 @@ class CardsController {
         
         // Still notify SelectionManager for coordination with other components
         selectionManager.hoverJobNumber(jobNumber, 'CardsController.handleMouseEnterEvent');
+        
+        // Dispatch custom event for skill badges
+        window.dispatchEvent(new CustomEvent('card-hover', {
+            detail: { jobNumber }
+        }));
     }
 
     handleMouseLeaveEvent(element) {
@@ -538,6 +698,11 @@ class CardsController {
         this.currentlyHoveredElement = null;
         
         selectionManager.clearHover('CardsController.handleMouseLeaveEvent');
+        
+        // Dispatch custom event for skill badges
+        window.dispatchEvent(new CustomEvent('card-unhover', {
+            detail: {}
+        }));
     }
 
     handleSelectionChanged(event) {
@@ -563,6 +728,11 @@ class CardsController {
             if (clone) {
                 this.scrollBizCardDivIntoView(clone, `CardsController.handleSelectionChanged from ${caller}`);
             }
+            
+            // Dispatch custom event for skill badges
+            window.dispatchEvent(new CustomEvent('card-select', {
+                detail: { jobNumber: selectedJobNumber }
+            }));
         }
     }
 
@@ -571,6 +741,11 @@ class CardsController {
         // Find all original cards that have a clone and deselect them
         const cardsWithClones = document.querySelectorAll('.biz-card-div.hasClone');
         cardsWithClones.forEach(card => this._deselectBizCardDiv(card));
+        
+        // Dispatch custom event for skill badges
+        window.dispatchEvent(new CustomEvent('card-deselect', {
+            detail: {}
+        }));
     }
 
     handleHoverChanged(event) {

@@ -1,12 +1,12 @@
 {
   "version": "1.2",
-  "lastUpdated": "2025-07-09T03:12:08.192Z",
+  "lastUpdated": "2025-07-10T22:39:39.098Z",
   "layout": {
-    "panelSizePercentage": 50.05246589716684
+    "panelSizePercentage": 63.17030053034767
   },
   "resizeHandle": {
-    "steppingEnabled": true,
-    "stepCount": 4
+    "steppingEnabled": false,
+    "stepCount": 1
   },
   "focalPoint": {
     "mode": "locked"
@@ -16,7 +16,7 @@
       "field": "startDate",
       "direction": "desc"
     },
-    "selectedJobNumber": 19
+    "selectedJobNumber": 8
   },
   "theme": {
     "colorPalette": "50_Dark_Grey_Monotone.json",
@@ -25,59 +25,47 @@
     "borderSettings": {
       "normal": {
         "padding": "15px",
-        "innerBorderWidth": "0px",
-        "innerBorderColor": "transparent",
-        "outerBorderWidth": "1px",
-        "outerBorderColor": "white",
+        "innerBorderWidth": "1px",
+        "innerBorderColor": "white",
+        "outerBorderWidth": "0px",
+        "outerBorderColor": "transparent",
         "borderRadius": "25px",
-        "verticalGap": "0px",
         "marginTop": "11px"
       },
       "hovered": {
-        "padding": "15px",
-        "innerBorderWidth": "0px",
+        "padding": "14px",
+        "innerBorderWidth": "2px",
         "innerBorderColor": "blue",
         "outerBorderWidth": "0px",
-        "outerBorderColor": "blue",
+        "outerBorderColor": "transparent",
         "borderRadius": "25px",
-        "verticalGap": "0px",
         "marginTop": "11px"
       },
       "selected": {
-        "padding": "15px",
-        "innerBorderWidth": "0px",
+        "padding": "13px",
+        "innerBorderWidth": "3px",
         "innerBorderColor": "purple",
-        "outerBorderWidth": "7px",
-        "outerBorderColor": "purple",
+        "outerBorderWidth": "0px",
+        "outerBorderColor": "transparent",
         "borderRadius": "25px",
-        "verticalGap": "0px",
         "marginTop": "11px"
       }
     },
     "rDivBorderOverrideSettings": {
       "normal": {
         "padding": "15px",
-        "innerBorderWidth": "0px",
-        "marginTop": "11px",
-        "outerBorderWidth": "0px",
-        "outerBorderColor": "transparent",
-        "verticalGap": "10px"
+        "innerBorderWidth": "1px",
+        "marginTop": "11px"
       },
       "hovered": {
-        "padding": "15px",
-        "innerBorderWidth": "0px",
-        "marginTop": "11px",
-        "outerBorderWidth": "0px",
-        "outerBorderColor": "transparent",
-        "verticalGap": "10px"
+        "padding": "14px",
+        "innerBorderWidth": "2px",
+        "marginTop": "11px"
       },
       "selected": {
-        "padding": "15px",
-        "innerBorderWidth": "0px",
-        "marginTop": "11px",
-        "outerBorderWidth": "5px",
-        "outerBorderColor": "purple",
-        "verticalGap": "5px"
+        "padding": "13px",
+        "innerBorderWidth": "3px",
+        "marginTop": "11px"
       }
     }
   },
@@ -308,7 +296,9 @@
       "scene": 1,
       "sceneGradients": 2,
       "timeline": 3,
-      "backgroundMax": 4,
+      "connectionLines": 4,
+      "badges": 5,
+      "backgroundMax": 6,
       "cardsMin": 10,
       "cardsMax": 19,
       "bullsEye": 98,
@@ -396,6 +386,5 @@
         }
       }
     }
-  },
-  "colorPalette": "sweeps.json"
+  }
 }
