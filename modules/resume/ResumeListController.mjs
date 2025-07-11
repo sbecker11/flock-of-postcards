@@ -349,6 +349,9 @@ class ResumeListController {
     // Set the items in the infinite scroller
     this.infiniteScroller.setItems(sortedDivs, startingIndex);
     
+    // Explicitly scroll to the starting index to ensure proper positioning
+    this.infiniteScroller.scrollToIndex(startingIndex, false); // false = no animation
+    
     // Force a recalculation of heights after initialization to ensure all content is properly contained
     setTimeout(() => {
       window.CONSOLE_LOG_IGNORE('[DEBUG] setupInfiniteScrolling: Forcing initial height recalculation');

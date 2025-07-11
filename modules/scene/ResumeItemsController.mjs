@@ -79,7 +79,7 @@ class ResumeItemsController {
         this.bizResumeDivs = [];
         for (let i = 0; i < bizCardDivs.length; i++) {
             const cardDiv = bizCardDivs[i];
-            console.log(`[ResumeItemsController] Processing card ${i}:`, cardDiv);
+            // console.log(`[ResumeItemsController] Processing card ${i}:`, cardDiv);
             
             if (!cardDiv) {
                 console.warn(`[ResumeItemsController] Card at index ${i} is null/undefined, skipping`);

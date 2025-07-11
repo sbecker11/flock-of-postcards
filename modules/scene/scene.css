@@ -324,5 +324,150 @@ body.focal-point-locked .biz-card-div .scroll-caret,
 
 /* Removed z-index from hovered state - DOM order determines rendering */
 
+/* Skill Badge Statistics Container */
+.biz-card-stats-div {
+    background-color: var(--data-background-color, rgba(255, 255, 255, 0.9));
+    border: 1px solid var(--data-foreground-color, #333);
+    border-radius: 6px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    z-index: 10;
+}
 
+/* Skill Badge Statistics Styles */
+.skill-badge-stats {
+    margin: 0;
+    padding: 0;
+    background-color: transparent;
+    border: none;
+    border-radius: 0;
+}
+
+.skill-badge-stats .stats-header {
+    margin: 0 0 8px 0;
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--data-foreground-color, #333);
+    text-align: center;
+    padding-bottom: 5px;
+    border-bottom: 1px solid var(--data-foreground-color, #333);
+}
+
+.skill-badge-stats .stats-content {
+    font-size: 11px;
+    line-height: 1.4;
+    display: block;
+}
+
+.skill-badge-stats .stats-content p {
+    margin: 2px 0;
+    color: var(--data-foreground-color, #333);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.skill-badge-stats .stats-content p strong {
+    font-weight: 600;
+}
+
+.skill-badge-stats .bias-warning {
+    color: #d97706;
+    font-weight: 600;
+    margin-top: 6px;
+    text-align: center;
+    font-size: 10px;
+}
+
+/* Resume Stats Specific Styling */
+.skill-badge-stats.resume-stats {
+    margin-top: 20px;
+    padding: 10px;
+    background-color: rgba(0, 0, 0, 0.02);
+    border: 1px solid var(--data-foreground-color, #333);
+    border-radius: 6px;
+    pointer-events: auto !important; /* Allow text selection and interaction */
+    user-select: text !important; /* Enable text selection */
+    cursor: text !important; /* Show text cursor */
+    z-index: 15 !important; /* Ensure stats section is above other elements */
+    position: relative; /* Establish stacking context */
+    color: var(--data-foreground-color, #333) !important; /* Match rDiv text color */
+}
+
+.skill-badge-stats.resume-stats .stats-header {
+    font-size: 16px;
+    margin-top: 0;
+    margin-bottom: 8px;
+    pointer-events: auto !important;
+    user-select: text !important;
+    cursor: text !important;
+    color: var(--data-foreground-color, #333) !important; /* Match rDiv text color */
+}
+
+.skill-badge-stats.resume-stats .stats-content {
+    font-size: 12px;
+    line-height: 1.5;
+    cursor: text !important; /* Show text cursor */
+    pointer-events: auto !important;
+    user-select: text !important;
+    color: var(--data-foreground-color, #333) !important; /* Match rDiv text color */
+}
+
+.skill-badge-stats.resume-stats .stats-content p {
+    margin: 4px 0;
+    pointer-events: auto !important; /* Allow text selection */
+    user-select: text !important; /* Enable text selection */
+    cursor: text !important; /* Show text cursor */
+    color: var(--data-foreground-color, #333) !important; /* Match rDiv text color */
+}
+
+/* Prevent parent drag/scroll behavior from interfering with text selection */
+.skill-badge-stats.resume-stats * {
+    pointer-events: auto !important;
+    user-select: text !important;
+    cursor: text !important;
+}
+
+/* Override any parent container styles that might interfere */
+.biz-resume-div .skill-badge-stats.resume-stats,
+.biz-resume-div .skill-badge-stats.resume-stats *,
+.biz-resume-details-div .skill-badge-stats.resume-stats,
+.biz-resume-details-div .skill-badge-stats.resume-stats * {
+    pointer-events: auto !important;
+    user-select: text !important;
+    cursor: text !important;
+}
+
+/* Maximum specificity overrides for color palette and state styling */
+.biz-resume-div.selected .skill-badge-stats.resume-stats,
+.biz-resume-div.selected .skill-badge-stats.resume-stats *,
+.biz-resume-div.hovered .skill-badge-stats.resume-stats,
+.biz-resume-div.hovered .skill-badge-stats.resume-stats *,
+.biz-resume-div .skill-badge-stats.resume-stats .stats-header,
+.biz-resume-div .skill-badge-stats.resume-stats .stats-content,
+.biz-resume-div .skill-badge-stats.resume-stats .stats-content p,
+.biz-resume-div .skill-badge-stats.resume-stats .stats-content strong {
+    pointer-events: auto !important;
+    user-select: text !important;
+    cursor: text !important;
+    -webkit-user-select: text !important;
+    -moz-user-select: text !important;
+    -ms-user-select: text !important;
+    color: var(--data-foreground-color, #333) !important; /* Match rDiv text color */
+}
+
+/* Aggressive scroll prevention during text selection in stats section */
+.skill-badge-stats.resume-stats:hover {
+    touch-action: none !important;
+}
+
+/* Prevent any parent from interfering with text selection */
+.skill-badge-stats.resume-stats {
+    isolation: isolate !important;
+}
+
+/* Add space above stats section after skills list */
+.biz-details-skills + .skill-badge-stats.resume-stats,
+.skill-badge-stats.resume-stats {
+    margin-top: 25px !important;
+}
 

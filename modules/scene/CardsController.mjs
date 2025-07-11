@@ -520,6 +520,13 @@ class CardsController {
             'data-sceneTop': clone.getAttribute('data-sceneTop')
         });
 
+        // Add skill badge statistics to the clone's bizCardDetailsDiv
+        const cloneBizCardDetailsDiv = clone.querySelector('.biz-card-details-div');
+        if (cloneBizCardDetailsDiv) {
+            const jobNumber = parseInt(bizCardDiv.getAttribute('data-job-number'), 10);
+            BizDetailsDivModule.appendSkillBadgeStats(cloneBizCardDetailsDiv, jobNumber);
+        }
+
         // Hide the original card now that the clone is in the DOM
         bizCardDiv.style.display = 'none';
 
@@ -575,7 +582,18 @@ class CardsController {
         const cloneId = bizCardDiv.id + '-clone';
         const clone = document.getElementById(cloneId);
         if (clone) {
+            // Remove any stats div from the clone
+            const statsDiv = clone.querySelector('.biz-card-stats-div');
+            if (statsDiv) {
+                statsDiv.remove();
+            }
             clone.parentElement.removeChild(clone);
+        }
+
+        // Remove any stats div from the original card
+        const originalStatsDiv = bizCardDiv.querySelector('.biz-card-stats-div');
+        if (originalStatsDiv) {
+            originalStatsDiv.remove();
         }
 
         bizCardDiv.classList.remove('hasClone');

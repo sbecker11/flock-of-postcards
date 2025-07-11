@@ -96,7 +96,19 @@ export default {
       const cDivLeft = cDivPos.x;
       const cDivRight = cDivPos.x + cDivPos.width;
       const cDivWidth = cDivPos.width;
+      
+      // Calculate the actual left edge of the badge for connection point
+      // The badge left edge should be where the curve starts (left edge, center Y)
       const badgeLeftEdge = badgePos.x;
+      
+      console.log(`[DEBUG] Connection calculation for badge ${badgeIndex}:`, {
+        badgePos,
+        badgeCenterY,
+        badgeLeftEdge,
+        cDivPos,
+        cDivTop,
+        cDivBottom
+      });
       
       let path;
       let pathCase;
@@ -163,21 +175,168 @@ export default {
         height: elementRect.height
       };
       
+      // Debug logging disabled to reduce console spam
+      // if (element.classList.contains('skill-badge')) {
+      //   console.log(`[DEBUG] Badge position calculation:`, { badgeId: element.id, finalPosition: position });
+      // }
       
       return position;
     };
 
+    // Wait for badges-positioned event or fall back to stability checking
+    const waitForBadgePositioning = () => {
+      return new Promise((resolve) => {
+        let eventReceived = false;
+        
+        // First try: listen for the badges-positioned event
+        const handleBadgesPositioned = (event) => {
+          if (eventReceived) return;
+          eventReceived = true;
+          console.log('[NewConnectionLines] Received badges-positioned event, proceeding with connections');
+          window.removeEventListener('badges-positioned', handleBadgesPositioned);
+          resolve(true);
+        };
+        
+        window.addEventListener('badges-positioned', handleBadgesPositioned);
+        
+        // Fallback: use stability checking if event doesn't fire within reasonable time
+        setTimeout(() => {
+          if (eventReceived) return;
+          
+          console.log('[NewConnectionLines] No badges-positioned event received, falling back to stability checking');
+          window.removeEventListener('badges-positioned', handleBadgesPositioned);
+          
+          const skillBadgesContainer = document.getElementById('skill-badges-container');
+          if (!skillBadgesContainer) {
+            console.log('[NewConnectionLines] Skill badges container not found');
+            resolve(false);
+            return;
+          }
+
+          let stabilityCheckCount = 0;
+          const requiredStabilityChecks = 2; // Reduced from 3 for faster response
+          let lastPositions = new Map();
+          
+          const checkBadgeStability = () => {
+            if (eventReceived) return; // Stop if event was received
+            
+            const skillBadges = document.querySelectorAll('.skill-badge');
+            const currentPositions = new Map();
+            let relevantBadges = 0;
+            let validPositions = 0;
+            
+            skillBadges.forEach((badge, index) => {
+              // Skip dimmed badges
+              if (badge.style.filter?.includes('brightness(0.5)')) return;
+              
+              relevantBadges++;
+              const topValue = badge.style.top;
+              const rect = badge.getBoundingClientRect();
+              
+              if (topValue && topValue !== '0px' && rect.width > 0 && rect.height > 0) {
+                validPositions++;
+                currentPositions.set(index, {
+                  top: topValue,
+                  x: rect.left,
+                  y: rect.top
+                });
+              }
+            });
+            
+            console.log(`[NewConnectionLines] Badge stability check: ${validPositions}/${relevantBadges} badges positioned`);
+            
+            // Check if we have enough valid badges and positions are stable
+            if (validPositions > 0 && validPositions === relevantBadges) {
+              // Compare with last positions to check stability
+              let positionsStable = lastPositions.size > 0;
+              if (positionsStable) {
+                for (let [index, pos] of currentPositions) {
+                  const lastPos = lastPositions.get(index);
+                  if (!lastPos || lastPos.top !== pos.top || Math.abs(lastPos.x - pos.x) > 1 || Math.abs(lastPos.y - pos.y) > 1) {
+                    positionsStable = false;
+                    break;
+                  }
+                }
+              }
+              
+              if (positionsStable) {
+                stabilityCheckCount++;
+                console.log(`[NewConnectionLines] Badge positions stable (${stabilityCheckCount}/${requiredStabilityChecks})`);
+                
+                if (stabilityCheckCount >= requiredStabilityChecks) {
+                  console.log('[NewConnectionLines] Badge positioning completed and stable via fallback!');
+                  resolve(true);
+                  return;
+                }
+              } else {
+                stabilityCheckCount = 0; // Reset counter if positions changed
+              }
+              
+              lastPositions = new Map(currentPositions);
+            } else {
+              stabilityCheckCount = 0; // Reset counter if not all badges positioned
+            }
+            
+            // Continue checking
+            setTimeout(checkBadgeStability, 50); // Faster checking
+          };
+          
+          // Start checking
+          checkBadgeStability();
+        }, 300); // Wait 300ms for the event before falling back
+        
+        // Absolute timeout after 3 seconds
+        setTimeout(() => {
+          if (eventReceived) return;
+          eventReceived = true;
+          window.removeEventListener('badges-positioned', handleBadgesPositioned);
+          console.log('[NewConnectionLines] Badge positioning timeout - proceeding anyway');
+          resolve(false);
+        }, 3000);
+      });
+    };
+
+    // Validate badge positioning - ensure badges have proper style.top values
+    const validateBadgePositioning = () => {
+      const skillBadges = document.querySelectorAll('.skill-badge');
+      let validBadges = 0;
+      let totalBadges = skillBadges.length;
+      
+      skillBadges.forEach(badge => {
+        const topValue = badge.style.top;
+        if (topValue && topValue !== '0px' && !badge.style.filter?.includes('brightness(0.5)')) {
+          validBadges++;
+        }
+      });
+      
+      console.log(`[NewConnectionLines] Badge validation: ${validBadges}/${totalBadges} badges have valid positioning`);
+      return validBadges > 0 && validBadges === totalBadges - document.querySelectorAll('.skill-badge[style*="brightness(0.5)"]').length;
+    };
+
     // Update connections for any selected cDiv
-    const updateConnections = () => {
+    const updateConnections = async () => {
       connections.value = [];
       
       // Find the selected cDiv - any job number
       const selectedCDiv = document.querySelector('.biz-card-div.selected');
       
-      if (!selectedCDiv) return;
+      if (!selectedCDiv) {
+        console.log('[NewConnectionLines] No selected cDiv found');
+        return;
+      }
+      
+      // console.log('[NewConnectionLines] Waiting for badge positioning to complete...');
+      const badgesReady = await waitForBadgePositioning();
+      
+      if (!badgesReady) {
+        // console.log('[NewConnectionLines] Badge positioning not optimal, but proceeding');
+      }
       
       const cDivPos = getElementPosition(selectedCDiv);
-      if (!cDivPos) return;
+      if (!cDivPos) {
+        // console.log('[NewConnectionLines] Could not get cDiv position');
+        return;
+      }
       
       // Find all skill badges that are not dimmed (related to cDiv 5)
       const skillBadges = document.querySelectorAll('.skill-badge');
@@ -185,14 +344,28 @@ export default {
       
       skillBadges.forEach((badge, index) => {
         const badgePos = getElementPosition(badge);
-        if (!badgePos) return;
+        if (!badgePos) {
+          // console.log(`[NewConnectionLines] Could not get position for badge ${index}`);
+          return;
+        }
+        
+        // Validate badge has reasonable coordinates
+        if (badgePos.x <= 0 || badgePos.y <= 0) {
+          // console.log(`[NewConnectionLines] Badge ${index} has invalid coordinates:`, badgePos);
+          return;
+        }
         
         // Check if this badge is related to the active job (not dimmed)
         const isDimmed = badge.style.filter && badge.style.filter.includes('brightness(0.5)');
-        if (isDimmed) return;
-        
+        if (isDimmed) {
+          return;
+        }
         relevantBadges.push({ badge, badgePos, index });
       });
+      
+      if (relevantBadges.length === 0) {
+        return;
+      }
       
       // First pass: categorize badges by case type
       const case1Badges = []; // ABOVE
@@ -200,18 +373,25 @@ export default {
       const case3Badges = []; // LEVEL
       
       relevantBadges.forEach((badgeInfo) => {
-        const { badgePos } = badgeInfo;
+        const { badgePos, badge } = badgeInfo;
         const badgeCenterY = badgePos.y + badgePos.height / 2;
         const cDivTop = cDivPos.y;
         const cDivBottom = cDivPos.y + cDivPos.height;
         
+        let category;
         if (badgeCenterY < cDivTop) {
           case1Badges.push(badgeInfo);
+          category = 'ABOVE';
         } else if (badgeCenterY > cDivBottom) {
           case2Badges.push(badgeInfo);
+          category = 'BELOW';
         } else {
           case3Badges.push(badgeInfo);
+          category = 'WITHIN';
         }
+        
+        // Debug individual badge categorization if needed
+        // console.log(`[NewConnectionLines] Badge "${badge.textContent.trim()}" CenterY=${badgeCenterY.toFixed(1)} cDivTop=${cDivTop.toFixed(1)} cDivBottom=${cDivBottom.toFixed(1)} -> ${category}`);
       });
       
       // Sort case1 and case2 badges by Y position (lowest Y first, highest Y last)
@@ -230,32 +410,58 @@ export default {
       
       // Second pass: create connections with proper case-specific indexing
       const newConnections = [];
+      let actualAboveCount = 0;
+      let actualBelowCount = 0;
+      let actualBetweenCount = 0;
       
-      // Process case1 badges (ABOVE)
+      // Process case1 badges (ABOVE) - these are above
       case1Badges.forEach((badgeInfo, caseIndex) => {
         const { badge, badgePos, index } = badgeInfo;
         const skillText = badge.textContent.trim();
         const connection = createConnectionLine(badgePos, cDivPos, index, skillText, caseIndex, case1Badges.length);
         newConnections.push(connection);
+        actualAboveCount++; // Above cDiv
       });
       
-      // Process case2 badges (BELOW) - already sorted by Y position
+      // Process case2 badges (BELOW) - these are below
       case2Badges.forEach((badgeInfo, caseIndex) => {
         const { badge, badgePos, index } = badgeInfo;
         const skillText = badge.textContent.trim();
         const connection = createConnectionLine(badgePos, cDivPos, index, skillText, caseIndex, case2Badges.length);
         newConnections.push(connection);
+        actualBelowCount++; // Below cDiv
       });
       
-      // Process case3 badges (LEVEL)
+      // Process case3 badges (LEVEL) - these are between
       case3Badges.forEach((badgeInfo, caseIndex) => {
         const { badge, badgePos, index } = badgeInfo;
         const skillText = badge.textContent.trim();
         const connection = createConnectionLine(badgePos, cDivPos, index, skillText, caseIndex, case3Badges.length);
         newConnections.push(connection);
+        actualBetweenCount++; // Level with/between cDiv
       });
       
       connections.value = newConnections;
+      
+      // Summary comparison for debugging
+      console.log(`[NewConnectionLines] cDiv boundaries: top=${cDivPos.y.toFixed(1)} bottom=${(cDivPos.y + cDivPos.height).toFixed(1)} height=${cDivPos.height.toFixed(1)}`);
+      console.log(`[NewConnectionLines] Badge centers: ${relevantBadges.map(b => (b.badgePos.y + b.badgePos.height/2).toFixed(1)).join(', ')}`);
+      
+      // Dispatch event with actual type counts for statistics
+      const currentSelectedCDiv = document.querySelector('.biz-card-div.selected');
+      if (currentSelectedCDiv) {
+        const jobNumber = parseInt(currentSelectedCDiv.getAttribute('data-job-number'));
+        window.dispatchEvent(new CustomEvent('connection-types-counted', {
+          detail: { 
+            jobNumber,
+            aboveCount: actualAboveCount,
+            betweenCount: actualBetweenCount,
+            belowCount: actualBelowCount,
+            totalConnections: newConnections.length
+          }
+        }));
+        console.log(`[NewConnectionLines] Final counts: ${actualAboveCount} above, ${actualBetweenCount} between, ${actualBelowCount} below (total: ${newConnections.length})`);
+      }
     };
 
     // Event handlers
@@ -313,6 +519,39 @@ export default {
       minWidth: '200px'
     }));
 
+    // Define event handlers outside onMounted for proper cleanup
+    const handleSkillBadgesReady = () => {
+      setTimeout(() => {
+        console.log('[NewConnectionLines] Skill badges initialization ready, checking for selected cDiv');
+        const selectedCDiv = document.querySelector('.biz-card-div.selected');
+        if (selectedCDiv) {
+          updateConnections();
+        }
+      }, 100);
+    };
+    
+    const handleCloneCreated = () => {
+      setTimeout(() => {
+        console.log('[NewConnectionLines] Clone created, updating connections');
+        updateConnections();
+      }, 50);
+    };
+    
+    const handleBadgesPositioned = (event) => {
+      const jobNumber = event.detail?.jobNumber;
+      console.log(`[NewConnectionLines] Badges positioned event received for job ${jobNumber}`);
+      
+      // Check if there's a selected cDiv and update connections immediately
+      const selectedCDiv = document.querySelector('.biz-card-div.selected');
+      if (selectedCDiv) {
+        const selectedJobNumber = parseInt(selectedCDiv.getAttribute('data-job-number'));
+        if (jobNumber === selectedJobNumber) {
+          console.log('[NewConnectionLines] Updating connections for matching job number');
+          setTimeout(() => updateConnections(), 50);
+        }
+      }
+    };
+
     onMounted(() => {
       window.addEventListener('card-select', handleCardSelect);
       window.addEventListener('card-deselect', handleCardDeselect);
@@ -320,6 +559,55 @@ export default {
       // Listen for viewport resize events to re-render curves
       window.addEventListener('viewport-changed', handleViewportResize);
       window.addEventListener('resize', handleViewportResize);
+      
+      // Listen for initialization and clone creation events
+      window.addEventListener('skill-badges-init-ready', handleSkillBadgesReady);
+      window.addEventListener('clone-created', handleCloneCreated);
+      
+      // Listen for badges-positioned event
+      window.addEventListener('badges-positioned', handleBadgesPositioned);
+      
+      // Handle post-load state - check if there's already a selected cDiv
+      // Use multiple timeouts to ensure all components are properly initialized
+      setTimeout(() => {
+        const selectedCDiv = document.querySelector('.biz-card-div.selected');
+        if (selectedCDiv) {
+          console.log('[NewConnectionLines] Found selected cDiv on mount, updating connections');
+          updateConnections();
+        }
+      }, 100);
+      
+      // Additional check after a longer delay to ensure everything is fully rendered
+      setTimeout(() => {
+        const selectedCDiv = document.querySelector('.biz-card-div.selected');
+        if (selectedCDiv && connections.value.length === 0) {
+          console.log('[NewConnectionLines] Re-checking selected cDiv after longer delay');
+          updateConnections();
+        }
+      }, 500);
+      
+      // Final check after an even longer delay for hard page resets
+      setTimeout(() => {
+        const selectedCDiv = document.querySelector('.biz-card-div.selected');
+        if (selectedCDiv && connections.value.length === 0) {
+          console.log('[NewConnectionLines] Final check after page load - forcing connection update');
+          updateConnections();
+        }
+      }, 1000);
+      
+      // Additional safety net specifically for hard page refresh badge positioning
+      setTimeout(() => {
+        const selectedCDiv = document.querySelector('.biz-card-div.selected');
+        if (selectedCDiv && connections.value.length === 0) {
+          console.log('[NewConnectionLines] Hard page refresh safety net - final attempt');
+          // Force badge validation and retry
+          const skillBadges = document.querySelectorAll('.skill-badge:not([style*="brightness(0.5)"])');
+          console.log(`[NewConnectionLines] Found ${skillBadges.length} non-dimmed badges for final attempt`);
+          if (skillBadges.length > 0) {
+            updateConnections();
+          }
+        }
+      }, 1500);
     });
 
     onUnmounted(() => {
@@ -327,6 +615,9 @@ export default {
       window.removeEventListener('card-deselect', handleCardDeselect);
       window.removeEventListener('viewport-changed', handleViewportResize);
       window.removeEventListener('resize', handleViewportResize);
+      window.removeEventListener('skill-badges-init-ready', handleSkillBadgesReady);
+      window.removeEventListener('clone-created', handleCloneCreated);
+      window.removeEventListener('badges-positioned', handleBadgesPositioned);
     });
 
     return {
