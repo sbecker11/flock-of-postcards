@@ -324,13 +324,19 @@ body.focal-point-locked .biz-card-div .scroll-caret,
 
 /* Removed z-index from hovered state - DOM order determines rendering */
 
-/* Skill Badge Statistics Container */
+/* Skill Badge Statistics Container - Hidden by default */
 .biz-card-stats-div {
-    background-color: var(--data-background-color, rgba(255, 255, 255, 0.9));
-    border: 1px solid var(--data-foreground-color, #333);
+    display: none;
+    background-color: inherit;
+    border: 1px solid currentColor;
     border-radius: 6px;
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
     z-index: 10;
+}
+
+/* Show stats only for selected cDiv */
+.biz-card-div.selected .biz-card-stats-div {
+    display: block;
 }
 
 /* Skill Badge Statistics Styles */
@@ -346,10 +352,9 @@ body.focal-point-locked .biz-card-div .scroll-caret,
     margin: 0 0 8px 0;
     font-size: 14px;
     font-weight: 600;
-    color: var(--data-foreground-color, #333);
     text-align: center;
     padding-bottom: 5px;
-    border-bottom: 1px solid var(--data-foreground-color, #333);
+    border-bottom: 1px solid currentColor;
 }
 
 .skill-badge-stats .stats-content {
@@ -360,7 +365,6 @@ body.focal-point-locked .biz-card-div .scroll-caret,
 
 .skill-badge-stats .stats-content p {
     margin: 2px 0;
-    color: var(--data-foreground-color, #333);
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
@@ -378,19 +382,28 @@ body.focal-point-locked .biz-card-div .scroll-caret,
     font-size: 10px;
 }
 
-/* Resume Stats Specific Styling */
+/* Resume Stats Specific Styling - Hidden by default */
 .skill-badge-stats.resume-stats {
+    display: none;
     margin-top: 20px;
     padding: 10px;
-    background-color: rgba(0, 0, 0, 0.02);
-    border: 1px solid var(--data-foreground-color, #333);
+    background-color: inherit;
+    border: 1px solid currentColor;
     border-radius: 6px;
     pointer-events: auto !important; /* Allow text selection and interaction */
     user-select: text !important; /* Enable text selection */
     cursor: text !important; /* Show text cursor */
     z-index: 15 !important; /* Ensure stats section is above other elements */
     position: relative; /* Establish stacking context */
-    color: var(--data-foreground-color, #333) !important; /* Match rDiv text color */
+}
+
+/* Show resume stats only for the selected job's rDiv */
+.biz-resume-div[data-job-number] .skill-badge-stats.resume-stats {
+    display: none; /* Hide by default for all rDivs */
+}
+
+.biz-resume-div.selected .skill-badge-stats.resume-stats {
+    display: block; /* Show only for selected rDiv */
 }
 
 .skill-badge-stats.resume-stats .stats-header {
@@ -400,7 +413,6 @@ body.focal-point-locked .biz-card-div .scroll-caret,
     pointer-events: auto !important;
     user-select: text !important;
     cursor: text !important;
-    color: var(--data-foreground-color, #333) !important; /* Match rDiv text color */
 }
 
 .skill-badge-stats.resume-stats .stats-content {
@@ -409,7 +421,6 @@ body.focal-point-locked .biz-card-div .scroll-caret,
     cursor: text !important; /* Show text cursor */
     pointer-events: auto !important;
     user-select: text !important;
-    color: var(--data-foreground-color, #333) !important; /* Match rDiv text color */
 }
 
 .skill-badge-stats.resume-stats .stats-content p {
@@ -417,7 +428,6 @@ body.focal-point-locked .biz-card-div .scroll-caret,
     pointer-events: auto !important; /* Allow text selection */
     user-select: text !important; /* Enable text selection */
     cursor: text !important; /* Show text cursor */
-    color: var(--data-foreground-color, #333) !important; /* Match rDiv text color */
 }
 
 /* Prevent parent drag/scroll behavior from interfering with text selection */
@@ -452,7 +462,6 @@ body.focal-point-locked .biz-card-div .scroll-caret,
     -webkit-user-select: text !important;
     -moz-user-select: text !important;
     -ms-user-select: text !important;
-    color: var(--data-foreground-color, #333) !important; /* Match rDiv text color */
 }
 
 /* Aggressive scroll prevention during text selection in stats section */

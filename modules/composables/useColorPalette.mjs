@@ -90,7 +90,7 @@ export function useColorPalette() {
     });
     
     // Function to update brightness factors
-    function updateBrightnessFactors(selectedFactor, hoveredFactor) {
+    async function updateBrightnessFactors(selectedFactor, hoveredFactor) {
         if (selectedFactor !== undefined) {
             AppState.theme.brightnessFactorSelected = selectedFactor;
         }
@@ -101,13 +101,28 @@ export function useColorPalette() {
         
         // Reapply palette to all elements to update their data attributes
         const elements = document.querySelectorAll('[data-color-index]');
-        elements.forEach(async element => {
+        for (const element of elements) {
             await applyPaletteToElement(element);
-        });
+        }
+        
+        // Apply palette to ALL rDivs and cDivs (including clones) regardless of data-color-index
+        const allRDivs = document.querySelectorAll('.biz-resume-div');
+        for (const rDiv of allRDivs) {
+            if (rDiv.hasAttribute('data-color-index')) {
+                await applyPaletteToElement(rDiv);
+            }
+        }
+        
+        const allCDivs = document.querySelectorAll('.biz-card-div');
+        for (const cDiv of allCDivs) {
+            if (cDiv.hasAttribute('data-color-index')) {
+                await applyPaletteToElement(cDiv);
+            }
+        }
     }
 
     // Function to update border settings
-    function updateBorderSettings(newBorderSettings) {
+    async function updateBorderSettings(newBorderSettings) {
         if (newBorderSettings) {
             AppState.theme.borderSettings = newBorderSettings;
             saveState(AppState);
@@ -115,9 +130,24 @@ export function useColorPalette() {
         
         // Reapply palette to all elements to update their data attributes
         const elements = document.querySelectorAll('[data-color-index]');
-        elements.forEach(async element => {
+        for (const element of elements) {
             await applyPaletteToElement(element);
-        });
+        }
+        
+        // Apply palette to ALL rDivs and cDivs (including clones) regardless of data-color-index
+        const allRDivs = document.querySelectorAll('.biz-resume-div');
+        for (const rDiv of allRDivs) {
+            if (rDiv.hasAttribute('data-color-index')) {
+                await applyPaletteToElement(rDiv);
+            }
+        }
+        
+        const allCDivs = document.querySelectorAll('.biz-card-div');
+        for (const cDiv of allCDivs) {
+            if (cDiv.hasAttribute('data-color-index')) {
+                await applyPaletteToElement(cDiv);
+            }
+        }
     }
 
     // Return all the reactive state and methods
@@ -424,7 +454,7 @@ export function applyStateStyling(element, state) {
 
 // --- Global Watcher ---
 // This watcher runs once and handles applying the color theme to the document
-watch(currentPaletteFilename, (newFilename) => {
+watch(currentPaletteFilename, async (newFilename) => {
     if (!newFilename) return;
     
     const paletteName = filenameToNameMap.value[newFilename];
@@ -461,13 +491,28 @@ watch(currentPaletteFilename, (newFilename) => {
 
     // Update elements with data-color-index
     const elements = document.querySelectorAll('[data-color-index]');
-    elements.forEach(async element => {
+    for (const element of elements) {
         const paletteColorIndexAttr = element.getAttribute("data-color-index");
-        if (paletteColorIndexAttr === null || isNaN(parseInt(paletteColorIndexAttr, 10))) return;
+        if (paletteColorIndexAttr === null || isNaN(parseInt(paletteColorIndexAttr, 10))) continue;
         
         // Use the applyPaletteToElement function to set all data attributes
         await applyPaletteToElement(element);
-    });
+    }
+    
+    // Apply palette to ALL rDivs and cDivs (including clones) regardless of data-color-index
+    const allRDivs = document.querySelectorAll('.biz-resume-div');
+    for (const rDiv of allRDivs) {
+        if (rDiv.hasAttribute('data-color-index')) {
+            await applyPaletteToElement(rDiv);
+        }
+    }
+    
+    const allCDivs = document.querySelectorAll('.biz-card-div');
+    for (const cDiv of allCDivs) {
+        if (cDiv.hasAttribute('data-color-index')) {
+            await applyPaletteToElement(cDiv);
+        }
+    }
 
 }, { immediate: true }); // Run this watcher as soon as the composable is used
 

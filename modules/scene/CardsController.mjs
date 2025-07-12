@@ -441,6 +441,44 @@ class CardsController {
         }
         
         clone.style.left = `${newSceneLeft}px`;
+        
+        // Ensure clone has all positioning properties defined for proper bounds calculation
+        // Note: Clone is translated so centerX = bullseyeCenterX (sceneCenterX = 0)
+        const cloneWidth = parseFloat(clone.style.width || getComputedStyle(clone).width);
+        const cloneHeight = parseFloat(clone.style.height || getComputedStyle(clone).height);
+        
+        // Calculate actual translated bounds (centerX = 0, so left = -width/2, right = +width/2)
+        const translatedLeft = sceneCenterX - (cloneWidth / 2);  // Should equal newSceneLeft
+        const translatedRight = sceneCenterX + (cloneWidth / 2);
+        const translatedTop = parseFloat(originalSceneTop || "0");
+        const translatedBottom = translatedTop + cloneHeight;
+        
+        // Set explicit positioning properties based on translated position
+        clone.style.top = `${translatedTop}px`;
+        clone.style.left = `${translatedLeft}px`;
+        clone.style.bottom = `${translatedBottom}px`;
+        clone.style.right = `${translatedRight}px`;
+        
+        // Also set data attributes for reference (using translated values)
+        clone.setAttribute("data-sceneBottom", translatedBottom.toString());
+        clone.setAttribute("data-sceneRight", translatedRight.toString());
+        clone.setAttribute("data-sceneLeft", translatedLeft.toString());  // Update to translated value
+        clone.setAttribute("data-sceneTop", translatedTop.toString());    // Update to translated value
+        
+        console.log(`[DEBUG] Clone ${clone.id} positioning properties set (translated):`, {
+            top: clone.style.top,
+            left: clone.style.left,
+            bottom: clone.style.bottom,
+            right: clone.style.right,
+            'data-sceneTop': clone.getAttribute('data-sceneTop'),
+            'data-sceneLeft': clone.getAttribute('data-sceneLeft'),
+            'data-sceneBottom': clone.getAttribute('data-sceneBottom'),
+            'data-sceneRight': clone.getAttribute('data-sceneRight'),
+            centerX: sceneCenterX,
+            originalLeft: newSceneLeft,
+            translatedLeft: translatedLeft,
+            cloneWidth: cloneWidth
+        });
 
         // The clone needs its own click listener to handle deselection
         clone.addEventListener('click', (e) => {

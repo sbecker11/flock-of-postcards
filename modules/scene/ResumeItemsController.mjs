@@ -221,6 +221,15 @@ class ResumeItemsController {
             // Apply selected state styling using the new system
             applyStateStyling(bizResumeDiv, 'selected');
             
+            // Force browser repaint to ensure stats div visibility updates immediately
+            bizResumeDiv.offsetHeight; // Reading offsetHeight forces a reflow
+            
+            // Trigger height recalculation to accommodate visible stats div
+            if (window.resumeListController && window.resumeListController.infiniteScroller) {
+                window.resumeListController.infiniteScroller.recalculateHeights();
+                window.CONSOLE_LOG_IGNORE(`[DEBUG] ResumeItemsController.handleSelectionChanged: Triggered height recalculation`);
+            }
+            
             window.CONSOLE_LOG_IGNORE(`[DEBUG] ResumeItemsController.handleSelectionChanged: Applied 'selected' class to resume div`);
         } else {
             window.CONSOLE_LOG_IGNORE(`ResumeItemsController: No resume div found for job number ${selectedJobNumber}`);
@@ -233,7 +242,15 @@ class ResumeItemsController {
             div.classList.remove('selected');
             // Reset to normal state
             applyStateStyling(div, 'normal');
+            // Force browser repaint to ensure stats div visibility updates immediately
+            div.offsetHeight; // Reading offsetHeight forces a reflow
         });
+        
+        // Trigger height recalculation to accommodate hidden stats divs
+        if (window.resumeListController && window.resumeListController.infiniteScroller) {
+            window.resumeListController.infiniteScroller.recalculateHeights();
+            window.CONSOLE_LOG_IGNORE(`[DEBUG] ResumeItemsController.handleSelectionCleared: Triggered height recalculation`);
+        }
     }
 
     // Static method to reset the singleton instance

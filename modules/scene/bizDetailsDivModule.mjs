@@ -396,7 +396,9 @@ function calculateSkillBadgeStats(jobNumber) {
     console.log(`[Stats Debug] Job ${jobNumber}: aboveBelowSum=${aboveBelowSum}, geometricAbove=${geometricAbove.toFixed(3)}, geometricBelow=${geometricBelow.toFixed(3)}`);
     
     // Bias warning based on skewness and distribution with safety checks
-    const biasWarning = (Math.abs(skewness) > 0.5) || (Math.abs(geometricAbove - 0.5) > 0.3);
+    // Do not show warning when both geometric means are zero (no above/below badges)
+    const biasWarning = (geometricAbove === 0 && geometricBelow === 0) ? false : 
+                       (Math.abs(skewness) > 0.5) || (Math.abs(geometricAbove - 0.5) > 0.3);
     
     // Safe formatting with null checks
     const formatSafe = (value, decimals = 1) => {

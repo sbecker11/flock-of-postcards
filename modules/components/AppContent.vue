@@ -6,13 +6,13 @@
         <div id="scene-plane-btm-gradient"></div>
         <div id="scene-plane">
           <Timeline alignment="left" />
+          <SkillBadges />
+          <NewConnectionLines />
         </div>
         <div id="biz-details-div"></div>
         <!-- <ConnectionLines /> -->
-        <SkillBadges />
         <!-- <BadgeLines /> -->
         <!-- <SingleLCurveTest /> -->
-        <NewConnectionLines />
       </div>
       <SceneContainerFooter />
     </div>

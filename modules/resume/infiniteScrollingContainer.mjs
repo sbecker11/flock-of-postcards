@@ -218,6 +218,16 @@ class InfiniteScrollingContainer {
     clone.dataset.originalIndex = originalIndex;
     clone.dataset.cloneType = cloneType;
     
+    // Ensure clone has the same data-color-index as original
+    const originalColorIndex = originalElement.getAttribute('data-color-index');
+    const originalJobNumber = originalElement.getAttribute('data-job-number');
+    if (originalColorIndex && !clone.getAttribute('data-color-index')) {
+      clone.setAttribute('data-color-index', originalColorIndex);
+    }
+    if (originalJobNumber && !clone.getAttribute('data-job-number')) {
+      clone.setAttribute('data-job-number', originalJobNumber);
+    }
+    
     // Remove any IDs to avoid duplicates
     this.removeIds(clone);
     

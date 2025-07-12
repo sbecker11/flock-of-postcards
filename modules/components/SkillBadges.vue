@@ -155,12 +155,6 @@ export default {
       }
       
       if (selectedJobNumber !== null) {
-        // Special distribution for selected cDiv - arrange ALL badges in normal distribution
-        const relatedBadges = badges.filter(badge => badge.jobNumbers.includes(selectedJobNumber));
-        const unrelatedBadges = badges.filter(badge => !badge.jobNumbers.includes(selectedJobNumber));
-        
-        console.log(`[SkillBadges] Selected cDiv ${selectedJobNumber}: ${relatedBadges.length} related badges, ${unrelatedBadges.length} unrelated badges`);
-        
         // Get cDiv center Y position
         const cDivCenterY = getCDivCenterY(selectedJobNumber);
         console.log(`[SkillBadges] cDiv center Y: ${cDivCenterY}`);
@@ -183,92 +177,62 @@ export default {
         
         console.log(`[SkillBadges] cDiv boundaries: top=${cDivTop.toFixed(1)}, bottom=${cDivBottom.toFixed(1)}, height=${(cDivBottom - cDivTop).toFixed(1)}`);
         
-        // Create N buckets for N badges (40px apart)
-        const totalBadges = badges.length;
-        const relatedCount = relatedBadges.length;
-        const unrelatedCount = unrelatedBadges.length;
+        // Split badges into selected and unselected 
+        const relatedBadges = badges.filter(badge => badge.jobNumbers.includes(selectedJobNumber));
+        const unrelatedBadges = badges.filter(badge => !badge.jobNumbers.includes(selectedJobNumber));
         
-        // console.log(`[SkillBadges] Distributing ${relatedCount} related badges (normal) + ${unrelatedCount} unrelated badges (uniform)`);
+        console.log(`[SkillBadges] Selected cDiv ${selectedJobNumber}: ${relatedBadges.length} related badges, ${unrelatedBadges.length} unrelated badges`);
+        console.log(`[SkillBadges] DEBUG: selectedJobNumber.value=${selectedJobNumber.value}, hoveredJobNumber.value=${hoveredJobNumber.value}`);
         
-        // Step 1: Create alternating fill pattern for related badges around cDiv center
-        const relatedPositions = [];
+        // Append unselected badges to end of selected badges list
+        const allBadgesList = [...relatedBadges, ...unrelatedBadges];
+        const totalBadges = allBadgesList.length;
+        
+        // Simple staggered positioning around cDiv center for all badges
         const centerBucket = Math.round(cDivCenterY / badgeHeight) * badgeHeight;
+        const staggeredPositions = [];
         
-        // Start with center position
-        relatedPositions.push(centerBucket);
-        
-        // Alternately fill above and below center
-        let offset = 1;
-        while (relatedPositions.length < relatedCount) {
-          // Add position below center
-          if (relatedPositions.length < relatedCount) {
-            relatedPositions.push(centerBucket + (offset * badgeHeight));
-          }
-          // Add position above center
-          if (relatedPositions.length < relatedCount) {
-            relatedPositions.push(centerBucket - (offset * badgeHeight));
-          }
-          offset++;
-        }
-        
-        // Sort positions for easier assignment
-        const uniqueRelatedPositions = relatedPositions.sort((a, b) => a - b);
-        
-        // console.log(`[SkillBadges] Related badges positioned around cDiv center (${cDivCenterY.toFixed(1)}px)`);
-        
-        // Step 2: Create all possible bucket positions for the scene
-        const allPossibleBuckets = [];
-        const sceneHeight = 2000;
-        for (let y = 0; y < sceneHeight; y += badgeHeight) {
-          allPossibleBuckets.push(y);
-        }
-        
-        // Step 3: Find available buckets (not used by related badges)
-        const usedPositions = new Set(uniqueRelatedPositions);
-        const availableBuckets = allPossibleBuckets.filter(pos => !usedPositions.has(pos));
-        
-        // Step 4: Uniformly distribute unrelated badges among available buckets
-        const shuffledAvailableBuckets = [...availableBuckets];
-        // Fisher-Yates shuffle for uniform distribution
-        for (let i = shuffledAvailableBuckets.length - 1; i > 0; i--) {
-          const j = Math.floor(Math.random() * (i + 1));
-          [shuffledAvailableBuckets[i], shuffledAvailableBuckets[j]] = [shuffledAvailableBuckets[j], shuffledAvailableBuckets[i]];
-        }
-        
-        // Take first N unrelated positions from shuffled available buckets
-        const unrelatedPositions = shuffledAvailableBuckets.slice(0, unrelatedCount);
-        
-        // console.log(`[SkillBadges] Unrelated badges distributed uniformly among ${availableBuckets.length} available buckets`);
-        
-        // Step 5: Assign positions to badges
-        relatedBadges.forEach((badge, index) => {
-          badge.style.top = `${uniqueRelatedPositions[index]}px`;
-          // console.log(`[SkillBadges] Badge "${badge.name}" assigned position ${uniqueRelatedPositions[index]}px (center Y: ${uniqueRelatedPositions[index] + 20}px)`);
-        });
-        
-        unrelatedBadges.forEach((badge, index) => {
-          if (index < unrelatedPositions.length) {
-            badge.style.top = `${unrelatedPositions[index]}px`;
+        // Start from center and work outward, alternating above/below
+        let offset = 0;
+        for (let i = 0; i < totalBadges; i++) {
+          let targetY;
+          
+          if (i === 0) {
+            // First badge goes at center
+            targetY = centerBucket;
+          } else if (i % 2 === 1) {
+            // Odd badges go below center
+            offset++;
+            targetY = centerBucket + (offset * badgeHeight);
           } else {
-            // Fallback: use remaining available buckets
-            const fallbackPos = shuffledAvailableBuckets[unrelatedCount + index] || (sceneHeight - badgeHeight);
-            badge.style.top = `${fallbackPos}px`;
+            // Even badges go above center  
+            targetY = centerBucket - (offset * badgeHeight);
+          }
+          
+          staggeredPositions.push(targetY);
+        }
+        
+        console.log(`[SkillBadges] DEBUG: cDivCenterY=${cDivCenterY.toFixed(1)}px, badgeHeight=${badgeHeight}px, centerBucket=${centerBucket}px`);
+        console.log(`[SkillBadges] DEBUG: cDiv boundaries: top=${cDivTop.toFixed(1)}px, bottom=${cDivBottom.toFixed(1)}px`);
+        console.log(`[SkillBadges] Simple staggered positioning: ${relatedBadges.length} selected badges first, then ${unrelatedBadges.length} unselected appended`);
+        
+        // Assign positions to all badges
+        allBadgesList.forEach((badge, index) => {
+          badge.style.top = `${staggeredPositions[index]}px`;
+          // Debug first few badges
+          if (index < 5) {
+            console.log(`[SkillBadges] DEBUG Badge ${index}: "${badge.name}" at ${staggeredPositions[index]}px, jobNumbers=[${badge.jobNumbers}]`);
           }
         });
         
-        // console.log(`[SkillBadges] Final distribution: ${relatedCount} related (normal) + ${unrelatedCount} unrelated (uniform)`);
-        
-        // console.log(`[SkillBadges] Positioned ${relatedBadges.length} related badges with normal distribution around cDiv center (${cDivCenterY}px), shuffled ${unrelatedBadges.length} unrelated badges`);
-        
-        // Debug: Analyze the distribution of related badges
-        // Use the already calculated cDivTop and cDivBottom from above
-        
+        // Debug: Analyze the distribution of related badges for statistics
         let aboveCount = 0; // Above cDiv
         let betweenCount = 0; // Between/within cDiv
         let belowCount = 0; // Below cDiv
         
         const badgeCenterYs = [];
         
+        // Analyze only related badges for statistics (as before)
         relatedBadges.forEach(badge => {
           const badgeY = parseFloat(badge.style.top);
           const badgeCenterY = badgeY + 20; // badge height / 2

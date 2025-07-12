@@ -1,8 +1,8 @@
 {
   "version": "1.2",
-  "lastUpdated": "2025-07-11T22:27:01.120Z",
+  "lastUpdated": "2025-07-12T02:25:46.065Z",
   "layout": {
-    "panelSizePercentage": 74.1001564945227
+    "panelSizePercentage": 71.04283054003724
   },
   "resizeHandle": {
     "steppingEnabled": false,
@@ -16,7 +16,7 @@
       "field": "startDate",
       "direction": "desc"
     },
-    "selectedJobNumber": 17
+    "selectedJobNumber": 8
   },
   "theme": {
     "colorPalette": "50_Dark_Grey_Monotone.json",
@@ -386,5 +386,6 @@
         }
       }
     }
-  }
+  },
+  "colorPalette": "snow_springtime.json"
 }
