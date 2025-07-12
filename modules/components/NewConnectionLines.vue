@@ -1,6 +1,6 @@
 <template>
   <div 
-    v-if="connections.length > 0"
+    v-if="shouldShowContainer"
     id="new-connection-lines-container"
     :style="containerStyle"
     class="new-connection-lines"
@@ -56,6 +56,7 @@
 import { ref, computed, onMounted, onUnmounted } from 'vue';
 import { TARGET_CDIV_JOB_NUMBER } from "@/modules/constants/targetCDiv.mjs";
 import { applyPaletteToElement, applyStateStyling } from '../composables/useColorPalette.mjs';
+import { badgeManager } from '@/modules/core/badgeManager.mjs';
 
 export default {
   name: 'NewConnectionLines',
@@ -63,6 +64,43 @@ export default {
     const connections = ref([]);
     const showDebugInfo = ref(false);
     const lineColor = ref('#9966cc');
+    // Reactive visibility state
+    const isConnectionLinesVisible = ref(badgeManager.isConnectionLinesVisible());
+    
+    // Debug logging for visibility and connections
+    console.log(`[NewConnectionLines] Initial state - connections: ${connections.value.length}, visible: ${isConnectionLinesVisible.value}`);
+    
+    // Computed property to track when container should be visible
+    const shouldShowContainer = computed(() => {
+      const result = connections.value.length > 0 && isConnectionLinesVisible.value;
+      console.log(`[NewConnectionLines] Container visibility check - connections: ${connections.value.length}, visible: ${isConnectionLinesVisible.value}, result: ${result}`);
+      
+      // Additional debug when we expect to see lines but don't
+      if (isConnectionLinesVisible.value && connections.value.length === 0) {
+        console.warn(`[NewConnectionLines] Badge mode allows connection lines but connections array is empty. Badge mode should be 'show' or 'stats'`);
+      }
+      
+      return result;
+    });
+    
+    // Listen for badge mode changes
+    const handleBadgeModeChange = (event) => {
+      const shouldBeVisible = badgeManager.isConnectionLinesVisible();
+      console.log(`[NewConnectionLines] Badge mode changed to: ${event.detail.mode}, connection lines should be visible: ${shouldBeVisible}`);
+      isConnectionLinesVisible.value = shouldBeVisible;
+      
+      if (shouldBeVisible) {
+        // BadgeManager says lines should be visible, trigger update
+        console.log(`[NewConnectionLines] BadgeManager allows connection lines, triggering update`);
+        debouncedUpdateConnections(200, 'badge-mode-change');
+      } else {
+        // BadgeManager says lines shouldn't be visible, let it clear them
+        console.log(`[NewConnectionLines] BadgeManager doesn't allow connection lines, clearing if needed`);
+        badgeManager.clearConnectionsIfNeeded(connections);
+      }
+    };
+    
+    badgeManager.addEventListener('badgeModeChanged', handleBadgeModeChange);
     
     // Debouncing mechanism to prevent rapid connection updates
     let updateConnectionsTimeoutId = null;
@@ -430,6 +468,12 @@ export default {
 
     // Debounced version of updateConnections to prevent flashing
     const debouncedUpdateConnections = (delay = 100, reason = 'unknown') => {
+      // Don't update if BadgeManager doesn't allow connection updates
+      if (!badgeManager.allowConnectionUpdates()) {
+        console.log(`[NewConnectionLines] Skipping update (${reason}) - BadgeManager doesn't allow connection updates`);
+        return;
+      }
+      
       // Clear any existing timeout
       if (updateConnectionsTimeoutId) {
         clearTimeout(updateConnectionsTimeoutId);
@@ -480,10 +524,17 @@ export default {
         return;
       }
       
+      // Double-check that BadgeManager allows connection updates
+      if (!badgeManager.allowConnectionUpdates()) {
+        console.log(`[NewConnectionLines] Aborting update (${reason}) - BadgeManager doesn't allow connection updates`);
+        return;
+      }
+      
       isUpdatingConnections = true;
       console.log(`[NewConnectionLines] Starting connection update (${reason})`);
       
       try {
+      // Clear connections array - this is necessary to rebuild them
       connections.value = [];
       
       // Find the selected cDiv - prefer original over clone
@@ -494,7 +545,8 @@ export default {
       }
       
       if (!selectedCDiv) {
-        console.log('[NewConnectionLines] No selected cDiv found');
+        console.log('[NewConnectionLines] No selected cDiv found - clearing connections');
+        connections.value = [];
         return;
       }
       
@@ -709,7 +761,10 @@ export default {
     };
 
     const handleCardDeselect = () => {
+      console.log('[NewConnectionLines] Card deselected - clearing connections');
+      // Always clear connections when no card is selected
       connections.value = [];
+      
       // Clear any pending updates since there's no selection
       if (updateConnectionsTimeoutId) {
         clearTimeout(updateConnectionsTimeoutId);
@@ -792,6 +847,13 @@ export default {
     };
 
     onMounted(() => {
+      // Force refresh visibility state after mount to ensure proper initialization
+      setTimeout(() => {
+        isConnectionLinesVisible.value = badgeManager.isConnectionLinesVisible();
+        console.log(`[NewConnectionLines] Force refreshed visibility state: ${isConnectionLinesVisible.value}`);
+        console.log(`[NewConnectionLines] Badge mode: ${badgeManager.getMode()}`);
+      }, 50);
+      
       window.addEventListener('card-select', handleCardSelect);
       window.addEventListener('card-deselect', handleCardDeselect);
       
@@ -813,6 +875,15 @@ export default {
         if (selectedCDiv) {
           console.log('[NewConnectionLines] Found selected cDiv on mount');
           debouncedUpdateConnections(200, 'mount-initial');
+        } else {
+          console.log('[NewConnectionLines] No selected cDiv found on mount');
+          // Check if there should be a selected job from app state
+          const jobNumber = 3; // From app_state.json selectedJobNumber
+          const jobCard = document.querySelector(`[data-job-number="${jobNumber}"]`);
+          if (jobCard && !jobCard.classList.contains('selected')) {
+            console.log(`[NewConnectionLines] Found job card ${jobNumber} but not selected, attempting selection`);
+            jobCard.click();
+          }
         }
       }, 100);
       
@@ -847,6 +918,23 @@ export default {
           }
         }
       }, 1500);
+      
+      // Add debug helper to window for troubleshooting
+      window.debugConnectionLines = () => {
+        console.log('[NewConnectionLines] Debug status:');
+        console.log('- Badge mode:', badgeManager.getMode());
+        console.log('- Connection lines visible:', badgeManager.isConnectionLinesVisible());
+        console.log('- Component visibility state:', isConnectionLinesVisible.value);
+        console.log('- Should show container:', shouldShowContainer.value);
+        console.log('- Connections count:', connections.value.length);
+        console.log('- Selected cDiv:', document.querySelector('.biz-card-div.selected'));
+        console.log('- Skill badges count:', document.querySelectorAll('.skill-badge').length);
+        console.log('- Non-dimmed badges:', document.querySelectorAll('.skill-badge:not([style*="brightness(0.5)"])').length);
+        
+        // Force update
+        console.log('Forcing connection update...');
+        debouncedUpdateConnections(100, 'debug-manual');
+      };
     });
 
     onUnmounted(() => {
@@ -857,12 +945,15 @@ export default {
       window.removeEventListener('skill-badges-init-ready', handleSkillBadgesReady);
       window.removeEventListener('clone-created', handleCloneCreated);
       window.removeEventListener('badges-positioned', handleBadgesPositioned);
+      badgeManager.removeEventListener('badgeModeChanged', handleBadgeModeChange);
     });
 
     return {
       connections,
       showDebugInfo,
       lineColor,
+      isConnectionLinesVisible,
+      shouldShowContainer,
       containerStyle,
       svgStyle,
       debugStyle

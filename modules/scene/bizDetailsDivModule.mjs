@@ -8,16 +8,9 @@
 
 import * as utils from '../utils/utils.mjs';
 import { formatDateRange } from '../utils/dateUtils.mjs';
+import { badgeManager } from '../core/badgeManager.mjs';
 import { BULLET } from '../constants/ui.mjs';
 import { jobs as jobsData } from '../../static_content/jobs/jobs.mjs';
-import { 
-    generateNormalDistributionArray, 
-    calculateMean, 
-    calculateMedian, 
-    calculateStandardDeviation,
-    calculatePearsonMedianSkewness,
-    calculateStdDevRanges
-} from '../utils/statUtils.mjs';
 
 /**
  * Creates a business resume details div
@@ -70,11 +63,11 @@ export function createBizResumeDetailsDiv(bizResumeDiv, bizCardDiv) {
     
     // Add skill badge statistics to the end of the rDiv
     const jobNumberInt = parseInt(jobNumber, 10);
-    const stats = calculateSkillBadgeStats(jobNumberInt);
+    const stats = badgeManager.calculateSkillBadgeStats(jobNumberInt);
     
     // Create and append stats HTML to the end
     const statsHtml = `
-    <div class="skill-badge-stats resume-stats">
+    <div class="skill-badge-stats resume-stats hidden-by-mode">
         <h4 class="stats-header">Skill Badge Statistics</h4>
         <div class="stats-content">
             <p><strong>Total Badges:</strong> ${stats.totalBadges}</p>
@@ -97,6 +90,12 @@ export function createBizResumeDetailsDiv(bizResumeDiv, bizCardDiv) {
     </div>`;
     
     bizResumeDetailsDiv.insertAdjacentHTML('beforeend', statsHtml);
+    
+    // Apply BadgeManager state to the newly created stats element
+    const newStatsElement = bizResumeDetailsDiv.querySelector('.skill-badge-stats.resume-stats:last-child');
+    if (newStatsElement) {
+        badgeManager.updateStatsElement(newStatsElement);
+    }
     
     return bizResumeDetailsDiv;
 }
@@ -195,7 +194,7 @@ function recalculateAndUpdateAllStatistics(jobNumber) {
     console.log(`[Stats] Recalculating all statistics for job ${jobNumber}`);
     
     // Calculate fresh statistics with the latest actual counts
-    const newStats = calculateSkillBadgeStats(jobNumber);
+    const newStats = badgeManager.calculateSkillBadgeStats(jobNumber);
     
     // Generate the stats HTML content
     const statsHtml = `
@@ -246,187 +245,6 @@ function recalculateAndUpdateAllStatistics(jobNumber) {
     console.log(`[Stats] Final counts: Above=${newStats.aboveCount}, Between=${newStats.betweenCount}, Below=${newStats.belowCount}`);
 }
 
-/**
- * Calculate skill badge statistics for a given job using statUtils
- * @param {number} jobNumber - The job number to analyze
- * @returns {Object} Statistics object with badge counts and metrics
- */
-function calculateSkillBadgeStats(jobNumber) {
-    // Get all skill badges for this job
-    const skillMap = new Map();
-    const relatedBadges = [];
-    
-    // Collect all unique skills across all jobs (similar to SkillBadges.vue logic)
-    jobsData.forEach((job, jobIndex) => {
-        const jobSkills = job['job-skills'] || {};
-        const skillEntries = Object.entries(jobSkills);
-        
-        skillEntries.forEach(([, skillName]) => {
-            if (!skillMap.has(skillName)) {
-                skillMap.set(skillName, {
-                    name: skillName,
-                    jobNumbers: [jobIndex],
-                    primaryJobNumber: jobIndex
-                });
-            } else {
-                const existingSkill = skillMap.get(skillName);
-                if (!existingSkill.jobNumbers.includes(jobIndex)) {
-                    existingSkill.jobNumbers.push(jobIndex);
-                }
-            }
-        });
-    });
-    
-    // Filter badges related to the selected job
-    skillMap.forEach((skill) => {
-        if (skill.jobNumbers.includes(jobNumber)) {
-            relatedBadges.push(skill);
-        }
-    });
-    
-    const totalBadges = relatedBadges.length;
-    if (totalBadges === 0) {
-        return {
-            totalBadges: 0,
-            mean: '0.0',
-            median: '0.0',
-            stdDev: '0.0',
-            skewness: '0.000',
-            within1StdDev: 0,
-            between1And2StdDev: 0,
-            between2And3StdDev: 0,
-            beyond3StdDev: 0,
-            aboveRatio: '0.000',
-            belowRatio: '0.000',
-            biasWarning: false
-        };
-    }
-    
-    // Get actual badge positions from the DOM for badges related to this job only
-    const badgePositions = [];
-    const skillBadges = document.querySelectorAll('.skill-badge');
-    
-    // Filter for badges related to this job and get their actual positions
-    skillBadges.forEach((badge) => {
-        // Check if this badge is related to the job (not dimmed)
-        const isDimmed = badge.style.filter && badge.style.filter.includes('brightness(0.5)');
-        if (!isDimmed) {
-            // Additional check: verify this badge belongs to the selected job
-            const badgeText = badge.textContent.trim();
-            const isRelatedToJob = relatedBadges.some(relatedBadge => relatedBadge.name === badgeText);
-            
-            if (isRelatedToJob) {
-                const topValue = badge.style.top;
-                if (topValue && topValue !== '0px') {
-                    const yPosition = parseFloat(topValue);
-                    const badgeCenterY = yPosition + 20; // Add half badge height (40px / 2)
-                    badgePositions.push(badgeCenterY);
-                }
-            }
-        }
-    });
-    
-    // Validate actual positions
-    if (!badgePositions || badgePositions.length === 0) {
-        console.warn(`No actual badge positions found for job ${jobNumber}, using simulated data`);
-        // Fallback to simulated data if DOM positions not available
-        const simulatedPositions = generateNormalDistributionArray(totalBadges, 500, 100);
-        badgePositions.push(...simulatedPositions);
-    }
-    
-    // Calculate comprehensive statistics using statUtils with proper null checks
-    const mean = calculateMean(badgePositions) || 0;
-    const median = calculateMedian(badgePositions) || 0;
-    const stdDev = calculateStandardDeviation(badgePositions) || 0;
-    const skewness = calculatePearsonMedianSkewness(badgePositions) || 0;
-    const ranges = calculateStdDevRanges(badgePositions, mean, stdDev);
-    
-    // Get actual cDiv position using the same logic as NewConnectionLines.vue
-    let cDivTop = 500; // Default fallback
-    let cDivBottom = 550;
-    let cDivCenter = 525;
-    
-    // Try to get the actual selected cDiv position using same method as connection lines
-    const selectedCDiv = document.querySelector('.biz-card-div.selected') || 
-                         document.querySelector(`[data-job-number="${jobNumber}"]`);
-    if (selectedCDiv) {
-        const sceneContent = document.getElementById('scene-content');
-        if (sceneContent) {
-            const cDivRect = selectedCDiv.getBoundingClientRect();
-            const sceneRect = sceneContent.getBoundingClientRect();
-            const scrollTop = sceneContent.scrollTop;
-            const scrollLeft = sceneContent.scrollLeft;
-            
-            // Use same calculation as NewConnectionLines.vue getElementPosition()
-            const cDivPosY = (cDivRect.top - sceneRect.top + scrollTop);
-            cDivTop = cDivPosY;
-            cDivBottom = cDivPosY + cDivRect.height;
-            cDivCenter = cDivTop + (cDivRect.height / 2);
-        }
-    }
-    
-    // Use actual counts from connection lines if available, otherwise calculate
-    let aboveCount = actualCounts.aboveCount; // Above cDiv
-    let betweenCount = actualCounts.betweenCount; // Between/within cDiv
-    let belowCount = actualCounts.belowCount; // Below cDiv
-    
-    // If no actual counts available, fall back to calculation (shouldn't happen with connections)
-    if (aboveCount === 0 && betweenCount === 0 && belowCount === 0 && badgePositions.length > 0) {
-        console.log(`[Stats] No actual counts available, calculating from positions`);
-        badgePositions.forEach(pos => {
-            if (pos < cDivTop) {
-                aboveCount++;
-            } else if (pos > cDivBottom) {
-                belowCount++;
-            } else {
-                betweenCount++;
-            }
-        });
-    }
-    
-    // Debug logging for distribution
-    console.log(`[Stats Debug] Job ${jobNumber}: Using counts - Above:${aboveCount}, Between:${betweenCount}, Below:${belowCount} (from ${actualCounts.aboveCount || actualCounts.betweenCount || actualCounts.belowCount ? 'connection lines' : 'calculation'})`);
-    
-    // Calculate geometric ratios with safety checks
-    const aboveBelowSum = aboveCount + belowCount;
-    // If no Above or Below badges exist, both ratios should be 0
-    const geometricAbove = (aboveBelowSum > 0) ? (aboveCount / aboveBelowSum) : 0;
-    const geometricBelow = (aboveBelowSum > 0) ? (belowCount / aboveBelowSum) : 0;
-    
-    console.log(`[Stats Debug] Job ${jobNumber}: aboveBelowSum=${aboveBelowSum}, geometricAbove=${geometricAbove.toFixed(3)}, geometricBelow=${geometricBelow.toFixed(3)}`);
-    
-    // Bias warning based on skewness and distribution with safety checks
-    // Do not show warning when both geometric means are zero (no above/below badges)
-    const biasWarning = (geometricAbove === 0 && geometricBelow === 0) ? false : 
-                       (Math.abs(skewness) > 0.5) || (Math.abs(geometricAbove - 0.5) > 0.3);
-    
-    // Safe formatting with null checks
-    const formatSafe = (value, decimals = 1) => {
-        if (value === null || value === undefined || isNaN(value)) {
-            return '0.'.padEnd(decimals + 2, '0');
-        }
-        return Number(value).toFixed(decimals);
-    };
-    
-    return {
-        totalBadges,
-        cDivCenterY: formatSafe(cDivCenter, 1),
-        mean: formatSafe(mean, 1),
-        median: formatSafe(median, 1),
-        stdDev: formatSafe(stdDev, 1),
-        skewness: formatSafe(skewness, 3),
-        within1StdDev: ranges.within1StdDev || 0,
-        between1And2StdDev: ranges.between1And2StdDev || 0,
-        between2And3StdDev: ranges.between2And3StdDev || 0,
-        beyond3StdDev: ranges.beyond3StdDev || 0,
-        aboveCount,
-        betweenCount,
-        belowCount,
-        aboveRatio: formatSafe(geometricAbove, 3),
-        belowRatio: formatSafe(geometricBelow, 3),
-        biasWarning
-    };
-}
 
 /**
  * Create and position a separate bizCardStatsDiv with skill badge statistics
@@ -437,9 +255,9 @@ function calculateSkillBadgeStats(jobNumber) {
 export function createBizCardStatsDiv(bizCardDiv, jobNumber) {
     if (!bizCardDiv) return null;
     
-    const stats = calculateSkillBadgeStats(jobNumber);
+    const stats = badgeManager.calculateSkillBadgeStats(jobNumber);
     
-    // Create the stats div
+    // Create the stats div container
     const bizCardStatsDiv = document.createElement('div');
     bizCardStatsDiv.classList.add('biz-card-stats-div');
     bizCardStatsDiv.id = `biz-card-stats-div-${jobNumber}`;
@@ -457,7 +275,7 @@ export function createBizCardStatsDiv(bizCardDiv, jobNumber) {
     
     // Create statistics HTML
     bizCardStatsDiv.innerHTML = `
-    <div class="skill-badge-stats">
+    <div class="skill-badge-stats hidden-by-mode">
         <h4 class="stats-header">Skill Badge Statistics</h4>
         <div class="stats-content">
             <p><strong>Total Badges:</strong> ${stats.totalBadges}</p>
@@ -478,6 +296,9 @@ export function createBizCardStatsDiv(bizCardDiv, jobNumber) {
             ${stats.biasWarning ? '<p class="bias-warning"><strong>⚠️ Bias Warning:</strong> Distribution shows significant bias or skewness</p>' : ''}
         </div>
     </div>`;
+    
+    // Apply initial visibility state based on BadgeManager
+    badgeManager.updateStatsElement(bizCardStatsDiv);
     
     return bizCardStatsDiv;
 }

@@ -6,6 +6,7 @@ import { selectionManager } from '../core/selectionManager.mjs';
 import { cardsController } from './CardsController.mjs';
 import { applyPaletteToElement, applyStateStyling } from '../composables/useColorPalette.mjs';
 import { initializationManager } from '../core/initializationManager.mjs';
+import { badgeManager } from '../core/badgeManager.mjs';
 // No longer directly manipulating other managers
 // import { bizCardDivManager } from './bizCardDivManager.mjs';
 // import * as scenePlane from './scenePlane.mjs';
@@ -25,6 +26,8 @@ class ResumeItemsController {
         this.bizResumeDivs = [];
         this.isInitialized = false;
         this._setupSelectionListeners();
+        this._setupBadgeModeListener();
+        this._setupColorPaletteListener();
         
         // Store the singleton instance
         ResumeItemsController.instance = this;
@@ -143,6 +146,14 @@ class ResumeItemsController {
         selectionManager.addEventListener('hoverCleared', this.handleHoverCleared.bind(this));
     }
 
+    _setupBadgeModeListener() {
+        badgeManager.addEventListener('badgeModeChanged', this.handleBadgeModeChanged.bind(this));
+    }
+
+    _setupColorPaletteListener() {
+        window.addEventListener('color-palette-changed', this.handleColorPaletteChanged.bind(this));
+    }
+
     _setupMouseListeners(bizResumeDiv) {
         if (!bizResumeDiv) return;
         bizResumeDiv.addEventListener('click', () => this.handleBizResumeDivClickEvent(bizResumeDiv));
@@ -165,7 +176,9 @@ class ResumeItemsController {
     handleMouseEnterEvent(bizResumeDiv) {
         if (!bizResumeDiv) return;
         const jobNumber = parseInt(bizResumeDiv.getAttribute('data-job-number'), 10);
-        if (selectionManager.getSelectedJobNumber() === jobNumber) return; // Ignore hover on selected item
+        
+        
+        // Always trigger hover events for badge coordination, even for selected items
         selectionManager.hoverJobNumber(jobNumber, 'ResumeItemsController.handleMouseEnterEvent');
     }
 
@@ -177,10 +190,14 @@ class ResumeItemsController {
     handleHoverChanged(event) {
         const { hoveredJobNumber, caller } = event.detail;
 
-        if (selectionManager.getSelectedJobNumber() === hoveredJobNumber) return;
-
-        // Clear previous hovers first
+        // Clear previous hovers first (always, even for selected items to maintain coordination)
         this.handleHoverCleared({ detail: { caller: 'handleHoverChanged' } });
+
+        // Skip applying hover styling to selected items, but allow event coordination to proceed
+        if (selectionManager.getSelectedJobNumber() === hoveredJobNumber) {
+            console.log(`[DEBUG] ResumeItemsController: Skipping hover styling for selected item ${hoveredJobNumber}, but allowing coordination`);
+            return;
+        }
 
         const bizResumeDiv = this.getBizResumeDivByJobNumber(hoveredJobNumber);
         if (bizResumeDiv) {
@@ -253,13 +270,59 @@ class ResumeItemsController {
         }
     }
 
+    handleBadgeModeChanged(event) {
+        const { mode, previousMode, caller } = event.detail;
+        
+        window.CONSOLE_LOG_IGNORE(`[DEBUG] ResumeItemsController.handleBadgeModeChanged: Mode changed from ${previousMode} to ${mode} (caller: ${caller})`);
+        
+        // Force browser repaint to ensure stats visibility updates are applied immediately
+        this.bizResumeDivs.forEach(div => {
+            if (div) {
+                div.offsetHeight; // Reading offsetHeight forces a reflow
+            }
+        });
+        
+        // Trigger height recalculation to accommodate visible/hidden stats divs
+        if (window.resumeListController && window.resumeListController.infiniteScroller) {
+            window.resumeListController.infiniteScroller.recalculateHeights();
+            window.CONSOLE_LOG_IGNORE(`[DEBUG] ResumeItemsController.handleBadgeModeChanged: Triggered height recalculation for badge mode change`);
+        }
+    }
+
+    handleColorPaletteChanged(event) {
+        const { filename, paletteName, previousFilename } = event.detail;
+        
+        window.CONSOLE_LOG_IGNORE(`[DEBUG] ResumeItemsController.handleColorPaletteChanged: Palette changed from ${previousFilename} to ${filename} (${paletteName})`);
+        
+        // Apply new palette to all resume divs and their children
+        this.bizResumeDivs.forEach(div => {
+            if (div) {
+                // Apply palette to the div itself and all elements with data-color-index within it
+                applyPaletteToElement(div);
+                const colorElements = div.querySelectorAll('[data-color-index]');
+                colorElements.forEach(applyPaletteToElement);
+            }
+        });
+        
+        window.CONSOLE_LOG_IGNORE(`[DEBUG] ResumeItemsController.handleColorPaletteChanged: Applied new palette to ${this.bizResumeDivs.length} resume divs`);
+    }
+
     // Static method to reset the singleton instance
     static reset() {
         window.CONSOLE_LOG_IGNORE('[DEBUG] ResumeItemsController: Resetting singleton instance');
         if (ResumeItemsController.instance) {
-            // Clean up any resources if needed
-            ResumeItemsController.instance.bizResumeDivs = [];
-            ResumeItemsController.instance.isInitialized = false;
+            // Clean up event listeners
+            const instance = ResumeItemsController.instance;
+            selectionManager.removeEventListener('selectionChanged', instance.handleSelectionChanged.bind(instance));
+            selectionManager.removeEventListener('selectionCleared', instance.handleSelectionCleared.bind(instance));
+            selectionManager.removeEventListener('hoverChanged', instance.handleHoverChanged.bind(instance));
+            selectionManager.removeEventListener('hoverCleared', instance.handleHoverCleared.bind(instance));
+            badgeManager.removeEventListener('badgeModeChanged', instance.handleBadgeModeChanged.bind(instance));
+            window.removeEventListener('color-palette-changed', instance.handleColorPaletteChanged.bind(instance));
+            
+            // Clean up other resources
+            instance.bizResumeDivs = [];
+            instance.isInitialized = false;
         }
         ResumeItemsController.instance = null;
     }

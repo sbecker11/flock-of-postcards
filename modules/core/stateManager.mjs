@@ -20,6 +20,9 @@ function getDefaultState() {
         focalPoint: {
             mode: 'locked' // Default to locked mode
         },
+        badgeToggle: {
+            mode: 'none' // Default to no badges shown
+        },
         resume: {
             sortRule: { field: 'startDate', direction: 'asc' }, // Default to oldest first
             selectedJobNumber: 22 // Default to the last item (newest job when sorted oldest first)

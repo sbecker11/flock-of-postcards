@@ -55,6 +55,7 @@ class CardsController {
         this.sortedIndices = []; // Maps sorted position to original index
         this.currentlyHoveredElement = null; // Track currently hovered element
         this._setupSelectionListeners();
+        this._setupColorPaletteListener();
         // The pointer events observer is set up in initialize now
         
         // Listen for sort rule changes from ResumeListController
@@ -224,11 +225,20 @@ class CardsController {
     }
 
     getBizCardDivByJobNumber(jobNumber) {
+        // First check original cards
         for (const bizCardDiv of this.bizCardDivs) {
             if (bizCardDiv.getAttribute('data-job-number') === jobNumber.toString()) {
                 return bizCardDiv;
             }
         }
+        
+        // If not found in original cards, check for clone
+        const cloneId = `biz-card-${jobNumber}-clone`;
+        const clone = document.getElementById(cloneId);
+        if (clone) {
+            return clone;
+        }
+        
         return null;
     }
 
@@ -309,6 +319,10 @@ class CardsController {
         selectionManager.addEventListener('selectionCleared', this.handleSelectionCleared.bind(this));
         selectionManager.addEventListener('hoverChanged', this.handleHoverChanged.bind(this));
         selectionManager.addEventListener('hoverCleared', this.handleHoverCleared.bind(this));
+    }
+
+    _setupColorPaletteListener() {
+        window.addEventListener('color-palette-changed', this.handleColorPaletteChanged.bind(this));
     }
 
     _setupMouseListeners(bizCardDiv) {
@@ -485,6 +499,15 @@ class CardsController {
             // e.stopPropagation(); // DO NOT stop propagation here
             this.handleBizCardDivClickEvent(clone);
         });
+        
+        // Add mouse enter/leave listeners to the clone for hover functionality
+        // Note: Clones are always selected, but we still want hover to work for paired rDiv coordination
+        clone.addEventListener('mouseenter', () => {
+            this.handleMouseEnterEvent(clone);
+        });
+        clone.addEventListener('mouseleave', () => {
+            this.handleMouseLeaveEvent(clone);
+        });
 
         // Add click listener for the custom scroll caret on the CLONE
         const caret = clone.querySelector('.scroll-caret');
@@ -558,7 +581,7 @@ class CardsController {
             'data-sceneTop': clone.getAttribute('data-sceneTop')
         });
 
-        // Add skill badge statistics to the clone's bizCardDetailsDiv
+        // Add skill badge statistics to the clone (will be hidden/shown by badge toggle)
         const cloneBizCardDetailsDiv = clone.querySelector('.biz-card-details-div');
         if (cloneBizCardDetailsDiv) {
             const jobNumber = parseInt(bizCardDiv.getAttribute('data-job-number'), 10);
@@ -658,7 +681,14 @@ class CardsController {
     handleMouseEnterEvent(element) {
         if (!element) return;
         const jobNumber = parseInt(element.getAttribute('data-job-number'), 10);
-        if (selectionManager.getSelectedJobNumber() === jobNumber) return; // Ignore hover on selected item
+        
+        
+        // Allow hover on clones (selected items) for paired rDiv coordination, 
+        // but ignore hover on original selected cards
+        const isClone = element.id && element.id.includes('-clone');
+        if (selectionManager.getSelectedJobNumber() === jobNumber && !isClone) {
+            return; // Ignore hover on selected original card
+        }
         
         // FLICKER FIX: Only process if this is a different element than currently hovered
         if (this.currentlyHoveredElement === element) return;
@@ -715,11 +745,6 @@ class CardsController {
         
         // Still notify SelectionManager for coordination with other components
         selectionManager.hoverJobNumber(jobNumber, 'CardsController.handleMouseEnterEvent');
-        
-        // Dispatch custom event for skill badges
-        window.dispatchEvent(new CustomEvent('card-hover', {
-            detail: { jobNumber }
-        }));
     }
 
     handleMouseLeaveEvent(element) {
@@ -754,11 +779,6 @@ class CardsController {
         this.currentlyHoveredElement = null;
         
         selectionManager.clearHover('CardsController.handleMouseLeaveEvent');
-        
-        // Dispatch custom event for skill badges
-        window.dispatchEvent(new CustomEvent('card-unhover', {
-            detail: {}
-        }));
     }
 
     handleSelectionChanged(event) {
@@ -807,24 +827,40 @@ class CardsController {
     handleHoverChanged(event) {
         const { hoveredJobNumber, caller } = event.detail;
 
-        if (selectionManager.getSelectedJobNumber() === hoveredJobNumber) return;
+        // Don't apply hover styling to the cDiv itself if it's selected (non-clone),
+        // but still allow the event to proceed for paired rDiv coordination
+        const shouldApplyHoverStyling = selectionManager.getSelectedJobNumber() !== hoveredJobNumber;
 
-        // FLICKER FIX: Ensure only one cDiv can be hovered at a time
-        // Clear all hovers first, then apply new hover atomically
-        this.bizCardDivs.forEach(div => {
-            if (div.classList.contains('hovered')) {
-                div.classList.remove('hovered');
-                const isSelected = div.classList.contains('selected');
-                if (!isSelected) {
-                    applyStateStyling(div, 'normal');
+        if (shouldApplyHoverStyling) {
+            // FLICKER FIX: Ensure only one cDiv can be hovered at a time
+            // Clear all hovers first, then apply new hover atomically
+            this.bizCardDivs.forEach(div => {
+                if (div.classList.contains('hovered')) {
+                    div.classList.remove('hovered');
+                    const isSelected = div.classList.contains('selected');
+                    if (!isSelected) {
+                        applyStateStyling(div, 'normal');
+                    }
                 }
-            }
-        });
+            });
+            
+            // Also clear hover from any clones
+            const allClones = document.querySelectorAll('.biz-card-div[id*="-clone"]');
+            allClones.forEach(clone => {
+                if (clone.classList.contains('hovered')) {
+                    clone.classList.remove('hovered');
+                    const isSelected = clone.classList.contains('selected');
+                    if (!isSelected) {
+                        applyStateStyling(clone, 'normal');
+                    }
+                }
+            });
 
-        const bizCardDiv = this.getBizCardDivByJobNumber(hoveredJobNumber);
-        if (bizCardDiv) {
-            bizCardDiv.classList.add('hovered');
-            applyStateStyling(bizCardDiv, 'hovered');
+            const bizCardDiv = this.getBizCardDivByJobNumber(hoveredJobNumber);
+            if (bizCardDiv) {
+                bizCardDiv.classList.add('hovered');
+                applyStateStyling(bizCardDiv, 'hovered');
+            }
         }
     }
 
@@ -844,6 +880,49 @@ class CardsController {
                 }
             }
         });
+        
+        // Also clear hover from any clones
+        const allClones = document.querySelectorAll('.biz-card-div[id*="-clone"]');
+        allClones.forEach(clone => {
+            const wasHovered = clone.classList.contains('hovered');
+            const isSelected = clone.classList.contains('selected');
+            
+            // Only process clones that were actually hovered
+            if (wasHovered) {
+                clone.classList.remove('hovered');
+                
+                // Reset to normal state (only if not selected)
+                if (!isSelected) {
+                    applyStateStyling(clone, 'normal');
+                }
+            }
+        });
+    }
+
+    handleColorPaletteChanged(event) {
+        const { filename, paletteName, previousFilename } = event.detail;
+        
+        console.log(`[CardsController] handleColorPaletteChanged: Palette changed from ${previousFilename} to ${filename} (${paletteName})`);
+        
+        // Apply new palette to all cards (both originals and clones) and their children
+        this.bizCardDivs.forEach(div => {
+            if (div) {
+                // Apply palette to the div itself and all elements with data-color-index within it
+                applyPaletteToElement(div);
+                const colorElements = div.querySelectorAll('[data-color-index]');
+                colorElements.forEach(applyPaletteToElement);
+            }
+        });
+        
+        // Also apply to any clones that might exist
+        const allClones = document.querySelectorAll('.biz-card-div[id*="-clone"]');
+        allClones.forEach(clone => {
+            applyPaletteToElement(clone);
+            const colorElements = clone.querySelectorAll('[data-color-index]');
+            colorElements.forEach(applyPaletteToElement);
+        });
+        
+        console.log(`[CardsController] handleColorPaletteChanged: Applied new palette to ${this.bizCardDivs.length} cards and ${allClones.length} clones`);
     }
 
     isJobNumberSelected(jobNumber) {

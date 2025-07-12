@@ -406,6 +406,12 @@ body.focal-point-locked .biz-card-div .scroll-caret,
     display: block; /* Show only for selected rDiv */
 }
 
+/* Badge mode manager - hide stats when not in 'stats' mode */
+.skill-badge-stats.hidden-by-mode,
+.skill-badge-stats.resume-stats.hidden-by-mode {
+    display: none !important;
+}
+
 .skill-badge-stats.resume-stats .stats-header {
     font-size: 16px;
     margin-top: 0;
@@ -479,4 +485,5 @@ body.focal-point-locked .biz-card-div .scroll-caret,
 .skill-badge-stats.resume-stats {
     margin-top: 25px !important;
 }
+
 

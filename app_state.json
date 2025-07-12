@@ -1,15 +1,18 @@
 {
   "version": "1.2",
-  "lastUpdated": "2025-07-12T02:25:46.065Z",
+  "lastUpdated": "2025-07-12T07:04:56.135Z",
   "layout": {
-    "panelSizePercentage": 71.04283054003724
+    "panelSizePercentage": 80
   },
   "resizeHandle": {
-    "steppingEnabled": false,
-    "stepCount": 1
+    "steppingEnabled": true,
+    "stepCount": 5
   },
   "focalPoint": {
     "mode": "locked"
+  },
+  "badgeToggle": {
+    "mode": "stats"
   },
   "resume": {
     "sortRule": {
@@ -387,5 +390,5 @@
       }
     }
   },
-  "colorPalette": "snow_springtime.json"
+  "colorPalette": "so_cherry.json"
 }

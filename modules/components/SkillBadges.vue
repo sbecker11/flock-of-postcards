@@ -23,7 +23,9 @@ import { useViewport } from '@/modules/composables/useViewport.mjs';
 import { useColorPalette, applyPaletteToElement } from '@/modules/composables/useColorPalette.mjs';
 import { jobs as jobsData } from '@/static_content/jobs/jobs.mjs';
 import { AppState } from '@/modules/core/stateManager.mjs';
-import { TARGET_CDIV_JOB_NUMBER } from "@/modules/constants/targetCDiv.mjs";
+import { selectionManager } from '@/modules/core/selectionManager.mjs';
+import { badgeManager } from '@/modules/core/badgeManager.mjs';
+import { badgePositioner } from '@/modules/utils/BadgePositioner.mjs';
 
 export default {
   name: 'SkillBadges',
@@ -34,6 +36,7 @@ export default {
     const skillBadges = ref([]);
     const hoveredJobNumber = ref(null);
     const selectedJobNumber = ref(null);
+    const badgeVisibility = ref(badgeManager.isBadgesVisible());
     
     // Create badges for unique skills across all jobs
     const createSkillBadges = () => {
@@ -46,25 +49,17 @@ export default {
         const jobSkills = job['job-skills'] || {};
         const skillEntries = Object.entries(jobSkills);
         
-        skillEntries.forEach(([skillId, skillName]) => {
-          const skillTextNoSpaces = skillName.replace(/\s+/g, '');
-          
+        skillEntries.forEach(([skillKey, skillName]) => {
           if (!skillMap.has(skillName)) {
             skillMap.set(skillName, {
-              id: `badge-${badgeIndex}-${skillTextNoSpaces}`,
               name: skillName,
               jobNumbers: [jobIndex],
               primaryJobNumber: jobIndex,
-              skillId: `skill-${skillName}-${badgeIndex}`,
-              colorIndex: jobIndex,
-              classes: [],
-              style: {
-                top: '0px'
-              }
+              id: `skill-badge-${badgeIndex}`,
+              colorIndex: badgeIndex % 7
             });
             badgeIndex++;
           } else {
-            // Add this job to the existing skill's job numbers
             const existingSkill = skillMap.get(skillName);
             if (!existingSkill.jobNumbers.includes(jobIndex)) {
               existingSkill.jobNumbers.push(jobIndex);
@@ -73,351 +68,134 @@ export default {
         });
       });
       
-      // Convert map to array
-      skillMap.forEach((skill) => {
-        badges.push(skill);
+      // Convert to array and create badge objects
+      skillMap.forEach(skill => {
+        badges.push({
+          id: skill.id,
+          name: skill.name,
+          jobNumbers: skill.jobNumbers,
+          primaryJobNumber: skill.primaryJobNumber,
+          colorIndex: skill.colorIndex,
+          classes: ['skill-badge'],
+          style: {
+            position: 'absolute',
+            top: '0px',
+            right: '0px'
+          }
+        });
       });
-      
-      console.log(`[SkillBadges] Created ${badges.length} unique skill badges across ${jobsData.length} jobs`);
-      
-      // Apply vertical distribution to the badges
-      distributeVertically(badges);
       
       skillBadges.value = badges;
+      console.log(`[SkillBadges] Created ${badges.length} skill badges`);
     };
     
-    // Get cDiv center Y position
-    const getCDivCenterY = (selectedJobNumber) => {
-      const selectedCDiv = document.querySelector('.biz-card-div.selected') || 
-                          document.querySelector(`[data-job-number="${selectedJobNumber}"]`);
-      if (!selectedCDiv) {
-        console.log(`[SkillBadges] No cDiv found for job ${selectedJobNumber}, using scene center`);
-        return 1000; // Default to scene center if cDiv not found
+    // Position badges based on selection state
+    const positionBadges = () => {
+      if (!badgeManager.isBadgesVisible()) {
+        console.log('[SkillBadges] Skipping positioning - badges not visible');
+        return;
       }
       
-      const sceneContent = document.getElementById('scene-content');
-      if (!sceneContent) return 1000;
+      const selectedCDiv = document.querySelector('.biz-card-div.selected');
+      const badges = document.querySelectorAll('.skill-badge');
       
-      const cDivRect = selectedCDiv.getBoundingClientRect();
-      const sceneRect = sceneContent.getBoundingClientRect();
-      const scrollTop = sceneContent.scrollTop;
+      console.log(`[SkillBadges] positionBadges called - found ${badges.length} badge elements, selectedCDiv:`, selectedCDiv);
       
-      const centerY = (cDivRect.top + cDivRect.height / 2) - sceneRect.top + scrollTop;
-      
-      // Only log for debugging specific issues
-      // console.log(`[SkillBadges] cDiv ${selectedJobNumber} center Y: ${centerY}px`);
-      
-      return centerY;
-    };
-    
-    // Generate normal distribution around center Y
-    const generateNormalDistribution = (centerY, count, spread = 300) => {
-      const positions = [];
-      const badgeHeight = 40;
-      
-      // console.log(`[SkillBadges] Generating normal distribution: center=${centerY}, count=${count}, spread=${spread}`);
-      
-      for (let i = 0; i < count; i++) {
-        // Box-Muller transform for normal distribution
-        const u1 = Math.random();
-        const u2 = Math.random();
-        const z = Math.sqrt(-2 * Math.log(u1)) * Math.cos(2 * Math.PI * u2);
+      if (selectedCDiv && selectedJobNumber.value !== null) {
+        // Position around selected cDiv
+        const relatedBadges = [];
+        const unrelatedBadges = [];
         
-        // Scale and center the distribution
-        const offset = z * (spread / 4); // spread/4 gives us ~95% within spread
-        const y = centerY + offset;
-        
-        // Round to badge height grid
-        const gridY = Math.round(y / badgeHeight) * badgeHeight;
-        positions.push(gridY);
-      }
-      
-      // const mean = positions.reduce((sum, p) => sum + p, 0) / positions.length;
-      // console.log(`[SkillBadges] Generated positions mean: ${mean.toFixed(1)} (target: ${centerY})`);
-      
-      return positions;
-    };
-    
-    // Distribute badges with special positioning for selected cDiv
-    const distributeVertically = (badges, selectedJobNumber = null) => {
-      const sceneHeight = 2000; // Total scene height
-      const badgeHeight = 40; // Height of each badge
-      const startY = 100; // Minimum Y position
-      const endY = sceneHeight - 100; // Maximum Y position
-      const totalRange = endY - startY;
-      
-      // Create array of all available positions across full scene height
-      const allPositions = [];
-      const fullScenePositions = Math.floor(sceneHeight / badgeHeight);
-      
-      for (let i = 0; i < fullScenePositions; i++) {
-        allPositions.push(i * badgeHeight);
-      }
-      
-      if (selectedJobNumber !== null) {
-        // Get cDiv center Y position
-        const cDivCenterY = getCDivCenterY(selectedJobNumber);
-        console.log(`[SkillBadges] cDiv center Y: ${cDivCenterY}`);
-        
-        // Calculate cDiv boundaries for precise positioning
-        const selectedCDiv = document.querySelector('.biz-card-div.selected');
-        let cDivTop = cDivCenterY - 50; // Default fallback
-        let cDivBottom = cDivCenterY + 50;
-        
-        if (selectedCDiv) {
-          const cDivRect = selectedCDiv.getBoundingClientRect();
-          const sceneContent = document.getElementById('scene-content');
-          if (sceneContent) {
-            const sceneRect = sceneContent.getBoundingClientRect();
-            const scrollTop = sceneContent.scrollTop;
-            cDivTop = (cDivRect.top - sceneRect.top + scrollTop);
-            cDivBottom = cDivTop + cDivRect.height;
-          }
-        }
-        
-        console.log(`[SkillBadges] cDiv boundaries: top=${cDivTop.toFixed(1)}, bottom=${cDivBottom.toFixed(1)}, height=${(cDivBottom - cDivTop).toFixed(1)}`);
-        
-        // Split badges into selected and unselected 
-        const relatedBadges = badges.filter(badge => badge.jobNumbers.includes(selectedJobNumber));
-        const unrelatedBadges = badges.filter(badge => !badge.jobNumbers.includes(selectedJobNumber));
-        
-        console.log(`[SkillBadges] Selected cDiv ${selectedJobNumber}: ${relatedBadges.length} related badges, ${unrelatedBadges.length} unrelated badges`);
-        console.log(`[SkillBadges] DEBUG: selectedJobNumber.value=${selectedJobNumber.value}, hoveredJobNumber.value=${hoveredJobNumber.value}`);
-        
-        // Append unselected badges to end of selected badges list
-        const allBadgesList = [...relatedBadges, ...unrelatedBadges];
-        const totalBadges = allBadgesList.length;
-        
-        // Simple staggered positioning around cDiv center for all badges
-        const centerBucket = Math.round(cDivCenterY / badgeHeight) * badgeHeight;
-        const staggeredPositions = [];
-        
-        // Start from center and work outward, alternating above/below
-        let offset = 0;
-        for (let i = 0; i < totalBadges; i++) {
-          let targetY;
-          
-          if (i === 0) {
-            // First badge goes at center
-            targetY = centerBucket;
-          } else if (i % 2 === 1) {
-            // Odd badges go below center
-            offset++;
-            targetY = centerBucket + (offset * badgeHeight);
+        badges.forEach(badge => {
+          const badgeElement = skillBadges.value.find(sb => sb.id === badge.id);
+          if (badgeElement && badgeElement.jobNumbers.includes(selectedJobNumber.value)) {
+            relatedBadges.push(badge);
           } else {
-            // Even badges go above center  
-            targetY = centerBucket - (offset * badgeHeight);
-          }
-          
-          staggeredPositions.push(targetY);
-        }
-        
-        console.log(`[SkillBadges] DEBUG: cDivCenterY=${cDivCenterY.toFixed(1)}px, badgeHeight=${badgeHeight}px, centerBucket=${centerBucket}px`);
-        console.log(`[SkillBadges] DEBUG: cDiv boundaries: top=${cDivTop.toFixed(1)}px, bottom=${cDivBottom.toFixed(1)}px`);
-        console.log(`[SkillBadges] Simple staggered positioning: ${relatedBadges.length} selected badges first, then ${unrelatedBadges.length} unselected appended`);
-        
-        // Assign positions to all badges
-        allBadgesList.forEach((badge, index) => {
-          badge.style.top = `${staggeredPositions[index]}px`;
-          // Debug first few badges
-          if (index < 5) {
-            console.log(`[SkillBadges] DEBUG Badge ${index}: "${badge.name}" at ${staggeredPositions[index]}px, jobNumbers=[${badge.jobNumbers}]`);
+            unrelatedBadges.push(badge);
           }
         });
         
-        // Debug: Analyze the distribution of related badges for statistics
-        let aboveCount = 0; // Above cDiv
-        let betweenCount = 0; // Between/within cDiv
-        let belowCount = 0; // Below cDiv
+        const cDivRect = selectedCDiv.getBoundingClientRect();
+        const containerRect = document.getElementById('scene-content').getBoundingClientRect();
+        const scrollTop = document.getElementById('scene-content').scrollTop;
         
-        const badgeCenterYs = [];
+        const cDivBounds = {
+          top: cDivRect.top - containerRect.top + scrollTop,
+          bottom: cDivRect.bottom - containerRect.top + scrollTop,
+          centerY: (cDivRect.top + cDivRect.bottom) / 2 - containerRect.top + scrollTop
+        };
         
-        // Analyze only related badges for statistics (as before)
-        relatedBadges.forEach(badge => {
-          const badgeY = parseFloat(badge.style.top);
-          const badgeCenterY = badgeY + 20; // badge height / 2
-          badgeCenterYs.push(badgeCenterY);
-          
-          if (badgeCenterY < cDivTop) {
-            aboveCount++;
-          } else if (badgeCenterY > cDivBottom) {
-            belowCount++;
-          } else {
-            betweenCount++;
-          }
+        // Debug the cDiv bounds calculation
+        console.log(`[SkillBadges] cDiv positioning debug:`, {
+          cDivRect: { top: cDivRect.top, bottom: cDivRect.bottom, height: cDivRect.height },
+          containerRect: { top: containerRect.top, bottom: containerRect.bottom },
+          scrollTop,
+          calculatedBounds: cDivBounds
         });
         
-        // Calculate mean and standard deviation
-        const mean = badgeCenterYs.reduce((sum, y) => sum + y, 0) / badgeCenterYs.length;
-        const variance = badgeCenterYs.reduce((sum, y) => sum + Math.pow(y - mean, 2), 0) / badgeCenterYs.length;
-        const stdDev = Math.sqrt(variance);
+        // Create callback to update Vue reactive data
+        const updatePositions = (positionData) => {
+          console.log(`[SkillBadges] Updating ${positionData.length} badge positions in reactive data`);
+          positionData.forEach(({ element, position }, index) => {
+            const skillBadgeData = skillBadges.value.find(sb => sb.id === element.id);
+            if (skillBadgeData) {
+              skillBadgeData.style.top = `${position}px`;
+              if (index < 3) {
+                console.log(`[SkillBadges] Updated reactive data for ${skillBadgeData.name}: top=${skillBadgeData.style.top}`);
+              }
+            }
+          });
+        };
         
-        // Sort for additional statistics
-        const sortedYs = [...badgeCenterYs].sort((a, b) => a - b);
-        const median = sortedYs[Math.floor(sortedYs.length / 2)];
-        const min = sortedYs[0];
-        const max = sortedYs[sortedYs.length - 1];
-        
-        // Calculate geometric ratios
-        const aboveBelowTotal = aboveCount + belowCount;
-        const aboveRatio = aboveBelowTotal > 0 ? (aboveCount / aboveBelowTotal) : 0;
-        const belowRatio = aboveBelowTotal > 0 ? (belowCount / aboveBelowTotal) : 0;
-        
-        console.log(`[SkillBadges] === DISTRIBUTION ANALYSIS cDiv ${selectedJobNumber} ===`);
-        console.log(`[SkillBadges] Target cDiv center: ${cDivCenterY}px, Actual mean: ${mean.toFixed(1)}px (offset: ${(mean - cDivCenterY).toFixed(1)}px)`);
-        console.log(`[SkillBadges] Std dev: ${stdDev.toFixed(1)}px, Range: ${(max - min).toFixed(1)}px`);
-        console.log(`[SkillBadges] Counts: Above=${aboveCount}, Between=${betweenCount}, Below=${belowCount}`);
-        console.log(`[SkillBadges] Balance: Above/(Above+Below)=${aboveRatio.toFixed(2)}, Below/(Above+Below)=${belowRatio.toFixed(2)} (should be ~0.50 each)`);
-        console.log(`[SkillBadges] ${aboveRatio.toFixed(2) === belowRatio.toFixed(2) ? '✓ BALANCED' : '✗ BIASED'} distribution`);
+        const stats = badgePositioner.positionBadges([...badges], relatedBadges, unrelatedBadges, cDivBounds, updatePositions);
       } else {
-        // Normal random distribution when no cDiv is selected
-        
-        // Shuffle all positions
-        for (let i = allPositions.length - 1; i > 0; i--) {
-          const j = Math.floor(Math.random() * (i + 1));
-          [allPositions[i], allPositions[j]] = [allPositions[j], allPositions[i]];
-        }
-        
-        // Assign shuffled positions to badges
-        badges.forEach((badge, index) => {
-          if (index < allPositions.length) {
-            badge.style.top = `${allPositions[index]}px`;
-          } else {
-            // If more badges than positions, stack them
-            badge.style.top = `${startY + (index * badgeHeight)}px`;
-          }
+        // No selection - hide all badges by moving them off-screen
+        console.log('[SkillBadges] No selection - hiding all badges');
+        skillBadges.value.forEach(skillBadge => {
+          skillBadge.style.top = '-1000px'; // Move off-screen
         });
-        
-        console.log(`[SkillBadges] Randomly distributed ${badges.length} badges across ${totalRange}px range`);
       }
+      
+      updateBadgeStyles();
     };
     
-    
-    // Update badge styles based on hover/selection state with multi-parent support
+    // Update badge visual styles based on state
     const updateBadgeStyles = () => {
-      skillBadges.value.forEach((badge, index) => {
-        const classes = [];
-        let targetJobNumber = badge.primaryJobNumber; // Default to primary job
-        let belongsToActiveJob = false;
+      skillBadges.value.forEach(skill => {
+        const classes = ['skill-badge'];
+        let filter = '';
         
-        // Check if any of this badge's parent jobs are hovered
-        if (hoveredJobNumber.value !== null) {
-          const isHovered = badge.jobNumbers.includes(hoveredJobNumber.value);
-          if (isHovered) {
-            classes.push('hovered');
-            targetJobNumber = hoveredJobNumber.value; // Use hovered job's color
-            belongsToActiveJob = true;
-          }
-        }
-        
-        // Check if any of this badge's parent jobs are selected
         if (selectedJobNumber.value !== null) {
-          const isSelected = badge.jobNumbers.includes(selectedJobNumber.value);
-          if (isSelected) {
+          if (skill.jobNumbers.includes(selectedJobNumber.value)) {
             classes.push('selected');
-            targetJobNumber = selectedJobNumber.value; // Use selected job's color
-            belongsToActiveJob = true;
+          } else {
+            filter = 'brightness(0.5)';
           }
         }
         
-        // Add dimmed class if badge doesn't belong to active job
-        if ((hoveredJobNumber.value !== null || selectedJobNumber.value !== null) && !belongsToActiveJob) {
-          classes.push('dimmed');
+        if (hoveredJobNumber.value !== null && skill.jobNumbers.includes(hoveredJobNumber.value)) {
+          classes.push('hovered');
         }
         
-        // Update badge color index to match the target job
-        const newColorIndex = targetJobNumber % 7;
-        badge.colorIndex = newColorIndex;
-        badge.classes = classes;
-        
-        // Apply color styling to DOM element
-        const badgeElement = document.querySelector(`#skill-badges-container .skill-badge:nth-child(${index + 1})`);
-        if (badgeElement) {
-          badgeElement.setAttribute('data-color-index', newColorIndex);
-          applyBadgeColorOnly(badgeElement, classes);
-        }
+        skill.classes = classes;
+        skill.style.filter = filter;
       });
     };
     
-    // Apply only color and border changes to badge elements
-    const applyBadgeColorOnly = (element, classes) => {
-      if (!element) return;
-      
-      // Store scene coordinates before applying palette
-      const preservedSceneLeft = element.getAttribute('scene-left');
-      const preservedSceneTop = element.getAttribute('scene-top');
-      const preservedSceneZ = element.getAttribute('sceneZ');
-      const preservedDataSceneLeft = element.getAttribute('data-sceneLeft');
-      const preservedDataSceneTop = element.getAttribute('data-sceneTop');
-      const preservedDataSceneZ = element.getAttribute('data-sceneZ');
-      
-      // Apply color palette but avoid filters
-      applyPaletteToElement(element);
-      
-      // Restore scene coordinates after palette application
-      if (preservedSceneLeft) element.setAttribute('scene-left', preservedSceneLeft);
-      if (preservedSceneTop) element.setAttribute('scene-top', preservedSceneTop);
-      if (preservedSceneZ) element.setAttribute('sceneZ', preservedSceneZ);
-      if (preservedDataSceneLeft) element.setAttribute('data-sceneLeft', preservedDataSceneLeft);
-      if (preservedDataSceneTop) element.setAttribute('data-sceneTop', preservedDataSceneTop);
-      if (preservedDataSceneZ) element.setAttribute('data-sceneZ', preservedDataSceneZ);
-      
-      // Apply state-specific styling based on classes to match cDiv styling exactly
-      if (classes.includes('selected')) {
-        element.style.backgroundColor = `var(--data-background-color-selected)`;
-        element.style.color = `var(--data-foreground-color-selected)`;
-        
-        // Use AppStatus configuration for thick purple border
-        element.style.border = '7px solid purple'; // Use AppStatus borderSettings.selected values
-        element.style.borderRight = 'none'; // Remove right border
-        
-        element.style.filter = 'none'; // Remove any dimming
-        
-        // Move selected badges to z-index 99 (same as selected card clone)
-        element.style.zIndex = AppState.constants.zIndex.selectedCard;
-      } else if (classes.includes('hovered')) {
-        element.style.backgroundColor = `var(--data-background-color-hovered)`;
-        element.style.color = `var(--data-foreground-color-hovered)`;
-        
-        // Try to match the actual hovered cDiv border
-        const hoveredCDiv = document.querySelector('.biz-card-div.hovered');
-        if (hoveredCDiv) {
-          const computedStyle = window.getComputedStyle(hoveredCDiv);
-          element.style.border = computedStyle.border; // Copy exact border from hovered cDiv
-        } else {
-          // Fallback to hardcoded values
-          element.style.border = '3px solid rgba(255, 255, 255, 0.8)';
-        }
-        element.style.borderRight = 'none'; // Remove right border
-        
-        element.style.filter = 'none'; // Remove any dimming
-        
-        // Reset to standard badge z-index for hovered (not selected)
-        element.style.zIndex = '';
-      } else {
-        element.style.backgroundColor = `var(--data-background-color)`;
-        element.style.color = `var(--data-foreground-color)`;
-        element.style.border = '1px solid var(--data-foreground-color)'; // Normal state
-        element.style.borderRight = 'none'; // Remove right border
-        element.style.filter = 'none'; // Remove any dimming
-        
-        // Reset to standard badge z-index for normal state
-        element.style.zIndex = '';
-      }
-      
-      // Apply dimming filter if badge doesn't belong to active job
-      if (classes.includes('dimmed')) {
-        element.style.filter = 'brightness(0.5)'; // Dim non-related badges
-        
-        // Reset to standard badge z-index for dimmed badges
-        element.style.zIndex = '';
-      }
+    // Event handlers
+    const handleCardSelect = (event) => {
+      selectedJobNumber.value = parseInt(event.detail.jobNumber);
+      setTimeout(positionBadges, 50);
     };
     
-    // Handle cDiv hover events
+    const handleCardDeselect = () => {
+      console.log('[SkillBadges] Card deselected - hiding badges');
+      selectedJobNumber.value = null;
+      setTimeout(positionBadges, 50);
+    };
+    
     const handleCardHover = (event) => {
-      const jobNumber = parseInt(event.detail.jobNumber);
-      hoveredJobNumber.value = jobNumber;
+      hoveredJobNumber.value = event.detail.hoveredJobNumber;
       updateBadgeStyles();
     };
     
@@ -426,233 +204,73 @@ export default {
       updateBadgeStyles();
     };
     
-    // Handle cDiv selection events
-    const handleCardSelect = (event) => {
-      const jobNumber = parseInt(event.detail.jobNumber);
-      console.log(`[SkillBadges] Card selected: job ${jobNumber}`);
-      selectedJobNumber.value = jobNumber;
-      hoveredJobNumber.value = null; // Remove hover when selected
-
-      // Reshuffle badges with special positioning for selected cDiv
-      console.log(`[SkillBadges] Reshuffling badges for selected cDiv ${jobNumber}`);
-      distributeVertically(skillBadges.value, jobNumber);
-
-      setTimeout(() => {
-        console.log(`[SkillBadges] Repositioning badges for selected cDiv ${jobNumber}`);
-        setBadgeSceneCoordinates();
-        updateBadgeStyles();
-        
-        // Dispatch event when badge positioning is complete
-        setTimeout(() => {
-          window.dispatchEvent(new CustomEvent('badges-positioned', {
-            detail: { jobNumber }
-          }));
-          console.log(`[SkillBadges] Dispatched badges-positioned event for job ${jobNumber}`);
-        }, 50);
-      }, 50);
-    };
-    
-    const handleCardDeselect = () => {
-      selectedJobNumber.value = null;
-      hoveredJobNumber.value = null;
-      
-      // Reshuffle badges randomly when no cDiv is selected
-      console.log(`[SkillBadges] Reshuffling badges randomly (no cDiv selected)`);
-      distributeVertically(skillBadges.value, null);
-      
-      updateBadgeStyles();
-    };
-    
-    // Container positioning within scene-content - spans full viewport height
-    const containerStyle = computed(() => {
-      const skillBadgesZIndex = AppState.constants.zIndex.badges; // Standard badges z-index, individual badges will override when selected
-      
-      return {
-        position: 'absolute', // Position relative to scene-content
-        right: '10px',
-        top: '0px', // Start at view-plane top
-        width: 'auto', // Auto width to fit content
-        height: '100%', // Full height of scene-content (view-plane)
-        pointerEvents: 'none',
-        zIndex: skillBadgesZIndex, // Standard badges z-index
-        overflow: 'visible'
-      };
-    });
-    
-    // Apply color palette to badges with performance optimization
-    const applyColorsToBadges = () => {
-      // Use requestAnimationFrame for better performance
-      requestAnimationFrame(() => {
-        // Process badges in batches to avoid blocking UI
-        const batchSize = 50;
-        let currentBatch = 0;
-        
-        const processBatch = () => {
-          const start = currentBatch * batchSize;
-          const end = Math.min(start + batchSize, skillBadges.value.length);
-          
-          for (let i = start; i < end; i++) {
-            const badge = skillBadges.value[i];
-            const badgeElement = document.querySelector(`#skill-badges-container .skill-badge:nth-child(${i + 1})`);
-            if (badgeElement) {
-              badgeElement.setAttribute('data-color-index', badge.colorIndex);
-              applyBadgeColorOnly(badgeElement, badge.classes || []);
-            }
-          }
-          
-          currentBatch++;
-          if (currentBatch * batchSize < skillBadges.value.length) {
-            // Process next batch on next frame
-            requestAnimationFrame(processBatch);
-          }
-        };
-        
-        processBatch();
-      });
-    };
-    
-    // Set scene coordinates on badge elements
-    const setBadgeSceneCoordinates = () => {
-      if (selectedJobNumber.value !== null) {
-        const selectedCDiv = document.querySelector('.biz-card-div.selected') || 
-                            document.querySelector(`[data-job-number="${selectedJobNumber.value}"]`);
-        // console.log(`[SkillBadges] Looking for selected cDiv with job number ${selectedJobNumber.value}`);
-        if (selectedCDiv) {
-          
-          // Get the selected cDiv's scene coordinates - try multiple attribute formats
-          let cDivSceneLeft = parseFloat(selectedCDiv.getAttribute('scene-left') || '0');
-          let cDivSceneTop = parseFloat(selectedCDiv.getAttribute('scene-top') || '0');
-          let cDivSceneZ = parseFloat(selectedCDiv.getAttribute('sceneZ') || '0');
-          
-          // Fallback to data- attributes if scene-left/scene-top are not available
-          if (isNaN(cDivSceneLeft) || isNaN(cDivSceneTop)) {
-            // Try data-sceneLeft and data-sceneTop (camelCase)
-            const dataSceneLeft = selectedCDiv.getAttribute('data-sceneLeft');
-            const dataSceneTop = selectedCDiv.getAttribute('data-sceneTop');
-            const dataSceneZ = selectedCDiv.getAttribute('data-sceneZ');
-            
-            if (dataSceneLeft && dataSceneTop) {
-              // console.log(`[SkillBadges] Using data- attributes as fallback`);
-              cDivSceneLeft = parseFloat(dataSceneLeft);
-              cDivSceneTop = parseFloat(dataSceneTop);
-              cDivSceneZ = parseFloat(dataSceneZ || '0');
-            } else {
-              // Try data-sceneleft and data-scenetop (lowercase)
-              const dataSceneleft = selectedCDiv.getAttribute('data-sceneleft');
-              const dataScenetop = selectedCDiv.getAttribute('data-scenetop');
-              const dataScenez = selectedCDiv.getAttribute('data-scenez');
-              
-              if (dataSceneleft && dataScenetop) {
-                // console.log(`[SkillBadges] Using lowercase data- attributes`);
-                cDivSceneLeft = parseFloat(dataSceneleft);
-                cDivSceneTop = parseFloat(dataScenetop);
-                cDivSceneZ = parseFloat(dataScenez || '0');
-              }
-            }
-          }
-          
-          // console.log(`[SkillBadges] cDiv scene coords: left=${cDivSceneLeft}, top=${cDivSceneTop}, z=${cDivSceneZ}`);
-          
-          // Set scene coordinates on each badge element - use same scene coordinates as cDiv
-          // console.log(`[SkillBadges] Processing ${skillBadges.value.length} badges`);
-          skillBadges.value.forEach((badge, index) => {
-            // console.log(`[SkillBadges] Looking for badge with id: ${badge.id}`);
-            const badgeElement = document.getElementById(badge.id);
-            if (badgeElement) {
-              // Use the same scene coordinates as the selected cDiv
-              const badgeSceneLeft = cDivSceneLeft;
-              const badgeSceneTop = cDivSceneTop;
-              const badgeSceneZ = 0; // Badges at sceneZ = 0 (no parallax)
-              
-              // console.log(`[SkillBadges] Setting attributes on badge ${badge.id}`);
-              badgeElement.setAttribute('scene-left', badgeSceneLeft.toString());
-              badgeElement.setAttribute('scene-top', badgeSceneTop.toString());
-              badgeElement.setAttribute('sceneZ', badgeSceneZ.toString());
-              
-              // Also set data- attributes as backup
-              badgeElement.setAttribute('data-sceneLeft', badgeSceneLeft.toString());
-              badgeElement.setAttribute('data-sceneTop', badgeSceneTop.toString());
-              badgeElement.setAttribute('data-sceneZ', badgeSceneZ.toString());
-            }
-          });
-        }
+    const handleBadgeModeChange = () => {
+      badgeVisibility.value = badgeManager.isBadgesVisible();
+      if (badgeVisibility.value) {
+        setTimeout(positionBadges, 100);
       }
     };
     
-    // Watch for color palette changes
-    const handlePaletteChange = () => {
-      applyColorsToBadges();
+    const handleViewportResize = () => {
+      if (badgeManager.isBadgesVisible()) {
+        setTimeout(positionBadges, 150);
+      }
     };
     
-    // Handle viewport resize - only update container position, not badge distribution
-    const handleViewportResize = () => {
-      // The container position will be updated automatically by the reactive containerStyle
-      // No need to redistribute badges - they maintain their static positions within the container
+    const handlePaletteChange = () => {
+      setTimeout(() => {
+        document.querySelectorAll('.skill-badge').forEach(applyPaletteToElement);
+      }, 100);
     };
+    
+    // Container positioning within scene-content
+    const containerStyle = computed(() => {
+      const skillBadgesZIndex = AppState.constants.zIndex.badges;
+      
+      return {
+        position: 'absolute',
+        right: '10px',
+        top: '0px',
+        width: 'auto',
+        height: '100%',
+        pointerEvents: 'none',
+        zIndex: skillBadgesZIndex,
+        overflow: 'visible',
+        display: badgeVisibility.value ? 'block' : 'none'
+      };
+    });
     
     onMounted(() => {
-      // Wait for initialization signal from InitializationManager
-      const handleInitReady = () => {
-        console.log('[SkillBadges] Initialization ready signal received');
-        createSkillBadges();
-        
-        // Listen for card hover/selection events
-        window.addEventListener('card-hover', handleCardHover);
-        window.addEventListener('card-unhover', handleCardUnhover);
-        window.addEventListener('card-select', handleCardSelect);
-        window.addEventListener('card-deselect', handleCardDeselect);
-        
-        // Listen for viewport resize events
-        window.addEventListener('viewport-changed', handleViewportResize);
-        window.addEventListener('resize', handleViewportResize);
-        
-        // Listen for color palette changes
-        window.addEventListener('color-palette-changed', handlePaletteChange);
-        
-        // Apply colors after DOM update
-        setTimeout(() => {
-          applyColorsToBadges();
-        }, 100);
-        
-        // Check if there's already a selected cDiv after initialization (for hard page refresh)
-        setTimeout(() => {
-          const selectedCDiv = document.querySelector('.biz-card-div.selected');
-          if (selectedCDiv) {
-            const jobNumber = parseInt(selectedCDiv.getAttribute('data-job-number'));
-            console.log(`[SkillBadges] Found selected cDiv ${jobNumber} on initialization, distributing badges`);
-            selectedJobNumber.value = jobNumber;
-            distributeVertically(skillBadges.value, jobNumber);
-            
-            setTimeout(() => {
-              setBadgeSceneCoordinates();
-              updateBadgeStyles();
-              
-              // Dispatch event when badge positioning is complete
-              setTimeout(() => {
-                window.dispatchEvent(new CustomEvent('badges-positioned', {
-                  detail: { jobNumber }
-                }));
-                console.log(`[SkillBadges] Dispatched badges-positioned event for job ${jobNumber}`);
-              }, 100);
-            }, 50);
-          }
-        }, 200);
-        
-        // Remove the init listener
-        window.removeEventListener('skill-badges-init-ready', handleInitReady);
-      };
+      console.log('[SkillBadges] Component mounted');
       
-      window.addEventListener('skill-badges-init-ready', handleInitReady);
+      createSkillBadges();
+      
+      // Set up event listeners
+      selectionManager.addEventListener('hoverChanged', handleCardHover);
+      selectionManager.addEventListener('hoverCleared', handleCardUnhover);
+      window.addEventListener('card-select', handleCardSelect);
+      window.addEventListener('card-deselect', handleCardDeselect);
+      window.addEventListener('viewport-changed', handleViewportResize);
+      window.addEventListener('resize', handleViewportResize);
+      window.addEventListener('color-palette-changed', handlePaletteChange);
+      badgeManager.addEventListener('badgeModeChanged', handleBadgeModeChange);
+      
+      // Apply initial colors
+      setTimeout(() => {
+        document.querySelectorAll('.skill-badge').forEach(applyPaletteToElement);
+        positionBadges();
+      }, 200);
     });
     
     onUnmounted(() => {
-      window.removeEventListener('card-hover', handleCardHover);
-      window.removeEventListener('card-unhover', handleCardUnhover);
+      selectionManager.removeEventListener('hoverChanged', handleCardHover);
+      selectionManager.removeEventListener('hoverCleared', handleCardUnhover);
       window.removeEventListener('card-select', handleCardSelect);
       window.removeEventListener('card-deselect', handleCardDeselect);
       window.removeEventListener('viewport-changed', handleViewportResize);
       window.removeEventListener('resize', handleViewportResize);
       window.removeEventListener('color-palette-changed', handlePaletteChange);
+      badgeManager.removeEventListener('badgeModeChanged', handleBadgeModeChange);
     });
     
     return {
@@ -693,14 +311,10 @@ export default {
   transition: all 0.2s ease;
   border: 1px solid transparent;
   box-sizing: border-box;
-  
-  /* Right-align badge to container and center text vertically */
   right: 0;
   display: flex;
   align-items: center;
   justify-content: flex-end;
-  
-  /* Use color palette variables */
   background-color: var(--data-background-color, #ffffff);
   color: var(--data-foreground-color, #000000);
   border-color: var(--data-foreground-color, #000000);

@@ -6,13 +6,10 @@
         <div id="scene-plane-btm-gradient"></div>
         <div id="scene-plane">
           <Timeline alignment="left" />
-          <SkillBadges />
           <NewConnectionLines />
+          <SkillBadges />
         </div>
         <div id="biz-details-div"></div>
-        <!-- <ConnectionLines /> -->
-        <!-- <BadgeLines /> -->
-        <!-- <SingleLCurveTest /> -->
       </div>
       <SceneContainerFooter />
     </div>
@@ -66,6 +63,7 @@ import * as scenePlane from '@/modules/scene/scenePlaneModule.mjs';
 import * as parallax from '@/modules/core/parallaxModule.mjs';
 import * as autoScroll from '@/modules/animation/autoScrollModule.mjs';
 import { selectionManager } from '@/modules/core/selectionManager.mjs';
+import { badgeManager } from '@/modules/core/badgeManager.mjs';
 
 
 import Timeline from '@/modules/components/Timeline.vue';
@@ -74,6 +72,7 @@ import ResumeContainer from '@/modules/components/ResumeContainer.vue';
 import SceneContainerFooter from '@/modules/components/SceneContainerFooter.vue';
 import SkillBadges from '@/modules/components/SkillBadges.vue';
 import NewConnectionLines from '@/modules/components/NewConnectionLines.vue';
+import BadgeToggle from '@/modules/components/BadgeToggle.vue';
 
 
 export default {
@@ -85,6 +84,7 @@ export default {
     SceneContainerFooter,
     SkillBadges,
     NewConnectionLines,
+    BadgeToggle,
   },
   async setup() {
 
@@ -226,6 +226,9 @@ export default {
           'SkillBadges',
           'ConnectionLines'
         ]);
+        
+        // Badge manager is automatically initialized - force refresh visibility
+        badgeManager.refreshVisibility();
         
         window.CONSOLE_LOG_IGNORE('[INIT] AppContent: All components initialized successfully');
         

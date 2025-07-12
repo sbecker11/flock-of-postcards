@@ -2,6 +2,7 @@
 import { ref, computed } from 'vue';
 import { useFocalPoint } from '@/modules/composables/useFocalPoint.mjs';
 import { useResizeHandle } from '@/modules/composables/useResizeHandle.mjs';
+import BadgeToggle from '@/modules/components/BadgeToggle.vue';
 
 // --- Composables ---
 const { 
@@ -119,6 +120,7 @@ function handleSteppingClick(event) {
                     :title="isHovering ? 'Next: ' + nextMode + ' (click to switch)' : 'Current: ' + focalPointMode + ' (hover to preview next)'">
                 <span>{{ displayIcon }}</span>
             </button>
+            <BadgeToggle />
             <button id="stepping-indicator" 
                     class="toggle-circle" 
                     :class="{ 'inverted': steppingEnabled, 'hovering': isSteppingHovering, 'infinity-mode': stepCount === 1 }"

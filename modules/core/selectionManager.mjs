@@ -18,6 +18,11 @@ class SelectionManager extends EventTarget {
             return;
         }
 
+        // Clear hover state before setting selection to prevent state conflicts
+        if (this.hoveredJobNumber !== null) {
+            this.clearHover(`${caller}-auto-clear-before-select`);
+        }
+
         // console.log(`[DEBUG] SelectionManager: [${caller}] Selecting job number: ${jobNumber} (was: ${this.selectedJobNumber})`);
         this.selectedJobNumber = jobNumber;
         const event = new CustomEvent('selectionChanged', {
