@@ -1,0 +1,57 @@
+#timeline-container {
+    position: absolute;
+    z-index: 0;
+    width: 200px;
+    top: 0px;
+    bottom: 0px;
+    pointer-events: none;
+  }
+  .timeline-container-left {
+    left: 0px;
+  }
+  .timeline-container-right {
+    right: 0px;
+  }
+  
+  .year-div, .year-div-right, .year-div-left {
+    position: absolute;
+    font-family: "Roboto", sans-serif;
+    font-weight: bold;
+    color: #444444;
+    border-bottom : 1px solid #444444;
+    pointer-events: none;
+  }
+  
+  .year-div-right {
+    text-align: left; /* should have trailing &nbsp; */
+    right: 40px;
+    width: 120px;
+  }
+  
+  .year-div-left {
+    text-align: right; /* should have leading &nbsp; */
+    left: 40px;
+    width: 120px;
+  }
+  
+  .month-tick, .month-tick-left, .month-tick-right {
+    position: absolute;
+    font-family: "Roboto", sans-serif;
+    font-size: 10px;
+    color: #666666;
+    border-bottom: 1px solid #666666;
+    pointer-events: none;
+    width: 40px;
+  }
+  
+  .month-tick-left {
+    text-align: right;
+    left: 5px;
+  }
+  
+  .month-tick-right {
+    text-align: left;
+    right: 5px;
+  }
+  
+  

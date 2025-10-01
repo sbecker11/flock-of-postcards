@@ -81,7 +81,7 @@ overflow and ensures consistent sizing.
 }
 
 .draggable-focal-point {
-  pointer-events: auto;
+  pointer-events: none;
   cursor: grab; 
 }
 

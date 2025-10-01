@@ -84,6 +84,9 @@ jspm_packages/
 # next.mjs build output
 .next
 
+# Generated MJS files
+src/modules/mjs/
+
 # Lerna
 lerna-debug.log
 

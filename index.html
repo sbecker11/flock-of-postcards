@@ -10,17 +10,14 @@
         content="ie=edge"/>
   <title>flock-of-cards</title>
   <link rel="stylesheet" href="./styles.css">
-  <link rel="stylesheet" href="./modules/timeline.css">
-  <link rel="stylesheet" href="./modules/alerts.css">
+  <link rel="stylesheet" href="./src/modules/timeline.css">
+  <link rel="stylesheet" href="./src/modules/alerts.css">
 </head>
 
 <body>
   <script type="text/javascript" src="static_content/jobs/jobs.mjs"></script>
   <!-- <script type="text/javascript" src="static_content/media/img_paths.mjs"></script> -->
-  <script type="module" src="./main.mjs" ></script>
-  <script type="module" src="./modules/alerts.mjs" ></script>
-  <script type="module" src="./modules/monoColor.mjs" ></script>
-  <script type="module" src="./modules/css_colors.mjs" ></script>
+  <script type="module" src="/src/main.ts" ></script>
   
   <div id="main-container">
 
@@ -91,20 +88,6 @@
       <button id="confirm-cancel-btn">No</button>
     </div>
   </div>
-
-  <script>
-    window.addEventListener('load', (event) => {
-      import('./main.mjs').then(module => {
-        if (typeof module.selectFirstBizcard === 'function') {
-          module.selectFirstBizcard();
-        } else {
-          console.error('selectFirstBizcard is not defined in main.mjs');
-        }
-      }).catch(error => {
-        console.error('Error loading main.mjs:', error);
-      });
-    });
-  </script>
 
 </body>
 
