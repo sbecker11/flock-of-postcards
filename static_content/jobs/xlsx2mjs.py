@@ -72,11 +72,22 @@ def test_permuted_url(original_url):
     return None
 
 
-# replace all (url) with (valid_url) or ""
-# if no valid_url can be found
-def process_urls_in_string(text, counters):
-    # Regex pattern to match URLs in parentheses
-    pattern = r'\((?:https?:\/\/)?([^\s\)]+)\)'
+# replace all URLs in (), {}, or [] with valid_url or remove if invalid
+def process_urls_in_brackets(text, counters, open_bracket, close_bracket):
+    """
+    Process URLs enclosed in the specified bracket type.
+    Args:
+        text: The text to process
+        counters: Dictionary to track validation statistics
+        open_bracket: Opening bracket character ('(', '{', or '[')
+        close_bracket: Closing bracket character (')', '}', or ']')
+    """
+    # Escape special regex characters in brackets
+    escaped_open = re.escape(open_bracket)
+    escaped_close = re.escape(close_bracket)
+    
+    # Regex pattern to match URLs in specified brackets
+    pattern = rf'{escaped_open}(?:https?:\/\/)?([^\s{escaped_close}]+){escaped_close}'
 
     # Find all matching URLs
     matches = re.findall(pattern, text)
@@ -84,17 +95,18 @@ def process_urls_in_string(text, counters):
         # Find the first permutation that makes the original url valid
         valid_permutation = test_permuted_url(original_url)
         if valid_permutation:
-            replacement_url = valid_permutation['valid']  # Use 'valid' key
+            replacement_url = valid_permutation['valid']
             if valid_permutation['code'] == -1:
                 counters['valid_no_changes_cnt'] += 1
             else:
                 counters['valid_some_changes_cnt'] += 1
             # Replace the original URL with the valid one
-            text = re.sub(rf'\({re.escape(original_url)}\)', f'({replacement_url})', text)
+            text = re.sub(rf'{escaped_open}{re.escape(original_url)}{escaped_close}', 
+                         f'{open_bracket}{replacement_url}{close_bracket}', text)
         else:
-            # If no valid transformation, remove the URL
+            # If no valid transformation, remove the URL and brackets
             counters['invalid_all_changes_cnt'] += 1
-            text = re.sub(rf'\({re.escape(original_url)}\)', '', text)
+            text = re.sub(rf'{escaped_open}{re.escape(original_url)}{escaped_close}', '', text)
 
     return text
 
@@ -119,9 +131,12 @@ if target_column not in df.columns:
 # Replace NaN values with None
 df = df.replace({np.nan: None})
 
-# Apply the process_urls_in_string function to create a new 'processed' column
+# Apply URL validation functions to create a new 'processed' column
 counters = init_counters()
-df['processed'] = df[target_column].apply(lambda text: process_urls_in_string(text, counters))
+# Process URLs in all three bracket types: (), {}, []
+df['processed'] = df[target_column].apply(lambda text: process_urls_in_brackets(text, counters, '(', ')'))
+df['processed'] = df['processed'].apply(lambda text: process_urls_in_brackets(text, counters, '{', '}'))
+df['processed'] = df['processed'].apply(lambda text: process_urls_in_brackets(text, counters, '[', ']'))
 report_counters(counters)
 
 # Drop the old target_column

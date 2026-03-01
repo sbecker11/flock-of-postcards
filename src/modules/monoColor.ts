@@ -13,6 +13,13 @@ const monoBackgroundColor = "lightgrey";
 export const ICON_TYPES: readonly IconType[] = ['back', 'url', 'img', 'skill-back'] as const;
 export const ICON_COLORS: readonly IconColor[] = ['black', 'white'] as const;
 
+/**
+ * Get the full URL for an icon file (handles base path correctly)
+ */
+export function getIconUrl(iconType: string, iconColor: string): string {
+  return `${import.meta.env.BASE_URL}icons/icons8-${iconType}-16-${iconColor}.png`;
+}
+
 export function getIconColor(color: string): IconColor {
   if ((typeof color === "undefined") || (color == null) || (color == "")) {
     throw new Error(`getIconColor color:${color} is undefined`);
@@ -118,7 +125,7 @@ export function setIconToColor(iconElement: HTMLElement, theIconColor: string): 
   if (iconElement instanceof HTMLImageElement) {
     // skill-back icons use the same 'back' icon image as regular back icons
     const iconFileName = (iconType === 'skill-back') ? 'back' : iconType;
-    iconElement.src = '/icons/icons8-' + iconFileName + '-16-' + iconColor + '.png';
+    iconElement.src = getIconUrl(iconFileName, iconColor);
   }
   
   const bizcardId = iconElement.dataset.bizcardId;

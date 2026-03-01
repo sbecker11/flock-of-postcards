@@ -426,6 +426,55 @@ export function addIconClickListener(icon: HTMLElement): void {
 }
 
 /**
+ * Add click listener to a bizcard-link inside a line item description.
+ * Navigates to the skill card identified by cardDivId (from the parent tag-link span).
+ */
+export function addSkillCardLinkClickListener(linkElement: HTMLElement, cardDivId: string): void {
+  linkElement.addEventListener("click", (event: Event) => {
+    const mouseEvent = event as MouseEvent;
+    mouseEvent.stopPropagation();
+
+    const cardDiv = document.getElementById(cardDivId);
+    if (cardDiv) {
+      const selectedCards = document.querySelectorAll('.bizcard-div.selected, .card-div.selected');
+      selectedCards.forEach(card => {
+        selection.restoreSavedStyle(card as HTMLElement);
+        const prevLineItemId = 'card-div-line-item-' + card.id;
+        const prevLineItem = document.getElementById(prevLineItemId);
+        if (prevLineItem?.classList.contains('selected')) {
+          selection.restoreSavedStyle(prevLineItem as HTMLElement);
+        }
+      });
+
+      selection.setSelectedStyle(cardDiv as HTMLElement);
+
+      const rightContentDiv = document.getElementById('right-content-div');
+      if (rightContentDiv) {
+        const lineItem = lineItems.addCardDivLineItem(rightContentDiv, cardDivId);
+        if (lineItem) {
+          const bgColor = cardDiv.getAttribute('saved-background-color');
+          const textColor = cardDiv.getAttribute('saved-color');
+          const selectedBgColor = cardDiv.getAttribute('saved-selected-background-color');
+          const selectedTextColor = cardDiv.getAttribute('saved-selected-color');
+
+          if (bgColor) lineItem.setAttribute('saved-background-color', bgColor);
+          if (textColor) lineItem.setAttribute('saved-color', textColor);
+          if (selectedBgColor) lineItem.setAttribute('saved-selected-background-color', selectedBgColor);
+          if (selectedTextColor) lineItem.setAttribute('saved-selected-color', selectedTextColor);
+
+          lineItem.style.backgroundColor = bgColor || '';
+          lineItem.style.color = textColor || '';
+
+          selection.setSelectedStyle(lineItem as HTMLElement);
+        }
+      }
+
+      scrollElementIntoView(cardDiv);
+    }
+  });
+}
+
+/**
  * Add click listener to bizcard link text (same behavior as back icon)
  */
 export function addBizcardLinkClickListener(bizcardLinkElement: HTMLElement): void {

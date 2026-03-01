@@ -17,7 +17,7 @@ let currentPalette: ColorPalette | null = null;
  * Fetch list of available palettes from the server
  */
 export async function fetchAvailablePalettes(): Promise<string[]> {
-  const response = await fetch('/palettes/palettes.json');
+  const response = await fetch(`${import.meta.env.BASE_URL}palettes/palettes.json`);
   if (!response.ok) {
     throw new Error(`Failed to fetch palette list: ${response.statusText}`);
   }
@@ -47,7 +47,7 @@ export async function loadPalette(url: string): Promise<ColorPalette> {
  * Load a palette by name (from the palettes directory)
  */
 export async function loadPaletteByName(name: string): Promise<ColorPalette> {
-  const url = `/palettes/${name}.json`;
+  const url = `${import.meta.env.BASE_URL}palettes/${name}.json`;
   return loadPalette(url);
 }
 

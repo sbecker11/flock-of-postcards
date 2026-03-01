@@ -214,11 +214,12 @@ div.card-div span.tag-link .icon {
   flex-direction: column;
 }
 #right-header-div {
-  height: 160px;
+  min-height: 160px;
   background-color: #444444;
   color: white;
   padding: 10px;
   align-content: left;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.4);
 }
 
 .intro, .user, .footnote{
@@ -241,7 +242,7 @@ div.card-div span.tag-link .icon {
   overflow-y: auto;
   overflow-x: hidden;
   box-sizing: border-box; 
-  background-color: #dddddd;
+  background-color: #a8a8a8;
   color: black;
   padding: 10px;
 }
@@ -255,6 +256,7 @@ div.card-div span.tag-link .icon {
   height: 40px;
   background-color: #999999;
   padding: 10px;
+  border-top: 1px solid rgba(255, 255, 255, 0.3);
 }
 
 .tag-link {
@@ -302,9 +304,12 @@ div.card-div span.tag-link .icon {
 .card-div-line-item-follow-button {
   width: 15px;
   height: 15px;
-  border: 0;            /* for flat appearence */
+  border: 0;
   box-shadow: none;
   border-radius: 0px;
+  cursor: pointer;
+  background-repeat: no-repeat;
+  background-size: contain;
 }
 
 .card-div-line-item-right-column .card-div-line-item-delete-button {

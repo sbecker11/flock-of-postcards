@@ -707,7 +707,7 @@ function createBackAnchorTag(bizcard_id: string, savedColor: string, isMonocolor
   const iconColor = monoColor.getIconColor(savedColor);
   const iconType = "back";
   const monoColorSensitiveClass = isMonocolorSensitive ? "mono-color-sensitive" : '';
-  return `<img class="icon back-icon ${monoColorSensitiveClass}" src="/icons/icons8-${iconType}-16-${iconColor}.png" data-bizcard-id="${bizcard_id}" data-saved-color="${iconColor}" data-icontype="${iconType}"/>`;
+  return `<img class="icon back-icon ${monoColorSensitiveClass}" src="${monoColor.getIconUrl(iconType, iconColor)}" data-bizcard-id="${bizcard_id}" data-saved-color="${iconColor}" data-icontype="${iconType}"/>`;
 }
 
 /**

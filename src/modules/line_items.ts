@@ -4,16 +4,20 @@ import * as utils from './utils.js';
 import * as monoColor from './monoColor.js';
 import * as tagLinks from './tag_links.js';
 import * as cardModule from './card.js';
+import * as bizcardModule from './bizcard.js';
 import * as selection from './selection.js';
 import { copyHexColorAttributes, isBizcardDivId, scrollElementIntoView } from './dom_helpers.js';
 import { scrollElementToTop } from './dom_helpers.js';
 
 /**
- * Add a card div line item to the right content div
+ * Add a card div line item to the right content div.
+ * If insertAfterElement is provided, the item is inserted directly after it
+ * (or moved there if it already exists) instead of being appended to the end.
  */
 export function addCardDivLineItem(
   rightContentDiv: HTMLElement,
-  targetCardDivId: string
+  targetCardDivId: string,
+  insertAfterElement?: HTMLElement
 ): HTMLLIElement | null {
   if (!targetCardDivId) {
     return null;
@@ -27,7 +31,12 @@ export function addCardDivLineItem(
   // Check if line item already exists
   const existingLineItem = getCardDivLineItem(targetCardDivId);
   if (existingLineItem) {
-    scrollElementToTop(existingLineItem);
+    if (insertAfterElement) {
+      insertAfterElement.insertAdjacentElement('afterend', existingLineItem);
+      scrollElementToTop(existingLineItem);
+    } else {
+      scrollElementToTop(existingLineItem);
+    }
     return existingLineItem;
   }
 
@@ -91,8 +100,37 @@ export function addCardDivLineItem(
 
   // Add following button for bizcards
   if (isBizcardDivId(targetCardDivId)) {
-    const followingButton = document.createElement("button");
+    const followingButton = document.createElement("div");
     followingButton.classList.add("card-div-line-item-follow-button");
+    followingButton.addEventListener("click", (event) => {
+      event.stopPropagation();
+      const nextBizcardDivId = bizcardModule.getFollowingBizcardDivId(targetCardDivId);
+      if (nextBizcardDivId) {
+        const rightContentDiv = document.getElementById('right-content-div');
+        if (rightContentDiv) {
+          // Deselect all currently selected cards and line items
+          document.querySelectorAll('.bizcard-div.selected, .card-div.selected').forEach(card => {
+            selection.restoreSavedStyle(card as HTMLElement);
+            const prevLineItem = document.getElementById('card-div-line-item-' + card.id);
+            if (prevLineItem?.classList.contains('selected')) {
+              selection.restoreSavedStyle(prevLineItem as HTMLElement);
+            }
+          });
+
+          // Insert/move the next line item directly after this one
+          const nextLineItem = addCardDivLineItem(rightContentDiv, nextBizcardDivId, cardDivLineItem);
+
+          // Select the next line item and its bizcard
+          if (nextLineItem) {
+            const nextBizcardDiv = document.getElementById(nextBizcardDivId);
+            if (nextBizcardDiv) {
+              selection.setSelectedStyle(nextBizcardDiv as HTMLElement);
+            }
+            selection.setSelectedStyle(nextLineItem);
+          }
+        }
+      }
+    });
     cardDivLineItemRightColumn.appendChild(followingButton);
   }
 
@@ -103,10 +141,11 @@ export function addCardDivLineItem(
 
   // Add click handler to toggle selection and scroll the associated card
   cardDivLineItem.addEventListener("click", function(event) {
-    // Don't trigger if clicking on buttons (but allow icon clicks to propagate to their own handlers)
+    // Don't trigger if clicking on buttons or active description links
     if (event.target instanceof HTMLElement && 
         (event.target.classList.contains('card-div-line-item-delete-button') ||
-         event.target.classList.contains('card-div-line-item-follow-button'))) {
+         event.target.classList.contains('card-div-line-item-follow-button') ||
+         event.target.classList.contains('bizcard-link'))) {
       return;
     }
     
@@ -157,7 +196,11 @@ export function addCardDivLineItem(
   // Assemble line item
   cardDivLineItem.appendChild(cardDivLineItemContent);
   cardDivLineItem.appendChild(cardDivLineItemRightColumn);
-  rightContentDiv.appendChild(cardDivLineItem);
+  if (insertAfterElement) {
+    insertAfterElement.insertAdjacentElement('afterend', cardDivLineItem);
+  } else {
+    rightContentDiv.appendChild(cardDivLineItem);
+  }
 
   // Make tag links mono-color-sensitive
   const tagLinkElements = cardDivLineItemContent.getElementsByClassName('tag-link');
@@ -205,10 +248,16 @@ export function addCardDivLineItem(
       eventHandlers.addSkillNameClickListener(skillName as HTMLElement);
     });
     
-    // Add listeners to bizcard links
+    // Add listeners to bizcard links in descriptions — navigate to the skill card,
+    // not back to the same bizcard. The skill card ID is on the parent tag-link span.
     const bizcardLinks = cardDivLineItemContent.querySelectorAll('.bizcard-link');
     bizcardLinks.forEach(link => {
-      eventHandlers.addBizcardLinkClickListener(link as HTMLElement);
+      const linkEl = link as HTMLElement;
+      const tagLinkSpan = linkEl.closest('span.tag-link');
+      const skillCardDivId = tagLinkSpan?.getAttribute('targetCardDivId');
+      if (skillCardDivId) {
+        eventHandlers.addSkillCardLinkClickListener(linkEl, skillCardDivId);
+      }
     });
   });
 
