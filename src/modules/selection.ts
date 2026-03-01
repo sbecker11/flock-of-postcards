@@ -132,6 +132,11 @@ export function deselectTheSelectedCardDivLineItem(deselectTheSelectedCardDivFla
  * Set selected style on an element
  */
 export function setSelectedStyle(obj: HTMLElement): void {
+  // Avoid re-applying if already selected (prevents flickering)
+  if (obj.classList.contains('selected')) {
+    return;
+  }
+  
   const notLineItem = !isCardDivLineItem(obj);
 
   if (notLineItem) {
@@ -160,6 +165,11 @@ export function setSelectedStyle(obj: HTMLElement): void {
  * Restore saved style on an element
  */
 export function restoreSavedStyle(obj: HTMLElement): void {
+  // Only restore if currently selected (prevents unnecessary updates)
+  if (!obj.classList.contains('selected')) {
+    return;
+  }
+  
   const notLineItem = !isCardDivLineItem(obj);
   const targetStyleArray = createStyleArray(obj, "saved");
 

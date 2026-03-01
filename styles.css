@@ -139,6 +139,7 @@ overflow and ensures consistent sizing.
   font-weight: bold;
   font-size: 12px;
   padding: 20px;
+  padding-bottom: 25px;
   box-sizing: border-box;
   overflow: hidden;
   cursor: pointer;
@@ -165,7 +166,7 @@ overflow and ensures consistent sizing.
   font-family: "Roboto", sans-serif;
   font-weight: normal;
   font-size: 14px;
-  padding: 0px;
+  padding: 6px;
   box-sizing: border-box;
   cursor: pointer;
 }
@@ -176,6 +177,11 @@ div.card-div span.tag-link {
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+  pointer-events: none; /* Prevent mouse events on children to avoid flickering */
+}
+
+div.card-div span.tag-link .icon {
+  pointer-events: auto; /* Re-enable pointer events for icons so they're still clickable */
 }
 
 .bizcard-div-header {
@@ -272,6 +278,7 @@ div.card-div span.tag-link {
   border-width: 5px;
   border-style: solid;
   border-color: white;
+  padding: 0px;
 }
 
 .card-div-line-item-content {
@@ -318,6 +325,10 @@ div.card-div span.tag-link {
   border-color: white !important;
 }
 
+.card-div-line-item.selected {
+  padding: 3px;
+}
+
 .buttons {
   text-align:justify;
 }
@@ -339,4 +350,36 @@ div.card-div span.tag-link {
   width: 16px;
   height: 16px;
   margin: 1px; /* Adjust as needed for spacing */
+}
+
+/* Skill card list in bizcards */
+.bizcard-skill-list {
+  margin-top: 10px;
+  margin-bottom: 15px;
+  font-size: 12px;
+  overflow: hidden;
+}
+
+.bizcard-skill-item {
+  display: flex;
+  align-items: center;
+  margin: 2px 0;
+  line-height: 16px;
+  overflow: hidden;
+}
+
+.bizcard-skill-item .back-icon {
+  margin-right: 4px;
+  flex-shrink: 0;
+}
+
+.bizcard-skill-item .skill-name {
+  flex-grow: 1;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.bizcard-link {
+  white-space: nowrap;
 }

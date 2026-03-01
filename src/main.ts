@@ -11,6 +11,8 @@ import * as eventHandlers from './modules/event_handlers.js';
 import * as animation from './modules/animation.js';
 import * as selection from './modules/selection.js';
 import * as lineItems from './modules/line_items.js';
+import * as colorPalette from './modules/color_palette.js';
+import * as cardModule from './modules/card.js';
 
 // Get DOM element references
 const rightContentDiv = document.getElementById("right-content-div") as HTMLElement;
@@ -22,6 +24,9 @@ const selectFirstBizcardButton = document.getElementById("select-first-bizcard")
 const selectNextBizcardButton = document.getElementById("select-next-bizcard") as HTMLElement;
 const selectAllBizcardsButton = document.getElementById("select-all-bizcards") as HTMLElement;
 const clearAllLineItemsButton = document.getElementById("clear-all-line-items") as HTMLElement;
+const paletteSelector = document.getElementById("palette-selector") as HTMLSelectElement;
+const paletteIcon = document.getElementById("paletteIcon") as HTMLElement;
+const paletteSelectorPopup = document.getElementById("palette-selector-popup") as HTMLElement;
 
 // Bulls eye position
 let bullsEyeX = 0;
@@ -117,9 +122,71 @@ function selectNextBizcard(): void {
 }
 
 /**
+ * Toggle palette selector popup
+ */
+function togglePaletteSelectorPopup(): void {
+  const isVisible = paletteSelectorPopup.style.display !== 'none';
+  
+  if (isVisible) {
+    paletteSelectorPopup.style.display = 'none';
+    paletteIcon.style.border = '2px solid transparent';
+  } else {
+    paletteSelectorPopup.style.display = 'block';
+    paletteIcon.style.border = '2px solid white';
+  }
+}
+
+/**
+ * Handle palette selection change
+ */
+async function handlePaletteChange(paletteName: string): Promise<void> {
+  if (!paletteName) return;
+  
+  try {
+    await colorPalette.loadPaletteByName(paletteName);
+    colorPalette.recolorAllBizCardDivs();
+    console.log(`Applied palette: ${paletteName}`);
+    
+    // Close the popup after selection
+    paletteSelectorPopup.style.display = 'none';
+    paletteIcon.style.border = '2px solid transparent';
+  } catch (error) {
+    console.error(`Failed to apply palette ${paletteName}:`, error);
+    alert(`Failed to load palette: ${paletteName}`);
+  }
+}
+
+/**
+ * Initialize palette selector dropdown
+ */
+async function initializePaletteSelector(): Promise<string | null> {
+  try {
+    const availablePalettes = await colorPalette.fetchAvailablePalettes();
+    
+    // Clear existing options
+    paletteSelector.innerHTML = '';
+    
+    // Add options for each palette
+    availablePalettes.forEach(paletteName => {
+      const option = document.createElement('option');
+      option.value = paletteName;
+      option.textContent = paletteName.charAt(0).toUpperCase() + paletteName.slice(1);
+      paletteSelector.appendChild(option);
+    });
+    
+    // Return the first palette as default
+    return availablePalettes.length > 0 ? availablePalettes[0] : null;
+  } catch (error) {
+    console.error('Failed to load palette list:', error);
+    paletteSelector.innerHTML = '<option value="">Error loading palettes</option>';
+    return null;
+  }
+}
+
+/**
  * Handle window load
  */
-function handleWindowLoad(): void {
+async function handleWindowLoad(): Promise<void> {
   // Initialize focal point
   const focalPointElement = document.getElementById("focal-point");
   if (focalPointElement) {
@@ -140,6 +207,23 @@ function handleWindowLoad(): void {
     DEFAULT_TIMELINE_YEAR
   );
 
+  // Initialize palette selector and load default palette
+  const defaultPalette = await initializePaletteSelector();
+  
+  if (defaultPalette) {
+    try {
+      await colorPalette.loadPaletteByName(defaultPalette);
+      bizcardModule.setUsePaletteColors(true);
+      console.log(`Loaded palette: ${defaultPalette} with ${colorPalette.getNumColors()} colors`);
+    } catch (error) {
+      console.warn('Failed to load color palette, using job colors instead:', error);
+      bizcardModule.setUsePaletteColors(false);
+    }
+  } else {
+    console.warn('No palettes available, using job colors');
+    bizcardModule.setUsePaletteColors(false);
+  }
+
   // Create bizcards
   bizcardModule.createBizcardDivs(canvas);
 
@@ -149,8 +233,19 @@ function handleWindowLoad(): void {
     const bizcardDiv = allBizcardDivs[i] as HTMLDivElement;
     bizcardDiv.addEventListener("mouseenter", eventHandlers.handleCardDivMouseEnter);
     bizcardDiv.addEventListener("mouseleave", eventHandlers.handleCardDivMouseLeave);
+    bizcardDiv.addEventListener("mousemove", eventHandlers.handleCardDivMouseMove);
     eventHandlers.addCardDivClickListener(bizcardDiv);
   }
+
+  // Reposition all skill cards to weighted averages after all bizcards are created
+  // This ensures cards used by multiple jobs are positioned at the timeline center of their usage
+  cardModule.repositionAllCardsToWeightedAverages();
+
+  // Add skill card lists to bizcards
+  bizcardModule.addSkillCardListsToAllBizcards();
+  
+  // Add click listeners to back icons in skill lists
+  bizcardModule.addBackIconClickListeners();
 
   // Initialize layout
   parallax.renderAllTranslateableDivsAtCanvasContainerCenter(canvasContainer);
@@ -232,6 +327,27 @@ selectNextBizcardButton.addEventListener("click", selectNextBizcard);
 clearAllLineItemsButton.addEventListener("click", () => {
   lineItems.clearAllDivCardLineItems();
   selection.deselectTheSelectedCardDiv();
+});
+
+// Palette icon click event listener
+paletteIcon.addEventListener("click", (e) => {
+  e.stopPropagation();
+  togglePaletteSelectorPopup();
+});
+
+// Palette selector event listener
+paletteSelector.addEventListener("change", (e) => {
+  const selectedPalette = (e.target as HTMLSelectElement).value;
+  handlePaletteChange(selectedPalette);
+});
+
+// Close palette popup when clicking outside
+document.addEventListener("click", (e) => {
+  const target = e.target as HTMLElement;
+  if (!paletteSelectorPopup.contains(target) && target !== paletteIcon) {
+    paletteSelectorPopup.style.display = 'none';
+    paletteIcon.style.border = '2px solid transparent';
+  }
 });
 
 // Block clicks during animation

@@ -90,11 +90,11 @@ def process_urls_in_string(text, counters):
             else:
                 counters['valid_some_changes_cnt'] += 1
             # Replace the original URL with the valid one
-            text = re.sub(f'\({re.escape(original_url)}\)', f'({replacement_url})', text)
+            text = re.sub(rf'\({re.escape(original_url)}\)', f'({replacement_url})', text)
         else:
             # If no valid transformation, remove the URL
             counters['invalid_all_changes_cnt'] += 1
-            text = re.sub(f'\({re.escape(original_url)}\)', '', text)
+            text = re.sub(rf'\({re.escape(original_url)}\)', '', text)
 
     return text
 

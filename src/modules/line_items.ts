@@ -101,20 +101,58 @@ export function addCardDivLineItem(
     cardModule.addCardDivMonths(targetCardDiv as HTMLDivElement, cardDivLineItemContent);
   }
 
-  // Add click handler to select and scroll the associated bizcardDiv
+  // Add click handler to toggle selection and scroll the associated card
   cardDivLineItem.addEventListener("click", function(event) {
-    // Don't trigger if clicking on buttons or icons
+    // Don't trigger if clicking on buttons (but allow icon clicks to propagate to their own handlers)
     if (event.target instanceof HTMLElement && 
         (event.target.classList.contains('card-div-line-item-delete-button') ||
-         event.target.classList.contains('card-div-line-item-follow-button') ||
-         event.target.classList.contains('icon'))) {
+         event.target.classList.contains('card-div-line-item-follow-button'))) {
       return;
     }
     
-    // Select the associated bizcardDiv and scroll it into view
-    selection.selectTheCardDiv(targetCardDiv as HTMLElement, false);
-    scrollElementIntoView(targetCardDiv as HTMLElement);
+    // Toggle selection behavior for line items
+    if (targetCardDiv && targetCardDiv.classList.contains('selected')) {
+      // Clicking on selected card's line item - deselect both
+      selection.restoreSavedStyle(targetCardDiv as HTMLElement);
+      selection.restoreSavedStyle(cardDivLineItem);
+    } else {
+      // Deselect ALL other selected cards first
+      const selectedCards = document.querySelectorAll('.bizcard-div.selected, .card-div.selected');
+      selectedCards.forEach(card => {
+        selection.restoreSavedStyle(card as HTMLElement);
+        
+        // Also deselect its line item
+        const prevLineItemId = 'card-div-line-item-' + card.id;
+        const prevLineItem = document.getElementById(prevLineItemId);
+        if (prevLineItem && prevLineItem.classList.contains('selected')) {
+          selection.restoreSavedStyle(prevLineItem as HTMLElement);
+        }
+      });
+      
+      // Now select the card and line item, ensuring colors match
+      if (targetCardDiv) {
+        // Update line item colors to match card before selecting
+        const bgColor = targetCardDiv.getAttribute('saved-background-color');
+        const textColor = targetCardDiv.getAttribute('saved-color');
+        const selectedBgColor = targetCardDiv.getAttribute('saved-selected-background-color');
+        const selectedTextColor = targetCardDiv.getAttribute('saved-selected-color');
+        
+        if (bgColor) cardDivLineItem.setAttribute('saved-background-color', bgColor);
+        if (textColor) cardDivLineItem.setAttribute('saved-color', textColor);
+        if (selectedBgColor) cardDivLineItem.setAttribute('saved-selected-background-color', selectedBgColor);
+        if (selectedTextColor) cardDivLineItem.setAttribute('saved-selected-color', selectedTextColor);
+        
+        cardDivLineItem.style.backgroundColor = bgColor || '';
+        cardDivLineItem.style.color = textColor || '';
+        
+        selection.setSelectedStyle(targetCardDiv as HTMLElement);
+        selection.setSelectedStyle(cardDivLineItem);
+        scrollElementIntoView(targetCardDiv as HTMLElement);
+      }
+    }
   });
+  
+  // No hover-based selection - line items only select on click
 
   // Assemble line item
   cardDivLineItem.appendChild(cardDivLineItemContent);
@@ -148,6 +186,31 @@ export function addCardDivLineItem(
   for (const element of Array.from(cardDivLineItem.getElementsByClassName("mono-color-sensitive"))) {
     monoColor.applyMonoColorToElement(element as HTMLElement);
   }
+
+  // Add click listeners to all icons, skill names, and bizcard links in the line item
+  // Use dynamic import to avoid circular dependency
+  import('./event_handlers.js').then(eventHandlers => {
+    const icons = cardDivLineItemContent.querySelectorAll('.icon');
+    icons.forEach(icon => {
+      const iconType = (icon as HTMLElement).dataset.icontype;
+      // Add listeners to all icon types (back, skill-back, url, img)
+      if (iconType === 'back' || iconType === 'skill-back' || iconType === 'url' || iconType === 'img') {
+        eventHandlers.addIconClickListener(icon as HTMLElement);
+      }
+    });
+    
+    // Add listeners to skill names
+    const skillNames = cardDivLineItemContent.querySelectorAll('.skill-name');
+    skillNames.forEach(skillName => {
+      eventHandlers.addSkillNameClickListener(skillName as HTMLElement);
+    });
+    
+    // Add listeners to bizcard links
+    const bizcardLinks = cardDivLineItemContent.querySelectorAll('.bizcard-link');
+    bizcardLinks.forEach(link => {
+      eventHandlers.addBizcardLinkClickListener(link as HTMLElement);
+    });
+  });
 
   scrollElementToTop(cardDivLineItem);
   return cardDivLineItem;

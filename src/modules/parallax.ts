@@ -110,6 +110,11 @@ export function applyParallaxToOneCardDiv(
 export function applyParallax(canvasContainer: HTMLElement): void {
   const allDivs = getAllTranslateableCardDivs();
   for (const cardDiv of allDivs) {
+    // Skip cards that are currently being hovered (have 'selected' class)
+    // This prevents flickering caused by parallax updates during hover
+    if (cardDiv.classList.contains('selected')) {
+      continue;
+    }
     applyParallaxToOneCardDiv(cardDiv, canvasContainer);
   }
 }

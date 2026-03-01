@@ -25,6 +25,16 @@ A `skill card` is created for each \[square\] bracketed phrase in the job descri
 one or more return icons <img src="static_content/icons/icons8-back-16-black.png"> that serve as clickable links back to jobs that used that skill. The number 
 of return icons indicates the number of jobs and the amount of time used to hone that skill.
 
+## Color Palettes
+
+The application supports customizable color palettes that can be applied to all business cards. 
+
+- Select from pre-defined palettes using the **Palette** dropdown in the header
+- Available palettes: Sweeps, Ocean, Forest, Sunset
+- Colors are automatically assigned to bizcard divs using: `bizcardIndex % paletteSize`
+- Text colors (black/white) are automatically calculated for optimal readability
+- Add your own palettes by creating JSON files in `static_content/palettes/`
+- See `static_content/palettes/README.md` for detailed instructions on creating custom palettes
 
 # Run the `flock-of-postcards` career resume web app using VSCode
 

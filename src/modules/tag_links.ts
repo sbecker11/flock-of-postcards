@@ -59,7 +59,7 @@ export function process_bizcard_description_HTML(
   const processed_items: string[] = [];
   const bizcardTagLinks: TagLink[] = [];
   const description_items = description_HTML.split(BULLET_DELIMITER);
-  
+
   if (description_items.length > 0) {
     for (let i = 0; i < description_items.length; i++) {
       const description_item = description_items[i].trim();
@@ -75,12 +75,12 @@ export function process_bizcard_description_HTML(
       }
     }
   }
-  
+
   let processed_bizcard_description_HTML = description_HTML;
   if (processed_items.length > 0) {
     processed_bizcard_description_HTML = processed_items.join(BULLET_JOINER);
   }
-  
+
   return [processed_bizcard_description_HTML, bizcardTagLinks];
 }
 
@@ -134,7 +134,7 @@ export function process_bizcard_description_item(
     let htmlElementStr = '';
 
     if (text) {
-      htmlElementStr = `<u>${text}</u>`;
+      htmlElementStr = `<u class="bizcard-link" data-bizcard-id="${bizcardDiv.id}" data-icontype="back" style="cursor: pointer;">${text}</u>`;
       let line2 = '';
 
       if (img) {

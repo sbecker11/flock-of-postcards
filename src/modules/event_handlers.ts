@@ -6,6 +6,8 @@ import * as autoscroll from './autoscroll.js';
 import * as selection from './selection.js';
 import * as alerts from './alerts.js';
 import * as utils from './utils.js';
+import * as lineItems from './line_items.js';
+import { scrollElementIntoView } from './dom_helpers.js';
 import type { CanvasContainerEventListener } from './types.js';
 
 // Event listener registry
@@ -89,8 +91,27 @@ export function handleCanvasContainerWheel(wheelEvent: WheelEvent): void {
  * Handle canvas container click
  */
 export function handleCanvasContainerMouseClick(canvasContainer: HTMLElement): void {
+  // Deselect any card that was selected via click
   selection.deselectTheSelectedCardDiv();
-  // deselectTheSelectedCardDivLineItem would be called here
+  
+  // Deselect all selected bizcards
+  const selectedBizcards = document.querySelectorAll('.bizcard-div.selected');
+  selectedBizcards.forEach(card => {
+    selection.restoreSavedStyle(card as HTMLElement);
+  });
+  
+  // Deselect all selected skill cards
+  const selectedCards = document.querySelectorAll('.card-div.selected');
+  selectedCards.forEach(card => {
+    selection.restoreSavedStyle(card as HTMLElement);
+  });
+  
+  // Deselect all selected line items
+  const selectedLineItems = document.querySelectorAll('.card-div-line-item.selected');
+  selectedLineItems.forEach(lineItem => {
+    selection.restoreSavedStyle(lineItem as HTMLElement);
+  });
+  
   handleFocalPointMove(canvasContainer, mouseY);
 }
 
@@ -98,20 +119,24 @@ export function handleCanvasContainerMouseClick(canvasContainer: HTMLElement): v
  * Handle card div mouse enter
  */
 export function handleCardDivMouseEnter(event: MouseEvent): void {
-  const targetCardDiv = (event.target as HTMLElement).closest('.card-div, .bizcard-div');
-  if (targetCardDiv) {
-    selection.setSelectedStyle(targetCardDiv as HTMLElement);
-  }
+  // No hover-based selection - cards only select on click
+  return;
 }
 
 /**
  * Handle card div mouse leave
  */
 export function handleCardDivMouseLeave(event: MouseEvent): void {
-  const targetCardDiv = (event.target as HTMLElement).closest('.card-div, .bizcard-div');
-  if (targetCardDiv) {
-    selection.restoreSavedStyle(targetCardDiv as HTMLElement);
-  }
+  // No hover-based selection - cards only select on click
+  return;
+}
+
+/**
+ * Handle card div mouse move
+ */
+export function handleCardDivMouseMove(event: MouseEvent): void {
+  // No hover-based selection - cards only select on click
+  return;
 }
 
 /**
@@ -126,7 +151,114 @@ export function cardDivClickListener(event: MouseEvent): void {
   }
   
   if (cardDiv && !element.classList.contains('icon')) {
-    selection.selectTheCardDiv(cardDiv, true);
+    // Special handling for bizcards - toggle selection if already selected
+    if (cardDiv.classList.contains('bizcard-div')) {
+      if (cardDiv.classList.contains('selected')) {
+        // Clicking on selected bizcard - deselect it
+        selection.restoreSavedStyle(cardDiv as HTMLElement);
+        
+        // Also deselect its line item
+        const lineItemId = 'card-div-line-item-' + cardDiv.id;
+        const lineItem = document.getElementById(lineItemId);
+        if (lineItem && lineItem.classList.contains('selected')) {
+          selection.restoreSavedStyle(lineItem as HTMLElement);
+        }
+      } else {
+        // Clicking on unselected bizcard - deselect ALL other selected cards first
+        const selectedCards = document.querySelectorAll('.bizcard-div.selected, .card-div.selected');
+        selectedCards.forEach(card => {
+          selection.restoreSavedStyle(card as HTMLElement);
+          
+          // Also deselect its line item
+          const prevLineItemId = 'card-div-line-item-' + card.id;
+          const prevLineItem = document.getElementById(prevLineItemId);
+          if (prevLineItem && prevLineItem.classList.contains('selected')) {
+            selection.restoreSavedStyle(prevLineItem as HTMLElement);
+          }
+        });
+        
+        // Now select this bizcard
+        selection.setSelectedStyle(cardDiv as HTMLElement);
+        
+        // Always scroll to position top edge at 20% from top
+        scrollElementIntoView(cardDiv);
+        
+        // Add or get the line item
+        const rightContentDiv = document.getElementById('right-content-div');
+        if (rightContentDiv) {
+          const lineItem = lineItems.addCardDivLineItem(rightContentDiv, cardDiv.id);
+          if (lineItem) {
+            // Ensure line item colors match card
+            const bgColor = cardDiv.getAttribute('saved-background-color');
+            const textColor = cardDiv.getAttribute('saved-color');
+            const selectedBgColor = cardDiv.getAttribute('saved-selected-background-color');
+            const selectedTextColor = cardDiv.getAttribute('saved-selected-color');
+            
+            if (bgColor) lineItem.setAttribute('saved-background-color', bgColor);
+            if (textColor) lineItem.setAttribute('saved-color', textColor);
+            if (selectedBgColor) lineItem.setAttribute('saved-selected-background-color', selectedBgColor);
+            if (selectedTextColor) lineItem.setAttribute('saved-selected-color', selectedTextColor);
+            
+            lineItem.style.backgroundColor = bgColor || '';
+            lineItem.style.color = textColor || '';
+            
+            selection.setSelectedStyle(lineItem as HTMLElement);
+          }
+        }
+      }
+    } else {
+      // For skill cards, apply same toggle behavior as bizcards
+      if (cardDiv.classList.contains('selected')) {
+        // Clicking on selected skill card - deselect it
+        selection.restoreSavedStyle(cardDiv as HTMLElement);
+        
+        // Also deselect its line item
+        const lineItemId = 'card-div-line-item-' + cardDiv.id;
+        const lineItem = document.getElementById(lineItemId);
+        if (lineItem && lineItem.classList.contains('selected')) {
+          selection.restoreSavedStyle(lineItem as HTMLElement);
+        }
+      } else {
+        // Clicking on unselected skill card - deselect ALL other cards first
+        const selectedCards = document.querySelectorAll('.bizcard-div.selected, .card-div.selected');
+        selectedCards.forEach(card => {
+          selection.restoreSavedStyle(card as HTMLElement);
+          
+          // Also deselect its line item
+          const prevLineItemId = 'card-div-line-item-' + card.id;
+          const prevLineItem = document.getElementById(prevLineItemId);
+          if (prevLineItem && prevLineItem.classList.contains('selected')) {
+            selection.restoreSavedStyle(prevLineItem as HTMLElement);
+          }
+        });
+        
+        // Now select this skill card
+        selection.setSelectedStyle(cardDiv as HTMLElement);
+        
+        // Add or get the line item
+        const rightContentDiv = document.getElementById('right-content-div');
+        if (rightContentDiv) {
+          const lineItem = lineItems.addCardDivLineItem(rightContentDiv, cardDiv.id);
+          if (lineItem) {
+            // Ensure line item colors match card
+            const bgColor = cardDiv.getAttribute('saved-background-color');
+            const textColor = cardDiv.getAttribute('saved-color');
+            const selectedBgColor = cardDiv.getAttribute('saved-selected-background-color');
+            const selectedTextColor = cardDiv.getAttribute('saved-selected-color');
+            
+            if (bgColor) lineItem.setAttribute('saved-background-color', bgColor);
+            if (textColor) lineItem.setAttribute('saved-color', textColor);
+            if (selectedBgColor) lineItem.setAttribute('saved-selected-background-color', selectedBgColor);
+            if (selectedTextColor) lineItem.setAttribute('saved-selected-color', selectedTextColor);
+            
+            lineItem.style.backgroundColor = bgColor || '';
+            lineItem.style.color = textColor || '';
+            
+            selection.setSelectedStyle(lineItem as HTMLElement);
+          }
+        }
+      }
+    }
     event.stopPropagation();
   }
 }
@@ -188,7 +320,97 @@ export function addIconClickListener(icon: HTMLElement): void {
           if (bizcardId) {
             const bizcardDiv = document.getElementById(bizcardId);
             if (bizcardDiv) {
-              selection.selectTheCardDiv(bizcardDiv, true);
+              // Deselect ALL currently selected cards (including the current skill card)
+              const selectedCards = document.querySelectorAll('.bizcard-div.selected, .card-div.selected');
+              selectedCards.forEach(card => {
+                selection.restoreSavedStyle(card as HTMLElement);
+                
+                // Also deselect its line item
+                const prevLineItemId = 'card-div-line-item-' + card.id;
+                const prevLineItem = document.getElementById(prevLineItemId);
+                if (prevLineItem && prevLineItem.classList.contains('selected')) {
+                  selection.restoreSavedStyle(prevLineItem as HTMLElement);
+                }
+              });
+              
+              // Now select the bizcard
+              selection.setSelectedStyle(bizcardDiv as HTMLElement);
+              
+              // Add or get the line item
+              const rightContentDiv = document.getElementById('right-content-div');
+              if (rightContentDiv) {
+                const lineItem = lineItems.addCardDivLineItem(rightContentDiv, bizcardId);
+                if (lineItem) {
+                  // Ensure line item colors match card
+                  const bgColor = bizcardDiv.getAttribute('saved-background-color');
+                  const textColor = bizcardDiv.getAttribute('saved-color');
+                  const selectedBgColor = bizcardDiv.getAttribute('saved-selected-background-color');
+                  const selectedTextColor = bizcardDiv.getAttribute('saved-selected-color');
+                  
+                  if (bgColor) lineItem.setAttribute('saved-background-color', bgColor);
+                  if (textColor) lineItem.setAttribute('saved-color', textColor);
+                  if (selectedBgColor) lineItem.setAttribute('saved-selected-background-color', selectedBgColor);
+                  if (selectedTextColor) lineItem.setAttribute('saved-selected-color', selectedTextColor);
+                  
+                  lineItem.style.backgroundColor = bgColor || '';
+                  lineItem.style.color = textColor || '';
+                  
+                  selection.setSelectedStyle(lineItem as HTMLElement);
+                }
+              }
+              
+              // Scroll the bizcard into view with 20% top offset
+              scrollElementIntoView(bizcardDiv);
+            }
+          }
+          break;
+        }
+        case 'skill-back': {
+          const cardId = iconElement.dataset.cardId;
+          if (cardId) {
+            const cardDiv = document.getElementById(cardId);
+            if (cardDiv) {
+              // Deselect ALL currently selected cards (including the selected bizcard)
+              const selectedCards = document.querySelectorAll('.bizcard-div.selected, .card-div.selected');
+              selectedCards.forEach(card => {
+                selection.restoreSavedStyle(card as HTMLElement);
+                
+                // Also deselect its line item
+                const prevLineItemId = 'card-div-line-item-' + card.id;
+                const prevLineItem = document.getElementById(prevLineItemId);
+                if (prevLineItem && prevLineItem.classList.contains('selected')) {
+                  selection.restoreSavedStyle(prevLineItem as HTMLElement);
+                }
+              });
+              
+              // Now select this skill card
+              selection.setSelectedStyle(cardDiv as HTMLElement);
+              
+              // Add or get the line item
+              const rightContentDiv = document.getElementById('right-content-div');
+              if (rightContentDiv) {
+                const lineItem = lineItems.addCardDivLineItem(rightContentDiv, cardId);
+                if (lineItem) {
+                  // Ensure line item colors match card
+                  const bgColor = cardDiv.getAttribute('saved-background-color');
+                  const textColor = cardDiv.getAttribute('saved-color');
+                  const selectedBgColor = cardDiv.getAttribute('saved-selected-background-color');
+                  const selectedTextColor = cardDiv.getAttribute('saved-selected-color');
+                  
+                  if (bgColor) lineItem.setAttribute('saved-background-color', bgColor);
+                  if (textColor) lineItem.setAttribute('saved-color', textColor);
+                  if (selectedBgColor) lineItem.setAttribute('saved-selected-background-color', selectedBgColor);
+                  if (selectedTextColor) lineItem.setAttribute('saved-selected-color', selectedTextColor);
+                  
+                  lineItem.style.backgroundColor = bgColor || '';
+                  lineItem.style.color = textColor || '';
+                  
+                  selection.setSelectedStyle(lineItem as HTMLElement);
+                }
+              }
+              
+              // Scroll the skill card into view
+              scrollElementIntoView(cardDiv);
             }
           }
           break;
@@ -200,6 +422,126 @@ export function addIconClickListener(icon: HTMLElement): void {
     }
     
     mouseEvent.stopPropagation();
+  });
+}
+
+/**
+ * Add click listener to bizcard link text (same behavior as back icon)
+ */
+export function addBizcardLinkClickListener(bizcardLinkElement: HTMLElement): void {
+  bizcardLinkElement.addEventListener("click", (event: Event) => {
+    const mouseEvent = event as MouseEvent;
+    mouseEvent.stopPropagation();
+    
+    const bizcardId = bizcardLinkElement.dataset.bizcardId;
+    if (bizcardId) {
+      const bizcardDiv = document.getElementById(bizcardId);
+      if (bizcardDiv) {
+        // Deselect ALL currently selected cards (including the current skill card)
+        const selectedCards = document.querySelectorAll('.bizcard-div.selected, .card-div.selected');
+        selectedCards.forEach(card => {
+          selection.restoreSavedStyle(card as HTMLElement);
+          
+          // Also deselect its line item
+          const prevLineItemId = 'card-div-line-item-' + card.id;
+          const prevLineItem = document.getElementById(prevLineItemId);
+          if (prevLineItem && prevLineItem.classList.contains('selected')) {
+            selection.restoreSavedStyle(prevLineItem as HTMLElement);
+          }
+        });
+        
+        // Now select the bizcard
+        selection.setSelectedStyle(bizcardDiv as HTMLElement);
+        
+        // Always scroll to position top edge at 20% from top
+        scrollElementIntoView(bizcardDiv);
+        
+        // Add or get the line item
+        const rightContentDiv = document.getElementById('right-content-div');
+        if (rightContentDiv) {
+          const lineItem = lineItems.addCardDivLineItem(rightContentDiv, bizcardId);
+          if (lineItem) {
+            // Ensure line item colors match card
+            const bgColor = bizcardDiv.getAttribute('saved-background-color');
+            const textColor = bizcardDiv.getAttribute('saved-color');
+            const selectedBgColor = bizcardDiv.getAttribute('saved-selected-background-color');
+            const selectedTextColor = bizcardDiv.getAttribute('saved-selected-color');
+            
+            if (bgColor) lineItem.setAttribute('saved-background-color', bgColor);
+            if (textColor) lineItem.setAttribute('saved-color', textColor);
+            if (selectedBgColor) lineItem.setAttribute('saved-selected-background-color', selectedBgColor);
+            if (selectedTextColor) lineItem.setAttribute('saved-selected-color', selectedTextColor);
+            
+            lineItem.style.backgroundColor = bgColor || '';
+            lineItem.style.color = textColor || '';
+            
+            selection.setSelectedStyle(lineItem as HTMLElement);
+          }
+        }
+      }
+    }
+  });
+}
+
+/**
+ * Add click listener to skill name span (same behavior as skill-back icon)
+ */
+export function addSkillNameClickListener(skillNameElement: HTMLElement): void {
+  skillNameElement.addEventListener("click", (event: Event) => {
+    const mouseEvent = event as MouseEvent;
+    mouseEvent.stopPropagation();
+    
+    const cardId = skillNameElement.dataset.cardId;
+    console.log(`Skill name clicked, cardId: ${cardId}`);
+    if (cardId) {
+      const cardDiv = document.getElementById(cardId);
+      console.log(`  Found skill card: ${cardDiv ? 'yes' : 'no'}`);
+      if (cardDiv) {
+        // Deselect ALL currently selected cards (including the selected bizcard)
+        const selectedCards = document.querySelectorAll('.bizcard-div.selected, .card-div.selected');
+        selectedCards.forEach(card => {
+          selection.restoreSavedStyle(card as HTMLElement);
+          
+          // Also deselect its line item
+          const prevLineItemId = 'card-div-line-item-' + card.id;
+          const prevLineItem = document.getElementById(prevLineItemId);
+          if (prevLineItem && prevLineItem.classList.contains('selected')) {
+            selection.restoreSavedStyle(prevLineItem as HTMLElement);
+          }
+        });
+        
+        // Now select this skill card
+        selection.setSelectedStyle(cardDiv as HTMLElement);
+        
+        // Add or get the line item
+        const rightContentDiv = document.getElementById('right-content-div');
+        console.log(`  Right content div: ${rightContentDiv ? 'found' : 'not found'}`);
+        if (rightContentDiv) {
+          const lineItem = lineItems.addCardDivLineItem(rightContentDiv, cardId);
+          console.log(`  Line item: ${lineItem ? 'created/found' : 'failed'}`);
+          if (lineItem) {
+            // Ensure line item colors match card
+            const bgColor = cardDiv.getAttribute('saved-background-color');
+            const textColor = cardDiv.getAttribute('saved-color');
+            const selectedBgColor = cardDiv.getAttribute('saved-selected-background-color');
+            const selectedTextColor = cardDiv.getAttribute('saved-selected-color');
+            
+            if (bgColor) lineItem.setAttribute('saved-background-color', bgColor);
+            if (textColor) lineItem.setAttribute('saved-color', textColor);
+            if (selectedBgColor) lineItem.setAttribute('saved-selected-background-color', selectedBgColor);
+            if (selectedTextColor) lineItem.setAttribute('saved-selected-color', selectedTextColor);
+            
+            lineItem.style.backgroundColor = bgColor || '';
+            lineItem.style.color = textColor || '';
+            
+            selection.setSelectedStyle(lineItem as HTMLElement);
+          }
+        }
+        
+        // Scroll the skill card into view
+        scrollElementIntoView(cardDiv);
+      }
+    }
   });
 }
 

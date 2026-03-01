@@ -6,6 +6,8 @@ import * as utils from './utils.js';
 import * as timeline from './timeline.js';
 import * as zDepth from './z_depth.js';
 import * as tagLinks from './tag_links.js';
+import * as colorPalette from './color_palette.js';
+import * as monoColor from './monoColor.js';
 import { 
   BIZCARD_WIDTH, 
   BIZCARD_INDENT, 
@@ -17,6 +19,21 @@ import {
 } from './dom_helpers.js';
 
 let dateSortedBizcardIds: DatedDivId[] | null = null;
+let usePaletteColors: boolean = false;
+
+/**
+ * Enable or disable palette-based colors
+ */
+export function setUsePaletteColors(enabled: boolean): void {
+  usePaletteColors = enabled;
+}
+
+/**
+ * Check if palette colors are enabled
+ */
+export function isUsingPaletteColors(): boolean {
+  return usePaletteColors;
+}
 
 /**
  * Create all bizcard divs from the jobs array
@@ -36,12 +53,29 @@ export function createBizcardDivs(canvas: HTMLElement): void {
 function createBizcardDiv(canvas: HTMLElement, job: Job): HTMLDivElement {
   const role = job["role"];
   const employer = job["employer"].trim();
-  const css_hex_background_color_str = job["css RGB"].trim().toUpperCase();
-  utils.validateHexColorString(css_hex_background_color_str);
+  
+  let css_hex_background_color_str: string;
+  let css_hex_color_str: string;
+  
+  if (usePaletteColors) {
+    // Use palette colors based on the bizcard index
+    const bizcardDivs = document.getElementsByClassName("bizcard-div");
+    const bizcardIndex = bizcardDivs.length;
+    
+    css_hex_background_color_str = colorPalette.getColorByIndex(bizcardIndex).toUpperCase();
+    utils.validateHexColorString(css_hex_background_color_str);
+    
+    // Calculate appropriate text color based on background brightness
+    css_hex_color_str = colorPalette.getContrastTextColor(css_hex_background_color_str);
+  } else {
+    // Use colors from job data (original behavior)
+    css_hex_background_color_str = job["css RGB"].trim().toUpperCase();
+    utils.validateHexColorString(css_hex_background_color_str);
 
-  const text_color = job["text color"].trim().toUpperCase();
-  const css_hex_color_str = utils.get_Hex_from_ColorStr(text_color);
-  utils.validateHexColorString(css_hex_color_str);
+    const text_color = job["text color"].trim().toUpperCase();
+    css_hex_color_str = utils.get_Hex_from_ColorStr(text_color);
+    utils.validateHexColorString(css_hex_color_str);
+  }
 
   // Parse end date
   const jobEndParts = job["end"].split("-");
@@ -153,6 +187,128 @@ function createBizcardDiv(canvas: HTMLElement, job: Job): HTMLDivElement {
   utils.validateIsCardDivOrBizcardDiv(bizcardDiv);
   
   return bizcardDiv;
+}
+
+/**
+ * Add skill card list to a bizcard if there's sufficient space
+ */
+export function addSkillCardListToBizcard(bizcardDiv: HTMLDivElement): void {
+  const cardDivIds = bizcardDiv.dataset.cardDivIds;
+  console.log(`  ${bizcardDiv.id}: cardDivIds="${cardDivIds}"`);
+  
+  if (!cardDivIds || cardDivIds.length === 0) {
+    console.log(`    → No cardDivIds, skipping`);
+    return;
+  }
+  
+  // Parse the comma-separated card IDs
+  const cardIds = cardDivIds.split(',').filter(id => id.trim().length > 0);
+  console.log(`    → Found ${cardIds.length} skill cards`);
+  
+  if (cardIds.length === 0) return;
+  
+  // Calculate how many skill items can fit based on bizcard height
+  const bizcardHeight = parseInt(bizcardDiv.style.height) || 0;
+  const PADDING_TOP = 20; // bizcard padding-top
+  const PADDING_BOTTOM = 25; // bizcard padding-bottom
+  const TITLE_HEIGHT = 80; // Approximate height for title, dates, etc. (increased)
+  const ITEM_HEIGHT = 20; // Each skill item is ~20px (18px actual + safety margin)
+  const LIST_MARGIN_TOP = 10; // margin-top for list
+  const LIST_MARGIN_BOTTOM = 15; // margin-bottom for list
+  const SAFETY_BUFFER = 30; // Extra buffer to prevent overflow (doubled)
+  
+  const availableHeight = bizcardHeight - PADDING_TOP - PADDING_BOTTOM - TITLE_HEIGHT - LIST_MARGIN_TOP - LIST_MARGIN_BOTTOM - SAFETY_BUFFER;
+  const maxItems = Math.max(1, Math.floor(availableHeight / ITEM_HEIGHT));
+  
+  console.log(`    → Height: ${bizcardHeight}px, available: ${availableHeight}px, can fit ${maxItems} items`);
+  
+  // Limit card IDs to what will fit
+  const displayCardIds = cardIds.slice(0, maxItems);
+  
+  // Get color for icons
+  const savedColor = bizcardDiv.getAttribute('saved-color') || '#FFFFFF';
+  const iconColor = monoColor.getIconColor(savedColor);
+  
+  // Build the skill card list HTML
+  let listHTML = '<div class="bizcard-skill-list">';
+  
+  for (const cardId of displayCardIds) {
+    const cardDiv = document.getElementById(cardId);
+    if (!cardDiv) continue;
+    
+    // Get the skill name from the card's tag-link
+    const tagLink = cardDiv.querySelector('.tag-link');
+    const skillName = tagLink ? tagLink.textContent?.trim() : cardId;
+    
+    // Add list item with back icon as bullet pointing to the skill card
+    listHTML += `<div class="bizcard-skill-item">`;
+    listHTML += `<img class="icon back-icon skill-back-icon mono-color-sensitive" src="static_content/icons/icons8-back-16-${iconColor}.png" data-card-id="${cardId}" data-saved-color="${iconColor}" data-icontype="skill-back">`;
+    listHTML += `<span class="skill-name" data-card-id="${cardId}" data-icontype="skill-back" style="cursor: pointer;">${skillName}</span>`;
+    listHTML += `</div>`;
+  }
+  
+  listHTML += '</div>';
+  
+  console.log(`    → Adding ${displayCardIds.length}/${cardIds.length} skills to list`);
+  
+  // Append to bizcard
+  bizcardDiv.innerHTML += listHTML;
+  
+  console.log(`    ✓ Skill list added to ${bizcardDiv.id}`);
+}
+
+/**
+ * Add click listeners to back icons in bizcard skill lists
+ * Must be called after all skill lists are added
+ */
+export function addBackIconClickListeners(): void {
+  // Import here to avoid circular dependency
+  import('./event_handlers.js').then(eventHandlers => {
+    const skillLists = document.querySelectorAll('.bizcard-skill-list');
+    let iconCount = 0;
+    let nameCount = 0;
+    
+    skillLists.forEach(skillList => {
+      const backIcons = skillList.querySelectorAll('.back-icon');
+      backIcons.forEach(icon => {
+        eventHandlers.addIconClickListener(icon as HTMLElement);
+        iconCount++;
+      });
+      
+      const skillNames = skillList.querySelectorAll('.skill-name');
+      skillNames.forEach(skillName => {
+        console.log(`  Attaching listener to skill name: ${(skillName as HTMLElement).dataset.cardId}`);
+        eventHandlers.addSkillNameClickListener(skillName as HTMLElement);
+        nameCount++;
+      });
+    });
+    
+    console.log(`Added click listeners to ${iconCount} back icons and ${nameCount} skill names in skill lists`);
+  });
+}
+
+/**
+ * Add skill card lists to all bizcards
+ * Should be called after all skill cards are created and associated
+ */
+export function addSkillCardListsToAllBizcards(): void {
+  console.log('\nAdding skill card lists to bizcards...');
+  const bizcardDivs = document.getElementsByClassName('bizcard-div');
+  console.log(`Found ${bizcardDivs.length} bizcards`);
+  
+  let addedCount = 0;
+  
+  for (let i = 0; i < bizcardDivs.length; i++) {
+    const bizcardDiv = bizcardDivs[i] as HTMLDivElement;
+    const cardDivIds = bizcardDiv.dataset.cardDivIds;
+    
+    if (cardDivIds && cardDivIds.length > 0) {
+      addSkillCardListToBizcard(bizcardDiv);
+      addedCount++;
+    }
+  }
+  
+  console.log(`\n✓ Added skill card lists to ${addedCount}/${bizcardDivs.length} bizcards`);
 }
 
 /**

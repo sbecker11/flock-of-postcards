@@ -108,8 +108,14 @@ export function scrollElementToTop(element: HTMLElement): void {
   
   const elementRect = element.getBoundingClientRect();
   const containerRect = container.getBoundingClientRect();
-  const scrollTop = container.scrollTop + elementRect.top - containerRect.top;
-  container.scrollTo({ top: scrollTop, behavior: 'smooth' });
+  const containerHeight = container.clientHeight;
+  
+  // Add 20% offset from top edge to avoid cards touching the top
+  const topOffset = containerHeight * 0.2;
+  const targetScrollTop = container.scrollTop + elementRect.top - containerRect.top - topOffset;
+  
+  // Custom fast scroll animation (200ms)
+  smoothScrollTo(container, targetScrollTop, 200);
 }
 
 /**
@@ -122,8 +128,41 @@ export function scrollElementToCenter(element: HTMLElement): void {
   const containerHeight = container.clientHeight;
   const elementTop = element.offsetTop;
   const elementHeight = element.clientHeight;
-  const scrollTop = elementTop + (elementHeight / 2) - (containerHeight / 2);
-  container.scrollTo({ top: scrollTop, behavior: 'smooth' });
+  let targetScrollTop = elementTop + (elementHeight / 2) - (containerHeight / 2);
+  
+  // Ensure minimum 20% offset from top edge
+  const minScrollTop = elementTop - (containerHeight * 0.2);
+  if (targetScrollTop > minScrollTop) {
+    targetScrollTop = minScrollTop;
+  }
+  
+  // Custom fast scroll animation (200ms)
+  smoothScrollTo(container, targetScrollTop, 200);
+}
+
+/**
+ * Custom smooth scroll with specified duration
+ */
+function smoothScrollTo(container: HTMLElement, targetScrollTop: number, duration: number): void {
+  const startScrollTop = container.scrollTop;
+  const distance = targetScrollTop - startScrollTop;
+  const startTime = performance.now();
+  
+  function animate(currentTime: number) {
+    const elapsed = currentTime - startTime;
+    const progress = Math.min(elapsed / duration, 1);
+    
+    // Easing function (ease-out cubic)
+    const easeProgress = 1 - Math.pow(1 - progress, 3);
+    
+    container.scrollTop = startScrollTop + distance * easeProgress;
+    
+    if (progress < 1) {
+      requestAnimationFrame(animate);
+    }
+  }
+  
+  requestAnimationFrame(animate);
 }
 
 /**

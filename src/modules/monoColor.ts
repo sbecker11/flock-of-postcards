@@ -1,7 +1,7 @@
 import * as utils from './utils.js';
 
 // Type definitions
-type IconType = 'back' | 'url' | 'img';
+type IconType = 'back' | 'url' | 'img' | 'skill-back';
 type IconColor = 'black' | 'white';
 
 // Module state
@@ -10,7 +10,7 @@ const monoColor = "black";
 const monoBackgroundColor = "lightgrey";
 
 // Constants
-export const ICON_TYPES: readonly IconType[] = ['back', 'url', 'img'] as const;
+export const ICON_TYPES: readonly IconType[] = ['back', 'url', 'img', 'skill-back'] as const;
 export const ICON_COLORS: readonly IconColor[] = ['black', 'white'] as const;
 
 export function getIconColor(color: string): IconColor {
@@ -61,7 +61,9 @@ function getIconElementType(iconElement: HTMLElement): IconType {
   let iconType = iconElement.dataset.icontype || iconElement.getAttribute('icon-type');
   
   if (typeof iconType === 'undefined' || iconType === null || iconType === "") {
-    if (iconElement.classList.contains('back-icon')) {
+    if (iconElement.classList.contains('skill-back-icon')) {
+      return 'skill-back';
+    } else if (iconElement.classList.contains('back-icon')) {
       return 'back';
     } else if (iconElement.classList.contains('url-icon')) {
       return 'url';
@@ -114,7 +116,9 @@ export function setIconToColor(iconElement: HTMLElement, theIconColor: string): 
   }
   
   if (iconElement instanceof HTMLImageElement) {
-    iconElement.src = 'static_content/icons/icons8-' + iconType + '-16-' + iconColor + '.png';
+    // skill-back icons use the same 'back' icon image as regular back icons
+    const iconFileName = (iconType === 'skill-back') ? 'back' : iconType;
+    iconElement.src = 'static_content/icons/icons8-' + iconFileName + '-16-' + iconColor + '.png';
   }
   
   const bizcardId = iconElement.dataset.bizcardId;
