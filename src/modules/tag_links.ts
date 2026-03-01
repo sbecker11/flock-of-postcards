@@ -22,7 +22,7 @@ export function getAllTagLinks(): TagLink[] {
 export function createUrlAnchorTag(url: string, savedColor: string): string {
   const iconColor = monoColor.getIconColor(savedColor);
   const iconType = "url";
-  return `<img class="icon ${iconType}-icon mono-color-sensitive" src="static_content/icons/icons8-${iconType}-16-${iconColor}.png" data-url="${url}" data-saved-color="${iconColor}" data-icontype="${iconType}"/>`;
+  return `<img class="icon ${iconType}-icon mono-color-sensitive" src="/icons/icons8-${iconType}-16-${iconColor}.png" data-url="${url}" data-saved-color="${iconColor}" data-icontype="${iconType}"/>`;
 }
 
 /**
@@ -31,7 +31,7 @@ export function createUrlAnchorTag(url: string, savedColor: string): string {
 export function createImgAnchorTag(img: string, savedColor: string): string {
   const iconColor = monoColor.getIconColor(savedColor);
   const iconType = "img";
-  return `<img class="icon img-icon mono-color-sensitive" src="static_content/icons/icons8-${iconType}-16-${iconColor}.png" data-img="${img}" data-saved-color="${iconColor}" data-icontype="${iconType}"/>`;
+  return `<img class="icon img-icon mono-color-sensitive" src="/icons/icons8-${iconType}-16-${iconColor}.png" data-img="${img}" data-saved-color="${iconColor}" data-icontype="${iconType}"/>`;
 }
 
 /**
@@ -45,7 +45,7 @@ export function createBackAnchorTag(
   const iconColor = monoColor.getIconColor(savedColor);
   const iconType = "back";
   const monoColorSensitiveClass = isMonocolorSensitive ? "mono-color-sensitive" : '';
-  return `<img class="icon back-icon ${monoColorSensitiveClass}" src="static_content/icons/icons8-${iconType}-16-${iconColor}.png" data-bizcard-id="${bizcard_id}" data-saved-color="${iconColor}" data-icontype="${iconType}"/>`;
+  return `<img class="icon back-icon ${monoColorSensitiveClass}" src="/icons/icons8-${iconType}-16-${iconColor}.png" data-bizcard-id="${bizcard_id}" data-saved-color="${iconColor}" data-icontype="${iconType}"/>`;
 }
 
 /**

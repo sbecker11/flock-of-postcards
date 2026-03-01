@@ -242,7 +242,7 @@ export function addSkillCardListToBizcard(bizcardDiv: HTMLDivElement): void {
     
     // Add list item with back icon as bullet pointing to the skill card
     listHTML += `<div class="bizcard-skill-item">`;
-    listHTML += `<img class="icon back-icon skill-back-icon mono-color-sensitive" src="static_content/icons/icons8-back-16-${iconColor}.png" data-card-id="${cardId}" data-saved-color="${iconColor}" data-icontype="skill-back">`;
+    listHTML += `<img class="icon back-icon skill-back-icon mono-color-sensitive" src="/icons/icons8-back-16-${iconColor}.png" data-card-id="${cardId}" data-saved-color="${iconColor}" data-icontype="skill-back">`;
     listHTML += `<span class="skill-name" data-card-id="${cardId}" data-icontype="skill-back" style="cursor: pointer;">${skillName}</span>`;
     listHTML += `</div>`;
   }

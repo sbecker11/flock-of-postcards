@@ -118,7 +118,7 @@ export function setIconToColor(iconElement: HTMLElement, theIconColor: string): 
   if (iconElement instanceof HTMLImageElement) {
     // skill-back icons use the same 'back' icon image as regular back icons
     const iconFileName = (iconType === 'skill-back') ? 'back' : iconType;
-    iconElement.src = 'static_content/icons/icons8-' + iconFileName + '-16-' + iconColor + '.png';
+    iconElement.src = '/icons/icons8-' + iconFileName + '-16-' + iconColor + '.png';
   }
   
   const bizcardId = iconElement.dataset.bizcardId;
