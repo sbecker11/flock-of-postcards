@@ -21,6 +21,13 @@ import {
 } from './constants.js';
 import { getNextCardDivId } from './dom_helpers.js';
 
+// Type definitions
+interface CardPosition {
+  card: HTMLDivElement;
+  x: number;
+  y: number;
+}
+
 let prev_z: number | null = null;
 
 /**
@@ -589,7 +596,7 @@ export function repositionAllCardsToWeightedAverages(): void {
 export function findCardDiv(bizcardDiv: HTMLDivElement, tag_link: TagLink): HTMLDivElement | null {
   const cardDivs = document.getElementsByClassName("card-div");
   
-  for (const cardDiv of cardDivs) {
+  for (const cardDiv of Array.from(cardDivs)) {
     if (cardDivMatchesTagLink(cardDiv as HTMLDivElement, tag_link)) {
       // Add back icon if needed
       const backIcons = cardDiv.getElementsByClassName("back-icon");

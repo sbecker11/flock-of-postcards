@@ -374,18 +374,20 @@ export function get_RGB_from_AnyStr(anyStr: string): RGB | null {
   }
   
   let hex = css_colors.get_HEX_from_CssColor(anyStr);
-  if (isHexColorString(hex)) {
+  if (hex && /^#[0-9A-F]{6}$/.test(hex)) {
     return get_RGB_from_Hex(hex);
-  } else if (isHexColorString(anyStr)) {
-    return get_RGB_from_Hex(anyStr);
-  } else if (anyStr.startsWith('rgb')) {
-    return get_RGB_from_RgbStr(anyStr);
-  } else if (anyStr.startsWith('color')) {
-    return get_RGB_from_ColorStr(anyStr);
-  } else {
-    console.trace(`anyStr:[${anyStr}] unable to find matching RGB converter`);
-    return null;
   }
+  if (/^#[0-9A-F]{6}$/.test(anyStr)) {
+    return get_RGB_from_Hex(anyStr);
+  }
+  if ((anyStr as string).startsWith('rgb')) {
+    return get_RGB_from_RgbStr(anyStr);
+  }
+  if ((anyStr as string).startsWith('color')) {
+    return get_RGB_from_ColorStr(anyStr);
+  }
+  console.trace(`anyStr:[${anyStr}] unable to find matching RGB converter`);
+  return null;
 }
 
 export function get_Hex_from_ColorStr(colorStr: string): string {
@@ -505,7 +507,7 @@ export function getStyleProps(element: HTMLElement): StyleProps {
   const computedStyle = window.getComputedStyle(element);
   const styleProps: StyleProps = {};
   
-  for (const prop of computedStyle) {
+  for (const prop of Array.from(computedStyle)) {
     if (USABLE_STYLE_PROPS.includes(prop)) {
       let dstProp = prop;
       if (prop in STYLE_PROPS_MAP) {
@@ -658,7 +660,7 @@ export function getObjectAsString(obj: Record<string, unknown>): string {
 
 export function getAttributesAsObject(element: HTMLElement): Record<string, string> {
   const attributes: Record<string, string> = {};
-  for (const attribute of element.attributes) {
+  for (const attribute of Array.from(element.attributes)) {
     attributes[attribute.name] = attribute.value;
   }
   return attributes;
