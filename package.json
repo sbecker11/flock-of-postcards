@@ -5,7 +5,11 @@
   "main": "main.mjs",
   "type": "module",
   "scripts": {
+    "dev": "serve .",
     "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "devDependencies": {
+    "serve": "^14.2.4"
   },
   "repository": {
     "type": "git",

@@ -215,7 +215,9 @@ function getNextBizcardDivId() {
 //
 // Also parse each job's description to pull out 
 // the shared "skills" from the narrative pf each.
-//  
+//
+const PALETTE_STORAGE_KEY = 'flock-palette';
+
 async function initPaletteSelector() {
     const paletteIcon = document.getElementById('paletteIcon');
     const popup = document.getElementById('palette-selector-popup');
@@ -232,6 +234,7 @@ async function initPaletteSelector() {
                 try {
                     await colorPalette.loadPaletteByName(name);
                     colorPalette.recolorAllBizCardDivs();
+                    localStorage.setItem(PALETTE_STORAGE_KEY, name);
                     popup.style.display = 'none';
                     paletteIcon.style.border = '2px solid transparent';
                 } catch (e) {
@@ -240,7 +243,10 @@ async function initPaletteSelector() {
             });
             buttonsContainer.appendChild(btn);
         });
-        const defaultPalette = palettes.includes('sweeps') ? 'sweeps' : palettes[0];
+        const saved = localStorage.getItem(PALETTE_STORAGE_KEY);
+        const defaultPalette = (saved && palettes.includes(saved))
+            ? saved
+            : (palettes.includes('sweeps') ? 'sweeps' : palettes[0]);
         if (defaultPalette) {
             await colorPalette.loadPaletteByName(defaultPalette);
             colorPalette.recolorAllBizCardDivs();
