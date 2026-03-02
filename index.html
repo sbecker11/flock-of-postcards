@@ -69,8 +69,13 @@
                 create a flock-of-postcards for yours own resume at
                 <a target="_blank" href="https://github.com/sbecker11/flock-of-postcards/">flock-of-postcards</a><br>
             </p>
-            <div>
-                <img id="monoColorIcon" src="static_content/icons/greys.png" alt="MonoCoolor Icon" width="16" height="16" onclick="toggleMonoColor();" style="cursor: pointer;">
+            <div style="display: flex; gap: 8px; align-items: center; position: relative;">
+                <img id="paletteIcon" src="static_content/icons/colors.png" alt="Palette" width="16" height="16" style="cursor: pointer; border: 2px solid transparent;">
+                <div id="palette-selector-popup" style="display: none; position: absolute; bottom: 25px; right: 0; background: #333; padding: 10px; border-radius: 5px; z-index: 1000; min-width: 120px;">
+                    <div style="color: #fff; font-size: 12px; margin-bottom: 5px;">Select Palette:</div>
+                    <div id="palette-buttons"></div>
+                </div>
+                <img id="monoColorIcon" src="static_content/icons/greys.png" alt="MonoColor Icon" width="16" height="16" onclick="toggleMonoColor();" style="cursor: pointer;">
             </div>
         </div>
     

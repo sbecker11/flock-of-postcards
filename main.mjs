@@ -7,6 +7,7 @@ import * as timeline from './modules/timeline.mjs';
 import * as focalPoint from './modules/focal_point.mjs';
 import * as monoColor from './modules/monoColor.mjs';
 import * as alerts from './modules/alerts.mjs';
+import * as colorPalette from './modules/color_palette.mjs';
 
 // --------------------------------------
 // Element reference globals
@@ -215,6 +216,51 @@ function getNextBizcardDivId() {
 // Also parse each job's description to pull out 
 // the shared "skills" from the narrative pf each.
 //  
+async function initPaletteSelector() {
+    const paletteIcon = document.getElementById('paletteIcon');
+    const popup = document.getElementById('palette-selector-popup');
+    const buttonsContainer = document.getElementById('palette-buttons');
+    if (!paletteIcon || !popup || !buttonsContainer) return;
+    try {
+        const palettes = await colorPalette.fetchAvailablePalettes();
+        palettes.forEach(name => {
+            const btn = document.createElement('button');
+            btn.type = 'button';
+            btn.textContent = name.charAt(0).toUpperCase() + name.slice(1);
+            btn.style.cssText = 'display: block; width: 100%; padding: 8px; margin: 2px 0; cursor: pointer; background: #444; color: #fff; border: 1px solid #666; border-radius: 3px; font-size: 12px; text-align: left;';
+            btn.addEventListener('click', async () => {
+                try {
+                    await colorPalette.loadPaletteByName(name);
+                    colorPalette.recolorAllBizCardDivs();
+                    popup.style.display = 'none';
+                    paletteIcon.style.border = '2px solid transparent';
+                } catch (e) {
+                    console.error('Palette load failed:', e);
+                }
+            });
+            buttonsContainer.appendChild(btn);
+        });
+        if (palettes.length > 0) {
+            await colorPalette.loadPaletteByName(palettes[0]);
+            colorPalette.recolorAllBizCardDivs();
+        }
+    } catch (e) {
+        console.warn('Palette init failed:', e);
+    }
+    paletteIcon.addEventListener('click', (e) => {
+        e.stopPropagation();
+        const visible = popup.style.display !== 'none';
+        popup.style.display = visible ? 'none' : 'block';
+        paletteIcon.style.border = visible ? '2px solid transparent' : '2px solid white';
+    });
+    document.addEventListener('click', (e) => {
+        if (!popup.contains(e.target) && e.target !== paletteIcon) {
+            popup.style.display = 'none';
+            paletteIcon.style.border = '2px solid transparent';
+        }
+    });
+}
+
 function createBizcardDivs() {
     
     var sortedJobs = structuredClone(jobs);
@@ -2183,6 +2229,7 @@ function handleWindowLoad() {
     timeline.createTimeline(timelineContainer, canvasContainer, MIN_TIMELINE_YEAR, MAX_TIMELINE_YEAR, DEFAULT_TIMELINE_YEAR);
 
     createBizcardDivs();
+    initPaletteSelector();
     renderAllTranslateableDivsAtCanvasContainerCenter();
     positionGradients();
     centerBullsEye();

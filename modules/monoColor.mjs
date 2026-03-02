@@ -86,7 +86,9 @@ export function setIconToColor(iconElement, theIconColor) {
             var err = `setIconColor iconElement:${iconElement} savedColor is undefined`;
             throw new Error(err);
         }
-        if ( savedColor != iconColor ) {
+        // Compare semantic color - savedColor may be hex (#000000) or name (black)
+        const savedIconColor = getIconColor(savedColor);
+        if ( savedIconColor !== iconColor ) {
             var err = `setIconColor iconElement:${iconElement} in colorMode given iconColor:${iconColor} when savedColor:${savedColor}`;
             throw new Error(err);
         }
