@@ -5,6 +5,11 @@ import * as utils from './utils.mjs';
 import * as monoColor from './monoColor.mjs';
 
 let currentPalette = null;
+let currentPaletteName = null;
+
+export function getCurrentPaletteName() {
+  return currentPaletteName;
+}
 
 export async function fetchAvailablePalettes() {
   const response = await fetch('static_content/palettes/palettes.json');
@@ -21,6 +26,7 @@ export async function loadPaletteByName(name) {
     throw new Error('Invalid palette format');
   }
   currentPalette = palette;
+  currentPaletteName = name;
   return palette;
 }
 

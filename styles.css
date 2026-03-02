@@ -354,3 +354,8 @@ div.card-div span.tag-link {
   height: 16px;
   margin: 1px; /* Adjust as needed for spacing */
 }
+
+#palette-buttons button:not(:disabled):hover {
+  background: #5a5a5a !important;
+  border-color: #888 !important;
+}

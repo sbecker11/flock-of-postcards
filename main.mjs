@@ -223,14 +223,26 @@ async function initPaletteSelector() {
     const popup = document.getElementById('palette-selector-popup');
     const buttonsContainer = document.getElementById('palette-buttons');
     if (!paletteIcon || !popup || !buttonsContainer) return;
+    function updatePaletteButtonStates() {
+        const current = colorPalette.getCurrentPaletteName();
+        for (const btn of buttonsContainer.querySelectorAll('button')) {
+            const isSelected = btn.dataset.paletteName === current;
+            btn.disabled = isSelected;
+            btn.style.cursor = isSelected ? 'none' : 'pointer';
+            btn.style.background = isSelected ? '#6a6a6a' : '#444';
+            btn.style.borderColor = isSelected ? '#888' : '#666';
+        }
+    }
     try {
         const palettes = await colorPalette.fetchAvailablePalettes();
         palettes.forEach(name => {
             const btn = document.createElement('button');
             btn.type = 'button';
+            btn.dataset.paletteName = name;
             btn.textContent = name.charAt(0).toUpperCase() + name.slice(1);
             btn.style.cssText = 'display: block; width: 100%; padding: 8px; margin: 2px 0; cursor: pointer; background: #444; color: #fff; border: 1px solid #666; border-radius: 3px; font-size: 12px; text-align: left;';
             btn.addEventListener('click', async () => {
+                if (btn.disabled) return;
                 try {
                     await colorPalette.loadPaletteByName(name);
                     colorPalette.recolorAllBizCardDivs();
@@ -251,6 +263,7 @@ async function initPaletteSelector() {
             await colorPalette.loadPaletteByName(defaultPalette);
             colorPalette.recolorAllBizCardDivs();
         }
+        updatePaletteButtonStates();
     } catch (e) {
         console.warn('Palette init failed:', e);
     }
@@ -259,6 +272,7 @@ async function initPaletteSelector() {
         const visible = popup.style.display !== 'none';
         popup.style.display = visible ? 'none' : 'block';
         paletteIcon.style.border = visible ? '2px solid transparent' : '2px solid white';
+        if (!visible) updatePaletteButtonStates();
     });
     document.addEventListener('click', (e) => {
         if (!popup.contains(e.target) && e.target !== paletteIcon) {
