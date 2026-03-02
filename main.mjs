@@ -240,8 +240,9 @@ async function initPaletteSelector() {
             });
             buttonsContainer.appendChild(btn);
         });
-        if (palettes.length > 0) {
-            await colorPalette.loadPaletteByName(palettes[0]);
+        const defaultPalette = palettes.includes('sweeps') ? 'sweeps' : palettes[0];
+        if (defaultPalette) {
+            await colorPalette.loadPaletteByName(defaultPalette);
             colorPalette.recolorAllBizCardDivs();
         }
     } catch (e) {
