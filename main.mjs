@@ -300,7 +300,7 @@ function createBizcardDivs() {
         utils.validateHexColorString(css_hex_background_color_str);
 
         // utils.validateKey(job, "text color");
-        var css_hex_color_str = utils.computeTextColor(css_hex_background_color_str);
+        var css_hex_color_str = colorPalette.getContrastTextColor(css_hex_background_color_str);
         utils.validateHexColorString(css_hex_color_str);
 
         // timeline is descending so jobEnd is always above jobStart
@@ -384,8 +384,8 @@ function createBizcardDivs() {
         var adjustedHexBackgroundColor = utils.adjustHexBrightness(css_hex_background_color_str, 1.7);
         utils.validateHexColorString(adjustedHexBackgroundColor);
         bizcardDiv.setAttribute("saved-selected-background-color", adjustedHexBackgroundColor);
-        utils.validateHexColorString(css_hex_color_str);
-        bizcardDiv.setAttribute("saved-selected-color", css_hex_color_str);
+        var selectedTextColor = colorPalette.getContrastTextColor(adjustedHexBackgroundColor);
+        bizcardDiv.setAttribute("saved-selected-color", selectedTextColor);
 
         bizcardDiv.setAttribute("saved-zIndexStr", zIndexStr);
         bizcardDiv.setAttribute("saved-filterStr", get_filterStr_from_z(z));
@@ -1460,6 +1460,14 @@ function endAnimation(div, targetStyleFrame) {
 function setSelectedStyle(obj) {
     // utils.validateIsElement(obj);
     var notLineItem = !isCardDivLineItem(obj);
+    if (!notLineItem) {
+        var card = getCardDivOfCardDivLineItem(obj);
+        if (card) {
+            try {
+                copyHexColorAttributes(obj, card, ['saved-background-color', 'saved-color', 'saved-selected-background-color', 'saved-selected-color']);
+            } catch (_) {}
+        }
+    }
     // futzing required to use createStyleArray
     if ( notLineItem ) {
         // save these for restoreSavedStyle
@@ -1518,10 +1526,26 @@ function setSelectedStyle(obj) {
             let cardDiv = document.getElementById(cardDivId);
         }
     }
+    if (notLineItem) {
+        syncLineItemToCard(obj, true);
+    }
 
     obj.classList.add('selected');
 }
 
+function syncLineItemToCard(card, useSelectedStyle) {
+    var lineItem = getCardDivLineItem(card.id);
+    if (lineItem == null) return;
+    var bg = useSelectedStyle
+        ? (card.getAttribute('saved-selected-background-color') || card.getAttribute('saved-background-color'))
+        : card.getAttribute('saved-background-color');
+    var text = bg ? colorPalette.getContrastTextColor(bg) : null;
+    if (bg) lineItem.style.setProperty('background-color', bg, 'important');
+    if (text) {
+        lineItem.style.setProperty('color', text, 'important');
+        colorPalette.updateMonoColorSensitiveChildren(lineItem, text);
+    }
+}
 
 // works for card-div, bizcard-div, and card-div-line-item
 // currentProps describes current styling
@@ -1529,11 +1553,24 @@ function setSelectedStyle(obj) {
 function restoreSavedStyle(obj) {
     // utils.validateIsElement(obj);
     var notLineItem =  !isCardDivLineItem(obj);
+    if (!notLineItem) {
+        var card = getCardDivOfCardDivLineItem(obj);
+        if (card) {
+            try {
+                copyHexColorAttributes(obj, card, ['saved-background-color', 'saved-color', 'saved-selected-background-color', 'saved-selected-color']);
+            } catch (_) {}
+        }
+    }
     var currentStyleArray = createStyleArray(obj, null);
     var targetStyleArray = createStyleArray(obj,"saved");
 
-    obj.style.color = obj.getAttribute("saved-color");
-    obj.style.backgroundColor = obj.getAttribute("saved-background-color");
+    var savedBg = obj.getAttribute("saved-background-color");
+    var savedColor = savedBg ? colorPalette.getContrastTextColor(savedBg) : obj.getAttribute("saved-color");
+    obj.style.setProperty('background-color', savedBg || '', 'important');
+    obj.style.setProperty('color', savedColor || '', 'important');
+    if (obj.classList.contains('bizcard-div') || obj.classList.contains('card-div') || obj.classList.contains('card-div-line-item')) {
+        colorPalette.updateMonoColorSensitiveChildren(obj, savedColor);
+    }
 
     if (notLineItem && currentStyleArray[8] > 0) {
         currentStyleArray[8] = -25;
@@ -1568,6 +1605,9 @@ function restoreSavedStyle(obj) {
             // console.log(`cardDiv.saved-background-color: ${cardDiv.getAttribute("saved-background-color")}`);
             // console.log(`lineitem.saved-background-color:${obj.getAttribute("saved-background-color")}`);
         }
+    }
+    if (notLineItem) {
+        syncLineItemToCard(obj, false);
     }
 
     obj.classList.remove('selected');
@@ -1630,14 +1670,13 @@ function createStyleProps(div, styleArray) {
 function applyStyleArray(obj, styleArray) {
     // utils.validateIsElement(obj);
     // utils.validateIsStyleArray(styleArray);
-    var rgbStr;
-    rgbStr = utils.get_RgbStr_from_RGB(styleArray.slice(0,3));
-    obj.style.color = rgbStr;
-    console.assert(obj.style.color === rgbStr);
-
-    rgbStr = utils.get_RgbStr_from_RGB(styleArray.slice(3,6));
-    obj.style.backgroundColor = rgbStr;
-    console.assert(obj.style.backgroundColor === rgbStr);
+    var bgVal = utils.get_Hex_from_RGB(styleArray.slice(3,6));
+    var colorVal = colorPalette.getContrastTextColor(bgVal);
+    obj.style.setProperty('background-color', bgVal, 'important');
+    obj.style.setProperty('color', colorVal, 'important');
+    if (obj.classList.contains('bizcard-div') || obj.classList.contains('card-div') || obj.classList.contains('card-div-line-item')) {
+        colorPalette.updateMonoColorSensitiveChildren(obj, colorVal);
+    }
 
     if ( !isCardDivLineItem(obj) ) { // positionals
         obj.style.left = styleArray[6] + 'px';
@@ -1890,24 +1929,30 @@ function addCardDivLineItem(targetCardDivId) {
             "saved-selected-color"
         ])
 
-        cardDivLineItem.style.backgroundColor = cardDivLineItem.getAttribute("saved-background-color") || "";
-        cardDivLineItem.style.color = cardDivLineItem.getAttribute("saved-color") || "";
+        var cardIsSelected = targetCardDiv.classList.contains('selected');
+        var bg = cardIsSelected
+            ? (targetCardDiv.getAttribute('saved-selected-background-color') || targetCardDiv.getAttribute('saved-background-color'))
+            : targetCardDiv.getAttribute('saved-background-color');
+        var textColor = bg ? colorPalette.getContrastTextColor(bg) : targetCardDiv.getAttribute('saved-color');
+
+        cardDivLineItem.style.setProperty('background-color', bg || '', 'important');
+        cardDivLineItem.style.setProperty('color', textColor || '', 'important');
 
         // set content
         var cardDivLineItemContent = document.createElement("div");
         cardDivLineItemContent.classList.add("card-div-line-item-content");
         cardDivLineItemContent.classList.add("mono-color-sensitive");
         cardDivLineItemContent.style.backgroundColor = 'transparent';
-        cardDivLineItemContent.style.color = targetCardDiv.getAttribute("saved-color") || "";
-        cardDivLineItemContent.dataset.savedColor = targetCardDiv.getAttribute("saved-color") || "";
+        cardDivLineItemContent.style.color = textColor || "";
+        cardDivLineItemContent.dataset.savedColor = textColor || "";
 
         // set right column
         var cardDivLineItemRightColumn = document.createElement('div')
         cardDivLineItemRightColumn.classList.add("card-div-line-item-right-column");
         cardDivLineItemRightColumn.classList.add("mono-color-sensitive");
         cardDivLineItemRightColumn.style.backgroundColor = 'transparent';
-        cardDivLineItemRightColumn.style.color = targetCardDiv.getAttribute("saved-color") || "";
-        cardDivLineItemRightColumn.dataset.savedColor = targetCardDiv.getAttribute("saved-color") || "";
+        cardDivLineItemRightColumn.style.color = textColor || "";
+        cardDivLineItemRightColumn.dataset.savedColor = textColor || "";
 
         // start with the innerHTML of the targetCardDiv
         var targetInnerHTML = targetCardDiv.innerHTML;
@@ -1986,10 +2031,8 @@ function addCardDivLineItem(targetCardDivId) {
                 addIconClickListener(iconElement);
             }
         }
-        // finish up by applying monocolor rules to the cardDivLineItem's mono-color-sensitive child elements
-        for ( let element of cardDivLineItem.getElementsByClassName("mono-color-sensitive") ) {
-            monoColor.applyMonoColorToElement(element);
-        }
+        // finish up by applying correct text/icon colors from current background
+        colorPalette.updateMonoColorSensitiveChildren(cardDivLineItem, textColor);
     } else {
         // console.log(`returning preexisting cardDivLineItem for targetCardDivId:${targetCardDivId}`);
         cardDivLineItem = existingCardDivLineItem

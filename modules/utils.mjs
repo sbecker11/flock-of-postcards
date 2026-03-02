@@ -52,8 +52,8 @@ export const get_HSV_from_RGB = ([ R, G, B ]) => {
     let h = max === min ? 0 : (max === R ? (G - B) / delta + (G < B ? 6 : 0) : max === G ? (B - R) / delta + 2 : (R - G) / delta + 4) * 60;
     if (Number.isNaN(h))
         h = 0;
-    const v = max;
-    const HSV = [ h, s, v ].map(Math.round);
+    const v = max / 255;
+    const HSV = [ h, s, v ];
     validateHSV(HSV);
     return HSV;
 };
@@ -63,7 +63,7 @@ export const get_RGB_from_HSV = ([ h, s, v ]) => {
     const HSV = [h,s,v];
     validateHSV(HSV);
     const f = (n, k = (n + h / 60) % 6) => v - v * s * Math.max(Math.min(k, 4 - k, 1), 0);
-    const RGB = [ f(5), f(3), f(1) ].map(Math.round);
+    const RGB = [ f(5), f(3), f(1) ].map(c => Math.round(c * 255));
     validateRGB(RGB);
     return RGB;
 };

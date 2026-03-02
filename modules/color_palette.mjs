@@ -49,11 +49,20 @@ export function getContrastTextColor(hexBackgroundColor) {
 function lightenHex(hex, amount) {
   const hexStr = hex.startsWith('#') ? hex : '#' + hex;
   const rgb = utils.get_RGB_from_Hex(hexStr);
-  const lightened = rgb.map(c => Math.round(c + (255 - c) * amount));
+  const [h, s, v] = utils.get_HSV_from_RGB(rgb);
+  let newV, newS;
+  if (v < 1) {
+    newV = Math.min(1, v + (1 - v) * amount);
+    newS = s;
+  } else {
+    newV = 1;
+    newS = Math.max(0, s * (1 - amount));
+  }
+  const lightened = utils.get_RGB_from_HSV([h, newS, newV]);
   return utils.get_Hex_from_RGB(lightened);
 }
 
-function updateMonoColorSensitiveChildren(parent, savedColor) {
+export function updateMonoColorSensitiveChildren(parent, savedColor) {
   const children = parent.getElementsByClassName('mono-color-sensitive');
   for (const el of Array.from(children)) {
     el.dataset.savedColor = savedColor;
@@ -77,7 +86,7 @@ export function recolorAllBizCardDivs() {
     let backgroundColor = getColorByIndex(index).toUpperCase();
     if (!backgroundColor.startsWith('#')) backgroundColor = '#' + backgroundColor;
     const textColor = getContrastTextColor(backgroundColor);
-    const adjustedBg = lightenHex(backgroundColor, 0.35);
+    const adjustedBg = lightenHex(backgroundColor, 0.2);
     const selectedTextColor = getContrastTextColor(adjustedBg);
 
     bizcardColors.set(bizcardDiv.id, { bg: backgroundColor, text: textColor, selectedBg: adjustedBg, selectedText: selectedTextColor });
@@ -121,10 +130,12 @@ export function recolorAllBizCardDivs() {
     if (text) lineItem.setAttribute('saved-color', text);
     if (selBg) lineItem.setAttribute('saved-selected-background-color', selBg);
     if (selText) lineItem.setAttribute('saved-selected-color', selText);
-    const isSelected = lineItem.classList.contains('selected');
-    lineItem.style.backgroundColor = isSelected ? (selBg || bg) : bg;
-    lineItem.style.color = isSelected ? (selText || text) : text;
-    updateMonoColorSensitiveChildren(lineItem, isSelected ? (selText || text) : text);
+    const cardIsSelected = targetCard.classList.contains('selected');
+    const bgToUse = cardIsSelected ? (selBg || bg) : bg;
+    const textToUse = cardIsSelected ? (selText || text) : text;
+    lineItem.style.setProperty('background-color', bgToUse || '', 'important');
+    lineItem.style.setProperty('color', textToUse || '', 'important');
+    updateMonoColorSensitiveChildren(lineItem, textToUse);
   }
 
   for (let i = 0; i < bizcardDivs.length; i++) {
