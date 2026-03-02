@@ -59,21 +59,40 @@ overflow and ensures consistent sizing.
 }
 
 #focal-point {
-  top: -18px;
+  top: -19px;
   left: -9px;
   position: absolute;
   width: 25px;
   height: 25px;
+  z-index: 99;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+/* Outer circle — offset +1,+1 to align with inner */
+#focal-point::before {
+  content: '';
+  position: absolute;
+  width: 25px;
+  height: 25px;
+  left: 1px;
+  top: 1px;
   border-radius: 50%;
   border: 2px solid gray;
-  z-index: 99;
-  font-size: 31px;
-  font-weight: 700;
-  color: gray;
-  background-color: transparent; /* Add a background color for visibility */
-  display: flex; /* or inline-flex */
-  align-items: center; 
-  justify-content: center;
+}
+/* Inner circle + X-shaped crosshair */
+#focal-point::after {
+  content: '';
+  position: absolute;
+  width: 14px;
+  height: 14px;
+  top: 50%;
+  left: 50%;
+  border-radius: 50%;
+  border: 1px solid gray;
+  background: linear-gradient(gray, gray) center/2px 14px no-repeat,
+              linear-gradient(gray, gray) center/14px 2px no-repeat;
+  transform: translate(-50%, -50%) rotate(45deg);
 }
 
 .non-draggable-focal-point {

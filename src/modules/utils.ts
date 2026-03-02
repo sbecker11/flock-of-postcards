@@ -277,6 +277,24 @@ export const adjustHexBrightness = (hexStr: string, brightness: number): string 
   return get_Hex_from_RGB(adjustRgbBrightness(get_RGB_from_Hex(hexStr), brightness));
 };
 
+/**
+ * Lighten a hex color by blending with white. Same hue, lighter appearance.
+ * Uses less lightening for already-bright colors to avoid near-white highlights.
+ * @param hexStr - Hex color e.g. #116611
+ * @param amount - 0 = no change, 1 = pure white. Typical: 0.25-0.4 for subtle highlight
+ */
+export const lightenHexColor = (hexStr: string, amount: number): string => {
+  validateHexColorString(hexStr);
+  const rgb = get_RGB_from_Hex(hexStr);
+  // Reduce lightening for bright colors to avoid white/cream highlights
+  const luminance = (0.299 * rgb[0] + 0.587 * rgb[1] + 0.114 * rgb[2]) / 255;
+  const effectiveAmount = luminance > 0.5 ? amount * 0.4 : amount;
+  const lightened = rgb.map((c) =>
+    clamp(Math.round(c * (1 - effectiveAmount) + 255 * effectiveAmount), 0, 255)
+  ) as RGB;
+  return get_Hex_from_RGB(lightened);
+};
+
 export const get_Hex_from_RGB = (RGB: RGB): string => {
   validateIntArrayLength(RGB, 3);
   return "#" + RGB.map(c => c.toString(16).padStart(2, "0")).join("").toUpperCase();

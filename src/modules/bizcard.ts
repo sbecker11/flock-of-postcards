@@ -68,13 +68,11 @@ function createBizcardDiv(canvas: HTMLElement, job: Job): HTMLDivElement {
     // Calculate appropriate text color based on background brightness
     css_hex_color_str = colorPalette.getContrastTextColor(css_hex_background_color_str);
   } else {
-    // Use colors from job data (original behavior)
+    // Use background from job data; always derive text color from contrast
     css_hex_background_color_str = job["css RGB"].trim().toUpperCase();
     utils.validateHexColorString(css_hex_background_color_str);
 
-    const text_color = job["text color"].trim().toUpperCase();
-    css_hex_color_str = utils.get_Hex_from_ColorStr(text_color);
-    utils.validateHexColorString(css_hex_color_str);
+    css_hex_color_str = colorPalette.getContrastTextColor(css_hex_background_color_str);
   }
 
   // Parse end date
@@ -150,10 +148,10 @@ function createBizcardDiv(canvas: HTMLElement, job: Job): HTMLDivElement {
   // Save colors
   bizcardDiv.setAttribute("saved-background-color", css_hex_background_color_str);
   bizcardDiv.setAttribute("saved-color", css_hex_color_str);
-  const adjustedHexBackgroundColor = utils.adjustHexBrightness(css_hex_background_color_str, 1.7);
+  const adjustedHexBackgroundColor = utils.lightenHexColor(css_hex_background_color_str, 0.35);
   utils.validateHexColorString(adjustedHexBackgroundColor);
   bizcardDiv.setAttribute("saved-selected-background-color", adjustedHexBackgroundColor);
-  bizcardDiv.setAttribute("saved-selected-color", css_hex_color_str);
+  bizcardDiv.setAttribute("saved-selected-color", colorPalette.getContrastTextColor(adjustedHexBackgroundColor));
 
   bizcardDiv.setAttribute("saved-zIndexStr", zIndexStr);
   bizcardDiv.setAttribute("saved-filterStr", zDepth.get_filterStr_from_z(z));

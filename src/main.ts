@@ -24,7 +24,7 @@ const selectFirstBizcardButton = document.getElementById("select-first-bizcard")
 const selectNextBizcardButton = document.getElementById("select-next-bizcard") as HTMLElement;
 const selectAllBizcardsButton = document.getElementById("select-all-bizcards") as HTMLElement;
 const clearAllLineItemsButton = document.getElementById("clear-all-line-items") as HTMLElement;
-const paletteSelector = document.getElementById("palette-selector") as HTMLSelectElement;
+const paletteButtonsContainer = document.getElementById("palette-buttons") as HTMLElement;
 const paletteIcon = document.getElementById("paletteIcon") as HTMLElement;
 const paletteSelectorPopup = document.getElementById("palette-selector-popup") as HTMLElement;
 
@@ -157,28 +157,28 @@ async function handlePaletteChange(paletteName: string): Promise<void> {
 }
 
 /**
- * Initialize palette selector dropdown
+ * Initialize palette selector with clickable buttons
  */
 async function initializePaletteSelector(): Promise<string | null> {
   try {
     const availablePalettes = await colorPalette.fetchAvailablePalettes();
-    
-    // Clear existing options
-    paletteSelector.innerHTML = '';
-    
-    // Add options for each palette
-    availablePalettes.forEach(paletteName => {
-      const option = document.createElement('option');
-      option.value = paletteName;
-      option.textContent = paletteName.charAt(0).toUpperCase() + paletteName.slice(1);
-      paletteSelector.appendChild(option);
+
+    if (!paletteButtonsContainer) return null;
+    paletteButtonsContainer.innerHTML = '';
+
+    availablePalettes.forEach((paletteName) => {
+      const btn = document.createElement('button');
+      btn.type = 'button';
+      btn.textContent = paletteName.charAt(0).toUpperCase() + paletteName.slice(1);
+      btn.style.cssText = 'display: block; width: 100%; padding: 8px; margin: 2px 0; cursor: pointer; background: #444; color: #fff; border: 1px solid #666; border-radius: 3px; font-size: 12px; text-align: left;';
+      btn.addEventListener('click', () => handlePaletteChange(paletteName));
+      paletteButtonsContainer.appendChild(btn);
     });
-    
-    // Return the first palette as default
+
     return availablePalettes.length > 0 ? availablePalettes[0] : null;
   } catch (error) {
     console.error('Failed to load palette list:', error);
-    paletteSelector.innerHTML = '<option value="">Error loading palettes</option>';
+    paletteButtonsContainer.innerHTML = '<span style="color: #f66;">Error loading palettes</span>';
     return null;
   }
 }
@@ -333,12 +333,6 @@ clearAllLineItemsButton.addEventListener("click", () => {
 paletteIcon.addEventListener("click", (e) => {
   e.stopPropagation();
   togglePaletteSelectorPopup();
-});
-
-// Palette selector event listener
-paletteSelector.addEventListener("change", (e) => {
-  const selectedPalette = (e.target as HTMLSelectElement).value;
-  handlePaletteChange(selectedPalette);
 });
 
 // Close palette popup when clicking outside

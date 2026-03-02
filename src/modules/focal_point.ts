@@ -47,27 +47,51 @@ export function createFocalPoint(
 }
 
 /**
- * Get the current focal point position relative to its container
- * @returns Point with x and y coordinates
+ * Get the base center of the focal point (without transform)
  */
-export function getFocalPoint(): Point {
+function getFocalPointBaseCenter(): Point {
   return {
-    x: _focalPointElement.offsetLeft + Math.floor(_focalPointElement.offsetWidth / 2),
-    y: _focalPointElement.offsetTop + Math.floor(_focalPointElement.offsetHeight / 2),
+    x: _focalPointElement.offsetLeft + _focalPointElement.offsetWidth / 2,
+    y: _focalPointElement.offsetTop + _focalPointElement.offsetHeight / 2,
   };
 }
 
 /**
- * Move the focal point to a specific position
- * @param x - X coordinate
- * @param y - Y coordinate
+ * Parse current translate from transform style
+ */
+function getCurrentTranslate(): Point {
+  const transform = _focalPointElement.style.transform;
+  if (!transform) return { x: 0, y: 0 };
+  const match = transform.match(/translate\(([-\d.]+)px,\s*([-\d.]+)px\)/);
+  if (!match) return { x: 0, y: 0 };
+  return { x: parseFloat(match[1]), y: parseFloat(match[2]) };
+}
+
+/**
+ * Get the current focal point center position (accounting for transform)
+ * @returns Point with x and y coordinates
+ */
+export function getFocalPoint(): Point {
+  const base = getFocalPointBaseCenter();
+  const translate = getCurrentTranslate();
+  return {
+    x: base.x + translate.x,
+    y: base.y + translate.y,
+  };
+}
+
+/**
+ * Move the focal point so its center is at the given position
+ * @param x - Desired center X coordinate
+ * @param y - Desired center Y coordinate
  */
 export function moveFocalPointTo(x: number, y: number): void {
-  // Use transform for better performance
-  // See https://stackoverflow.com/a/53892597
-  _focalPointElement.style.transform = `translate(${x}px, ${y}px)`;
+  const base = getFocalPointBaseCenter();
+  const translateX = x - base.x;
+  const translateY = y - base.y;
+  _focalPointElement.style.transform = `translate(${translateX}px, ${translateY}px)`;
 
-  // Notify the listener
+  // Notify the listener with the actual center position
   _focalPointListener(x, y);
 }
 

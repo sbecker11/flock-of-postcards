@@ -3,7 +3,9 @@
 import * as lineItems from './line_items.js';
 import * as utils from './utils.js';
 import * as zDepth from './z_depth.js';
-import { isCardDivLineItem } from './dom_helpers.js';
+import * as monoColor from './monoColor.js';
+import * as colorPalette from './color_palette.js';
+import { isCardDivLineItem, isBizcardDiv, isCardDiv } from './dom_helpers.js';
 import { scrollElementIntoView } from './dom_helpers.js';
 import type { StyleArray } from './types.js';
 
@@ -173,8 +175,8 @@ export function restoreSavedStyle(obj: HTMLElement): void {
   const notLineItem = !isCardDivLineItem(obj);
   const targetStyleArray = createStyleArray(obj, "saved");
 
-  obj.style.color = obj.getAttribute("saved-color") || "";
-  obj.style.backgroundColor = obj.getAttribute("saved-background-color") || "";
+  obj.style.setProperty('color', obj.getAttribute("saved-color") || "", 'important');
+  obj.style.setProperty('background-color', obj.getAttribute("saved-background-color") || "", 'important');
 
   applyStyleArray(obj, targetStyleArray);
   obj.classList.remove('selected');
@@ -229,14 +231,25 @@ export function createStyleArray(obj: HTMLElement, prefix: string | null): Style
 }
 
 /**
- * Apply style array to element
+ * Apply style array to element.
+ * Text color is always computed from the background for maximum contrast.
  */
 export function applyStyleArray(obj: HTMLElement, styleArray: StyleArray): void {
-  const rgbColor = utils.get_RgbStr_from_RGB(styleArray.slice(0, 3) as [number, number, number]);
-  obj.style.color = rgbColor;
+  // styleArray: [colorR,G,B, bgR,G,B, ...] when both present
+  const hasBoth = styleArray.length >= 6;
+  const bgRGB = hasBoth ? (styleArray.slice(3, 6) as [number, number, number]) : null;
+  const rgbBgColor = bgRGB ? utils.get_RgbStr_from_RGB(bgRGB) : '';
 
-  const rgbBgColor = utils.get_RgbStr_from_RGB(styleArray.slice(3, 6) as [number, number, number]);
-  obj.style.backgroundColor = rgbBgColor;
+  // Derive text color from background for maximum contrast (normal or highlighted)
+  const hexBgColor = bgRGB ? utils.get_Hex_from_RGB(bgRGB) : '';
+  const textColorHex = hexBgColor ? colorPalette.getContrastTextColor(hexBgColor) : '';
+  const textColorRGB = utils.get_RGB_from_AnyStr(textColorHex);
+  const rgbColor = textColorRGB
+    ? utils.get_RgbStr_from_RGB(textColorRGB)
+    : (hasBoth ? utils.get_RgbStr_from_RGB(styleArray.slice(0, 3) as [number, number, number]) : '');
+
+  obj.style.setProperty('color', rgbColor, 'important');
+  obj.style.setProperty('background-color', rgbBgColor, 'important');
 
   if (!isCardDivLineItem(obj)) {
     obj.style.left = styleArray[6] + 'px';
@@ -244,5 +257,22 @@ export function applyStyleArray(obj: HTMLElement, styleArray: StyleArray): void 
     const z = styleArray[8];
     obj.style.zIndex = zDepth.get_zIndexStr_from_z(z);
     obj.style.filter = zDepth.get_filterStr_from_z(z);
+  }
+
+  // Propagate text color to children (bizcards, card-divs, line items) so text and icons match
+  if (textColorHex && (isCardDivLineItem(obj) || isBizcardDiv(obj) || isCardDiv(obj))) {
+    // Card-divs remove mono-color-sensitive from children, so also select .icon and .tag-link
+    const children = obj.querySelectorAll('.mono-color-sensitive, .icon, .tag-link');
+    for (const el of Array.from(children)) {
+      const elem = el as HTMLElement;
+      elem.dataset.savedColor = textColorHex;
+      elem.setAttribute('data-saved-color', textColorHex);
+      elem.style.setProperty('color', textColorHex, 'important');
+      try {
+        monoColor.applyMonoColorToElement(elem);
+      } catch {
+        // Ignore elements that don't support monoColor (e.g. missing icon type)
+      }
+    }
   }
 }

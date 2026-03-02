@@ -112,11 +112,13 @@ export function setIconToColor(iconElement: HTMLElement, theIconColor: string): 
   
   if (!isMonoColor) {
     const savedColor = iconElement.dataset.savedColor;
-    if (typeof savedColor === "undefined" || savedColor == null || savedColor == '') {
+    if (typeof savedColor === "undefined" || savedColor == null || savedColor === '') {
       const err = `setIconColor iconElement:${iconElement} savedColor is undefined`;
       throw new Error(err);
     }
-    if (savedColor != iconColor) {
+    // Compare semantic color (black/white) - savedColor may be hex (#000000) or name (black)
+    const savedIconColor = getIconColor(savedColor);
+    if (savedIconColor !== iconColor) {
       const err = `setIconColor iconElement:${iconElement} in colorMode given iconColor:${iconColor} when savedColor:${savedColor}`;
       throw new Error(err);
     }
