@@ -28,12 +28,29 @@ one or more return icons <img src="static_content/icons/icons8-back-16-black.png
 of return icons indicates the number of jobs and the amount of time used to hone that skill.
 
 
-# Run the `flock-of-postcards` career resume web app using VSCode
+# Run the `flock-of-postcards` career resume web app
+
+## Option A: npm run dev (recommended)
+
+```bash
+npm install
+npm run dev
+```
+
+The dev server runs on `http://localhost:3000` by default. To use a different port (e.g. to run multiple instances in parallel), create a `.env` file with:
+
+```
+SERVE_PORT=3001
+```
+
+See `.env.example` for the available options.
+
+## Option B: VSCode + LiveServer
 
 ## Clone this repo to your local development folder  
 `cd <your-local-dev-folder>`
 `git clone git@github.com:sbecker11/flock-of-postcards.git`
-`cd <your-local-dev-folder>/fock-of-postcards`
+`cd <your-local-dev-folder>/flock-of-postcards`
  
 ## Install VSCode + LiverServer  
 
@@ -73,7 +90,7 @@ But wouldn't it be better to configure the app to show off your own illustrious 
  # How to customize the webapp to show your own illustrious career
 
 - Go to the project's local home folder
-`cd <your-local-dev-folder>/fock-of-postcards`
+`cd <your-local-dev-folder>/flock-of-postcards`
 
 - Go to jobs folder
 `cd static_content/jobs`

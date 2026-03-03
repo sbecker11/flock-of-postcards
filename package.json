@@ -5,10 +5,11 @@
   "main": "main.mjs",
   "type": "module",
   "scripts": {
-    "dev": "serve .",
+    "dev": "node -r dotenv/config scripts/serve-dev.mjs",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "devDependencies": {
+    "dotenv": "^16.4.5",
     "serve": "^14.2.4"
   },
   "repository": {

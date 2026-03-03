@@ -7,7 +7,6 @@ import * as timeline from './modules/timeline.mjs';
 import * as focalPoint from './modules/focal_point.mjs';
 import * as monoColor from './modules/monoColor.mjs';
 import * as alerts from './modules/alerts.mjs';
-import * as colorPalette from './modules/color_palette.mjs';
 
 // --------------------------------------
 // Element reference globals
@@ -100,18 +99,6 @@ const MIN_BRIGHTNESS_PERCENT = 75;
 
 // card blur increases as z increases
 const BLUR_Z_SCALE_FACTOR = 4;
-
-//--------------------------------------
-// Default mouse behavior: prevent selections while mouse is fown
-document.addEventListener('mousedown', function() {
-    document.body.classList.add('no-select');
-    document.getElementById("canvas-container").classList.add('no-select');
-});
-
-document.addEventListener('mouseup', function() {
-    document.body.classList.remove('no-select');
-    document.getElementById("canvas-container").classList.remove('no-select');
-});
 
 //--------------------------------------
 // Z functions
@@ -215,73 +202,7 @@ function getNextBizcardDivId() {
 //
 // Also parse each job's description to pull out 
 // the shared "skills" from the narrative pf each.
-//
-const PALETTE_STORAGE_KEY = 'flock-palette';
-
-async function initPaletteSelector() {
-    const paletteIcon = document.getElementById('paletteIcon');
-    const popup = document.getElementById('palette-selector-popup');
-    const buttonsContainer = document.getElementById('palette-buttons');
-    if (!paletteIcon || !popup || !buttonsContainer) return;
-    function updatePaletteButtonStates() {
-        const current = colorPalette.getCurrentPaletteName();
-        for (const btn of buttonsContainer.querySelectorAll('button')) {
-            const isSelected = btn.dataset.paletteName === current;
-            btn.disabled = isSelected;
-            btn.style.cursor = isSelected ? 'none' : 'pointer';
-            btn.style.background = isSelected ? '#6a6a6a' : '#444';
-            btn.style.borderColor = isSelected ? '#888' : '#666';
-        }
-    }
-    try {
-        const palettes = await colorPalette.fetchAvailablePalettes();
-        palettes.forEach(name => {
-            const btn = document.createElement('button');
-            btn.type = 'button';
-            btn.dataset.paletteName = name;
-            btn.textContent = name.charAt(0).toUpperCase() + name.slice(1);
-            btn.style.cssText = 'display: block; width: 100%; padding: 8px; margin: 2px 0; cursor: pointer; background: #444; color: #fff; border: 1px solid #666; border-radius: 3px; font-size: 12px; text-align: left;';
-            btn.addEventListener('click', async () => {
-                if (btn.disabled) return;
-                try {
-                    await colorPalette.loadPaletteByName(name);
-                    colorPalette.recolorAllBizCardDivs();
-                    localStorage.setItem(PALETTE_STORAGE_KEY, name);
-                    popup.style.display = 'none';
-                    paletteIcon.style.border = '2px solid transparent';
-                } catch (e) {
-                    console.error('Palette load failed:', e);
-                }
-            });
-            buttonsContainer.appendChild(btn);
-        });
-        const saved = localStorage.getItem(PALETTE_STORAGE_KEY);
-        const defaultPalette = (saved && palettes.includes(saved))
-            ? saved
-            : (palettes.includes('sweeps') ? 'sweeps' : palettes[0]);
-        if (defaultPalette) {
-            await colorPalette.loadPaletteByName(defaultPalette);
-            colorPalette.recolorAllBizCardDivs();
-        }
-        updatePaletteButtonStates();
-    } catch (e) {
-        console.warn('Palette init failed:', e);
-    }
-    paletteIcon.addEventListener('click', (e) => {
-        e.stopPropagation();
-        const visible = popup.style.display !== 'none';
-        popup.style.display = visible ? 'none' : 'block';
-        paletteIcon.style.border = visible ? '2px solid transparent' : '2px solid white';
-        if (!visible) updatePaletteButtonStates();
-    });
-    document.addEventListener('click', (e) => {
-        if (!popup.contains(e.target) && e.target !== paletteIcon) {
-            popup.style.display = 'none';
-            paletteIcon.style.border = '2px solid transparent';
-        }
-    });
-}
-
+//  
 function createBizcardDivs() {
     
     var sortedJobs = structuredClone(jobs);
@@ -300,7 +221,8 @@ function createBizcardDivs() {
         utils.validateHexColorString(css_hex_background_color_str);
 
         // utils.validateKey(job, "text color");
-        var css_hex_color_str = colorPalette.getContrastTextColor(css_hex_background_color_str);
+        var text_color = job[ "text color" ].trim().toUpperCase();
+        var css_hex_color_str = utils.get_Hex_from_ColorStr(text_color);
         utils.validateHexColorString(css_hex_color_str);
 
         // timeline is descending so jobEnd is always above jobStart
@@ -365,7 +287,7 @@ function createBizcardDivs() {
         }
         bizcardDiv.setAttribute("startDate", utils.getIsoDateString(startDate));
 
-        // save the bizcardDiv's original center 
+        // save the original center 
         var originalCtrX = left + width / 2;
         var originalCtrY = top + height / 2;
         var originalZ = z;
@@ -384,8 +306,8 @@ function createBizcardDivs() {
         var adjustedHexBackgroundColor = utils.adjustHexBrightness(css_hex_background_color_str, 1.7);
         utils.validateHexColorString(adjustedHexBackgroundColor);
         bizcardDiv.setAttribute("saved-selected-background-color", adjustedHexBackgroundColor);
-        var selectedTextColor = colorPalette.getContrastTextColor(adjustedHexBackgroundColor);
-        bizcardDiv.setAttribute("saved-selected-color", selectedTextColor);
+        utils.validateHexColorString(css_hex_color_str);
+        bizcardDiv.setAttribute("saved-selected-color", css_hex_color_str);
 
         bizcardDiv.setAttribute("saved-zIndexStr", zIndexStr);
         bizcardDiv.setAttribute("saved-filterStr", get_filterStr_from_z(z));
@@ -419,10 +341,6 @@ function createBizcardDivs() {
         // does not scroll self into view
 
     }
-
-    // Dispatch a custom event after appending all bizcards
-    const event = new Event('bizcardsAppended');
-    document.dispatchEvent(event);
 }
 
 
@@ -776,7 +694,7 @@ function cardDivMatchesTagLink(cardDiv, tag_link) {
 // of a card-div (or bizcard-div) and splits it by
 // the BULLLET delimiter and returns the HTML of an 
 // unordered list of description items.
-function convert_description_HTML_to_line_items_HTML(description_HTML, cardDivLineItem) {
+function convert_description_HTML_to_line_items_HTML(description_HTML) {
     var HTML = "";
     HTML += '<p class="card-div-line-item-description">';
     var items = description_HTML.split(BULLET_DELIMITER);
@@ -896,9 +814,9 @@ function createCardDiv(bizcardDiv, tag_link) {
 
     var width = img_width + 2 * CARD_BORDER_WIDTH;
     var height = img_height + 2 * CARD_BORDER_WIDTH
-    // cardDiv.style.borderWidth = `${CARD_BORDER_WIDTH}px`;
-    // cardDiv.style.borderStyle = "solid";
-    // cardDiv.style.borderColor = "white";
+    cardDiv.style.borderWidth = `${CARD_BORDER_WIDTH}px`;
+    cardDiv.style.borderStyle = "solid";
+    cardDiv.style.borderColor = "white";
     cardDiv.style.width = `${width}px`;
     cardDiv.style.height = `${height}px`;
 
@@ -1205,21 +1123,13 @@ function applyParallaxToOneCardDiv(cardDiv) {
     applyParallaxToOneCardDivStyleProps(cardDiv,cardDivStyleProps);
 }
 
-/**
- * applyz-depth scaled parallax to all translateableDiv 
- * currently visible in the canvasContainer viewport
- */
+// applies z-depth scaled parallax to all translateableDiv
 function applyParallax() {
-    // let numVisible = 0;
-    var allDivs = getAllTranslateableCardDivs();    
+    var allDivs = getAllTranslateableCardDivs();
     for (var i = 0; i < allDivs.length; i++) {
-        var cardDiv = allDivs[i];
-        if ( isCardDivWithinViewport(cardDiv) ) {
-            applyParallaxToOneCardDiv(cardDiv); // Apply parallax to the cloned cardDiv
-            // numVisible += 1;
-        }
-    } 
-    // console.log("numVisible:", numVisible, "numDivs:", allDivs.length);
+        var cardDiv = allDivs[ i ];
+        applyParallaxToOneCardDiv(cardDiv)
+    }
 }
 
 let mouseX;
@@ -1460,14 +1370,6 @@ function endAnimation(div, targetStyleFrame) {
 function setSelectedStyle(obj) {
     // utils.validateIsElement(obj);
     var notLineItem = !isCardDivLineItem(obj);
-    if (!notLineItem) {
-        var card = getCardDivOfCardDivLineItem(obj);
-        if (card) {
-            try {
-                copyHexColorAttributes(obj, card, ['saved-background-color', 'saved-color', 'saved-selected-background-color', 'saved-selected-color']);
-            } catch (_) {}
-        }
-    }
     // futzing required to use createStyleArray
     if ( notLineItem ) {
         // save these for restoreSavedStyle
@@ -1526,26 +1428,10 @@ function setSelectedStyle(obj) {
             let cardDiv = document.getElementById(cardDivId);
         }
     }
-    if (notLineItem) {
-        syncLineItemToCard(obj, true);
-    }
 
     obj.classList.add('selected');
 }
 
-function syncLineItemToCard(card, useSelectedStyle) {
-    var lineItem = getCardDivLineItem(card.id);
-    if (lineItem == null) return;
-    var bg = useSelectedStyle
-        ? (card.getAttribute('saved-selected-background-color') || card.getAttribute('saved-background-color'))
-        : card.getAttribute('saved-background-color');
-    var text = bg ? colorPalette.getContrastTextColor(bg) : null;
-    if (bg) lineItem.style.setProperty('background-color', bg, 'important');
-    if (text) {
-        lineItem.style.setProperty('color', text, 'important');
-        colorPalette.updateMonoColorSensitiveChildren(lineItem, text);
-    }
-}
 
 // works for card-div, bizcard-div, and card-div-line-item
 // currentProps describes current styling
@@ -1553,24 +1439,11 @@ function syncLineItemToCard(card, useSelectedStyle) {
 function restoreSavedStyle(obj) {
     // utils.validateIsElement(obj);
     var notLineItem =  !isCardDivLineItem(obj);
-    if (!notLineItem) {
-        var card = getCardDivOfCardDivLineItem(obj);
-        if (card) {
-            try {
-                copyHexColorAttributes(obj, card, ['saved-background-color', 'saved-color', 'saved-selected-background-color', 'saved-selected-color']);
-            } catch (_) {}
-        }
-    }
     var currentStyleArray = createStyleArray(obj, null);
     var targetStyleArray = createStyleArray(obj,"saved");
 
-    var savedBg = obj.getAttribute("saved-background-color");
-    var savedColor = savedBg ? colorPalette.getContrastTextColor(savedBg) : obj.getAttribute("saved-color");
-    obj.style.setProperty('background-color', savedBg || '', 'important');
-    obj.style.setProperty('color', savedColor || '', 'important');
-    if (obj.classList.contains('bizcard-div') || obj.classList.contains('card-div') || obj.classList.contains('card-div-line-item')) {
-        colorPalette.updateMonoColorSensitiveChildren(obj, savedColor);
-    }
+    obj.style.color = obj.getAttribute("saved-color");
+    obj.style.backgroundColor = obj.getAttribute("saved-background-color");
 
     if (notLineItem && currentStyleArray[8] > 0) {
         currentStyleArray[8] = -25;
@@ -1605,9 +1478,6 @@ function restoreSavedStyle(obj) {
             // console.log(`cardDiv.saved-background-color: ${cardDiv.getAttribute("saved-background-color")}`);
             // console.log(`lineitem.saved-background-color:${obj.getAttribute("saved-background-color")}`);
         }
-    }
-    if (notLineItem) {
-        syncLineItemToCard(obj, false);
     }
 
     obj.classList.remove('selected');
@@ -1670,13 +1540,14 @@ function createStyleProps(div, styleArray) {
 function applyStyleArray(obj, styleArray) {
     // utils.validateIsElement(obj);
     // utils.validateIsStyleArray(styleArray);
-    var bgVal = utils.get_Hex_from_RGB(styleArray.slice(3,6));
-    var colorVal = colorPalette.getContrastTextColor(bgVal);
-    obj.style.setProperty('background-color', bgVal, 'important');
-    obj.style.setProperty('color', colorVal, 'important');
-    if (obj.classList.contains('bizcard-div') || obj.classList.contains('card-div') || obj.classList.contains('card-div-line-item')) {
-        colorPalette.updateMonoColorSensitiveChildren(obj, colorVal);
-    }
+    var rgbStr;
+    rgbStr = utils.get_RgbStr_from_RGB(styleArray.slice(0,3));
+    obj.style.color = rgbStr;
+    console.assert(obj.style.color === rgbStr);
+
+    rgbStr = utils.get_RgbStr_from_RGB(styleArray.slice(3,6));
+    obj.style.backgroundColor = rgbStr;
+    console.assert(obj.style.backgroundColor === rgbStr);
 
     if ( !isCardDivLineItem(obj) ) { // positionals
         obj.style.left = styleArray[6] + 'px';
@@ -1929,30 +1800,24 @@ function addCardDivLineItem(targetCardDivId) {
             "saved-selected-color"
         ])
 
-        var cardIsSelected = targetCardDiv.classList.contains('selected');
-        var bg = cardIsSelected
-            ? (targetCardDiv.getAttribute('saved-selected-background-color') || targetCardDiv.getAttribute('saved-background-color'))
-            : targetCardDiv.getAttribute('saved-background-color');
-        var textColor = bg ? colorPalette.getContrastTextColor(bg) : targetCardDiv.getAttribute('saved-color');
-
-        cardDivLineItem.style.setProperty('background-color', bg || '', 'important');
-        cardDivLineItem.style.setProperty('color', textColor || '', 'important');
+        cardDivLineItem.style.backgroundColor = cardDivLineItem.getAttribute("saved-background-color") || "";
+        cardDivLineItem.style.color = cardDivLineItem.getAttribute("saved-color") || "";
 
         // set content
         var cardDivLineItemContent = document.createElement("div");
         cardDivLineItemContent.classList.add("card-div-line-item-content");
         cardDivLineItemContent.classList.add("mono-color-sensitive");
         cardDivLineItemContent.style.backgroundColor = 'transparent';
-        cardDivLineItemContent.style.color = textColor || "";
-        cardDivLineItemContent.dataset.savedColor = textColor || "";
+        cardDivLineItemContent.style.color = targetCardDiv.getAttribute("saved-color") || "";
+        cardDivLineItemContent.dataset.savedColor = targetCardDiv.getAttribute("saved-color") || "";
 
         // set right column
         var cardDivLineItemRightColumn = document.createElement('div')
         cardDivLineItemRightColumn.classList.add("card-div-line-item-right-column");
         cardDivLineItemRightColumn.classList.add("mono-color-sensitive");
         cardDivLineItemRightColumn.style.backgroundColor = 'transparent';
-        cardDivLineItemRightColumn.style.color = textColor || "";
-        cardDivLineItemRightColumn.dataset.savedColor = textColor || "";
+        cardDivLineItemRightColumn.style.color = targetCardDiv.getAttribute("saved-color") || "";
+        cardDivLineItemRightColumn.dataset.savedColor = targetCardDiv.getAttribute("saved-color") || "";
 
         // start with the innerHTML of the targetCardDiv
         var targetInnerHTML = targetCardDiv.innerHTML;
@@ -1962,22 +1827,13 @@ function addCardDivLineItem(targetCardDivId) {
             cardDivLineItemContent.innerHTML = targetInnerHTML;
         }
 
-        if (isBizcardDiv(targetCardDiv)) {
-            var swatchHex = targetCardDiv.getAttribute('saved-background-color') || '';
-            var highlightHex = targetCardDiv.getAttribute('saved-selected-background-color') || '';
-            if (swatchHex || highlightHex) {
-                var swatchText = (swatchHex ? 'Swatch: ' + swatchHex : '') + (swatchHex && highlightHex ? ' | ' : '') + (highlightHex ? 'Highlight: ' + highlightHex : '');
-                cardDivLineItemContent.innerHTML += '<p class="card-div-line-item-swatch" style="font-size:11px;margin:4px 0 0 0;opacity:0.85;">' + swatchText + '</p>';
-            }
-        }
-
         // if targetCardDiv has a "Description" attribute
         var description = targetCardDiv.getAttribute("Description");
         if (description && description.length > 0) {
             // split the description by BULLET_DELIMITER and return html 
             // of the styled form <p><ul>(<li>text</li>)+</ul></p>
             // where text contains spans that have targetCardDivIds
-            var line_items_HTML = convert_description_HTML_to_line_items_HTML(description, cardDivLineItem);
+            var line_items_HTML = convert_description_HTML_to_line_items_HTML(description);
             if (line_items_HTML && line_items_HTML.length > 0) {
                 // remove all line breaks <br/> from line_items_HTML
                 line_items_HTML = line_items_HTML.replace(/<br\/>/g, "");
@@ -2040,8 +1896,10 @@ function addCardDivLineItem(targetCardDivId) {
                 addIconClickListener(iconElement);
             }
         }
-        // finish up by applying correct text/icon colors from current background
-        colorPalette.updateMonoColorSensitiveChildren(cardDivLineItem, textColor);
+        // finish up by applying monocolor rules to the cardDivLineItem's mono-color-sensitive child elements
+        for ( let element of cardDivLineItem.getElementsByClassName("mono-color-sensitive") ) {
+            monoColor.applyMonoColorToElement(element);
+        }
     } else {
         // console.log(`returning preexisting cardDivLineItem for targetCardDivId:${targetCardDivId}`);
         cardDivLineItem = existingCardDivLineItem
@@ -2176,29 +2034,20 @@ function addTagLinkClickListener(tag_link) {
     });
 }
 
-/**
- * applies current depth-based translation to all divs 
- * that are visible in the current viewport
- */
 function renderAllTranslateableDivsAtCanvasContainerCenter() {
-
-    updateViewport();
-
     const canvasContainerX = utils.half(canvasContainer.offsetWidth);
     const canvasContainerY = utils.half(canvasContainer.offsetHeight);
     const translateableDivs = getAllTranslateableCardDivs();
     for (const div of translateableDivs) {
-        if ( isCardDivWithinViewport(div) ) {
-            const divWidth = div.offsetWidth;
-            const trans_dx = canvasContainerX - utils.half(divWidth);
-            const trans_dy = 0;
-            const translateStr = `${trans_dx}px ${trans_dy}px`;
-            try {
-                div.style.translate = translateStr;
-            } catch (error) {
-                // console.log(`leftCenter div:${div.id}`, error);
-                // console.error(`leftCenter div:${div.id}`, error);
-            }
+        const divWidth = div.offsetWidth;
+        const trans_dx = canvasContainerX - utils.half(divWidth);
+        const trans_dy = 0;
+        const translateStr = `${trans_dx}px ${trans_dy}px`;
+        try {
+            div.style.translate = translateStr;
+        } catch (error) {
+            // console.log(`leftCenter div:${div.id}`, error);
+            // console.error(`leftCenter div:${div.id}`, error);
         }
     }
 }
@@ -2257,11 +2106,7 @@ function getParallax() {
 
 // smoothly move the focalPoint to the bullsEye
 function easeFocalPointToBullsEye() {
-    // focalPoint is actually focalPointElement.left/top, 
-    // so true focalPoint center is at left,top + halfWidth,
-    // which is 25 from styles.css.
-    const dd = 12.5; 
-    focalPoint.easeFocalPointTo(bullsEyeX-dd, bullsEyeY-dd);
+    focalPoint.easeFocalPointTo(bullsEyeX, bullsEyeY);
 }
 
 // return the min and max years over the list of jobs
@@ -2302,30 +2147,16 @@ function handleWindowLoad() {
     timeline.createTimeline(timelineContainer, canvasContainer, MIN_TIMELINE_YEAR, MAX_TIMELINE_YEAR, DEFAULT_TIMELINE_YEAR);
 
     createBizcardDivs();
-    initPaletteSelector();
     renderAllTranslateableDivsAtCanvasContainerCenter();
     positionGradients();
     centerBullsEye();
     easeFocalPointToBullsEye();
 
-    let lastFrameTime = 0;
-    const maxFramesPerSecond = 10;
-    const frameIntervalMillis = 1000 / maxFramesPerSecond;
-
     // set up animation loop
     (function drawFrame() {
-        const now = performance.now();
-        const deltaTime = now - lastFrameTime;
-        if (deltaTime >= frameIntervalMillis) {
-            lastFrameTime = now;
-
-            // console.time('drawFocalPointAnimationFrame');
-            focalPoint.drawFocalPointAnimationFrame();
-            // console.timeEnd('drawFocalPointAnimationFrame');
-        }
+        focalPoint.drawFocalPointAnimationFrame();
         // Request the next frame.
         window.requestAnimationFrame(drawFrame);
-
     })();
     // Start the animation loop.
     window.requestAnimationFrame(drawFrame);
@@ -2335,60 +2166,10 @@ function drawFrame() {
     focalPoint.drawFocalPointAnimationFrame();
 }
 
-const viewport = {};
-const VIEWPORT_PADDING = 1000;
-
-/**
- * updates the canvas-constainer-relative 
- * geometry of the viewPort, which is used
- * to clip out cardDivs that are not visible.
- */
-function updateViewport() {
-    const canvasContainer = document.getElementById("canvas-container");
-    const canvasContainerRect = canvasContainer.getBoundingClientRect();
-    const canvasContainerWidth = canvasContainerRect.right - canvasContainerRect.left;
-    const canvasContainerHeight = canvasContainerRect.bottom - canvasContainerRect.top;
-    viewport.padding = VIEWPORT_PADDING;
-    viewport.top = canvasContainerRect.top - viewport.padding;
-    viewport.left = canvasContainerRect.left - viewport.padding;
-    viewport.right = canvasContainerRect.right + viewport.padding;
-    viewport.bottom = canvasContainerRect.bottom + viewport.padding;
-    viewport.centerX = canvasContainerRect.left + canvasContainerWidth / 2;
-    viewport.centerY = canvasContainerRect.top + canvasContainerHeight / 2;
-}
-
-/**
- * @returns the canvas-container relative position of the viewpoint center
- */
-function getViewpointCenter() {
-    return {
-        x: viewport.centerX,
-        y: viewport.centerY
-    }
-}
-
-/**
- * Checks if any part of the given cardDiv is visible within the 
- * viewport, which is derived from the canvasContainer element.
- * @param {HTMLElement} cardDiv - The cardDiv element to check.
- * @returns {boolean} - True if the cardDiv is within the viewport, false otherwise.
- */
-function isRectWithinViewport(rect) {
-    const intersects = !(rect.right < viewport.left || 
-                         rect.left > viewport.right || 
-                         rect.bottom < viewport.top || 
-                         rect.top > viewport.bottom);
-    return intersects;
-}
-function isCardDivWithinViewport(cardDiv) {
-    return isRectWithinViewport(cardDiv.getBoundingClientRect());
-}
-
 function handleWindowResize() {
     // resize the canvas-container and the canvas since they don't do it themselves?
-    var canvasContainerWidth = window.innerWidth/2;
-    var canvasContainerHeight = window.innerHeight;
-    console.log("windowResize width:", canvasContainerWidth, "height:", canvasContainerHeight);
+    var windowWidth = window.innerWidth;
+    var canvasContainerWidth = windowWidth / 2;
     canvasContainer.style.width = canvasContainerWidth + "px";
     canvas.style.width = canvasContainerWidth + "px";
     renderAllTranslateableDivsAtCanvasContainerCenter();
@@ -2436,10 +2217,6 @@ export function selectAllBizcards() {
     clearAllDivCardLineItems();
 
     var allBizcardDivs = document.getElementsByClassName("bizcard-div");
-    if ( allBizcardDivs.length == 0 ) {
-        console.error("selectAllBizcards() found zero bizCardDivs.");
-        return;
-    }
     for (let i = 0; i < allBizcardDivs.length; i++) {
         var bizcardDiv = allBizcardDivs[ i ];
 
@@ -2466,11 +2243,7 @@ function clearAllDivCardLineItems() {
 // and scroll each into view
 function selectAndScrollToCardDiv(cardDiv) {
     // utils.validateIsCardDivOrBizcardDiv(cardDiv);
-    if ( !cardDiv ) {
-        console.log("Ignoring undefined cardDiv");
-        return;
-    }
-    var cardDivLineItem = getCardDivLineItem(cardDiv.id);
+    var cardDivLineItem = getCardDivLineItem(cardDiv.id)
 
     // avoid in case another select would ignore the select
     selectTheCardDiv(cardDiv, true);
